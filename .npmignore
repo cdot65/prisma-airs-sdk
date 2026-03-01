@@ -1,0 +1,12 @@
+# Ignore source code, tests, and miscellaneous configs in the published package
+src/
+test/
+coverage/
+jest.config.js
+tsconfig.json
+tsconfig.build.json
+.eslintignore
+.eslintrc.js
+.husky/
+.github/
+.vscode/
