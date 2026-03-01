@@ -15,6 +15,8 @@ describe('Configuration', () => {
   });
 
   it('throws if no credentials provided', () => {
+    vi.stubEnv('PANW_AI_SEC_API_KEY', '');
+    vi.stubEnv('PANW_AI_SEC_API_TOKEN', '');
     expect(() => init()).toThrow(AISecSDKException);
   });
 

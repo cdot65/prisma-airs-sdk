@@ -43,8 +43,8 @@ class Configuration {
 
   init(opts: InitOptions = {}): void {
     // Resolve api key
-    const apiKey = opts.apiKey ?? process.env[AI_SEC_API_KEY];
-    const apiToken = opts.apiToken ?? process.env[AI_SEC_API_TOKEN];
+    const apiKey = (opts.apiKey ?? process.env[AI_SEC_API_KEY] ?? '').trim() || undefined;
+    const apiToken = (opts.apiToken ?? process.env[AI_SEC_API_TOKEN] ?? '').trim() || undefined;
 
     if (!apiKey && !apiToken) {
       throw new AISecSDKException(
