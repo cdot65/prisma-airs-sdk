@@ -1,7 +1,7 @@
 import { init, Scanner, AISecSDKException } from '@cdot65/prisma-airs-sdk';
 
 async function main() {
-  init({ apiKey: 'your-airs-api-key-here' });
+  init();
 
   const scanner = new Scanner();
 

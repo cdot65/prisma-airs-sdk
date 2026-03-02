@@ -4,3 +4,4 @@ export { Scanner, Content, type SyncScanOptions, type ContentOptions } from './s
 export { AISecSDKException, ErrorType } from './errors.js';
 export * from './models/index.js';
 export * from './constants.js';
+export * from './management/index.js';
