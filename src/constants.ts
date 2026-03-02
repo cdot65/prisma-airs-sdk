@@ -44,8 +44,7 @@ export const USER_AGENT = `PAN-AIRS/${SDK_VERSION}-typescript-sdk`;
 
 // Management API defaults
 export const DEFAULT_MGMT_ENDPOINT = 'https://api.sase.paloaltonetworks.com/aisec';
-export const DEFAULT_TOKEN_ENDPOINT =
-  'https://auth.apps.paloaltonetworks.com/oauth2/access_token';
+export const DEFAULT_TOKEN_ENDPOINT = 'https://auth.apps.paloaltonetworks.com/oauth2/access_token';
 
 // Management env vars
 export const MGMT_CLIENT_ID = 'PANW_MGMT_CLIENT_ID';

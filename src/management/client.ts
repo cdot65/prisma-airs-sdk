@@ -31,7 +31,10 @@ export class ManagementClient {
     const tsgId = opts.tsgId ?? process.env[MGMT_TSG_ID];
     const apiEndpoint = opts.apiEndpoint ?? process.env[MGMT_ENDPOINT] ?? DEFAULT_MGMT_ENDPOINT;
     const tokenEndpoint = opts.tokenEndpoint ?? process.env[MGMT_TOKEN_ENDPOINT];
-    const numRetries = Math.min(Math.max(opts.numRetries ?? MAX_NUMBER_OF_RETRIES, 0), MAX_NUMBER_OF_RETRIES);
+    const numRetries = Math.min(
+      Math.max(opts.numRetries ?? MAX_NUMBER_OF_RETRIES, 0),
+      MAX_NUMBER_OF_RETRIES,
+    );
 
     if (!clientId) {
       throw new AISecSDKException(

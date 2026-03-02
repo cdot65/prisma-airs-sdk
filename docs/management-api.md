@@ -6,13 +6,13 @@ CRUD operations for AIRS Security Profiles and Custom Topics via OAuth2 client c
 
 The Management API uses OAuth2 `client_credentials` flow, separate from the scan API's API key auth. Three values are required:
 
-| Env Var | Required | Description |
-|---------|----------|-------------|
-| `PANW_MGMT_CLIENT_ID` | Yes | OAuth2 client ID from SCM |
-| `PANW_MGMT_CLIENT_SECRET` | Yes | OAuth2 client secret |
-| `PANW_MGMT_TSG_ID` | Yes | Tenant Service Group ID |
-| `PANW_MGMT_ENDPOINT` | No | API base URL (default: `https://api.sase.paloaltonetworks.com/aisec`) |
-| `PANW_MGMT_TOKEN_ENDPOINT` | No | Token URL (default: `https://auth.apps.paloaltonetworks.com/oauth2/access_token`) |
+| Env Var                    | Required | Description                                                                       |
+| -------------------------- | -------- | --------------------------------------------------------------------------------- |
+| `PANW_MGMT_CLIENT_ID`      | Yes      | OAuth2 client ID from SCM                                                         |
+| `PANW_MGMT_CLIENT_SECRET`  | Yes      | OAuth2 client secret                                                              |
+| `PANW_MGMT_TSG_ID`         | Yes      | Tenant Service Group ID                                                           |
+| `PANW_MGMT_ENDPOINT`       | No       | API base URL (default: `https://api.sase.paloaltonetworks.com/aisec`)             |
+| `PANW_MGMT_TOKEN_ENDPOINT` | No       | Token URL (default: `https://auth.apps.paloaltonetworks.com/oauth2/access_token`) |
 
 ### Setup
 
@@ -174,11 +174,7 @@ const topic = await client.topics.create({
   topic_name: 'credit-card-numbers',
   active: true,
   description: 'Detects credit card numbers',
-  examples: [
-    '4111-1111-1111-1111',
-    '5500 0000 0000 0004',
-    'My card number is 4242424242424242',
-  ],
+  examples: ['4111-1111-1111-1111', '5500 0000 0000 0004', 'My card number is 4242424242424242'],
 });
 ```
 

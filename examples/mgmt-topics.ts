@@ -31,11 +31,7 @@ async function main() {
       const updated = await client.topics.update(created.topic_id, {
         topic_name: 'credit-card-numbers',
         description: 'Updated: detects credit card numbers and CVVs',
-        examples: [
-          '4111-1111-1111-1111',
-          '5500 0000 0000 0004',
-          'CVV: 123',
-        ],
+        examples: ['4111-1111-1111-1111', '5500 0000 0000 0004', 'CVV: 123'],
       });
       console.log('Updated:', updated.topic_name);
 

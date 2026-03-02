@@ -38,35 +38,35 @@ All configuration can be passed as constructor options or read from env vars. Co
 
 ### Scan API
 
-| Env Var | Required | Default |
-|---------|----------|---------|
-| `PANW_AI_SEC_API_KEY` | One of key/token | — |
-| `PANW_AI_SEC_API_TOKEN` | One of key/token | — |
-| `PANW_AI_SEC_PROFILE_NAME` | For examples | — |
-| `PANW_AI_SEC_API_ENDPOINT` | No | `https://service.api.aisecurity.paloaltonetworks.com` |
+| Env Var                    | Required         | Default                                               |
+| -------------------------- | ---------------- | ----------------------------------------------------- |
+| `PANW_AI_SEC_API_KEY`      | One of key/token | —                                                     |
+| `PANW_AI_SEC_API_TOKEN`    | One of key/token | —                                                     |
+| `PANW_AI_SEC_PROFILE_NAME` | For examples     | —                                                     |
+| `PANW_AI_SEC_API_ENDPOINT` | No               | `https://service.api.aisecurity.paloaltonetworks.com` |
 
 ### Management API
 
-| Env Var | Required | Default |
-|---------|----------|---------|
-| `PANW_MGMT_CLIENT_ID` | Yes | — |
-| `PANW_MGMT_CLIENT_SECRET` | Yes | — |
-| `PANW_MGMT_TSG_ID` | Yes | — |
-| `PANW_MGMT_ENDPOINT` | No | `https://api.sase.paloaltonetworks.com/aisec` |
-| `PANW_MGMT_TOKEN_ENDPOINT` | No | `https://auth.apps.paloaltonetworks.com/oauth2/access_token` |
+| Env Var                    | Required | Default                                                      |
+| -------------------------- | -------- | ------------------------------------------------------------ |
+| `PANW_MGMT_CLIENT_ID`      | Yes      | —                                                            |
+| `PANW_MGMT_CLIENT_SECRET`  | Yes      | —                                                            |
+| `PANW_MGMT_TSG_ID`         | Yes      | —                                                            |
+| `PANW_MGMT_ENDPOINT`       | No       | `https://api.sase.paloaltonetworks.com/aisec`                |
+| `PANW_MGMT_TOKEN_ENDPOINT` | No       | `https://auth.apps.paloaltonetworks.com/oauth2/access_token` |
 
 ## Error Handling
 
 All errors throw `AISecSDKException` with an `errorType` enum:
 
-| ErrorType | When |
-|-----------|------|
-| `SERVER_SIDE_ERROR` | 5xx from API |
-| `CLIENT_SIDE_ERROR` | 4xx from API / network failures |
-| `USER_REQUEST_PAYLOAD_ERROR` | Invalid input (bad UUID, oversized content, etc.) |
-| `MISSING_VARIABLE` | Missing required config (API key, client ID, etc.) |
-| `AISEC_SDK_ERROR` | Internal SDK errors |
-| `OAUTH_ERROR` | OAuth2 token fetch failures |
+| ErrorType                    | When                                               |
+| ---------------------------- | -------------------------------------------------- |
+| `SERVER_SIDE_ERROR`          | 5xx from API                                       |
+| `CLIENT_SIDE_ERROR`          | 4xx from API / network failures                    |
+| `USER_REQUEST_PAYLOAD_ERROR` | Invalid input (bad UUID, oversized content, etc.)  |
+| `MISSING_VARIABLE`           | Missing required config (API key, client ID, etc.) |
+| `AISEC_SDK_ERROR`            | Internal SDK errors                                |
+| `OAUTH_ERROR`                | OAuth2 token fetch failures                        |
 
 ```ts
 import { AISecSDKException, ErrorType } from '@cdot65/prisma-airs-sdk';

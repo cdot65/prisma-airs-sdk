@@ -112,8 +112,7 @@ describe('OAuthClient', () => {
       globalThis.fetch = vi.fn().mockResolvedValue({
         ok: false,
         status: 401,
-        json: () =>
-          Promise.resolve({ error: 'invalid_client', error_description: 'bad creds' }),
+        json: () => Promise.resolve({ error: 'invalid_client', error_description: 'bad creds' }),
       });
       const client = new OAuthClient(opts);
 

@@ -10,10 +10,10 @@ Initialize the global scan API configuration. Must be called before using `Scann
 
 ```ts
 interface InitOptions {
-  apiKey?: string;       // or env PANW_AI_SEC_API_KEY
-  apiToken?: string;     // or env PANW_AI_SEC_API_TOKEN
-  apiEndpoint?: string;  // or env PANW_AI_SEC_API_ENDPOINT
-  numRetries?: number;   // 0-5, default 5
+  apiKey?: string; // or env PANW_AI_SEC_API_KEY
+  apiToken?: string; // or env PANW_AI_SEC_API_TOKEN
+  apiEndpoint?: string; // or env PANW_AI_SEC_API_ENDPOINT
+  numRetries?: number; // 0-5, default 5
 }
 ```
 
@@ -21,10 +21,10 @@ interface InitOptions {
 
 ```ts
 class Scanner {
-  syncScan(aiProfile: AiProfile, content: Content, opts?: SyncScanOptions): Promise<ScanResponse>
-  asyncScan(scanObjects: AsyncScanObject[]): Promise<AsyncScanResponse>
-  queryByScanIds(scanIds: string[]): Promise<ScanIdResult[]>
-  queryByReportIds(reportIds: string[]): Promise<ThreatScanReport[]>
+  syncScan(aiProfile: AiProfile, content: Content, opts?: SyncScanOptions): Promise<ScanResponse>;
+  asyncScan(scanObjects: AsyncScanObject[]): Promise<AsyncScanResponse>;
+  queryByScanIds(scanIds: string[]): Promise<ScanIdResult[]>;
+  queryByReportIds(reportIds: string[]): Promise<ThreatScanReport[]>;
 }
 ```
 
@@ -32,26 +32,26 @@ class Scanner {
 
 ```ts
 interface ContentOptions {
-  prompt?: string;       // max 2 MB
-  response?: string;     // max 2 MB
-  context?: string;      // max 100 MB
-  codePrompt?: string;   // max 2 MB
+  prompt?: string; // max 2 MB
+  response?: string; // max 2 MB
+  context?: string; // max 100 MB
+  codePrompt?: string; // max 2 MB
   codeResponse?: string; // max 2 MB
   toolEvent?: ToolEvent;
 }
 
 class Content {
-  constructor(opts: ContentOptions)  // at least one field required
-  prompt: string | undefined
-  response: string | undefined
-  context: string | undefined
-  codePrompt: string | undefined
-  codeResponse: string | undefined
-  toolEvent: ToolEvent | undefined
-  length: number                     // total byte length
-  toJSON(): ScanRequestContentsInner
-  static fromJSON(json: ScanRequestContentsInner): Content
-  static fromJSONFile(filePath: string): Content
+  constructor(opts: ContentOptions); // at least one field required
+  prompt: string | undefined;
+  response: string | undefined;
+  context: string | undefined;
+  codePrompt: string | undefined;
+  codeResponse: string | undefined;
+  toolEvent: ToolEvent | undefined;
+  length: number; // total byte length
+  toJSON(): ScanRequestContentsInner;
+  static fromJSON(json: ScanRequestContentsInner): Content;
+  static fromJSONFile(filePath: string): Content;
 }
 ```
 
@@ -59,8 +59,8 @@ class Content {
 
 ```ts
 interface SyncScanOptions {
-  trId?: string;        // max 100 chars
-  sessionId?: string;   // max 100 chars
+  trId?: string; // max 100 chars
+  sessionId?: string; // max 100 chars
   metadata?: Metadata;
 }
 ```
@@ -70,7 +70,7 @@ interface SyncScanOptions {
 ```ts
 // At least one required
 interface AiProfile {
-  profile_id?: string;   // UUID
+  profile_id?: string; // UUID
   profile_name?: string; // max 100 chars
 }
 ```
@@ -83,18 +83,18 @@ interface AiProfile {
 
 ```ts
 interface ManagementClientOptions {
-  clientId?: string;       // or env PANW_MGMT_CLIENT_ID (required)
-  clientSecret?: string;   // or env PANW_MGMT_CLIENT_SECRET (required)
-  tsgId?: string;          // or env PANW_MGMT_TSG_ID (required)
-  apiEndpoint?: string;    // or env PANW_MGMT_ENDPOINT
-  tokenEndpoint?: string;  // or env PANW_MGMT_TOKEN_ENDPOINT
-  numRetries?: number;     // 0-5, default 5
+  clientId?: string; // or env PANW_MGMT_CLIENT_ID (required)
+  clientSecret?: string; // or env PANW_MGMT_CLIENT_SECRET (required)
+  tsgId?: string; // or env PANW_MGMT_TSG_ID (required)
+  apiEndpoint?: string; // or env PANW_MGMT_ENDPOINT
+  tokenEndpoint?: string; // or env PANW_MGMT_TOKEN_ENDPOINT
+  numRetries?: number; // 0-5, default 5
 }
 
 class ManagementClient {
-  constructor(opts?: ManagementClientOptions)
-  readonly profiles: ProfilesClient
-  readonly topics: TopicsClient
+  constructor(opts?: ManagementClientOptions);
+  readonly profiles: ProfilesClient;
+  readonly topics: TopicsClient;
 }
 ```
 
@@ -102,15 +102,15 @@ class ManagementClient {
 
 ```ts
 interface PaginationOptions {
-  offset?: number;  // default 0
-  limit?: number;   // default 100
+  offset?: number; // default 0
+  limit?: number; // default 100
 }
 
 class ProfilesClient {
-  create(request: CreateSecurityProfileRequest): Promise<SecurityProfile>
-  list(opts?: PaginationOptions): Promise<SecurityProfileListResponse>
-  update(profileId: string, request: CreateSecurityProfileRequest): Promise<SecurityProfile>
-  delete(profileId: string): Promise<DeleteProfileResponse>
+  create(request: CreateSecurityProfileRequest): Promise<SecurityProfile>;
+  list(opts?: PaginationOptions): Promise<SecurityProfileListResponse>;
+  update(profileId: string, request: CreateSecurityProfileRequest): Promise<SecurityProfile>;
+  delete(profileId: string): Promise<DeleteProfileResponse>;
 }
 ```
 
@@ -118,11 +118,11 @@ class ProfilesClient {
 
 ```ts
 class TopicsClient {
-  create(request: CreateCustomTopicRequest): Promise<CustomTopic>
-  list(opts?: PaginationOptions): Promise<CustomTopicListResponse>
-  update(topicId: string, request: CreateCustomTopicRequest): Promise<CustomTopic>
-  delete(topicId: string): Promise<DeleteTopicResponse>
-  forceDelete(topicId: string): Promise<DeleteTopicResponse>
+  create(request: CreateCustomTopicRequest): Promise<CustomTopic>;
+  list(opts?: PaginationOptions): Promise<CustomTopicListResponse>;
+  update(topicId: string, request: CreateCustomTopicRequest): Promise<CustomTopic>;
+  delete(topicId: string): Promise<DeleteTopicResponse>;
+  forceDelete(topicId: string): Promise<DeleteTopicResponse>;
 }
 ```
 
@@ -136,11 +136,11 @@ interface SecurityProfile {
   profile_name: string;
   revision?: number;
   active?: boolean;
-  policy?: Policy;           // passthrough — accepts any shape
+  policy?: Policy; // passthrough — accepts any shape
   created_by?: string;
   updated_by?: string;
   last_modified_ts?: string;
-  [key: string]: unknown;    // forward-compat via .passthrough()
+  [key: string]: unknown; // forward-compat via .passthrough()
 }
 ```
 
@@ -202,12 +202,22 @@ interface CustomTopicListResponse {
 #### Delete Responses
 
 ```ts
-interface DeleteProfileResponse { message: string }
-interface DeleteTopicResponse { message: string }
+interface DeleteProfileResponse {
+  message: string;
+}
+interface DeleteTopicResponse {
+  message: string;
+}
 
 // 409 conflict shapes (when resource is referenced)
-interface DeleteProfileConflict { message: string; payload: { policy_id: string; policy_name: string; priority: number }[] }
-interface DeleteTopicConflict { message: string; payload: { profile_id: string; profile_name: string; revision: number }[] }
+interface DeleteProfileConflict {
+  message: string;
+  payload: { policy_id: string; policy_name: string; priority: number }[];
+}
+interface DeleteTopicConflict {
+  message: string;
+  payload: { profile_id: string; profile_name: string; revision: number }[];
+}
 ```
 
 ---
@@ -233,16 +243,16 @@ enum ErrorType {
 
 ## Constants
 
-| Constant | Value |
-|----------|-------|
-| `DEFAULT_ENDPOINT` | `https://service.api.aisecurity.paloaltonetworks.com` |
-| `DEFAULT_MGMT_ENDPOINT` | `https://api.sase.paloaltonetworks.com/aisec` |
-| `DEFAULT_TOKEN_ENDPOINT` | `https://auth.apps.paloaltonetworks.com/oauth2/access_token` |
-| `MAX_CONTENT_PROMPT_LENGTH` | 2 MB |
-| `MAX_CONTENT_RESPONSE_LENGTH` | 2 MB |
-| `MAX_CONTENT_CONTEXT_LENGTH` | 100 MB |
-| `MAX_NUMBER_OF_RETRIES` | 5 |
-| `MAX_NUMBER_OF_BATCH_SCAN_OBJECTS` | 5 |
-| `MAX_NUMBER_OF_SCAN_IDS` | 5 |
-| `MAX_NUMBER_OF_REPORT_IDS` | 5 |
-| `HTTP_FORCE_RETRY_STATUS_CODES` | [500, 502, 503, 504] |
+| Constant                           | Value                                                        |
+| ---------------------------------- | ------------------------------------------------------------ |
+| `DEFAULT_ENDPOINT`                 | `https://service.api.aisecurity.paloaltonetworks.com`        |
+| `DEFAULT_MGMT_ENDPOINT`            | `https://api.sase.paloaltonetworks.com/aisec`                |
+| `DEFAULT_TOKEN_ENDPOINT`           | `https://auth.apps.paloaltonetworks.com/oauth2/access_token` |
+| `MAX_CONTENT_PROMPT_LENGTH`        | 2 MB                                                         |
+| `MAX_CONTENT_RESPONSE_LENGTH`      | 2 MB                                                         |
+| `MAX_CONTENT_CONTEXT_LENGTH`       | 100 MB                                                       |
+| `MAX_NUMBER_OF_RETRIES`            | 5                                                            |
+| `MAX_NUMBER_OF_BATCH_SCAN_OBJECTS` | 5                                                            |
+| `MAX_NUMBER_OF_SCAN_IDS`           | 5                                                            |
+| `MAX_NUMBER_OF_REPORT_IDS`         | 5                                                            |
+| `HTTP_FORCE_RETRY_STATUS_CODES`    | [500, 502, 503, 504]                                         |

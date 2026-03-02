@@ -37,12 +37,13 @@ Wraps prompt/response data with byte-length validation at setter time.
 
 ```ts
 const content = new Content({
-  prompt: 'user input',           // max 2 MB
-  response: 'model output',      // max 2 MB
-  context: 'grounding context',  // max 100 MB
-  codePrompt: 'code input',      // max 2 MB
-  codeResponse: 'code output',   // max 2 MB
-  toolEvent: {                    // MCP tool events
+  prompt: 'user input', // max 2 MB
+  response: 'model output', // max 2 MB
+  context: 'grounding context', // max 100 MB
+  codePrompt: 'code input', // max 2 MB
+  codeResponse: 'code output', // max 2 MB
+  toolEvent: {
+    // MCP tool events
     metadata: { ecosystem: 'mcp', method: 'invoke', server_name: 'my-server' },
     input: '{"query": "test"}',
   },
@@ -63,12 +64,13 @@ const fromFile = Content.fromJSONFile('./content.json');
 
 ```ts
 const result = await scanner.syncScan(
-  { profile_name: 'my-profile' },  // or { profile_id: 'uuid' }
+  { profile_name: 'my-profile' }, // or { profile_id: 'uuid' }
   content,
   {
-    trId: 'transaction-123',       // optional, max 100 chars
-    sessionId: 'session-456',      // optional, max 100 chars
-    metadata: {                    // optional
+    trId: 'transaction-123', // optional, max 100 chars
+    sessionId: 'session-456', // optional, max 100 chars
+    metadata: {
+      // optional
       app_name: 'my-app',
       app_user: 'user123',
       ai_model: 'gpt-4',
@@ -77,8 +79,8 @@ const result = await scanner.syncScan(
 );
 
 // result: ScanResponse
-console.log(result.category);  // "benign" | "malicious"
-console.log(result.action);    // "allow" | "block"
+console.log(result.category); // "benign" | "malicious"
+console.log(result.action); // "allow" | "block"
 console.log(result.scan_id);
 console.log(result.report_id);
 ```
@@ -104,9 +106,7 @@ console.log(result.scan_id);
 ### queryByScanIds — get results (up to 5 IDs)
 
 ```ts
-const results = await scanner.queryByScanIds([
-  '550e8400-e29b-41d4-a716-446655440000',
-]);
+const results = await scanner.queryByScanIds(['550e8400-e29b-41d4-a716-446655440000']);
 
 // results: ScanIdResult[]
 for (const r of results) {
@@ -138,12 +138,12 @@ for (const report of reports) {
 
 All types are Zod-validated and exported:
 
-| Type | Description |
-|------|-------------|
-| `ScanResponse` | Sync scan result (category, action, detections) |
-| `AsyncScanResponse` | Batch scan receipt (scan_id) |
-| `ScanIdResult` | Query result per scan ID |
-| `ThreatScanReport` | Detailed threat report |
-| `AiProfile` | Profile identifier (profile_name or profile_id) |
-| `Content` | Scan content wrapper class |
-| `Metadata` | Optional scan metadata (app_name, ai_model, etc.) |
+| Type                | Description                                       |
+| ------------------- | ------------------------------------------------- |
+| `ScanResponse`      | Sync scan result (category, action, detections)   |
+| `AsyncScanResponse` | Batch scan receipt (scan_id)                      |
+| `ScanIdResult`      | Query result per scan ID                          |
+| `ThreatScanReport`  | Detailed threat report                            |
+| `AiProfile`         | Profile identifier (profile_name or profile_id)   |
+| `Content`           | Scan content wrapper class                        |
+| `Metadata`          | Optional scan metadata (app_name, ai_model, etc.) |
