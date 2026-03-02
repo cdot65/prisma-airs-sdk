@@ -42,8 +42,26 @@ export const HTTP_FORCE_RETRY_STATUS_CODES = [500, 502, 503, 504];
 export const SDK_VERSION = '0.1.2';
 export const USER_AGENT = `PAN-AIRS/${SDK_VERSION}-typescript-sdk`;
 
-// API paths
+// Management API defaults
+export const DEFAULT_MGMT_ENDPOINT = 'https://api.sase.paloaltonetworks.com/aisec';
+export const DEFAULT_TOKEN_ENDPOINT = 'https://auth.apps.paloaltonetworks.com/oauth2/access_token';
+
+// Management env vars
+export const MGMT_CLIENT_ID = 'PANW_MGMT_CLIENT_ID';
+export const MGMT_CLIENT_SECRET = 'PANW_MGMT_CLIENT_SECRET';
+export const MGMT_TSG_ID = 'PANW_MGMT_TSG_ID';
+export const MGMT_ENDPOINT = 'PANW_MGMT_ENDPOINT';
+export const MGMT_TOKEN_ENDPOINT = 'PANW_MGMT_TOKEN_ENDPOINT';
+
+// API paths — scan
 export const SYNC_SCAN_PATH = '/v1/scan/sync/request';
 export const ASYNC_SCAN_PATH = '/v1/scan/async/request';
 export const SCAN_RESULTS_PATH = '/v1/scan/results';
 export const SCAN_REPORTS_PATH = '/v1/scan/reports';
+
+// API paths — management
+export const MGMT_PROFILE_PATH = '/v1/mgmt/profile';
+export const MGMT_PROFILES_TSG_PATH = '/v1/mgmt/profiles/tsg';
+export const MGMT_TOPIC_PATH = '/v1/mgmt/topic';
+export const MGMT_TOPICS_TSG_PATH = '/v1/mgmt/topics/tsg';
+export const MGMT_TOPIC_FORCE_PATH = '/v1/mgmt/topic/force';

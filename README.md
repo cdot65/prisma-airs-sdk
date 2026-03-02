@@ -129,7 +129,39 @@ try {
 }
 ```
 
-Error types: `SERVER_SIDE_ERROR`, `CLIENT_SIDE_ERROR`, `USER_REQUEST_PAYLOAD_ERROR`, `MISSING_VARIABLE`, `AISEC_SDK_ERROR`.
+Error types: `SERVER_SIDE_ERROR`, `CLIENT_SIDE_ERROR`, `USER_REQUEST_PAYLOAD_ERROR`, `MISSING_VARIABLE`, `AISEC_SDK_ERROR`, `OAUTH_ERROR`.
+
+## Management API
+
+Separate client for CRUD operations on Security Profiles and Custom Topics via OAuth2 client credentials. See [docs/management-api.md](docs/management-api.md) for full details.
+
+```bash
+# Required env vars (or pass as constructor options)
+export PANW_MGMT_CLIENT_ID=your-client-id
+export PANW_MGMT_CLIENT_SECRET=your-client-secret
+export PANW_MGMT_TSG_ID=1234567890
+# Optional: override for EU/UK/FedRAMP
+# export PANW_MGMT_ENDPOINT=https://api.eu.sase.paloaltonetworks.com/aisec
+```
+
+```ts
+import { ManagementClient } from '@cdot65/prisma-airs-sdk';
+
+const client = new ManagementClient();
+
+// Security Profiles
+const profiles = await client.profiles.list();
+const created = await client.profiles.create({ profile_name: 'my-profile', active: true, policy: { ... } });
+await client.profiles.update(created.profile_id, { ... });
+await client.profiles.delete(created.profile_id);
+
+// Custom Topics
+const topics = await client.topics.list();
+const topic = await client.topics.create({ topic_name: 'pii-detector', examples: ['SSN: 123-45-6789'] });
+await client.topics.update(topic.topic_id, { ... });
+await client.topics.delete(topic.topic_id);
+await client.topics.forceDelete(topic.topic_id); // even if referenced by a profile
+```
 
 ## Migration from v0.1
 

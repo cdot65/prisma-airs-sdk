@@ -1,17 +1,22 @@
 import { init, Scanner, AISecSDKException } from '@cdot65/prisma-airs-sdk';
 
 async function main() {
-  init({ apiKey: 'your-airs-api-key-here' });
+  init();
+
+  const profileName = process.env.PANW_AI_SEC_PROFILE_NAME;
+  if (!profileName) {
+    console.error('Set PANW_AI_SEC_PROFILE_NAME in .env');
+    process.exit(1);
+  }
 
   const scanner = new Scanner();
 
   try {
-    // Batch async scan (up to 5 objects)
     const result = await scanner.asyncScan([
       {
         req_id: 1,
         scan_req: {
-          ai_profile: { profile_name: 'your-profile' },
+          ai_profile: { profile_name: profileName },
           contents: [
             {
               prompt: 'Tell me about machine learning.',
@@ -23,7 +28,7 @@ async function main() {
       {
         req_id: 2,
         scan_req: {
-          ai_profile: { profile_name: 'your-profile' },
+          ai_profile: { profile_name: profileName },
           contents: [
             {
               prompt: 'What are neural networks?',

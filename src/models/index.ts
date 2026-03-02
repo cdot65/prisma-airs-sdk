@@ -55,3 +55,29 @@ export {
 export { DlpReportSchema, type DlpReport } from './dlp-report.js';
 export { UrlfEntrySchema, type UrlfEntry } from './urlf-report.js';
 export { ErrorResponseSchema, type ErrorResponse } from './error-response.js';
+export {
+  SecurityProfileSchema,
+  type SecurityProfile,
+  CreateSecurityProfileRequestSchema,
+  type CreateSecurityProfileRequest,
+  SecurityProfileListResponseSchema,
+  type SecurityProfileListResponse,
+  DeleteProfileResponseSchema,
+  type DeleteProfileResponse,
+  DeleteProfileConflictSchema,
+  type DeleteProfileConflict,
+  PolicySchema,
+  type Policy,
+} from './mgmt-security-profile.js';
+export {
+  CustomTopicSchema,
+  type CustomTopic,
+  CreateCustomTopicRequestSchema,
+  type CreateCustomTopicRequest,
+  CustomTopicListResponseSchema,
+  type CustomTopicListResponse,
+  DeleteTopicResponseSchema,
+  type DeleteTopicResponse,
+  DeleteTopicConflictSchema,
+  type DeleteTopicConflict,
+} from './mgmt-custom-topic.js';
