@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { DetectionServiceResultSchema } from './detection.js';
 
+/** Zod schema for a detailed threat scan report. */
 export const ThreatScanReportSchema = z.object({
   source: z.string().optional(),
   report_id: z.string().optional(),
@@ -11,4 +12,5 @@ export const ThreatScanReportSchema = z.object({
   detection_results: z.array(DetectionServiceResultSchema).optional(),
 });
 
+/** Detailed threat scan report with per-service detection results. */
 export type ThreatScanReport = z.infer<typeof ThreatScanReportSchema>;

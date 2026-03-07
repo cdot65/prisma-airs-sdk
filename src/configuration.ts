@@ -11,10 +11,15 @@ import {
 } from './constants.js';
 import { AISecSDKException, ErrorType } from './errors.js';
 
+/** Options for initializing the global scan API configuration. */
 export interface InitOptions {
+  /** AIRS API key. Falls back to `PANW_AI_SEC_API_KEY` env var. */
   apiKey?: string;
+  /** Pre-obtained bearer token. Falls back to `PANW_AI_SEC_API_TOKEN` env var. */
   apiToken?: string;
+  /** AIRS API endpoint URL. Falls back to `PANW_AI_SEC_API_ENDPOINT` env var. */
   apiEndpoint?: string;
+  /** Max retry attempts (0–5). Defaults to 5. */
   numRetries?: number;
 }
 
@@ -97,8 +102,14 @@ class Configuration {
   }
 }
 
+/** Global singleton holding scan API configuration. */
 export const globalConfiguration = new Configuration();
 
+/**
+ * Initialize the global scan API configuration. Must be called before using {@link Scanner}.
+ * @param opts - Configuration options. Reads env vars as fallbacks.
+ * @throws {AISecSDKException} If neither apiKey nor apiToken is provided.
+ */
 export function init(opts: InitOptions = {}): void {
   globalConfiguration.init(opts);
 }

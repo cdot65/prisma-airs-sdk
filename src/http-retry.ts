@@ -3,22 +3,45 @@
 import { HTTP_FORCE_RETRY_STATUS_CODES } from './constants.js';
 import { AISecSDKException, ErrorType } from './errors.js';
 
+/**
+ * Sleep for the given number of milliseconds.
+ * @param ms - Milliseconds to wait.
+ */
 export function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+/**
+ * Calculate exponential backoff delay for the given attempt.
+ * @param attempt - Zero-based attempt number.
+ * @returns Delay in milliseconds.
+ */
 export function backoffDelay(attempt: number): number {
   return Math.pow(2, attempt) * 1000;
 }
 
+/**
+ * Check if an HTTP status code should trigger a retry.
+ * @param status - HTTP status code.
+ */
 export function isRetryableStatus(status: number): boolean {
   return HTTP_FORCE_RETRY_STATUS_CODES.includes(status);
 }
 
+/**
+ * Classify an HTTP status code as server-side or client-side error.
+ * @param status - HTTP status code.
+ */
 export function classifyErrorType(status: number): ErrorType {
   return status >= 500 ? ErrorType.SERVER_SIDE_ERROR : ErrorType.CLIENT_SIDE_ERROR;
 }
 
+/**
+ * Extract a human-readable error message from an API error response body.
+ * Tries `error_message`, `message`, and `error.message` fields in order.
+ * @param body - Raw response body string.
+ * @param status - HTTP status code for fallback message.
+ */
 export function extractErrorMessage(body: string, status: number): string {
   try {
     const parsed = JSON.parse(body) as Record<string, unknown>;
@@ -33,12 +56,22 @@ export function extractErrorMessage(body: string, status: number): string {
   }
 }
 
+/** Options for {@link executeWithRetry}. */
 export interface RetryOptions {
+  /** Maximum number of retry attempts. */
   maxRetries: number;
+  /** Function that performs the HTTP request for each attempt. */
   execute: (attempt: number) => Promise<Response>;
+  /** Optional callback for handling special failure cases (e.g. 401 token refresh). Return true to retry without consuming the retry budget. */
   onRetryableFailure?: (response: Response, attempt: number) => Promise<boolean>;
 }
 
+/**
+ * Execute an HTTP request with exponential backoff retry.
+ * @param opts - Retry configuration and request function.
+ * @returns Successful HTTP Response.
+ * @throws {AISecSDKException} After exhausting retries or on non-retryable errors.
+ */
 export async function executeWithRetry(opts: RetryOptions): Promise<Response> {
   const { maxRetries, execute, onRetryableFailure } = opts;
   let lastError: Error | undefined;

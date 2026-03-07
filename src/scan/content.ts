@@ -10,15 +10,26 @@ import { AISecSDKException, ErrorType } from '../errors.js';
 import type { ToolEvent } from '../models/tool-event.js';
 import type { ScanRequestContentsInner } from '../models/scan-request.js';
 
+/** Options for constructing a {@link Content} instance. At least one field is required. */
 export interface ContentOptions {
+  /** User prompt text. Max 2 MB. */
   prompt?: string;
+  /** AI model response text. Max 2 MB. */
   response?: string;
+  /** Conversation context. Max 100 MB. */
   context?: string;
+  /** Code prompt text. Max 2 MB. */
   codePrompt?: string;
+  /** Code response text. Max 2 MB. */
   codeResponse?: string;
+  /** Tool/function call event data. */
   toolEvent?: ToolEvent;
 }
 
+/**
+ * Represents content to be scanned by AIRS.
+ * Validates byte-length limits on construction and property assignment.
+ */
 export class Content {
   private _prompt?: string;
   private _response?: string;
@@ -121,6 +132,7 @@ export class Content {
     this._toolEvent = value;
   }
 
+  /** Total byte length of all text content fields. */
   get length(): number {
     let total = 0;
     if (this._prompt) total += Buffer.byteLength(this._prompt);
@@ -131,6 +143,7 @@ export class Content {
     return total;
   }
 
+  /** Serialize to the API request format. */
   toJSON(): ScanRequestContentsInner {
     const obj: ScanRequestContentsInner = {};
     if (this._prompt !== undefined) obj.prompt = this._prompt;
@@ -142,6 +155,10 @@ export class Content {
     return obj;
   }
 
+  /**
+   * Create a Content instance from an API response object.
+   * @param json - Scan request contents inner object.
+   */
   static fromJSON(json: ScanRequestContentsInner): Content {
     return new Content({
       prompt: json.prompt,
@@ -153,6 +170,10 @@ export class Content {
     });
   }
 
+  /**
+   * Load content from a JSON file.
+   * @param filePath - Path to JSON file containing scan request contents.
+   */
   static fromJSONFile(filePath: string): Content {
     const raw = readFileSync(filePath, 'utf-8');
     const parsed: ScanRequestContentsInner = JSON.parse(raw);

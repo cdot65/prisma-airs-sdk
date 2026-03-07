@@ -2,6 +2,7 @@ import { USER_AGENT } from '../constants.js';
 import { executeWithRetry } from '../http-retry.js';
 import type { OAuthClient } from './oauth-client.js';
 
+/** @internal Options for a management API HTTP request. */
 export interface MgmtHttpRequestOptions {
   method: 'GET' | 'POST' | 'PUT' | 'DELETE';
   baseUrl: string;
@@ -12,6 +13,7 @@ export interface MgmtHttpRequestOptions {
   numRetries: number;
 }
 
+/** @internal Typed management API HTTP response. */
 export interface MgmtHttpResponse<T = unknown> {
   status: number;
   data: T;
