@@ -21,6 +21,9 @@ coverage/
 .DS_Store
 Thumbs.db
 
+# OpenAPI specs (reference only, not published)
+specs/
+
 # Optional IDE or Editor settings
 .vscode/
 .idea/
