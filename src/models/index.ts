@@ -1,3 +1,9 @@
+export { Verdict, Action, Category } from './enums.js';
+export type {
+  Verdict as VerdictType,
+  Action as ActionType,
+  Category as CategoryType,
+} from './enums.js';
 export { AiProfileSchema, type AiProfile } from './ai-profile.js';
 export { AgentMetaSchema, type AgentMeta, MetadataSchema, type Metadata } from './metadata.js';
 export {
