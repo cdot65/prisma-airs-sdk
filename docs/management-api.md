@@ -239,7 +239,7 @@ try {
 cp .env.example .env
 
 # Run examples
-pnpm example:mgmt-auth
-pnpm example:mgmt-profiles
-pnpm example:mgmt-topics
+npm run example:mgmt-auth
+npm run example:mgmt-profiles
+npm run example:mgmt-topics
 ```
