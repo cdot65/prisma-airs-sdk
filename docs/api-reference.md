@@ -222,6 +222,33 @@ interface DeleteTopicConflict {
 
 ---
 
+## Enums
+
+Typed const objects for AIRS API verdict, action, and category values.
+
+```ts
+import { Verdict, Action, Category } from '@cdot65/prisma-airs-sdk';
+
+// Verdict — scan result classification
+Verdict.BENIGN; // 'benign'
+Verdict.MALICIOUS; // 'malicious'
+Verdict.UNKNOWN; // 'unknown'
+
+// Action — enforcement action taken
+Action.ALLOW; // 'allow'
+Action.BLOCK; // 'block'
+Action.ALERT; // 'alert'
+
+// Category — top-level scan category
+Category.BENIGN; // 'benign'
+Category.MALICIOUS; // 'malicious'
+Category.UNKNOWN; // 'unknown'
+```
+
+Types are also exported: `Verdict`, `Action`, `Category` (union of literal string values).
+
+---
+
 ## Error Types
 
 ```ts
