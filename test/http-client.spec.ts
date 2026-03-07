@@ -2,6 +2,18 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { httpRequest } from '../src/http-client.js';
 import { globalConfiguration, init } from '../src/configuration.js';
 import { AISecSDKException } from '../src/errors.js';
+import { SDK_VERSION, USER_AGENT } from '../src/constants.js';
+import pkg from '../package.json' with { type: 'json' };
+
+describe('SDK_VERSION', () => {
+  it('matches package.json version', () => {
+    expect(SDK_VERSION).toBe(pkg.version);
+  });
+
+  it('is embedded in USER_AGENT string', () => {
+    expect(USER_AGENT).toContain(SDK_VERSION);
+  });
+});
 
 describe('httpRequest', () => {
   const originalFetch = globalThis.fetch;
