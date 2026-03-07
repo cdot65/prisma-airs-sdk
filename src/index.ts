@@ -5,3 +5,4 @@ export { AISecSDKException, ErrorType } from './errors.js';
 export * from './models/index.js';
 export * from './constants.js';
 export * from './management/index.js';
+export * from './model-security/index.js';
