@@ -54,7 +54,10 @@
     "example:query": "npx tsx --env-file=.env examples/query-results.ts",
     "example:mgmt-auth": "npx tsx --env-file=.env examples/mgmt-auth.ts",
     "example:mgmt-profiles": "npx tsx --env-file=.env examples/mgmt-profiles.ts",
-    "example:mgmt-topics": "npx tsx --env-file=.env examples/mgmt-topics.ts"
+    "example:mgmt-topics": "npx tsx --env-file=.env examples/mgmt-topics.ts",
+    "example:model-sec-scans": "npx tsx --env-file=.env examples/model-security-scans.ts",
+    "example:red-team-scans": "npx tsx --env-file=.env examples/red-team-scans.ts",
+    "example:red-team-targets": "npx tsx --env-file=.env examples/red-team-targets.ts"
   },
   "dependencies": {
     "zod": "^3.24.0"
