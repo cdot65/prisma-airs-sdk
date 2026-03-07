@@ -90,7 +90,7 @@ describe('httpRequest', () => {
     globalThis.fetch = vi.fn().mockResolvedValue({
       ok: false,
       status: 400,
-      json: () => Promise.resolve({ message: 'Bad request' }),
+      text: () => Promise.resolve(JSON.stringify({ message: 'Bad request' })),
     });
 
     await expect(httpRequest({ method: 'GET', path: '/test' })).rejects.toThrow(AISecSDKException);

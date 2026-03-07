@@ -7,9 +7,9 @@ import {
   BEARER,
   PAYLOAD_HASH,
   USER_AGENT,
-  HTTP_FORCE_RETRY_STATUS_CODES,
 } from './constants.js';
 import { AISecSDKException, ErrorType } from './errors.js';
+import { executeWithRetry } from './http-retry.js';
 import { generatePayloadHash } from './utils.js';
 
 export interface HttpRequestOptions {
@@ -41,10 +41,6 @@ function buildHeaders(): Record<string, string> {
   return headers;
 }
 
-function sleep(ms: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
 export async function httpRequest<T>(opts: HttpRequestOptions): Promise<HttpResponse<T>> {
   if (!globalConfiguration.initialized) {
     throw new AISecSDKException(
@@ -66,60 +62,21 @@ export async function httpRequest<T>(opts: HttpRequestOptions): Promise<HttpResp
   let bodyStr: string | undefined;
   if (opts.body !== undefined) {
     bodyStr = JSON.stringify(opts.body);
-    // Add payload hash if api key is present
     if (globalConfiguration.apiKey) {
       headers[PAYLOAD_HASH] = generatePayloadHash(bodyStr, globalConfiguration.apiKey);
     }
   }
 
-  const maxRetries = globalConfiguration.numRetries;
-  let lastError: Error | undefined;
-
-  for (let attempt = 0; attempt <= maxRetries; attempt++) {
-    try {
-      const response = await fetch(url.toString(), {
+  const response = await executeWithRetry({
+    maxRetries: globalConfiguration.numRetries,
+    execute: () =>
+      fetch(url.toString(), {
         method: opts.method,
         headers,
         body: bodyStr,
-      });
+      }),
+  });
 
-      if (response.ok) {
-        const data = (await response.json()) as T;
-        return { status: response.status, data };
-      }
-
-      // Check if retryable
-      if (HTTP_FORCE_RETRY_STATUS_CODES.includes(response.status) && attempt < maxRetries) {
-        await sleep(Math.pow(2, attempt) * 1000);
-        continue;
-      }
-
-      // Non-retryable error
-      let errorMessage: string;
-      try {
-        const errorBody = await response.json();
-        errorMessage =
-          ((errorBody as Record<string, unknown>).message as string) ??
-          ((errorBody as Record<string, Record<string, unknown>>).error?.message as string) ??
-          `API error ${response.status}`;
-      } catch {
-        errorMessage = `API error ${response.status}`;
-      }
-
-      const errorType =
-        response.status >= 500 ? ErrorType.SERVER_SIDE_ERROR : ErrorType.CLIENT_SIDE_ERROR;
-      throw new AISecSDKException(errorMessage, errorType);
-    } catch (err) {
-      if (err instanceof AISecSDKException) {
-        throw err;
-      }
-      lastError = err as Error;
-      if (attempt < maxRetries) {
-        await sleep(Math.pow(2, attempt) * 1000);
-        continue;
-      }
-    }
-  }
-
-  throw new AISecSDKException(lastError?.message ?? 'Network error', ErrorType.CLIENT_SIDE_ERROR);
+  const data = (await response.json()) as T;
+  return { status: response.status, data };
 }
