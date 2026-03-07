@@ -87,3 +87,5 @@ export {
   DeleteTopicConflictSchema,
   type DeleteTopicConflict,
 } from './mgmt-custom-topic.js';
+export * from './model-security-enums.js';
+export * from './model-security.js';

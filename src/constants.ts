@@ -65,3 +65,25 @@ export const MGMT_PROFILES_TSG_PATH = '/v1/mgmt/profiles/tsg';
 export const MGMT_TOPIC_PATH = '/v1/mgmt/topic';
 export const MGMT_TOPICS_TSG_PATH = '/v1/mgmt/topics/tsg';
 export const MGMT_TOPIC_FORCE_PATH = '/v1/mgmt/topic/force';
+
+// Model Security API defaults
+export const DEFAULT_MODEL_SEC_DATA_ENDPOINT = 'https://api.sase.paloaltonetworks.com/aims/data';
+export const DEFAULT_MODEL_SEC_MGMT_ENDPOINT = 'https://api.sase.paloaltonetworks.com/aims/mgmt';
+
+// Model Security env vars
+export const MODEL_SEC_CLIENT_ID = 'PANW_MODEL_SEC_CLIENT_ID';
+export const MODEL_SEC_CLIENT_SECRET = 'PANW_MODEL_SEC_CLIENT_SECRET';
+export const MODEL_SEC_TSG_ID = 'PANW_MODEL_SEC_TSG_ID';
+export const MODEL_SEC_DATA_ENDPOINT = 'PANW_MODEL_SEC_DATA_ENDPOINT';
+export const MODEL_SEC_MGMT_ENDPOINT = 'PANW_MODEL_SEC_MGMT_ENDPOINT';
+export const MODEL_SEC_TOKEN_ENDPOINT = 'PANW_MODEL_SEC_TOKEN_ENDPOINT';
+
+// API paths — model security data plane
+export const MODEL_SEC_SCANS_PATH = '/v1/scans';
+export const MODEL_SEC_EVALUATIONS_PATH = '/v1/evaluations';
+export const MODEL_SEC_VIOLATIONS_PATH = '/v1/violations';
+
+// API paths — model security management
+export const MODEL_SEC_SECURITY_GROUPS_PATH = '/v1/security-groups';
+export const MODEL_SEC_SECURITY_RULES_PATH = '/v1/security-rules';
+export const MODEL_SEC_PYPI_AUTH_PATH = '/v1/pypi/authenticate';
