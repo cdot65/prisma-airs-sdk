@@ -87,3 +87,34 @@ export const MODEL_SEC_VIOLATIONS_PATH = '/v1/violations';
 export const MODEL_SEC_SECURITY_GROUPS_PATH = '/v1/security-groups';
 export const MODEL_SEC_SECURITY_RULES_PATH = '/v1/security-rules';
 export const MODEL_SEC_PYPI_AUTH_PATH = '/v1/pypi/authenticate';
+
+// Red Team API defaults
+export const DEFAULT_RED_TEAM_DATA_ENDPOINT =
+  'https://api.sase.paloaltonetworks.com/ai-red-teaming/data-plane';
+export const DEFAULT_RED_TEAM_MGMT_ENDPOINT =
+  'https://api.sase.paloaltonetworks.com/ai-red-teaming/mgmt-plane';
+
+// Red Team env vars
+export const RED_TEAM_CLIENT_ID = 'PANW_RED_TEAM_CLIENT_ID';
+export const RED_TEAM_CLIENT_SECRET = 'PANW_RED_TEAM_CLIENT_SECRET';
+export const RED_TEAM_TSG_ID = 'PANW_RED_TEAM_TSG_ID';
+export const RED_TEAM_DATA_ENDPOINT = 'PANW_RED_TEAM_DATA_ENDPOINT';
+export const RED_TEAM_MGMT_ENDPOINT = 'PANW_RED_TEAM_MGMT_ENDPOINT';
+export const RED_TEAM_TOKEN_ENDPOINT = 'PANW_RED_TEAM_TOKEN_ENDPOINT';
+
+// API paths — red team data plane
+export const RED_TEAM_SCAN_PATH = '/v1/scan';
+export const RED_TEAM_CATEGORIES_PATH = '/v1/categories';
+export const RED_TEAM_REPORT_STATIC_PATH = '/v1/report/static';
+export const RED_TEAM_REPORT_DYNAMIC_PATH = '/v1/report/dynamic';
+export const RED_TEAM_REPORT_PATH = '/v1/report';
+export const RED_TEAM_CUSTOM_ATTACKS_REPORT_PATH = '/v1/custom-attacks';
+export const RED_TEAM_DASHBOARD_PATH = '/v1/dashboard';
+export const RED_TEAM_QUOTA_PATH = '/v1/metering/quota';
+export const RED_TEAM_ERROR_LOG_PATH = '/v1/error-log/job';
+export const RED_TEAM_SENTIMENT_PATH = '/v1/sentiment';
+
+// API paths — red team management plane
+export const RED_TEAM_TARGET_PATH = '/v1/target';
+export const RED_TEAM_CUSTOM_ATTACK_PATH = '/v1/custom-attack';
+export const RED_TEAM_MGMT_DASHBOARD_PATH = '/v1/dashboard/overview';

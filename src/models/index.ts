@@ -89,3 +89,5 @@ export {
 } from './mgmt-custom-topic.js';
 export * from './model-security-enums.js';
 export * from './model-security.js';
+export * from './red-team-enums.js';
+export * from './red-team.js';
