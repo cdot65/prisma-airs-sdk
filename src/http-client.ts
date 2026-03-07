@@ -12,15 +12,23 @@ import { AISecSDKException, ErrorType } from './errors.js';
 import { executeWithRetry } from './http-retry.js';
 import { generatePayloadHash } from './utils.js';
 
+/** Options for a scan API HTTP request. */
 export interface HttpRequestOptions {
+  /** HTTP method. */
   method: 'GET' | 'POST';
+  /** API path (appended to the configured endpoint). */
   path: string;
+  /** Request body (JSON-serialized). */
   body?: unknown;
+  /** URL query parameters. */
   params?: Record<string, string>;
 }
 
+/** Typed HTTP response wrapper. */
 export interface HttpResponse<T = unknown> {
+  /** HTTP status code. */
   status: number;
+  /** Parsed response body. */
   data: T;
 }
 

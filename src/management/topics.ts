@@ -11,6 +11,7 @@ import type {
 } from '../models/mgmt-custom-topic.js';
 import type { PaginationOptions } from './profiles.js';
 
+/** @internal */
 export interface TopicsClientOptions {
   baseUrl: string;
   oauthClient: OAuthClient;
@@ -18,6 +19,7 @@ export interface TopicsClientOptions {
   numRetries: number;
 }
 
+/** Client for AIRS custom topic CRUD operations. */
 export class TopicsClient {
   private readonly baseUrl: string;
   private readonly oauthClient: OAuthClient;
@@ -31,6 +33,11 @@ export class TopicsClient {
     this.numRetries = opts.numRetries;
   }
 
+  /**
+   * Create a new custom topic.
+   * @param request - Topic definition with name, description, and examples.
+   * @returns The created custom topic.
+   */
   async create(request: CreateCustomTopicRequest): Promise<CustomTopic> {
     const res = await managementHttpRequest<CustomTopic>({
       method: 'POST',
@@ -43,6 +50,11 @@ export class TopicsClient {
     return res.data;
   }
 
+  /**
+   * List custom topics for the TSG.
+   * @param opts - Pagination options.
+   * @returns Paginated list of custom topics.
+   */
   async list(opts?: PaginationOptions): Promise<CustomTopicListResponse> {
     const params: Record<string, string> = {
       offset: String(opts?.offset ?? 0),
@@ -60,6 +72,12 @@ export class TopicsClient {
     return res.data;
   }
 
+  /**
+   * Update an existing custom topic.
+   * @param topicId - UUID of the topic to update.
+   * @param request - Updated topic definition.
+   * @returns The updated custom topic.
+   */
   async update(topicId: string, request: CreateCustomTopicRequest): Promise<CustomTopic> {
     if (!isValidUuid(topicId)) {
       throw new AISecSDKException(
@@ -79,6 +97,11 @@ export class TopicsClient {
     return res.data;
   }
 
+  /**
+   * Delete a custom topic. Fails if topic is referenced by a profile.
+   * @param topicId - UUID of the topic to delete.
+   * @returns Deletion confirmation message.
+   */
   async delete(topicId: string): Promise<DeleteTopicResponse> {
     if (!isValidUuid(topicId)) {
       throw new AISecSDKException(
@@ -97,6 +120,11 @@ export class TopicsClient {
     return res.data;
   }
 
+  /**
+   * Force-delete a custom topic, removing it from any referencing profiles.
+   * @param topicId - UUID of the topic to force-delete.
+   * @returns Deletion confirmation message.
+   */
   async forceDelete(topicId: string): Promise<DeleteTopicResponse> {
     if (!isValidUuid(topicId)) {
       throw new AISecSDKException(

@@ -10,11 +10,15 @@ import type {
   DeleteProfileResponse,
 } from '../models/mgmt-security-profile.js';
 
+/** Pagination parameters for list operations. */
 export interface PaginationOptions {
+  /** Starting offset. Defaults to 0. */
   offset?: number;
+  /** Max items to return. Defaults to 100. */
   limit?: number;
 }
 
+/** @internal */
 export interface ProfilesClientOptions {
   baseUrl: string;
   oauthClient: OAuthClient;
@@ -22,6 +26,7 @@ export interface ProfilesClientOptions {
   numRetries: number;
 }
 
+/** Client for AIRS security profile CRUD operations. */
 export class ProfilesClient {
   private readonly baseUrl: string;
   private readonly oauthClient: OAuthClient;
@@ -35,6 +40,11 @@ export class ProfilesClient {
     this.numRetries = opts.numRetries;
   }
 
+  /**
+   * Create a new security profile.
+   * @param request - Profile configuration.
+   * @returns The created security profile.
+   */
   async create(request: CreateSecurityProfileRequest): Promise<SecurityProfile> {
     const res = await managementHttpRequest<SecurityProfile>({
       method: 'POST',
@@ -47,6 +57,11 @@ export class ProfilesClient {
     return res.data;
   }
 
+  /**
+   * List security profiles for the TSG.
+   * @param opts - Pagination options.
+   * @returns Paginated list of security profiles.
+   */
   async list(opts?: PaginationOptions): Promise<SecurityProfileListResponse> {
     const params: Record<string, string> = {
       offset: String(opts?.offset ?? 0),
@@ -64,6 +79,12 @@ export class ProfilesClient {
     return res.data;
   }
 
+  /**
+   * Update an existing security profile.
+   * @param profileId - UUID of the profile to update.
+   * @param request - Updated profile configuration.
+   * @returns The updated security profile.
+   */
   async update(profileId: string, request: CreateSecurityProfileRequest): Promise<SecurityProfile> {
     if (!isValidUuid(profileId)) {
       throw new AISecSDKException(
@@ -83,6 +104,11 @@ export class ProfilesClient {
     return res.data;
   }
 
+  /**
+   * Delete a security profile.
+   * @param profileId - UUID of the profile to delete.
+   * @returns Deletion confirmation message.
+   */
   async delete(profileId: string): Promise<DeleteProfileResponse> {
     if (!isValidUuid(profileId)) {
       throw new AISecSDKException(

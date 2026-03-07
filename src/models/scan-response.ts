@@ -3,13 +3,16 @@ import { PromptDetectedSchema, PromptDetectionDetailsSchema } from './prompt-det
 import { ResponseDetectedSchema, ResponseDetectionDetailsSchema } from './response-detected.js';
 import { ToolEventMetadataSchema } from './tool-event.js';
 
+/** Zod schema for masked data in scan results. */
 export const MaskedDataSchema = z.object({
   data: z.string().optional(),
   pattern_detections: z.array(z.record(z.unknown())).optional(),
 });
 
+/** Masked data containing redacted content and pattern detections. */
 export type MaskedData = z.infer<typeof MaskedDataSchema>;
 
+/** Zod schema for I/O detection flags. */
 export const IODetectedSchema = z
   .object({
     url_cats: z.boolean().optional(),
@@ -20,8 +23,10 @@ export const IODetectedSchema = z
   })
   .passthrough();
 
+/** Flags indicating which detection types triggered on input or output. */
 export type IODetected = z.infer<typeof IODetectedSchema>;
 
+/** Zod schema for the scan summary (verdict + action). */
 export const ScanSummarySchema = z
   .object({
     verdict: z.string().optional(),
@@ -29,8 +34,10 @@ export const ScanSummarySchema = z
   })
   .passthrough();
 
+/** Scan summary containing overall verdict and action. */
 export type ScanSummary = z.infer<typeof ScanSummarySchema>;
 
+/** Zod schema for tool/agent detection results. */
 export const ToolDetectedSchema = z.object({
   verdict: z.string().optional(),
   metadata: ToolEventMetadataSchema.optional(),
@@ -39,8 +46,10 @@ export const ToolDetectedSchema = z.object({
   output_detected: IODetectedSchema.optional(),
 });
 
+/** Detection results for tool/agent interactions. */
 export type ToolDetected = z.infer<typeof ToolDetectedSchema>;
 
+/** Zod schema for a complete scan response from the AIRS API. */
 export const ScanResponseSchema = z.object({
   source: z.string().optional(),
   report_id: z.string(),
@@ -62,4 +71,5 @@ export const ScanResponseSchema = z.object({
   completed_at: z.string().optional(),
 });
 
+/** Complete scan response with verdict, action, and detection details. */
 export type ScanResponse = z.infer<typeof ScanResponseSchema>;

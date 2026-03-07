@@ -12,15 +12,26 @@ import { OAuthClient } from './oauth-client.js';
 import { ProfilesClient } from './profiles.js';
 import { TopicsClient } from './topics.js';
 
+/** Options for constructing a {@link ManagementClient}. */
 export interface ManagementClientOptions {
+  /** OAuth2 client ID. Falls back to `PANW_MGMT_CLIENT_ID` env var. */
   clientId?: string;
+  /** OAuth2 client secret. Falls back to `PANW_MGMT_CLIENT_SECRET` env var. */
   clientSecret?: string;
+  /** Tenant Service Group ID. Falls back to `PANW_MGMT_TSG_ID` env var. */
   tsgId?: string;
+  /** Management API endpoint URL. Falls back to `PANW_MGMT_ENDPOINT` env var. */
   apiEndpoint?: string;
+  /** OAuth2 token endpoint URL. Falls back to `PANW_MGMT_TOKEN_ENDPOINT` env var. */
   tokenEndpoint?: string;
+  /** Max retry attempts (0–5). Defaults to 5. */
   numRetries?: number;
 }
 
+/**
+ * Client for AIRS management API operations (profiles and topics CRUD).
+ * Authenticates via OAuth2 client_credentials flow.
+ */
 export class ManagementClient {
   public readonly profiles: ProfilesClient;
   public readonly topics: TopicsClient;

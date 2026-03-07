@@ -2,15 +2,24 @@ import { DEFAULT_TOKEN_ENDPOINT } from '../constants.js';
 import { AISecSDKException, ErrorType } from '../errors.js';
 import { OAuthTokenResponseSchema } from '../models/oauth-token.js';
 
+/** Options for constructing an {@link OAuthClient}. */
 export interface OAuthClientOptions {
+  /** OAuth2 client ID. */
   clientId: string;
+  /** OAuth2 client secret. */
   clientSecret: string;
+  /** Tenant Service Group ID. */
   tsgId: string;
+  /** OAuth2 token endpoint URL. Defaults to Palo Alto Networks auth endpoint. */
   tokenEndpoint?: string;
 }
 
 const TOKEN_BUFFER_MS = 30_000; // refresh 30s before expiry
 
+/**
+ * OAuth2 client_credentials token manager.
+ * Caches tokens, refreshes before expiry, and deduplicates concurrent requests.
+ */
 export class OAuthClient {
   public readonly tokenEndpoint: string;
   private readonly clientId: string;
@@ -28,6 +37,10 @@ export class OAuthClient {
     this.tokenEndpoint = opts.tokenEndpoint ?? DEFAULT_TOKEN_ENDPOINT;
   }
 
+  /**
+   * Get a valid access token, refreshing if needed.
+   * @returns Bearer access token string.
+   */
   async getToken(): Promise<string> {
     if (this.accessToken && Date.now() < this.expiresAt - TOKEN_BUFFER_MS) {
       return this.accessToken;
@@ -44,6 +57,7 @@ export class OAuthClient {
     return this.pendingFetch;
   }
 
+  /** Clear the cached token, forcing a fresh fetch on next call. */
   clearToken(): void {
     this.accessToken = null;
     this.expiresAt = 0;
