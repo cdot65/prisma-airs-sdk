@@ -120,10 +120,10 @@ npm run typecheck      # tsc --noEmit
 
 ```bash
 cp .env.example .env   # fill in credentials
-pnpm example:scan
-pnpm example:async-scan
-pnpm example:query
-pnpm example:mgmt-auth
-pnpm example:mgmt-profiles
-pnpm example:mgmt-topics
+npm run example:scan
+npm run example:async-scan
+npm run example:query
+npm run example:mgmt-auth
+npm run example:mgmt-profiles
+npm run example:mgmt-topics
 ```
