@@ -89,6 +89,7 @@ src/
 ├── constants.ts              # endpoints, env var names, limits, paths
 ├── errors.ts                 # AISecSDKException + ErrorType enum
 ├── http-client.ts            # scan API fetch wrapper (API key/token auth)
+├── http-retry.ts             # shared retry logic (exponential backoff)
 ├── utils.ts                  # UUID validation, HMAC payload hash
 ├── scan/
 │   ├── scanner.ts            # Scanner class (syncScan, asyncScan, query*)
