@@ -24,6 +24,9 @@ Thumbs.db
 # OpenAPI specs (reference only, not published)
 specs/
 
+# Review documents
+REVIEW-*.md
+
 # Optional IDE or Editor settings
 .vscode/
 .idea/
