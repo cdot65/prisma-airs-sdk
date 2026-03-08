@@ -1,0 +1,83 @@
+site_name: Prisma AIRS SDK
+site_url: https://cdot65.github.io/prisma-airs-sdk/
+site_description: TypeScript SDK for Palo Alto Networks AI Runtime Security (AIRS)
+repo_name: cdot65/prisma-airs-sdk
+repo_url: https://github.com/cdot65/prisma-airs-sdk
+
+theme:
+  name: material
+  logo: images/logo.svg
+  favicon: images/logo.svg
+  palette:
+    - scheme: default
+      primary: deep purple
+      accent: amber
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - scheme: slate
+      primary: deep purple
+      accent: amber
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.expand
+    - navigation.top
+    - navigation.footer
+    - content.code.copy
+    - content.tabs.link
+    - search.suggest
+    - search.highlight
+  icon:
+    repo: fontawesome/brands/github
+
+extra_css:
+  - css/custom.css
+
+markdown_extensions:
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.mark
+  - pymdownx.critic
+  - pymdownx.keys
+  - attr_list
+  - md_in_html
+  - tables
+  - toc:
+      permalink: true
+
+plugins:
+  - search
+
+nav:
+  - Home: index.md
+  - Getting Started:
+      - Installation: getting-started/installation.md
+      - Configuration: getting-started/configuration.md
+      - Quick Start: getting-started/quick-start.md
+  - Services:
+      - Scan API: services/scan-api.md
+      - Management API: services/management-api.md
+      - Model Security API: services/model-security-api.md
+      - Red Team API: services/red-team-api.md
+  - Reference:
+      - API Reference: reference/api-reference.md
+      - Environment Variables: reference/environment-variables.md
+      - Error Handling: reference/error-handling.md
+  - About:
+      - Release Notes: about/release-notes.md
+      - License: about/license.md

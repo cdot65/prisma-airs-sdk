@@ -24,6 +24,9 @@ Thumbs.db
 # OpenAPI specs (reference only, not published)
 specs/
 
+# MkDocs build output
+site/
+
 # Review documents
 REVIEW-*.md
 
