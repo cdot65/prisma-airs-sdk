@@ -2,6 +2,12 @@ import { describe, it, expect, afterEach } from 'vitest';
 import { ManagementClient } from '../../src/management/client.js';
 import { ProfilesClient } from '../../src/management/profiles.js';
 import { TopicsClient } from '../../src/management/topics.js';
+import { ApiKeysClient } from '../../src/management/api-keys.js';
+import { CustomerAppsClient } from '../../src/management/customer-apps.js';
+import { DlpProfilesClient } from '../../src/management/dlp-profiles.js';
+import { DeploymentProfilesClient } from '../../src/management/deployment-profiles.js';
+import { ScanLogsClient } from '../../src/management/scan-logs.js';
+import { OAuthManagementClient } from '../../src/management/oauth-management.js';
 import { AISecSDKException } from '../../src/errors.js';
 
 describe('ManagementClient', () => {
@@ -20,6 +26,12 @@ describe('ManagementClient', () => {
 
     expect(client.profiles).toBeInstanceOf(ProfilesClient);
     expect(client.topics).toBeInstanceOf(TopicsClient);
+    expect(client.apiKeys).toBeInstanceOf(ApiKeysClient);
+    expect(client.customerApps).toBeInstanceOf(CustomerAppsClient);
+    expect(client.dlpProfiles).toBeInstanceOf(DlpProfilesClient);
+    expect(client.deploymentProfiles).toBeInstanceOf(DeploymentProfilesClient);
+    expect(client.scanLogs).toBeInstanceOf(ScanLogsClient);
+    expect(client.oauth).toBeInstanceOf(OAuthManagementClient);
   });
 
   it('reads credentials from env vars', () => {

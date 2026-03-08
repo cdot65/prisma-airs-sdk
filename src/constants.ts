@@ -73,6 +73,15 @@ export const MGMT_PROFILES_TSG_PATH = '/v1/mgmt/profiles/tsg';
 export const MGMT_TOPIC_PATH = '/v1/mgmt/topic';
 export const MGMT_TOPICS_TSG_PATH = '/v1/mgmt/topics/tsg';
 export const MGMT_TOPIC_FORCE_PATH = '/v1/mgmt/topic/force';
+export const MGMT_API_KEY_PATH = '/v1/mgmt/apikey';
+export const MGMT_API_KEYS_TSG_PATH = '/v1/mgmt/apikeys/tsg';
+export const MGMT_DLP_PROFILES_PATH = '/v1/mgmt/dlpprofiles';
+export const MGMT_DEPLOYMENT_PROFILES_PATH = '/v1/mgmt/deploymentprofiles';
+export const MGMT_SCAN_LOGS_PATH = '/v1/mgmt/scanlogs';
+export const MGMT_CUSTOMER_APP_PATH = '/v1/mgmt/customerapp';
+export const MGMT_CUSTOMER_APPS_TSG_PATH = '/v1/mgmt/customerapp/tsg';
+export const MGMT_OAUTH_INVALIDATE_PATH = '/v1/mgmt/oauth/invalidateToken';
+export const MGMT_OAUTH_TOKEN_PATH = '/v1/mgmt/oauth/client_credential/accesstoken';
 
 // Model Security API defaults
 export const DEFAULT_MODEL_SEC_DATA_ENDPOINT = 'https://api.sase.paloaltonetworks.com/aims/data';

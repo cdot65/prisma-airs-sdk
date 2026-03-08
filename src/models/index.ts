@@ -131,6 +131,54 @@ export {
   DeleteTopicConflictSchema,
   type DeleteTopicConflict,
 } from './mgmt-custom-topic.js';
+export {
+  ApiKeySchema,
+  type ApiKey,
+  ApiKeyCreateRequestSchema,
+  type ApiKeyCreateRequest,
+  ApiKeyRegenerateRequestSchema,
+  type ApiKeyRegenerateRequest,
+  ApiKeyListResponseSchema,
+  type ApiKeyListResponse,
+  ApiKeyDeleteResponseSchema,
+  type ApiKeyDeleteResponse,
+} from './mgmt-api-key.js';
+export {
+  ApiKeyDPInfoSchema,
+  type ApiKeyDPInfo,
+  CustomerAppSchema,
+  type CustomerApp,
+  CustomerAppWithKeysSchema,
+  type CustomerAppWithKeys,
+  CustomerAppListResponseSchema,
+  type CustomerAppListResponse,
+} from './mgmt-customer-app.js';
+export {
+  DeploymentProfileEntrySchema,
+  type DeploymentProfileEntry,
+  DeploymentProfilesResponseSchema,
+  type DeploymentProfilesResponse,
+} from './mgmt-deployment-profile.js';
+export {
+  DlpDataProfileSchema,
+  type DlpDataProfile,
+  DlpProfileListResponseSchema,
+  type DlpProfileListResponse,
+} from './mgmt-dlp-profile.js';
+export {
+  ScanResultEntrySchema,
+  type ScanResultEntry,
+  ScanResultForDashboardSchema,
+  type ScanResultForDashboard,
+  PaginatedScanResultsSchema,
+  type PaginatedScanResults,
+} from './mgmt-scan-log.js';
+export {
+  ClientIdAndCustomerAppSchema,
+  type ClientIdAndCustomerApp,
+  Oauth2TokenSchema,
+  type Oauth2Token,
+} from './mgmt-oauth.js';
 export * from './model-security-enums.js';
 export * from './model-security.js';
 export * from './red-team-enums.js';

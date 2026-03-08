@@ -109,4 +109,24 @@ describe('ProfilesClient', () => {
       await expect(client.delete('bad')).rejects.toThrow(AISecSDKException);
     });
   });
+
+  describe('forceDelete', () => {
+    it('DELETEs /v1/mgmt/profile/:id/force with updated_by', async () => {
+      mockFetch({ message: 'force deleted' });
+      const result = await client.forceDelete(
+        '550e8400-e29b-41d4-a716-446655440000',
+        'admin@test.com',
+      );
+
+      expect(result.message).toBe('force deleted');
+      const [url, init] = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0];
+      expect(url).toContain('/v1/mgmt/profile/550e8400-e29b-41d4-a716-446655440000/force');
+      expect(url).toContain('updated_by=admin');
+      expect(init.method).toBe('DELETE');
+    });
+
+    it('rejects invalid UUID', async () => {
+      await expect(client.forceDelete('bad', 'user@test.com')).rejects.toThrow(AISecSDKException);
+    });
+  });
 });
