@@ -57,7 +57,8 @@
     "example:mgmt-topics": "npx tsx --env-file=.env examples/mgmt-topics.ts",
     "example:model-sec-scans": "npx tsx --env-file=.env examples/model-security-scans.ts",
     "example:red-team-scans": "npx tsx --env-file=.env examples/red-team-scans.ts",
-    "example:red-team-targets": "npx tsx --env-file=.env examples/red-team-targets.ts"
+    "example:red-team-targets": "npx tsx --env-file=.env examples/red-team-targets.ts",
+    "example:oauth-lifecycle": "npx tsx examples/oauth-lifecycle-validation.ts"
   },
   "dependencies": {
     "zod": "^3.24.0"
