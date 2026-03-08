@@ -126,4 +126,29 @@ export class ProfilesClient {
     });
     return res.data;
   }
+
+  /**
+   * Force-delete a security profile, bypassing safety checks.
+   * @param profileId - UUID of the profile to force-delete.
+   * @param updatedBy - Email of the user performing the deletion.
+   * @returns Deletion confirmation message.
+   */
+  async forceDelete(profileId: string, updatedBy: string): Promise<DeleteProfileResponse> {
+    if (!isValidUuid(profileId)) {
+      throw new AISecSDKException(
+        `Invalid profile_id: ${profileId}`,
+        ErrorType.USER_REQUEST_PAYLOAD_ERROR,
+      );
+    }
+
+    const res = await managementHttpRequest<DeleteProfileResponse>({
+      method: 'DELETE',
+      baseUrl: this.baseUrl,
+      path: `${MGMT_PROFILE_PATH}/${profileId}/force`,
+      params: { updated_by: updatedBy },
+      oauthClient: this.oauthClient,
+      numRetries: this.numRetries,
+    });
+    return res.data;
+  }
 }

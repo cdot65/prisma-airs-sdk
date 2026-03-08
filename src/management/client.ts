@@ -11,6 +11,12 @@ import { AISecSDKException, ErrorType } from '../errors.js';
 import { OAuthClient } from './oauth-client.js';
 import { ProfilesClient } from './profiles.js';
 import { TopicsClient } from './topics.js';
+import { ApiKeysClient } from './api-keys.js';
+import { CustomerAppsClient } from './customer-apps.js';
+import { DlpProfilesClient } from './dlp-profiles.js';
+import { DeploymentProfilesClient } from './deployment-profiles.js';
+import { ScanLogsClient } from './scan-logs.js';
+import { OAuthManagementClient } from './oauth-management.js';
 
 /** Options for constructing a {@link ManagementClient}. */
 export interface ManagementClientOptions {
@@ -29,12 +35,18 @@ export interface ManagementClientOptions {
 }
 
 /**
- * Client for AIRS management API operations (profiles and topics CRUD).
+ * Client for AIRS management API operations.
  * Authenticates via OAuth2 client_credentials flow.
  */
 export class ManagementClient {
   public readonly profiles: ProfilesClient;
   public readonly topics: TopicsClient;
+  public readonly apiKeys: ApiKeysClient;
+  public readonly customerApps: CustomerAppsClient;
+  public readonly dlpProfiles: DlpProfilesClient;
+  public readonly deploymentProfiles: DeploymentProfilesClient;
+  public readonly scanLogs: ScanLogsClient;
+  public readonly oauth: OAuthManagementClient;
 
   constructor(opts: ManagementClientOptions = {}) {
     const clientId = opts.clientId ?? process.env[MGMT_CLIENT_ID];
@@ -84,6 +96,44 @@ export class ManagementClient {
       baseUrl: apiEndpoint,
       oauthClient,
       tsgId,
+      numRetries,
+    });
+
+    this.apiKeys = new ApiKeysClient({
+      baseUrl: apiEndpoint,
+      oauthClient,
+      tsgId,
+      numRetries,
+    });
+
+    this.customerApps = new CustomerAppsClient({
+      baseUrl: apiEndpoint,
+      oauthClient,
+      tsgId,
+      numRetries,
+    });
+
+    this.dlpProfiles = new DlpProfilesClient({
+      baseUrl: apiEndpoint,
+      oauthClient,
+      numRetries,
+    });
+
+    this.deploymentProfiles = new DeploymentProfilesClient({
+      baseUrl: apiEndpoint,
+      oauthClient,
+      numRetries,
+    });
+
+    this.scanLogs = new ScanLogsClient({
+      baseUrl: apiEndpoint,
+      oauthClient,
+      numRetries,
+    });
+
+    this.oauth = new OAuthManagementClient({
+      baseUrl: apiEndpoint,
+      oauthClient,
       numRetries,
     });
   }

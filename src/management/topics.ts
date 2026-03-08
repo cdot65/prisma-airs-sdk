@@ -123,9 +123,10 @@ export class TopicsClient {
   /**
    * Force-delete a custom topic, removing it from any referencing profiles.
    * @param topicId - UUID of the topic to force-delete.
+   * @param updatedBy - Email of the user performing the deletion.
    * @returns Deletion confirmation message.
    */
-  async forceDelete(topicId: string): Promise<DeleteTopicResponse> {
+  async forceDelete(topicId: string, updatedBy?: string): Promise<DeleteTopicResponse> {
     if (!isValidUuid(topicId)) {
       throw new AISecSDKException(
         `Invalid topic_id: ${topicId}`,
@@ -133,10 +134,15 @@ export class TopicsClient {
       );
     }
 
+    const params: Record<string, string> | undefined = updatedBy
+      ? { updated_by: updatedBy }
+      : undefined;
+
     const res = await managementHttpRequest<DeleteTopicResponse>({
       method: 'DELETE',
       baseUrl: this.baseUrl,
       path: `${MGMT_TOPIC_FORCE_PATH}/${topicId}`,
+      params,
       oauthClient: this.oauthClient,
       numRetries: this.numRetries,
     });

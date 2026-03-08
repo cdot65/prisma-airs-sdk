@@ -95,6 +95,12 @@ class ManagementClient {
   constructor(opts?: ManagementClientOptions);
   readonly profiles: ProfilesClient;
   readonly topics: TopicsClient;
+  readonly apiKeys: ApiKeysClient;
+  readonly customerApps: CustomerAppsClient;
+  readonly dlpProfiles: DlpProfilesClient;
+  readonly deploymentProfiles: DeploymentProfilesClient;
+  readonly scanLogs: ScanLogsClient;
+  readonly oauth: OAuthManagementClient;
 }
 ```
 
@@ -143,6 +149,7 @@ class ProfilesClient {
   list(opts?: PaginationOptions): Promise<SecurityProfileListResponse>;
   update(profileId: string, request: CreateSecurityProfileRequest): Promise<SecurityProfile>;
   delete(profileId: string): Promise<DeleteProfileResponse>;
+  forceDelete(profileId: string, updatedBy: string): Promise<DeleteProfileResponse>;
 }
 ```
 
@@ -154,7 +161,81 @@ class TopicsClient {
   list(opts?: PaginationOptions): Promise<CustomTopicListResponse>;
   update(topicId: string, request: CreateCustomTopicRequest): Promise<CustomTopic>;
   delete(topicId: string): Promise<DeleteTopicResponse>;
-  forceDelete(topicId: string): Promise<DeleteTopicResponse>;
+  forceDelete(topicId: string, updatedBy?: string): Promise<DeleteTopicResponse>;
+}
+```
+
+### `ApiKeysClient`
+
+```ts
+class ApiKeysClient {
+  create(request: ApiKeyCreateRequest): Promise<ApiKey>;
+  list(opts?: PaginationOptions): Promise<ApiKeyListResponse>;
+  delete(apiKeyName: string, updatedBy: string): Promise<ApiKeyDeleteResponse>;
+  regenerate(apiKeyId: string, request: ApiKeyRegenerateRequest): Promise<ApiKey>;
+}
+```
+
+### `CustomerAppsClient`
+
+```ts
+class CustomerAppsClient {
+  get(appName: string): Promise<CustomerApp>;
+  list(opts?: PaginationOptions): Promise<CustomerAppListResponse>;
+  update(customerAppId: string, request: CustomerApp): Promise<CustomerApp>;
+  delete(appName: string, updatedBy: string): Promise<CustomerApp>;
+}
+```
+
+### `DlpProfilesClient`
+
+```ts
+class DlpProfilesClient {
+  list(): Promise<DlpProfileListResponse>;
+}
+```
+
+### `DeploymentProfilesClient`
+
+```ts
+interface DeploymentProfileListOptions {
+  unactivated?: boolean; // include unactivated profiles
+}
+
+class DeploymentProfilesClient {
+  list(opts?: DeploymentProfileListOptions): Promise<DeploymentProfilesResponse>;
+}
+```
+
+### `ScanLogsClient`
+
+```ts
+interface ScanLogQueryOptions {
+  time_interval: number; // time range value
+  time_unit: string; // e.g. 'hour', 'day'
+  pageNumber: number; // 1-based page number
+  pageSize: number; // records per page
+  filter: string; // 'all', 'benign', or 'threat'
+  page_token?: string; // encrypted pagination token
+}
+
+class ScanLogsClient {
+  query(opts: ScanLogQueryOptions): Promise<PaginatedScanResults>;
+}
+```
+
+### `OAuthManagementClient`
+
+```ts
+interface GetTokenOptions {
+  body: ClientIdAndCustomerApp;
+  tokenTtlInterval?: number;
+  tokenTtlUnit?: string;
+}
+
+class OAuthManagementClient {
+  invalidateToken(token: string, body: ClientIdAndCustomerApp): Promise<string>;
+  getAccessToken(opts: GetTokenOptions): Promise<Oauth2Token>;
 }
 ```
 
@@ -249,6 +330,149 @@ interface DeleteProfileConflict {
 interface DeleteTopicConflict {
   message: string;
   payload: { profile_id: string; profile_name: string; revision: number }[];
+}
+```
+
+#### API Key Types
+
+```ts
+interface ApiKey {
+  api_key_id?: string;
+  api_key_last8?: string;
+  auth_code?: string;
+  expiration?: string;
+  revoked?: boolean;
+  [key: string]: unknown;
+}
+
+interface ApiKeyCreateRequest {
+  auth_code: string;
+  cust_app: string;
+  revoked: boolean;
+  created_by: string;
+  api_key_name: string;
+  rotation_time_interval: number;
+  rotation_time_unit: string;
+  [key: string]: unknown;
+}
+
+interface ApiKeyRegenerateRequest {
+  rotation_time_interval: number;
+  rotation_time_unit: string;
+  [key: string]: unknown;
+}
+
+interface ApiKeyListResponse {
+  api_keys?: ApiKey[];
+  next_offset?: number;
+}
+
+interface ApiKeyDeleteResponse {
+  message?: string;
+  [key: string]: unknown;
+}
+```
+
+#### Customer App Types
+
+```ts
+interface CustomerApp {
+  tsg_id?: string;
+  app_name?: string;
+  cloud_provider?: string;
+  environment?: string;
+  [key: string]: unknown;
+}
+
+interface CustomerAppWithKeys {
+  customer_appId?: string;
+  tsg_id?: string;
+  app_name?: string;
+  cloud_provider?: string;
+  environment?: string;
+  api_keys_dp_info?: ApiKeyDPInfo[];
+  [key: string]: unknown;
+}
+
+interface CustomerAppListResponse {
+  customer_apps?: CustomerAppWithKeys[];
+  next_offset?: number;
+}
+```
+
+#### DLP Profile Types
+
+```ts
+interface DlpDataProfile {
+  name: string;
+  uuid: string;
+  rule1?: { action?: string; [key: string]: unknown };
+  rule2?: { action?: string; [key: string]: unknown };
+  'log-severity'?: string;
+  [key: string]: unknown;
+}
+
+interface DlpProfileListResponse {
+  dlp_profiles?: DlpDataProfile[];
+}
+```
+
+#### Deployment Profile Types
+
+```ts
+interface DeploymentProfileEntry {
+  dp_name?: string;
+  auth_code?: string;
+  [key: string]: unknown;
+}
+
+interface DeploymentProfilesResponse {
+  deployment_profiles?: DeploymentProfileEntry[];
+  [key: string]: unknown;
+}
+```
+
+#### Scan Log Types
+
+```ts
+interface ScanResultEntry {
+  csp_id?: string;
+  tsg_id?: string;
+  scan_id?: string;
+  scan_sub_req_id?: number;
+  api_key_name?: string;
+  app_name?: string;
+  tokens?: number;
+  text_records?: number;
+  verdict?: string;
+  action?: string;
+  // ... 30+ optional fields for detection verdicts, metadata
+  [key: string]: unknown;
+}
+
+interface PaginatedScanResults {
+  total_pages?: number;
+  page_number?: number;
+  page_size?: number;
+  page_token?: string;
+  scan_results?: ScanResultEntry[];
+  [key: string]: unknown;
+}
+```
+
+#### OAuth Types
+
+```ts
+interface ClientIdAndCustomerApp {
+  client_id: string;
+  customer_app: string;
+}
+
+interface Oauth2Token {
+  access_token: string;
+  expires_in?: string;
+  token_type?: string;
+  [key: string]: unknown;
 }
 ```
 

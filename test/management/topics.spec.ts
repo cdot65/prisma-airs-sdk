@@ -119,6 +119,14 @@ describe('TopicsClient', () => {
       expect(init.method).toBe('DELETE');
     });
 
+    it('passes updated_by param', async () => {
+      mockFetch({ message: 'force deleted' });
+      await client.forceDelete('550e8400-e29b-41d4-a716-446655440000', 'admin@test.com');
+
+      const [url] = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0];
+      expect(url).toContain('updated_by=admin');
+    });
+
     it('rejects invalid UUID', async () => {
       await expect(client.forceDelete('bad')).rejects.toThrow(AISecSDKException);
     });
