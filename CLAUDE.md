@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Overview
 
-TypeScript SDK for Palo Alto Networks AI Runtime Security (AIRS) API. Mirrors the official Python `pan-aisecurity` SDK. Published as `@cdot65/prisma-airs-sdk` on npm. Zero external HTTP dependencies (native fetch + crypto).
+TypeScript SDK for Palo Alto Networks Prisma AIRS — covers the full lifecycle across all three service domains (AI Runtime Security, Model Security, AI Red Teaming) plus configuration management. Extends beyond the official Python `pan-aisecurity` SDK. Published as `@cdot65/prisma-airs-sdk` on npm. Zero external HTTP dependencies (native fetch + crypto).
 
 ## Commands
 
@@ -34,21 +34,25 @@ npx vitest run -t "test name pattern"
 
 ## Architecture
 
-**Global singleton config** → `init()` must be called before using Scanner. Reads env vars `PANW_AI_SEC_API_KEY`, `PANW_AI_SEC_API_TOKEN`, `PANW_AI_SEC_API_ENDPOINT`.
+**4 service domains**, 2 auth methods:
 
-**Core flow:** `init(opts)` → `Scanner.syncScan(profile, content)` → `httpRequest()` → AIRS API
+- **Scan API** (API Key): `init()` → `Scanner.syncScan()` → AIRS content scanning endpoint
+- **Management API** (OAuth2): `ManagementClient` → profiles/topics CRUD for AIRS config
+- **Model Security API** (OAuth2): `ModelSecurityClient` → model scans, security groups, rules
+- **Red Team API** (OAuth2): `RedTeamClient` → scans, reports, targets, custom attacks
 
 Key modules:
 
-- `src/configuration.ts` — global Configuration singleton, `init()` entry point
-- `src/http-client.ts` — fetch wrapper with exponential backoff retry (500/502/503/504)
-- `src/scan/scanner.ts` — 4 public methods: `syncScan`, `asyncScan`, `queryByScanIds`, `queryByReportIds`
-- `src/scan/content.ts` — Content class with byte-length validation and JSON serialization
+- `src/scan/` — Scanner, Content (API key auth via `init()`)
+- `src/management/` — ManagementClient, OAuthClient, ProfilesClient, TopicsClient
+- `src/model-security/` — ModelSecurityClient + 3 sub-clients (scans, groups, rules)
+- `src/red-team/` — RedTeamClient + 5 sub-clients (scans, reports, customAttackReports, targets, customAttacks)
+- `src/http-retry.ts` — shared exponential backoff retry (used by all HTTP clients)
 - `src/models/` — Zod schemas + inferred TypeScript types for all API models
-- `src/errors.ts` — `AISecSDKException` with `ErrorType` enum (5 types)
+- `src/errors.ts` — `AISecSDKException` with `ErrorType` enum (6 types)
 - `src/constants.ts` — API paths, content limits, batch limits, header names, retry config
 
-**Auth:** Two methods — API key (X-Pan-Token header + HMAC-SHA256 payload hash) or Bearer token.
+**Auth:** API key (HMAC-SHA256) for AIRS scans only. OAuth2 client_credentials for everything else (management CRUD, model security, red teaming).
 
 **Validation strategy:** Content validates at setter time, Scanner validates arguments, Zod validates API responses. Models use `.passthrough()` for forward compat.
 
