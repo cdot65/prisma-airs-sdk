@@ -19,10 +19,17 @@ The SDK is ESM-first (`"type": "module"`) with dual exports:
 
 ```ts
 // ESM (recommended)
-import { init, Scanner, Content } from '@cdot65/prisma-airs-sdk';
+import {
+  init,
+  Scanner,
+  Content,
+  ManagementClient,
+  RedTeamClient,
+  ModelSecurityClient,
+} from '@cdot65/prisma-airs-sdk';
 
 // CJS (also supported)
-const { init, Scanner, Content } = require('@cdot65/prisma-airs-sdk');
+const { init, Scanner, Content, ManagementClient } = require('@cdot65/prisma-airs-sdk');
 ```
 
 ## Dependencies

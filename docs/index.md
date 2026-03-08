@@ -8,7 +8,7 @@ title: Home
 
 # Prisma AIRS SDK
 
-**TypeScript SDK for Palo Alto Networks AI Runtime Security**
+**TypeScript SDK for Palo Alto Networks Prisma AIRS**
 
 [![CI](https://github.com/cdot65/prisma-airs-sdk/actions/workflows/ci.yml/badge.svg)](https://github.com/cdot65/prisma-airs-sdk/actions/workflows/ci.yml)
 [![npm](https://img.shields.io/npm/v/@cdot65/prisma-airs-sdk)](https://www.npmjs.com/package/@cdot65/prisma-airs-sdk)
@@ -98,7 +98,7 @@ flowchart LR
 
   ***
 
-  Run your first content scan in under 5 minutes.
+  Scanning, management, and more in under 5 minutes.
 
   [:octicons-arrow-right-24: Quick Start](getting-started/quick-start.md)
 
