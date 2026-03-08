@@ -7,6 +7,14 @@ export const BEARER = 'Bearer ';
 
 export const DEFAULT_ENDPOINT = 'https://service.api.aisecurity.paloaltonetworks.com';
 
+/** Regional AIRS API endpoints. */
+export const AIRS_ENDPOINTS = {
+  US: 'https://service.api.aisecurity.paloaltonetworks.com',
+  EU: 'https://service-de.api.aisecurity.paloaltonetworks.com',
+  INDIA: 'https://service-in.api.aisecurity.paloaltonetworks.com',
+  SINGAPORE: 'https://service-sg.api.aisecurity.paloaltonetworks.com',
+} as const;
+
 // Environment variable names
 export const AI_SEC_API_KEY = 'PANW_AI_SEC_API_KEY';
 export const AI_SEC_API_TOKEN = 'PANW_AI_SEC_API_TOKEN';

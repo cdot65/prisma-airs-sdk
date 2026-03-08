@@ -1,8 +1,18 @@
-export { Verdict, Action, Category } from './enums.js';
+export {
+  Verdict,
+  Action,
+  Category,
+  DetectionServiceName,
+  ContentErrorType,
+  ErrorStatus,
+} from './enums.js';
 export type {
   Verdict as VerdictType,
   Action as ActionType,
   Category as CategoryType,
+  DetectionServiceName as DetectionServiceNameType,
+  ContentErrorType as ContentErrorTypeType,
+  ErrorStatus as ErrorStatusType,
 } from './enums.js';
 export { AiProfileSchema, type AiProfile } from './ai-profile.js';
 export { AgentMetaSchema, type AgentMeta, MetadataSchema, type Metadata } from './metadata.js';
@@ -60,6 +70,40 @@ export {
 } from './detection.js';
 export { DlpReportSchema, type DlpReport } from './dlp-report.js';
 export { UrlfEntrySchema, type UrlfEntry } from './urlf-report.js';
+export {
+  TcReportSchema,
+  type TcReport,
+  DbsEntrySchema,
+  type DbsEntry,
+  DbsReportSchema,
+  type DbsReport,
+  McEntrySchema,
+  type McEntry,
+  MalwareReportSchema,
+  type MalwareReport,
+  CmdEntrySchema,
+  type CmdEntry,
+  CmdInjectReportSchema,
+  type CmdInjectReport,
+  McReportSchema,
+  type McReport,
+  AgentEntrySchema,
+  type AgentEntry,
+  AgentReportSchema,
+  type AgentReport,
+  TgReportSchema,
+  type TgReport,
+  CgReportSchema,
+  type CgReport,
+  OffsetSchema,
+  type Offset,
+  DlpPatternDetectionSchema,
+  type DlpPatternDetection,
+  PatternDetectionSchema,
+  type PatternDetection,
+  ContentErrorSchema,
+  type ContentError,
+} from './detection-reports.js';
 export { ErrorResponseSchema, type ErrorResponse } from './error-response.js';
 export {
   SecurityProfileSchema,

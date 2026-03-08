@@ -2,11 +2,12 @@ import { z } from 'zod';
 import { PromptDetectedSchema, PromptDetectionDetailsSchema } from './prompt-detected.js';
 import { ResponseDetectedSchema, ResponseDetectionDetailsSchema } from './response-detected.js';
 import { ToolEventMetadataSchema } from './tool-event.js';
+import { PatternDetectionSchema, ContentErrorSchema } from './detection-reports.js';
 
 /** Zod schema for masked data in scan results. */
 export const MaskedDataSchema = z.object({
   data: z.string().optional(),
-  pattern_detections: z.array(z.record(z.unknown())).optional(),
+  pattern_detections: z.array(PatternDetectionSchema).optional(),
 });
 
 /** Masked data containing redacted content and pattern detections. */
@@ -60,6 +61,9 @@ export const ScanResponseSchema = z.object({
   profile_name: z.string().optional(),
   category: z.string(),
   action: z.string(),
+  timeout: z.boolean().optional(),
+  error: z.boolean().optional(),
+  errors: z.array(ContentErrorSchema).optional(),
   prompt_detected: PromptDetectedSchema.optional(),
   response_detected: ResponseDetectedSchema.optional(),
   prompt_masked_data: MaskedDataSchema.optional(),
