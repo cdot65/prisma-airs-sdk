@@ -356,4 +356,29 @@ describe('RedTeamCustomAttacksClient', () => {
       expect(init.method).toBe('POST');
     });
   });
+
+  // -----------------------------------------------------------------------
+  // CSV upload
+  // -----------------------------------------------------------------------
+
+  describe('uploadPromptsCsv', () => {
+    it('POSTs multipart form data to upload endpoint', async () => {
+      mockFetch({ message: 'uploaded', status: 201 }, 201);
+      const csvContent = 'prompt,goal\n"test prompt","test goal"';
+      const file = new Blob([csvContent], { type: 'text/csv' });
+      const result = await client.uploadPromptsCsv(validUuid, file);
+
+      expect(result.message).toBe('uploaded');
+      const [url, init] = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0];
+      expect(url).toContain('/v1/custom-attack/upload-custom-prompts-csv');
+      expect(url).toContain(`prompt_set_uuid=${validUuid}`);
+      expect(init.method).toBe('POST');
+      expect(init.body).toBeInstanceOf(FormData);
+    });
+
+    it('rejects invalid prompt set UUID', async () => {
+      const file = new Blob(['test'], { type: 'text/csv' });
+      await expect(client.uploadPromptsCsv('bad', file)).rejects.toThrow(AISecSDKException);
+    });
+  });
 });

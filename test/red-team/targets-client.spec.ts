@@ -50,6 +50,30 @@ describe('RedTeamTargetsClient', () => {
       expect(url).toBe('https://mgmt.example.com/v1/target');
       expect(init.method).toBe('POST');
     });
+
+    it('passes validate query param when true', async () => {
+      mockFetch({ id: validUuid }, 201);
+      await client.create({ name: 'test' }, { validate: true });
+
+      const [url] = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0];
+      expect(url).toContain('validate=true');
+    });
+
+    it('passes validate query param when false', async () => {
+      mockFetch({ id: validUuid }, 201);
+      await client.create({ name: 'test' }, { validate: false });
+
+      const [url] = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0];
+      expect(url).toContain('validate=false');
+    });
+
+    it('omits validate param when not specified', async () => {
+      mockFetch({ id: validUuid }, 201);
+      await client.create({ name: 'test' });
+
+      const [url] = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0];
+      expect(url).not.toContain('validate');
+    });
   });
 
   // -----------------------------------------------------------------------
@@ -121,6 +145,22 @@ describe('RedTeamTargetsClient', () => {
 
     it('rejects invalid UUID', async () => {
       await expect(client.update('bad', { name: 'x' })).rejects.toThrow(AISecSDKException);
+    });
+
+    it('passes validate query param when true', async () => {
+      mockFetch({ id: validUuid });
+      await client.update(validUuid, { name: 'test' }, { validate: true });
+
+      const [url] = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0];
+      expect(url).toContain('validate=true');
+    });
+
+    it('passes validate query param when false', async () => {
+      mockFetch({ id: validUuid });
+      await client.update(validUuid, { name: 'test' }, { validate: false });
+
+      const [url] = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0];
+      expect(url).toContain('validate=false');
     });
   });
 

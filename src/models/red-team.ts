@@ -32,21 +32,21 @@ export type HTTPValidationError = z.infer<typeof HTTPValidationErrorSchema>;
 
 export const TargetBackgroundSchema = z
   .object({
-    industry: z.unknown().optional(),
-    use_case: z.unknown().optional(),
-    competitors: z.unknown().optional(),
+    industry: z.string().nullable().optional(),
+    use_case: z.string().nullable().optional(),
+    competitors: z.array(z.string()).nullable().optional(),
   })
   .passthrough();
 export type TargetBackground = z.infer<typeof TargetBackgroundSchema>;
 
 export const TargetAdditionalContextSchema = z
   .object({
-    base_model: z.unknown().optional(),
-    core_architecture: z.unknown().optional(),
-    system_prompt: z.unknown().optional(),
-    languages_supported: z.unknown().optional(),
-    banned_keywords: z.unknown().optional(),
-    tools_accessible: z.unknown().optional(),
+    base_model: z.string().nullable().optional(),
+    core_architecture: z.string().nullable().optional(),
+    system_prompt: z.string().nullable().optional(),
+    languages_supported: z.array(z.string()).nullable().optional(),
+    banned_keywords: z.array(z.string()).nullable().optional(),
+    tools_accessible: z.array(z.string()).nullable().optional(),
   })
   .passthrough();
 export type TargetAdditionalContext = z.infer<typeof TargetAdditionalContextSchema>;
@@ -54,21 +54,116 @@ export type TargetAdditionalContext = z.infer<typeof TargetAdditionalContextSche
 export const TargetMetadataSchema = z
   .object({
     multi_turn: z.boolean().optional(),
-    multi_turn_error_message: z.unknown().optional(),
-    rate_limit: z.unknown().optional(),
+    multi_turn_error_message: z.string().nullable().optional(),
+    rate_limit: z.number().int().nullable().optional(),
     rate_limit_enabled: z.boolean().optional(),
-    rate_limit_error_code: z.unknown().optional(),
-    rate_limit_error_json: z.unknown().optional(),
-    rate_limit_error_message: z.unknown().optional(),
+    rate_limit_error_code: z.number().int().nullable().optional(),
+    rate_limit_error_json: z.record(z.unknown()).nullable().optional(),
+    rate_limit_error_message: z.string().nullable().optional(),
     content_filter_enabled: z.boolean().optional(),
-    content_filter_error_code: z.unknown().optional(),
-    content_filter_error_json: z.unknown().optional(),
-    content_filter_error_message: z.unknown().optional(),
+    content_filter_error_code: z.number().int().nullable().optional(),
+    content_filter_error_json: z.record(z.unknown()).nullable().optional(),
+    content_filter_error_message: z.string().nullable().optional(),
     probe_message: z.string().optional(),
     request_timeout: z.number().optional(),
   })
   .passthrough();
 export type TargetMetadata = z.infer<typeof TargetMetadataSchema>;
+
+// ---------------------------------------------------------------------------
+// Multi-turn configuration schemas
+// ---------------------------------------------------------------------------
+
+export const MultiTurnStatefulConfigSchema = z
+  .object({
+    type: z.string().default('stateful'),
+    response_id_field: z.string(),
+    request_id_field: z.string(),
+  })
+  .passthrough();
+export type MultiTurnStatefulConfig = z.infer<typeof MultiTurnStatefulConfigSchema>;
+
+export const MultiTurnStatelessConfigSchema = z
+  .object({
+    type: z.string().default('stateless'),
+    assistant_role: z.string().nullable().optional(),
+  })
+  .passthrough();
+export type MultiTurnStatelessConfig = z.infer<typeof MultiTurnStatelessConfigSchema>;
+
+// ---------------------------------------------------------------------------
+// Provider-specific connection parameter schemas
+// ---------------------------------------------------------------------------
+
+export const OpenAIConnectionParamsSchema = z
+  .object({
+    api_key: z.string(),
+    model_name: z.string(),
+  })
+  .passthrough();
+export type OpenAIConnectionParams = z.infer<typeof OpenAIConnectionParamsSchema>;
+
+export const HuggingfaceConnectionParamsSchema = z
+  .object({
+    api_key: z.string(),
+    model_name: z.string(),
+  })
+  .passthrough();
+export type HuggingfaceConnectionParams = z.infer<typeof HuggingfaceConnectionParamsSchema>;
+
+export const DatabricksConnectionParamsSchema = z
+  .object({
+    auth_type: z.string(),
+    workspace_url: z.string(),
+    model_name: z.string(),
+    access_token: z.string().nullable().optional(),
+    client_id: z.string().nullable().optional(),
+    secret: z.string().nullable().optional(),
+  })
+  .passthrough();
+export type DatabricksConnectionParams = z.infer<typeof DatabricksConnectionParamsSchema>;
+
+export const BedrockAccessConnectionParamsSchema = z
+  .object({
+    access_id: z.string(),
+    access_secret: z.string(),
+    region: z.string(),
+    model_id: z.string(),
+    session_token: z.string().nullable().optional(),
+  })
+  .passthrough();
+export type BedrockAccessConnectionParams = z.infer<typeof BedrockAccessConnectionParamsSchema>;
+
+// ---------------------------------------------------------------------------
+// Connection parameter schemas (REST & Streaming)
+// ---------------------------------------------------------------------------
+
+export const RestConnectionParamsSchema = z
+  .object({
+    api_endpoint: z.string().nullable().optional(),
+    request_headers: z.record(z.unknown()).nullable().optional(),
+    request_json: z.record(z.unknown()).nullable().optional(),
+    response_json: z.record(z.unknown()).nullable().optional(),
+    response_key: z.string().nullable().optional(),
+    target_connection_config: z.unknown().nullable().optional(),
+    curl: z.string().nullable().optional(),
+    multi_turn_config: z.unknown().nullable().optional(),
+  })
+  .passthrough();
+export type RestConnectionParams = z.infer<typeof RestConnectionParamsSchema>;
+
+export const StreamingConnectionParamsSchema = RestConnectionParamsSchema.extend({
+  response_stop_key: z.string(),
+  response_stop_value: z.string(),
+}).passthrough();
+export type StreamingConnectionParams = z.infer<typeof StreamingConnectionParamsSchema>;
+
+/** Union of REST and Streaming connection params. */
+export const ConnectionParamsSchema = z.union([
+  StreamingConnectionParamsSchema,
+  RestConnectionParamsSchema,
+]);
+export type ConnectionParams = z.infer<typeof ConnectionParamsSchema>;
 
 // ---------------------------------------------------------------------------
 // DataPlane — Job / Scan schemas
@@ -1119,9 +1214,9 @@ export const CustomPromptSetVersionInfoSchema = z
     uuid: z.string(),
     status: z.string(),
     is_latest: z.boolean(),
-    version: z.unknown().optional(),
-    stats: z.unknown().optional(),
-    snapshot_created_at: z.unknown().optional(),
+    version: z.string().nullable().optional(),
+    stats: PromptSetStatsSchema.nullable().optional(),
+    snapshot_created_at: z.string().nullable().optional(),
   })
   .passthrough();
 export type CustomPromptSetVersionInfo = z.infer<typeof CustomPromptSetVersionInfoSchema>;
