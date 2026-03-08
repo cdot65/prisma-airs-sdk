@@ -93,9 +93,9 @@ const page = await client.scans.list({
   skip: 0,
   limit: 10,
   sort_by: 'created_at',
-  sort_direction: 'desc',
-  eval_outcome: 'fail',
-  source_type: 'huggingface',
+  sort_order: 'desc',
+  eval_outcomes: ['BLOCKED'],
+  source_types: ['HUGGING_FACE'],
 });
 ```
 
