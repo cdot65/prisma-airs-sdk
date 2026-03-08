@@ -8,7 +8,7 @@ export interface MgmtHttpRequestOptions {
   baseUrl: string;
   path: string;
   body?: unknown;
-  params?: Record<string, string>;
+  params?: Record<string, string | string[]>;
   oauthClient: OAuthClient;
   numRetries: number;
 }
@@ -34,7 +34,13 @@ export async function managementHttpRequest<T>(
 
       if (params) {
         for (const [key, value] of Object.entries(params)) {
-          url.searchParams.set(key, value);
+          if (Array.isArray(value)) {
+            for (const v of value) {
+              url.searchParams.append(key, v);
+            }
+          } else {
+            url.searchParams.set(key, value);
+          }
         }
       }
 

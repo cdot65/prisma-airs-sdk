@@ -5,5 +5,12 @@ export {
   type ModelSecurityScanListOptions,
   type ModelSecurityFileListOptions,
 } from './scans-client.js';
-export { ModelSecurityGroupsClient } from './security-groups-client.js';
-export { ModelSecurityRulesClient } from './security-rules-client.js';
+export {
+  ModelSecurityGroupsClient,
+  type ModelSecurityGroupListOptions,
+  type ModelSecurityRuleInstanceListOptions,
+} from './security-groups-client.js';
+export {
+  ModelSecurityRulesClient,
+  type ModelSecurityRuleListOptions,
+} from './security-rules-client.js';

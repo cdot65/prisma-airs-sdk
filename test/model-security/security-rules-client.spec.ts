@@ -62,20 +62,38 @@ describe('ModelSecurityRulesClient', () => {
 
     it('passes pagination params', async () => {
       mockFetch({ pagination: { total_items: 0 }, rules: [] });
-      await client.list({ skip: 0, limit: 25, sort_by: 'created_at', sort_direction: 'asc' });
+      await client.list({ skip: 0, limit: 25 });
 
       const [url] = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0];
       expect(url).toContain('limit=25');
-      expect(url).toContain('sort_by=created_at');
-      expect(url).toContain('sort_direction=asc');
     });
 
-    it('passes search param', async () => {
+    it('sends search_query param per spec', async () => {
       mockFetch({ pagination: { total_items: 0 }, rules: [] });
-      await client.list({ search: 'pickle' });
+      await client.list({ search_query: 'pickle' });
 
       const [url] = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0];
-      expect(url).toContain('search=pickle');
+      expect(url).toContain('search_query=pickle');
+      expect(url).not.toContain('search=pickle');
+    });
+
+    it('sends source_type filter', async () => {
+      mockFetch({ pagination: { total_items: 0 }, rules: [] });
+      await client.list({ source_type: 'HUGGING_FACE' });
+
+      const [url] = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0];
+      expect(url).toContain('source_type=HUGGING_FACE');
+    });
+
+    it('does not send sort params (not in spec)', async () => {
+      mockFetch({ pagination: { total_items: 0 }, rules: [] });
+      await client.list({ skip: 0, limit: 10 });
+
+      const [url] = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0];
+      expect(url).not.toContain('sort_by');
+      expect(url).not.toContain('sort_field');
+      expect(url).not.toContain('sort_direction');
+      expect(url).not.toContain('sort_dir');
     });
   });
 
