@@ -179,10 +179,23 @@ console.log(group.uuid);
 ### List
 
 ```ts
+// Basic pagination
 const result = await client.securityGroups.list({
   skip: 0,
   limit: 10,
-  search: 'production',
+  sort_field: 'created_at',
+  sort_dir: 'desc',
+});
+
+// Filter by source types and search
+const filtered = await client.securityGroups.list({
+  source_types: ['HUGGING_FACE', 'S3'],
+  search_query: 'production',
+});
+
+// Filter by groups with specific rules enabled
+const withRules = await client.securityGroups.list({
+  enabled_rules: ['rule-uuid-1', 'rule-uuid-2'],
 });
 ```
 
@@ -217,12 +230,23 @@ const instances = await client.securityGroups.listRuleInstances('group-uuid', {
   limit: 20,
 });
 
+// Filter by security rule UUID
+const filtered = await client.securityGroups.listRuleInstances('group-uuid', {
+  security_rule_uuid: 'rule-uuid',
+});
+
+// Filter by state
+const blocking = await client.securityGroups.listRuleInstances('group-uuid', {
+  state: 'BLOCKING',
+});
+
 // Get a single rule instance
 const instance = await client.securityGroups.getRuleInstance('group-uuid', 'rule-instance-uuid');
 
 // Update a rule instance
 const updated = await client.securityGroups.updateRuleInstance('group-uuid', 'rule-instance-uuid', {
-  enabled: true,
+  security_group_uuid: 'group-uuid',
+  state: 'ALLOWING',
 });
 ```
 
@@ -236,6 +260,16 @@ Read-only access to available security rules on the management plane.
 const rules = await client.securityRules.list({
   skip: 0,
   limit: 20,
+});
+
+// Filter by source type
+const hfRules = await client.securityRules.list({
+  source_type: 'HUGGING_FACE',
+});
+
+// Search by name or UUID
+const found = await client.securityRules.list({
+  search_query: 'pickle',
 });
 ```
 

@@ -3,11 +3,22 @@ import { AISecSDKException, ErrorType } from '../errors.js';
 import { isValidUuid } from '../utils.js';
 import { managementHttpRequest } from '../management/management-http-client.js';
 import type { OAuthClient } from '../management/oauth-client.js';
-import type { ModelSecurityListOptions } from './scans-client.js';
 import type {
   ListModelSecurityRulesResponse,
   ModelSecurityRuleResponse,
 } from '../models/model-security.js';
+
+/** Options for listing security rules. */
+export interface ModelSecurityRuleListOptions {
+  /** Number of items to skip. */
+  skip?: number;
+  /** Maximum number of items to return. */
+  limit?: number;
+  /** Filter by source type. */
+  source_type?: string;
+  /** Search term (matches UUID or Name, 3-1000 chars). */
+  search_query?: string;
+}
 
 /** @internal */
 export interface ModelSecurityRulesClientOptions {
@@ -16,14 +27,13 @@ export interface ModelSecurityRulesClientOptions {
   numRetries: number;
 }
 
-/** Build query params from list options. */
-function buildListParams(opts?: ModelSecurityListOptions): Record<string, string> {
+/** Build query params for security rules list. */
+function buildRuleListParams(opts?: ModelSecurityRuleListOptions): Record<string, string> {
   const params: Record<string, string> = {};
   if (opts?.skip !== undefined) params.skip = String(opts.skip);
   if (opts?.limit !== undefined) params.limit = String(opts.limit);
-  if (opts?.sort_by !== undefined) params.sort_by = opts.sort_by;
-  if (opts?.sort_direction !== undefined) params.sort_direction = opts.sort_direction;
-  if (opts?.search !== undefined) params.search = opts.search;
+  if (opts?.source_type !== undefined) params.source_type = opts.source_type;
+  if (opts?.search_query !== undefined) params.search_query = opts.search_query;
   return params;
 }
 
@@ -44,12 +54,12 @@ export class ModelSecurityRulesClient {
    * @param opts - Pagination options.
    * @returns Paginated list of security rules.
    */
-  async list(opts?: ModelSecurityListOptions): Promise<ListModelSecurityRulesResponse> {
+  async list(opts?: ModelSecurityRuleListOptions): Promise<ListModelSecurityRulesResponse> {
     const res = await managementHttpRequest<ListModelSecurityRulesResponse>({
       method: 'GET',
       baseUrl: this.baseUrl,
       path: MODEL_SEC_SECURITY_RULES_PATH,
-      params: buildListParams(opts),
+      params: buildRuleListParams(opts),
       oauthClient: this.oauthClient,
       numRetries: this.numRetries,
     });

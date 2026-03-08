@@ -102,6 +102,44 @@ describe('ModelSecurityGroupsClient', () => {
       expect(url).toContain('skip=5');
       expect(url).toContain('limit=10');
     });
+
+    it('sends sort_field and sort_dir params per spec', async () => {
+      mockFetch({ pagination: { total_items: 0 }, security_groups: [] });
+      await client.list({ sort_field: 'created_at', sort_dir: 'desc' });
+
+      const [url] = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0];
+      expect(url).toContain('sort_field=created_at');
+      expect(url).toContain('sort_dir=desc');
+      expect(url).not.toContain('sort_by');
+      expect(url).not.toContain('sort_direction');
+    });
+
+    it('sends search_query param per spec', async () => {
+      mockFetch({ pagination: { total_items: 0 }, security_groups: [] });
+      await client.list({ search_query: 'production' });
+
+      const [url] = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0];
+      expect(url).toContain('search_query=production');
+      expect(url).not.toContain('search=production');
+    });
+
+    it('sends source_types as repeated query params', async () => {
+      mockFetch({ pagination: { total_items: 0 }, security_groups: [] });
+      await client.list({ source_types: ['LOCAL', 'HUGGING_FACE'] });
+
+      const [url] = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0];
+      expect(url).toContain('source_types=LOCAL');
+      expect(url).toContain('source_types=HUGGING_FACE');
+    });
+
+    it('sends enabled_rules as repeated query params', async () => {
+      mockFetch({ pagination: { total_items: 0 }, security_groups: [] });
+      await client.list({ enabled_rules: [validUuid, validUuid2] });
+
+      const [url] = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0];
+      expect(url).toContain(`enabled_rules=${encodeURIComponent(validUuid)}`);
+      expect(url).toContain(`enabled_rules=${encodeURIComponent(validUuid2)}`);
+    });
   });
 
   describe('get', () => {
@@ -166,6 +204,34 @@ describe('ModelSecurityGroupsClient', () => {
 
       const [url] = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0];
       expect(url).toContain('limit=20');
+    });
+
+    it('sends security_rule_uuid filter', async () => {
+      mockFetch({ pagination: { total_items: 0 }, rule_instances: [] });
+      await client.listRuleInstances(validUuid, { security_rule_uuid: validUuid2 });
+
+      const [url] = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0];
+      expect(url).toContain(`security_rule_uuid=${encodeURIComponent(validUuid2)}`);
+    });
+
+    it('sends state filter', async () => {
+      mockFetch({ pagination: { total_items: 0 }, rule_instances: [] });
+      await client.listRuleInstances(validUuid, { state: 'BLOCKING' });
+
+      const [url] = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0];
+      expect(url).toContain('state=BLOCKING');
+    });
+
+    it('does not send sort or search params', async () => {
+      mockFetch({ pagination: { total_items: 0 }, rule_instances: [] });
+      await client.listRuleInstances(validUuid, { skip: 0, limit: 10 });
+
+      const [url] = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0];
+      expect(url).not.toContain('sort_by');
+      expect(url).not.toContain('sort_field');
+      expect(url).not.toContain('sort_direction');
+      expect(url).not.toContain('sort_dir');
+      expect(url).not.toContain('search');
     });
 
     it('rejects invalid UUID', async () => {
