@@ -308,4 +308,62 @@ describe('managementHttpRequest', () => {
       }),
     ).rejects.toThrow(/fallback msg/);
   });
+
+  it('refreshes token on 403 and retries once', async () => {
+    const oauth = createMockOAuth('old-token');
+    (oauth.getToken as ReturnType<typeof vi.fn>)
+      .mockResolvedValueOnce('old-token')
+      .mockResolvedValueOnce('new-token');
+
+    const fetchSpy = vi
+      .fn()
+      .mockResolvedValueOnce({
+        ok: false,
+        status: 403,
+        text: () => Promise.resolve(JSON.stringify({ message: 'forbidden' })),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        text: () => Promise.resolve(JSON.stringify({ ok: true })),
+      });
+    globalThis.fetch = fetchSpy;
+
+    const result = await managementHttpRequest({
+      method: 'GET',
+      baseUrl: 'https://api.example.com',
+      path: '/v1/test',
+      oauthClient: oauth,
+      numRetries: 0,
+    });
+
+    expect(result.data).toEqual({ ok: true });
+    expect(oauth.clearToken).toHaveBeenCalled();
+    expect(fetchSpy).toHaveBeenCalledTimes(2);
+  });
+
+  it('does not retry 403 twice', async () => {
+    const oauth = createMockOAuth('old-token');
+    (oauth.getToken as ReturnType<typeof vi.fn>).mockResolvedValue('same-bad-token');
+
+    const fetchSpy = vi.fn().mockResolvedValue({
+      ok: false,
+      status: 403,
+      text: () => Promise.resolve(JSON.stringify({ message: 'forbidden' })),
+    });
+    globalThis.fetch = fetchSpy;
+
+    await expect(
+      managementHttpRequest({
+        method: 'GET',
+        baseUrl: 'https://api.example.com',
+        path: '/v1/test',
+        oauthClient: oauth,
+        numRetries: 0,
+      }),
+    ).rejects.toThrow(/forbidden/);
+
+    // 1 initial + 1 retry after 403 = 2 calls, then fails
+    expect(fetchSpy).toHaveBeenCalledTimes(2);
+  });
 });

@@ -1,5 +1,19 @@
 # Release Notes
 
+## v0.5.0
+
+### OAuth Token Lifecycle Management
+
+- `OAuthClient` now exported from public API with `TokenInfo` type
+- `isTokenExpired()` — check if the current token has passed its expiry time
+- `isTokenExpiringSoon(bufferMs?)` — check if token is within the pre-expiry buffer
+- `getTokenInfo()` — snapshot of token state (hasToken, isValid, isExpired, isExpiringSoon, expiresInMs, expiresAt)
+- Configurable `tokenBufferMs` option (default 30s) to control pre-expiry refresh window
+- `onTokenRefresh` callback for monitoring/logging token refreshes
+- Auto-retry on 403 responses (in addition to existing 401 handling) for expired token recovery
+
+---
+
 ## v0.4.0
 
 ### Red Team Service
