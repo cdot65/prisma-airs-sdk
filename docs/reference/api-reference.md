@@ -409,8 +409,6 @@ Data plane scan/job operations.
 interface RedTeamListOptions {
   skip?: number;
   limit?: number;
-  sort_by?: string;
-  sort_direction?: string;
   search?: string;
 }
 
@@ -496,7 +494,6 @@ Management plane target operations.
 interface TargetListOptions extends RedTeamListOptions {
   target_type?: string;
   status?: string;
-  active?: boolean;
 }
 
 interface TargetOperationOptions {
@@ -515,7 +512,7 @@ class RedTeamTargetsClient {
   delete(uuid: string): Promise<BaseResponse>;
   probe(request: TargetProbeRequest): Promise<TargetResponse>;
   getProfile(uuid: string): Promise<TargetProfileResponse>;
-  updateProfile(uuid: string, request: TargetContextUpdate): Promise<TargetProfileResponse>;
+  updateProfile(uuid: string, request: TargetContextUpdate): Promise<TargetResponse>;
 }
 ```
 
@@ -525,6 +522,7 @@ Management plane custom attack/prompt set operations.
 
 ```ts
 interface PromptSetListOptions extends RedTeamListOptions {
+  status?: string;
   active?: boolean;
   archive?: boolean;
 }

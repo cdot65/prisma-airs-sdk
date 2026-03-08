@@ -19,7 +19,6 @@ import type {
 export interface TargetListOptions extends RedTeamListOptions {
   target_type?: string;
   status?: string;
-  active?: boolean;
 }
 
 /** Options for target create/update operations. */
@@ -39,8 +38,6 @@ function buildListParams(opts?: RedTeamListOptions): Record<string, string> {
   const params: Record<string, string> = {};
   if (opts?.skip !== undefined) params.skip = String(opts.skip);
   if (opts?.limit !== undefined) params.limit = String(opts.limit);
-  if (opts?.sort_by !== undefined) params.sort_by = opts.sort_by;
-  if (opts?.sort_direction !== undefined) params.sort_direction = opts.sort_direction;
   if (opts?.search !== undefined) params.search = opts.search;
   return params;
 }
@@ -82,7 +79,6 @@ export class RedTeamTargetsClient {
     const params = buildListParams(opts);
     if (opts?.target_type !== undefined) params.target_type = opts.target_type;
     if (opts?.status !== undefined) params.status = opts.status;
-    if (opts?.active !== undefined) params.active = String(opts.active);
 
     const res = await managementHttpRequest<TargetList>({
       method: 'GET',
@@ -194,7 +190,7 @@ export class RedTeamTargetsClient {
   }
 
   /** Update a target profile (background + additional context). */
-  async updateProfile(uuid: string, request: TargetContextUpdate): Promise<TargetProfileResponse> {
+  async updateProfile(uuid: string, request: TargetContextUpdate): Promise<TargetResponse> {
     if (!isValidUuid(uuid)) {
       throw new AISecSDKException(
         `Invalid target uuid: ${uuid}`,
@@ -202,7 +198,7 @@ export class RedTeamTargetsClient {
       );
     }
 
-    const res = await managementHttpRequest<TargetProfileResponse>({
+    const res = await managementHttpRequest<TargetResponse>({
       method: 'PUT',
       baseUrl: this.baseUrl,
       path: `${RED_TEAM_TARGET_PATH}/${uuid}/profile`,

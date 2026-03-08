@@ -60,8 +60,6 @@ function buildListParams(opts?: RedTeamListOptions): Record<string, string> {
   const params: Record<string, string> = {};
   if (opts?.skip !== undefined) params.skip = String(opts.skip);
   if (opts?.limit !== undefined) params.limit = String(opts.limit);
-  if (opts?.sort_by !== undefined) params.sort_by = opts.sort_by;
-  if (opts?.sort_direction !== undefined) params.sort_direction = opts.sort_direction;
   if (opts?.search !== undefined) params.search = opts.search;
   return params;
 }

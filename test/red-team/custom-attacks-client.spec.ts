@@ -66,11 +66,21 @@ describe('RedTeamCustomAttacksClient', () => {
 
     it('passes filter params', async () => {
       mockFetch({ prompt_sets: [], total: 0 });
-      await client.listPromptSets({ active: true, archive: false });
+      await client.listPromptSets({ active: true, archive: false, status: 'READY' });
 
       const [url] = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0];
       expect(url).toContain('active=true');
       expect(url).toContain('archive=false');
+      expect(url).toContain('status=READY');
+    });
+
+    it('does not send sort params (not in spec)', async () => {
+      mockFetch({ prompt_sets: [], total: 0 });
+      await client.listPromptSets({ skip: 0 });
+
+      const [url] = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0];
+      expect(url).not.toContain('sort_by');
+      expect(url).not.toContain('sort_direction');
     });
   });
 
