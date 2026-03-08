@@ -91,12 +91,11 @@ describe('RedTeamTargetsClient', () => {
 
     it('passes filter params', async () => {
       mockFetch({ targets: [], total: 0 });
-      await client.list({ target_type: 'API', status: 'ACTIVE', active: true });
+      await client.list({ target_type: 'API', status: 'ACTIVE' });
 
       const [url] = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0];
       expect(url).toContain('target_type=API');
       expect(url).toContain('status=ACTIVE');
-      expect(url).toContain('active=true');
     });
 
     it('passes pagination params', async () => {
@@ -106,6 +105,15 @@ describe('RedTeamTargetsClient', () => {
       const [url] = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0];
       expect(url).toContain('skip=5');
       expect(url).toContain('limit=10');
+    });
+
+    it('does not send sort params (not in spec)', async () => {
+      mockFetch({ targets: [], total: 0 });
+      await client.list({ skip: 0 });
+
+      const [url] = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0];
+      expect(url).not.toContain('sort_by');
+      expect(url).not.toContain('sort_direction');
     });
   });
 
@@ -221,11 +229,12 @@ describe('RedTeamTargetsClient', () => {
   // updateProfile
   // -----------------------------------------------------------------------
   describe('updateProfile', () => {
-    it('PUTs to /v1/target/:uuid/profile', async () => {
-      mockFetch({ target_id: validUuid, background: 'updated' });
+    it('PUTs to /v1/target/:uuid/profile and returns TargetResponse', async () => {
+      mockFetch({ uuid: validUuid, name: 'my-target', target_type: 'API' });
       const result = await client.updateProfile(validUuid, { background: 'updated' });
 
-      expect(result.background).toBe('updated');
+      expect(result.uuid).toBe(validUuid);
+      expect(result.name).toBe('my-target');
       const [url, init] = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0];
       expect(url).toContain(`/v1/target/${validUuid}/profile`);
       expect(init.method).toBe('PUT');

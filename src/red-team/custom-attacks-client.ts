@@ -27,6 +27,7 @@ import type {
 
 /** Prompt set list filter options. */
 export interface PromptSetListOptions extends RedTeamListOptions {
+  status?: string;
   active?: boolean;
   archive?: boolean;
 }
@@ -47,8 +48,6 @@ function buildListParams(opts?: RedTeamListOptions): Record<string, string> {
   const params: Record<string, string> = {};
   if (opts?.skip !== undefined) params.skip = String(opts.skip);
   if (opts?.limit !== undefined) params.limit = String(opts.limit);
-  if (opts?.sort_by !== undefined) params.sort_by = opts.sort_by;
-  if (opts?.sort_direction !== undefined) params.sort_direction = opts.sort_direction;
   if (opts?.search !== undefined) params.search = opts.search;
   return params;
 }
@@ -91,6 +90,7 @@ export class RedTeamCustomAttacksClient {
   /** List custom prompt sets. */
   async listPromptSets(opts?: PromptSetListOptions): Promise<CustomPromptSetList> {
     const params = buildListParams(opts);
+    if (opts?.status !== undefined) params.status = opts.status;
     if (opts?.active !== undefined) params.active = String(opts.active);
     if (opts?.archive !== undefined) params.archive = String(opts.archive);
 
