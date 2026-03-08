@@ -1,6 +1,6 @@
 # Management API
 
-CRUD operations for AIRS Security Profiles and Custom Topics via OAuth2 client credentials.
+CRUD operations for AIRS configuration via OAuth2 client credentials. Covers security profiles, custom topics, API keys, customer apps, DLP profiles, deployment profiles, scan logs, and OAuth token management.
 
 ## Authentication
 
@@ -192,6 +192,13 @@ const result = await client.profiles.delete(profile.profile_id);
 
 If the profile is in use by a policy, the API returns a 409 conflict with the referencing policies.
 
+### Force Delete
+
+```ts
+// Force delete removes the profile even if referenced by a policy
+const result = await client.profiles.forceDelete(profile.profile_id, 'user@example.com');
+```
+
 ## Custom Topics
 
 CRUD for custom detection topics used in security profiles.
@@ -231,7 +238,158 @@ const updated = await client.topics.update(topic.topic_id, {
 const result = await client.topics.delete(topic.topic_id);
 
 // Force delete (removes even if referenced)
-const result = await client.topics.forceDelete(topic.topic_id);
+const result = await client.topics.forceDelete(topic.topic_id, 'user@example.com');
+```
+
+## API Keys
+
+Manage AIRS API keys for your TSG.
+
+### Create
+
+```ts
+const apiKey = await client.apiKeys.create({
+  auth_code: 'my-auth-code',
+  cust_app: 'my-app',
+  revoked: false,
+  created_by: 'user@example.com',
+  api_key_name: 'production-key',
+  rotation_time_interval: 90,
+  rotation_time_unit: 'days',
+});
+
+console.log(apiKey.api_key_id);
+```
+
+### List
+
+```ts
+const { api_keys } = await client.apiKeys.list();
+
+// Paginated
+const page = await client.apiKeys.list({ offset: 0, limit: 10 });
+```
+
+### Delete
+
+```ts
+const result = await client.apiKeys.delete('my-key-name', 'user@example.com');
+```
+
+### Regenerate
+
+```ts
+const newKey = await client.apiKeys.regenerate('api-key-uuid', {
+  rotation_time_interval: 30,
+  rotation_time_unit: 'days',
+});
+```
+
+## Customer Apps
+
+Manage customer applications for your TSG.
+
+### Get
+
+```ts
+const app = await client.customerApps.get('my-app');
+```
+
+### List
+
+```ts
+const { customer_apps } = await client.customerApps.list();
+
+// Paginated
+const page = await client.customerApps.list({ offset: 0, limit: 10 });
+```
+
+### Update
+
+```ts
+const updated = await client.customerApps.update('customer-app-uuid', {
+  app_name: 'updated-app',
+  cloud_provider: 'aws',
+  environment: 'production',
+});
+```
+
+### Delete
+
+```ts
+const result = await client.customerApps.delete('my-app', 'user@example.com');
+```
+
+## DLP Profiles
+
+List DLP data profiles configured for the TSG.
+
+```ts
+const { dlp_profiles } = await client.dlpProfiles.list();
+```
+
+## Deployment Profiles
+
+List deployment profiles for the TSG.
+
+```ts
+// All deployment profiles
+const { deployment_profiles } = await client.deploymentProfiles.list();
+
+// Include unactivated profiles
+const all = await client.deploymentProfiles.list({ unactivated: true });
+```
+
+## Scan Logs
+
+Query scan activity logs by time range.
+
+```ts
+const results = await client.scanLogs.query({
+  time_interval: 24,
+  time_unit: 'hour',
+  pageNumber: 1,
+  pageSize: 50,
+  filter: 'all', // 'all', 'benign', or 'threat'
+});
+
+console.log(results.total_pages);
+console.log(results.scan_results);
+
+// Continue pagination with page_token
+const nextPage = await client.scanLogs.query({
+  time_interval: 24,
+  time_unit: 'hour',
+  pageNumber: 2,
+  pageSize: 50,
+  filter: 'all',
+  page_token: results.page_token,
+});
+```
+
+## OAuth Token Management
+
+Manage OAuth tokens for client credential flows.
+
+### Get Access Token
+
+```ts
+const token = await client.oauth.getAccessToken({
+  body: { client_id: 'cid', customer_app: 'my-app' },
+  tokenTtlInterval: 24,
+  tokenTtlUnit: 'hours',
+});
+
+console.log(token.access_token);
+```
+
+### Invalidate Token
+
+```ts
+await client.oauth.invalidateToken('token-value', {
+  client_id: 'cid',
+  customer_app: 'my-app',
+});
 ```
 
 ## Error Handling

@@ -612,6 +612,34 @@ class ModelSecurityRulesClient {
 }
 ```
 
+### Model Security List Options
+
+```ts
+interface ModelSecurityGroupListOptions {
+  skip?: number;
+  limit?: number;
+  sort_field?: string; // 'created_at' | 'updated_at'
+  sort_dir?: string; // 'asc' | 'desc'
+  source_types?: string[];
+  search_query?: string; // 3-1000 chars
+  enabled_rules?: string[]; // rule UUIDs with ALLOWING/BLOCKING state
+}
+
+interface ModelSecurityRuleListOptions {
+  skip?: number;
+  limit?: number;
+  source_type?: string;
+  search_query?: string; // 3-1000 chars
+}
+
+interface ModelSecurityRuleInstanceListOptions {
+  skip?: number;
+  limit?: number;
+  security_rule_uuid?: string;
+  state?: string; // 'DISABLED' | 'ALLOWING' | 'BLOCKING'
+}
+```
+
 ---
 
 ## Red Team API

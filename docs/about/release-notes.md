@@ -1,5 +1,15 @@
 # Release Notes
 
+## v0.6.1
+
+### OpenAPI Spec Alignment
+
+- **Management API**: 6 new sub-clients — `ApiKeysClient`, `CustomerAppsClient`, `DlpProfilesClient`, `DeploymentProfilesClient`, `ScanLogsClient`, `OAuthManagementClient`; `ProfilesClient.forceDelete()` and `TopicsClient.forceDelete(updatedBy?)` added
+- **Scan API**: 8 typed detection report schemas (`TcReport`, `DbsReport`, `McReport`, `AgentReport`, `TgReport`, `CgReport`, `DlpPatternDetection`, `ContentError`); `ScanResponse` gains `timeout`, `error`, `errors` fields; `AIRS_ENDPOINTS` regional URL constants; `DetectionServiceName`, `ContentErrorType`, `ErrorStatus` enums
+- **Model Security**: Per-endpoint option types (`ModelSecurityScanListOptions`, `ModelSecurityEvaluationListOptions`, `ModelSecurityFileListOptions`, `ModelSecurityLabelListOptions`, `ModelSecurityViolationListOptions`)
+
+---
+
 ## v0.6.0
 
 ### Red Team Management — Typed Schemas & New Methods
