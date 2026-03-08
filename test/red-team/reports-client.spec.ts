@@ -53,11 +53,18 @@ describe('RedTeamReportsClient', () => {
 
     it('passes filter params', async () => {
       mockFetch({ attacks: [], total: 0 });
-      await client.listAttacks(validUuid, { status: 'FAILED', severity: 'HIGH' });
+      await client.listAttacks(validUuid, {
+        status: 'FAILED',
+        severity: 'HIGH',
+        attack_type: 'JAILBREAK',
+        threat: true,
+      });
 
       const [url] = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0];
       expect(url).toContain('status=FAILED');
       expect(url).toContain('severity=HIGH');
+      expect(url).toContain('attack_type=JAILBREAK');
+      expect(url).toContain('threat=true');
     });
 
     it('rejects invalid UUID', async () => {
@@ -213,10 +220,16 @@ describe('RedTeamReportsClient', () => {
 
     it('passes goal_type filter', async () => {
       mockFetch({ goals: [], total: 0 });
-      await client.listGoals(validUuid, { goal_type: 'JAILBREAK' });
+      await client.listGoals(validUuid, {
+        goal_type: 'JAILBREAK',
+        status: 'SUCCESSFUL',
+        count: false,
+      });
 
       const [url] = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0];
       expect(url).toContain('goal_type=JAILBREAK');
+      expect(url).toContain('status=SUCCESSFUL');
+      expect(url).toContain('count=false');
     });
 
     it('rejects invalid UUID', async () => {
@@ -263,25 +276,18 @@ describe('RedTeamReportsClient', () => {
   });
 
   describe('downloadReport', () => {
-    it('GETs /v1/report/:jobId/download', async () => {
-      mockFetch({ url: 'https://download.example.com/report.pdf' });
-      const result = await client.downloadReport(validUuid);
+    it('GETs /v1/report/:jobId/download with file_format', async () => {
+      mockFetch({ url: 'https://download.example.com/report.csv' });
+      const result = await client.downloadReport(validUuid, 'CSV');
 
       expect(result).toBeDefined();
       const [url] = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0];
       expect(url).toContain(`/v1/report/${validUuid}/download`);
-    });
-
-    it('passes format param', async () => {
-      mockFetch({ url: 'https://download.example.com/report.csv' });
-      await client.downloadReport(validUuid, 'csv');
-
-      const [url] = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0];
-      expect(url).toContain('file_format=csv');
+      expect(url).toContain('file_format=CSV');
     });
 
     it('rejects invalid UUID', async () => {
-      await expect(client.downloadReport('bad')).rejects.toThrow(AISecSDKException);
+      await expect(client.downloadReport('bad', 'CSV')).rejects.toThrow(AISecSDKException);
     });
   });
 

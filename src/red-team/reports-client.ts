@@ -27,11 +27,15 @@ export interface AttackListOptions extends RedTeamListOptions {
   severity?: string;
   category?: string;
   sub_category?: string;
+  attack_type?: string;
+  threat?: boolean;
 }
 
 /** Goal list filter options. */
 export interface GoalListOptions extends RedTeamListOptions {
   goal_type?: string;
+  status?: string;
+  count?: boolean;
 }
 
 /** @internal */
@@ -79,6 +83,8 @@ export class RedTeamReportsClient {
     if (opts?.severity !== undefined) params.severity = opts.severity;
     if (opts?.category !== undefined) params.category = opts.category;
     if (opts?.sub_category !== undefined) params.sub_category = opts.sub_category;
+    if (opts?.attack_type !== undefined) params.attack_type = opts.attack_type;
+    if (opts?.threat !== undefined) params.threat = String(opts.threat);
 
     const res = await managementHttpRequest<AttackListResponse>({
       method: 'GET',
@@ -221,6 +227,8 @@ export class RedTeamReportsClient {
     validateJobId(jobId);
     const params = buildListParams(opts);
     if (opts?.goal_type !== undefined) params.goal_type = opts.goal_type;
+    if (opts?.status !== undefined) params.status = opts.status;
+    if (opts?.count !== undefined) params.count = String(opts.count);
 
     const res = await managementHttpRequest<GoalListResponse>({
       method: 'GET',
@@ -282,10 +290,9 @@ export class RedTeamReportsClient {
   }
 
   /** Download a report in the specified format. */
-  async downloadReport(jobId: string, format?: string): Promise<unknown> {
+  async downloadReport(jobId: string, format: string): Promise<unknown> {
     validateJobId(jobId);
-    const params: Record<string, string> = {};
-    if (format !== undefined) params.file_format = format;
+    const params: Record<string, string> = { file_format: format };
 
     const res = await managementHttpRequest<unknown>({
       method: 'GET',
