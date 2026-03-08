@@ -1,9 +1,11 @@
 export { ModelSecurityClient, type ModelSecurityClientOptions } from './client.js';
 export {
   ModelSecurityScansClient,
-  type ModelSecurityListOptions,
   type ModelSecurityScanListOptions,
+  type ModelSecurityEvaluationListOptions,
   type ModelSecurityFileListOptions,
+  type ModelSecurityLabelListOptions,
+  type ModelSecurityViolationListOptions,
 } from './scans-client.js';
 export {
   ModelSecurityGroupsClient,
