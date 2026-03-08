@@ -2,7 +2,13 @@
 title: Home
 ---
 
+<div class="hero" markdown>
+
+![Prisma AIRS SDK Logo](images/prisma-airs-sdk.svg){ .hero-logo }
+
 # Prisma AIRS SDK
+
+**TypeScript SDK for Palo Alto Networks AI Runtime Security**
 
 [![CI](https://github.com/cdot65/prisma-airs-sdk/actions/workflows/ci.yml/badge.svg)](https://github.com/cdot65/prisma-airs-sdk/actions/workflows/ci.yml)
 [![npm](https://img.shields.io/npm/v/@cdot65/prisma-airs-sdk)](https://www.npmjs.com/package/@cdot65/prisma-airs-sdk)
@@ -10,9 +16,51 @@ title: Home
 [![Node 18+](https://img.shields.io/badge/node-%3E%3D18-brightgreen.svg)](https://nodejs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.x-3178c6.svg)](https://www.typescriptlang.org/)
 
-**Prisma AIRS SDK** is a TypeScript SDK for Palo Alto Networks **AI Runtime Security (AIRS)**. It provides type-safe clients for all four AIRS service domains — real-time content scanning, security configuration management, model security analysis, and AI red teaming.
+</div>
 
-Zero external HTTP dependencies. Native `fetch` + `crypto`. ESM-first with dual CJS/ESM exports.
+---
+
+Type-safe clients for all four AIRS service domains — real-time content scanning, security configuration management, model security analysis, and AI red teaming. Zero external HTTP dependencies. Native `fetch` + `crypto`. ESM-first with dual CJS/ESM exports.
+
+<div class="grid cards" markdown>
+
+- :material-shield-search:{ .lg .middle } **Real-Time Content Scanning**
+
+  ***
+
+  Synchronous and asynchronous scanning of AI prompts and responses. Detect prompt injection, toxic content, data leaks, and malicious URLs inline.
+
+- :material-cog-outline:{ .lg .middle } **Security Management**
+
+  ***
+
+  Full CRUD for security profiles and custom topics. Programmatically manage your AIRS configuration at scale.
+
+- :material-robot-outline:{ .lg .middle } **Model Security**
+
+  ***
+
+  Scan ML models for supply chain threats — malicious code execution, backdoors, unapproved file formats. Manage security groups and rules.
+
+- :material-sword-cross:{ .lg .middle } **AI Red Teaming**
+
+  ***
+
+  Run automated red team scans against AI targets. Static attack libraries, dynamic agent-based testing, custom prompt sets, and comprehensive reporting.
+
+- :material-language-typescript:{ .lg .middle } **Type-Safe Everything**
+
+  ***
+
+  50 typed enum const objects, ~135 Zod schemas with `.passthrough()` for forward compatibility, and JSDoc on every exported symbol.
+
+- :material-lightning-bolt:{ .lg .middle } **Zero Dependencies**
+
+  ***
+
+  Native `fetch` + `crypto` only. No external HTTP libraries. Exponential backoff retry built in. ES2022 target, Node 18+.
+
+</div>
 
 ---
 
@@ -34,29 +82,40 @@ flowchart LR
 
 ---
 
-## Feature Highlights
+## Get Started
 
-!!! tip "Real-Time Content Scanning"
-Synchronous and asynchronous scanning of AI prompts and responses. Detect prompt injection, toxic content, data leaks, and malicious URLs inline with your application.
+<div class="grid cards" markdown>
 
-!!! tip "Model Security"
-Scan ML models for supply chain threats — malicious code execution, backdoors, unapproved file formats. Manage security groups and rules for automated model governance.
+- :material-download:{ .lg .middle } **Install**
 
-!!! tip "AI Red Teaming"
-Run automated red team scans against AI targets. Static attack libraries, dynamic agent-based testing, custom prompt sets, and comprehensive reporting with remediation guidance.
+  ***
 
-!!! tip "Type-Safe Everything"
-50 typed enum const objects, ~135 Zod schemas with `.passthrough()` for forward compatibility, and JSDoc on every exported symbol. Full IDE autocompletion out of the box.
+  Install the SDK, configure credentials, and connect to AIRS.
 
----
+  [:octicons-arrow-right-24: Installation](getting-started/installation.md)
 
-## Quick Links
+- :material-rocket-launch:{ .lg .middle } **Quick Start**
 
-|                                                          |                                                                    |
-| -------------------------------------------------------- | ------------------------------------------------------------------ |
-| **[Getting Started](getting-started/installation.md)**   | Install the SDK, configure credentials, and run your first scan.   |
-| **[Scan API](services/scan-api.md)**                     | Real-time content scanning for AI prompts and responses.           |
-| **[Management API](services/management-api.md)**         | CRUD for security profiles and custom topics.                      |
-| **[Model Security API](services/model-security-api.md)** | Model supply chain scanning and security group management.         |
-| **[Red Team API](services/red-team-api.md)**             | Automated red team scanning, reports, targets, and custom attacks. |
-| **[API Reference](reference/api-reference.md)**          | Complete method signatures, types, and enums.                      |
+  ***
+
+  Run your first content scan in under 5 minutes.
+
+  [:octicons-arrow-right-24: Quick Start](getting-started/quick-start.md)
+
+- :material-cog:{ .lg .middle } **Configure**
+
+  ***
+
+  Environment variables, auth methods, and endpoint setup.
+
+  [:octicons-arrow-right-24: Configuration](getting-started/configuration.md)
+
+- :material-book-open-variant:{ .lg .middle } **API Reference**
+
+  ***
+
+  Complete method signatures, types, enums, and error handling.
+
+  [:octicons-arrow-right-24: API Reference](reference/api-reference.md)
+
+</div>
