@@ -283,37 +283,65 @@ class ModelSecurityClient {
 Data plane scan operations.
 
 ```ts
-interface ModelSecurityListOptions {
+interface ModelSecurityScanListOptions {
   skip?: number;
   limit?: number;
   sort_by?: string;
-  sort_direction?: string;
+  sort_order?: string;
+  search_query?: string;
+  eval_outcomes?: string[];
+  source_types?: string[];
+  security_group_uuid?: string;
+  start_time?: string;
+  end_time?: string;
+  labels_query?: string;
+}
+
+interface ModelSecurityEvaluationListOptions {
+  skip?: number;
+  limit?: number;
+  sort_field?: string;
+  sort_order?: string;
+  result?: string;
+  rule_instance_uuid?: string;
+}
+
+interface ModelSecurityFileListOptions {
+  skip?: number;
+  limit?: number;
+  sort_field?: string;
+  sort_dir?: string;
+  type?: string;
+  result?: string;
+  query_path?: string;
+}
+
+interface ModelSecurityLabelListOptions {
+  skip?: number;
+  limit?: number;
   search?: string;
 }
 
-interface ModelSecurityScanListOptions extends ModelSecurityListOptions {
-  eval_outcome?: string;
-  source_type?: string;
-  scan_origin?: string;
-}
-
-interface ModelSecurityFileListOptions extends ModelSecurityListOptions {
-  type?: string;
-  result?: string;
+interface ModelSecurityViolationListOptions {
+  skip?: number;
+  limit?: number;
 }
 
 class ModelSecurityScansClient {
   create(request: ScanCreateRequest): Promise<ScanBaseResponse>;
   list(opts?: ModelSecurityScanListOptions): Promise<ScanList>;
   get(uuid: string): Promise<ScanBaseResponse>;
-  getEvaluations(scanUuid: string, opts?: ModelSecurityListOptions): Promise<RuleEvaluationList>;
+  getEvaluations(
+    scanUuid: string,
+    opts?: ModelSecurityEvaluationListOptions,
+  ): Promise<RuleEvaluationList>;
   getFiles(scanUuid: string, opts?: ModelSecurityFileListOptions): Promise<FileList>;
   addLabels(scanUuid: string, request: LabelsCreateRequest): Promise<LabelsResponse>;
   setLabels(scanUuid: string, request: LabelsCreateRequest): Promise<LabelsResponse>;
   deleteLabels(scanUuid: string, keys: string[]): Promise<void>;
-  getViolations(scanUuid: string, opts?: ModelSecurityListOptions): Promise<ViolationList>;
-  getLabelKeys(opts?: ModelSecurityListOptions): Promise<LabelKeyList>;
-  getLabelValues(key: string, opts?: ModelSecurityListOptions): Promise<LabelValueList>;
+  getViolations(scanUuid: string, opts?: ModelSecurityViolationListOptions): Promise<ViolationList>;
+  getLabelKeys(opts?: ModelSecurityLabelListOptions): Promise<LabelKeyList>;
+  getLabelValues(key: string, opts?: ModelSecurityLabelListOptions): Promise<LabelValueList>;
   getEvaluation(uuid: string): Promise<RuleEvaluationResponse>;
   getViolation(uuid: string): Promise<ViolationResponse>;
 }
@@ -326,7 +354,7 @@ Management plane security group operations.
 ```ts
 class ModelSecurityGroupsClient {
   create(request: ModelSecurityGroupCreateRequest): Promise<ModelSecurityGroupResponse>;
-  list(opts?: ModelSecurityListOptions): Promise<ListModelSecurityGroupsResponse>;
+  list(opts?: ModelSecurityGroupListOptions): Promise<ListModelSecurityGroupsResponse>;
   get(uuid: string): Promise<ModelSecurityGroupResponse>;
   update(
     uuid: string,
@@ -335,7 +363,7 @@ class ModelSecurityGroupsClient {
   delete(uuid: string): Promise<void>;
   listRuleInstances(
     securityGroupUuid: string,
-    opts?: ModelSecurityListOptions,
+    opts?: ModelSecurityRuleInstanceListOptions,
   ): Promise<ListModelSecurityRuleInstancesResponse>;
   getRuleInstance(
     securityGroupUuid: string,
@@ -355,7 +383,7 @@ Management plane security rule operations (read-only).
 
 ```ts
 class ModelSecurityRulesClient {
-  list(opts?: ModelSecurityListOptions): Promise<ListModelSecurityRulesResponse>;
+  list(opts?: ModelSecurityRuleListOptions): Promise<ListModelSecurityRulesResponse>;
   get(uuid: string): Promise<ModelSecurityRuleResponse>;
 }
 ```

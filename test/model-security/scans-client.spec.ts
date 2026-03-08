@@ -93,35 +93,43 @@ describe('ModelSecurityScansClient', () => {
       expect(url).toContain('limit=5');
     });
 
-    it('passes filter params', async () => {
+    it('passes filter params with correct spec names', async () => {
       mockFetch({ pagination: { total_items: 0 }, scans: [] });
       await client.list({
-        eval_outcome: 'ALLOWED',
-        source_type: 'HUGGING_FACE',
-        scan_origin: 'MODEL_SECURITY_SDK',
+        eval_outcomes: ['ALLOWED', 'BLOCKED'],
+        source_types: ['HUGGING_FACE', 'S3'],
+        security_group_uuid: validUuid,
+        start_time: '2025-01-01T00:00:00Z',
+        end_time: '2025-12-31T23:59:59Z',
+        labels_query: 'env=prod',
       });
 
       const [url] = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0];
-      expect(url).toContain('eval_outcome=ALLOWED');
-      expect(url).toContain('source_type=HUGGING_FACE');
-      expect(url).toContain('scan_origin=MODEL_SECURITY_SDK');
+      expect(url).toContain('eval_outcomes=ALLOWED');
+      expect(url).toContain('eval_outcomes=BLOCKED');
+      expect(url).toContain('source_types=HUGGING_FACE');
+      expect(url).toContain('source_types=S3');
+      expect(url).toContain(`security_group_uuid=${validUuid}`);
+      expect(url).toContain('start_time=');
+      expect(url).toContain('end_time=');
+      expect(url).toContain('labels_query=');
     });
 
-    it('passes sort params', async () => {
+    it('passes sort params with correct spec names', async () => {
       mockFetch({ pagination: { total_items: 0 }, scans: [] });
-      await client.list({ sort_by: 'created_at', sort_direction: 'desc' });
+      await client.list({ sort_by: 'created_at', sort_order: 'desc' });
 
       const [url] = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0];
       expect(url).toContain('sort_by=created_at');
-      expect(url).toContain('sort_direction=desc');
+      expect(url).toContain('sort_order=desc');
     });
 
-    it('passes search param', async () => {
+    it('passes search_query param', async () => {
       mockFetch({ pagination: { total_items: 0 }, scans: [] });
-      await client.list({ search: 'model-name' });
+      await client.list({ search_query: 'model-name' });
 
       const [url] = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0];
-      expect(url).toContain('search=model-name');
+      expect(url).toContain('search_query=model-name');
     });
   });
 
@@ -156,12 +164,23 @@ describe('ModelSecurityScansClient', () => {
       expect(url).toContain(`/v1/scans/${validUuid}/evaluations`);
     });
 
-    it('passes pagination params', async () => {
+    it('passes pagination and filter params with correct spec names', async () => {
       mockFetch({ pagination: { total_items: 0 }, evaluations: [] });
-      await client.getEvaluations(validUuid, { skip: 0, limit: 10 });
+      await client.getEvaluations(validUuid, {
+        skip: 0,
+        limit: 10,
+        sort_field: 'created_at',
+        sort_order: 'desc',
+        result: 'FAILED',
+        rule_instance_uuid: validUuid,
+      });
 
       const [url] = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0];
       expect(url).toContain('limit=10');
+      expect(url).toContain('sort_field=created_at');
+      expect(url).toContain('sort_order=desc');
+      expect(url).toContain('result=FAILED');
+      expect(url).toContain(`rule_instance_uuid=${validUuid}`);
     });
 
     it('rejects invalid UUID', async () => {
@@ -182,13 +201,22 @@ describe('ModelSecurityScansClient', () => {
       expect(url).toContain(`/v1/scans/${validUuid}/files`);
     });
 
-    it('passes file filter params', async () => {
+    it('passes file filter params with correct spec names', async () => {
       mockFetch({ pagination: { total_items: 0 }, files: [] });
-      await client.getFiles(validUuid, { type: 'FILE', result: 'SUCCESS' });
+      await client.getFiles(validUuid, {
+        type: 'FILE',
+        result: 'SUCCESS',
+        sort_field: 'path',
+        sort_dir: 'asc',
+        query_path: '/models',
+      });
 
       const [url] = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0];
       expect(url).toContain('type=FILE');
       expect(url).toContain('result=SUCCESS');
+      expect(url).toContain('sort_field=path');
+      expect(url).toContain('sort_dir=asc');
+      expect(url).toContain('query_path=');
     });
 
     it('rejects invalid UUID', async () => {
