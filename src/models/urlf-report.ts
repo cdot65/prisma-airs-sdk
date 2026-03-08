@@ -4,8 +4,9 @@ import { z } from 'zod';
 export const UrlfEntrySchema = z.object({
   url: z.string().optional(),
   risk_level: z.string().optional(),
+  action: z.string().optional(),
   categories: z.array(z.string()).optional(),
 });
 
-/** URL filtering report entry with URL, risk level, and categories. */
+/** URL filtering report entry with URL, risk level, action, and categories. */
 export type UrlfEntry = z.infer<typeof UrlfEntrySchema>;

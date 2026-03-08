@@ -626,7 +626,14 @@ class RedTeamCustomAttacksClient {
 Typed const objects for AIRS API verdict, action, and category values.
 
 ```ts
-import { Verdict, Action, Category } from '@cdot65/prisma-airs-sdk';
+import {
+  Verdict,
+  Action,
+  Category,
+  DetectionServiceName,
+  ContentErrorType,
+  ErrorStatus,
+} from '@cdot65/prisma-airs-sdk';
 
 // Verdict — scan result classification
 Verdict.BENIGN; // 'benign'
@@ -642,9 +649,28 @@ Action.ALERT; // 'alert'
 Category.BENIGN; // 'benign'
 Category.MALICIOUS; // 'malicious'
 Category.UNKNOWN; // 'unknown'
+
+// DetectionServiceName — detection service identifiers
+DetectionServiceName.DLP; // 'dlp'
+DetectionServiceName.INJECTION; // 'injection'
+DetectionServiceName.URL_CATS; // 'url_cats'
+DetectionServiceName.TOXIC_CONTENT; // 'toxic_content'
+DetectionServiceName.MALICIOUS_CODE; // 'malicious_code'
+DetectionServiceName.AGENT; // 'agent'
+DetectionServiceName.TOPIC_VIOLATION; // 'topic_violation'
+DetectionServiceName.DB_SECURITY; // 'db_security'
+DetectionServiceName.UNGROUNDED; // 'ungrounded'
+
+// ContentErrorType — content type in error reports
+ContentErrorType.PROMPT; // 'prompt'
+ContentErrorType.RESPONSE; // 'response'
+
+// ErrorStatus — detection service error status
+ErrorStatus.ERROR; // 'error'
+ErrorStatus.TIMEOUT; // 'timeout'
 ```
 
-Types are also exported: `Verdict`, `Action`, `Category` (union of literal string values).
+Types are also exported: `Verdict`, `Action`, `Category`, `DetectionServiceName`, `ContentErrorType`, `ErrorStatus` (union of literal string values).
 
 ---
 
@@ -804,3 +830,88 @@ enum ErrorType {
 | `MAX_NUMBER_OF_SCAN_IDS`           | 5                                                            |
 | `MAX_NUMBER_OF_REPORT_IDS`         | 5                                                            |
 | `HTTP_FORCE_RETRY_STATUS_CODES`    | [500, 502, 503, 504]                                         |
+
+### `AIRS_ENDPOINTS`
+
+Regional AIRS API service URLs for multi-region support:
+
+```ts
+import { AIRS_ENDPOINTS } from '@cdot65/prisma-airs-sdk';
+
+AIRS_ENDPOINTS.US; // 'https://service.api.aisecurity.paloaltonetworks.com'
+AIRS_ENDPOINTS.EU; // 'https://service-de.api.aisecurity.paloaltonetworks.com'
+AIRS_ENDPOINTS.INDIA; // 'https://service-in.api.aisecurity.paloaltonetworks.com'
+AIRS_ENDPOINTS.SINGAPORE; // 'https://service-sg.api.aisecurity.paloaltonetworks.com'
+```
+
+---
+
+## Detection Report Types
+
+Typed Zod schemas for all detection service reports returned in `ThreatScanReport.detection_results[].result_detail`.
+
+### `DSResultMetadata`
+
+```ts
+interface DSResultMetadata {
+  score?: number;
+  confidence?: string;
+  ecosystem?: string; // e.g. 'mcp'
+  method?: string; // e.g. 'tools/call'
+  server_name?: string;
+  tool_invoked?: string;
+  direction?: string; // 'input' | 'output'
+}
+```
+
+### `DSDetailResult`
+
+```ts
+interface DSDetailResult {
+  urlf_report?: UrlfEntry[];
+  dlp_report?: DlpReport;
+  dbs_report?: DbsEntry[];
+  tc_report?: TcReport;
+  mc_report?: McReport;
+  agent_report?: AgentReport;
+  topic_guardrails_report?: TgReport;
+  cg_report?: CgReport;
+}
+```
+
+### Report Types
+
+| Type                  | Fields                                                                                                                                                                            |
+| --------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `TcReport`            | `confidence?`, `verdict?`                                                                                                                                                         |
+| `DbsEntry`            | `sub_type?`, `verdict?`, `action?`                                                                                                                                                |
+| `McReport`            | `all_code_blocks?`, `code_analysis_by_type?`, `verdict?`, `malware_script_report?`, `command_injection_report?`                                                                   |
+| `McEntry`             | `file_type?`, `code_sha256?`                                                                                                                                                      |
+| `MalwareReport`       | `verdict?`                                                                                                                                                                        |
+| `CmdEntry`            | `code_block?`, `verdict?`                                                                                                                                                         |
+| `AgentReport`         | `model_verdict?`, `agent_framework?`, `agent_patterns?`                                                                                                                           |
+| `AgentEntry`          | `category_type?`, `verdict?`                                                                                                                                                      |
+| `TgReport`            | `allowed_topic_list?`, `blocked_topic_list?`, `allowedTopics?`, `blockedTopics?`                                                                                                  |
+| `CgReport`            | `status?`, `explanation?`, `category?`                                                                                                                                            |
+| `UrlfEntry`           | `url?`, `risk_level?`, `action?`, `categories?`                                                                                                                                   |
+| `DlpReport`           | `dlp_report_id?`, `dlp_profile_name?`, `dlp_profile_id?`, `dlp_profile_version?`, `data_pattern_rule1_verdict?`, `data_pattern_rule2_verdict?`, `data_pattern_detection_offsets?` |
+| `DlpPatternDetection` | `data_pattern_id?`, `version?`, `name?`, `high_confidence_detections?`, `medium_confidence_detections?`, `low_confidence_detections?`                                             |
+| `PatternDetection`    | `pattern?`, `locations?`                                                                                                                                                          |
+| `ContentError`        | `content_type?`, `feature?`, `status?`                                                                                                                                            |
+
+### `ScanResponse` (updated)
+
+Now includes `timeout`, `error`, and `errors` fields:
+
+```ts
+interface ScanResponse {
+  report_id: string;
+  scan_id: string;
+  category: string;
+  action: string;
+  timeout?: boolean;
+  error?: boolean;
+  errors?: ContentError[];
+  // ... other fields unchanged
+}
+```
