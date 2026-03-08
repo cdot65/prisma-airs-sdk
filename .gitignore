@@ -30,6 +30,9 @@ site/
 # Review documents
 REVIEW-*.md
 
+# Adobe Illustrator source files
+*.ai
+
 # Optional IDE or Editor settings
 .vscode/
 .idea/
