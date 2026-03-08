@@ -10,7 +10,11 @@ export {
   type GoalListOptions,
 } from './reports-client.js';
 export { RedTeamCustomAttackReportsClient } from './custom-attack-reports-client.js';
-export { RedTeamTargetsClient, type TargetListOptions } from './targets-client.js';
+export {
+  RedTeamTargetsClient,
+  type TargetListOptions,
+  type TargetOperationOptions,
+} from './targets-client.js';
 export {
   RedTeamCustomAttacksClient,
   type PromptSetListOptions,

@@ -1,4 +1,4 @@
-import { RED_TEAM_CUSTOM_ATTACK_PATH } from '../constants.js';
+import { RED_TEAM_CUSTOM_ATTACK_PATH, USER_AGENT } from '../constants.js';
 import { AISecSDKException, ErrorType } from '../errors.js';
 import { isValidUuid } from '../utils.js';
 import { managementHttpRequest } from '../management/management-http-client.js';
@@ -201,6 +201,40 @@ export class RedTeamCustomAttacksClient {
       numRetries: this.numRetries,
     });
     return res.data;
+  }
+
+  /** Upload a CSV file of custom prompts for a prompt set. */
+  async uploadPromptsCsv(promptSetUuid: string, file: Blob): Promise<BaseResponse> {
+    validateUuid(promptSetUuid, 'prompt set uuid');
+
+    const token = await this.oauthClient.getToken();
+    const url = new URL(
+      `${this.baseUrl.replace(/\/+$/, '')}${RED_TEAM_CUSTOM_ATTACK_PATH}/upload-custom-prompts-csv`,
+    );
+    url.searchParams.set('prompt_set_uuid', promptSetUuid);
+
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const response = await fetch(url.toString(), {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'User-Agent': USER_AGENT,
+      },
+      body: formData,
+    });
+
+    const text = await response.text();
+    if (!response.ok) {
+      throw new AISecSDKException(
+        `Upload failed (${response.status}): ${text}`,
+        ErrorType.SERVER_SIDE_ERROR,
+      );
+    }
+    return text
+      ? (JSON.parse(text) as BaseResponse)
+      : ({ message: 'ok', status: 201 } as BaseResponse);
   }
 
   // -----------------------------------------------------------------------

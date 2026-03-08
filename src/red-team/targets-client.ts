@@ -22,6 +22,12 @@ export interface TargetListOptions extends RedTeamListOptions {
   active?: boolean;
 }
 
+/** Options for target create/update operations. */
+export interface TargetOperationOptions {
+  /** Validate the target connection before saving. */
+  validate?: boolean;
+}
+
 /** @internal */
 export interface RedTeamTargetsClientOptions {
   baseUrl: string;
@@ -52,12 +58,19 @@ export class RedTeamTargetsClient {
   }
 
   /** Create a new target. */
-  async create(request: TargetCreateRequest): Promise<TargetResponse> {
+  async create(
+    request: TargetCreateRequest,
+    opts?: TargetOperationOptions,
+  ): Promise<TargetResponse> {
+    const params: Record<string, string> = {};
+    if (opts?.validate !== undefined) params.validate = String(opts.validate);
+
     const res = await managementHttpRequest<TargetResponse>({
       method: 'POST',
       baseUrl: this.baseUrl,
       path: RED_TEAM_TARGET_PATH,
       body: request,
+      params: Object.keys(params).length > 0 ? params : undefined,
       oauthClient: this.oauthClient,
       numRetries: this.numRetries,
     });
@@ -102,7 +115,11 @@ export class RedTeamTargetsClient {
   }
 
   /** Update a target. */
-  async update(uuid: string, request: TargetUpdateRequest): Promise<TargetResponse> {
+  async update(
+    uuid: string,
+    request: TargetUpdateRequest,
+    opts?: TargetOperationOptions,
+  ): Promise<TargetResponse> {
     if (!isValidUuid(uuid)) {
       throw new AISecSDKException(
         `Invalid target uuid: ${uuid}`,
@@ -110,11 +127,15 @@ export class RedTeamTargetsClient {
       );
     }
 
+    const params: Record<string, string> = {};
+    if (opts?.validate !== undefined) params.validate = String(opts.validate);
+
     const res = await managementHttpRequest<TargetResponse>({
       method: 'PUT',
       baseUrl: this.baseUrl,
       path: `${RED_TEAM_TARGET_PATH}/${uuid}`,
       body: request,
+      params: Object.keys(params).length > 0 ? params : undefined,
       oauthClient: this.oauthClient,
       numRetries: this.numRetries,
     });

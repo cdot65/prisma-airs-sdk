@@ -1,6 +1,6 @@
 {
   "name": "@cdot65/prisma-airs-sdk",
-  "version": "0.5.2",
+  "version": "0.6.0",
   "description": "TypeScript SDK for Palo Alto Networks Prisma AIRS — scanning, management, model security, and red teaming APIs",
   "author": "Calvin Remsburg <cremsburg.dev@gmail.com>",
   "license": "MIT",
@@ -58,7 +58,8 @@
     "example:model-sec-scans": "npx tsx --env-file=.env examples/model-security-scans.ts",
     "example:red-team-scans": "npx tsx --env-file=.env examples/red-team-scans.ts",
     "example:red-team-targets": "npx tsx --env-file=.env examples/red-team-targets.ts",
-    "example:oauth-lifecycle": "npx tsx examples/oauth-lifecycle-validation.ts"
+    "example:oauth-lifecycle": "npx tsx examples/oauth-lifecycle-validation.ts",
+    "example:red-team-mgmt": "npx tsx examples/red-team-mgmt-validation.ts"
   },
   "dependencies": {
     "zod": "^3.24.0"

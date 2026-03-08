@@ -20,13 +20,17 @@ import {
   TargetCreateRequestSchema,
   TargetResponseSchema,
   TargetListSchema,
+  TargetBackgroundSchema,
+  TargetAdditionalContextSchema,
   CustomPromptSetCreateRequestSchema,
   CustomPromptSetResponseSchema,
+  CustomPromptSetVersionInfoSchema,
   CustomPromptCreateRequestSchema,
   CustomPromptResponseSchema,
   PropertyNamesListResponseSchema,
   BaseResponseSchema,
   DashboardOverviewResponseSchema,
+  PromptSetStatsSchema,
 } from '../../src/models/red-team.js';
 
 // ---------------------------------------------------------------------------
@@ -957,5 +961,97 @@ describe('DashboardOverviewResponseSchema', () => {
   it('passes through unknown fields', () => {
     const res = DashboardOverviewResponseSchema.parse({ total_targets: 1, extra: 'field' });
     expect((res as Record<string, unknown>).extra).toBe('field');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Typed context schemas
+// ---------------------------------------------------------------------------
+
+describe('TargetBackgroundSchema (typed)', () => {
+  it('parses typed fields', () => {
+    const input = {
+      industry: 'Healthcare',
+      use_case: 'Patient Support',
+      competitors: ['CompetitorA', 'CompetitorB'],
+    };
+    const parsed = TargetBackgroundSchema.parse(input);
+    expect(parsed.industry).toBe('Healthcare');
+    expect(parsed.use_case).toBe('Patient Support');
+    expect(parsed.competitors).toEqual(['CompetitorA', 'CompetitorB']);
+  });
+
+  it('accepts null fields', () => {
+    const parsed = TargetBackgroundSchema.parse({
+      industry: null,
+      use_case: null,
+      competitors: null,
+    });
+    expect(parsed.industry).toBeNull();
+  });
+});
+
+describe('TargetAdditionalContextSchema (typed)', () => {
+  it('parses typed fields', () => {
+    const input = {
+      base_model: 'GPT-4',
+      system_prompt: 'You are helpful',
+      languages_supported: ['en', 'es'],
+      banned_keywords: ['hack'],
+      tools_accessible: ['search', 'code_exec'],
+    };
+    const parsed = TargetAdditionalContextSchema.parse(input);
+    expect(parsed.base_model).toBe('GPT-4');
+    expect(parsed.languages_supported).toEqual(['en', 'es']);
+  });
+});
+
+describe('CustomPromptSetVersionInfoSchema (typed stats)', () => {
+  it('parses with typed stats', () => {
+    const input = {
+      uuid: validUuid,
+      status: 'ready',
+      is_latest: true,
+      version: 'v1',
+      stats: {
+        total_prompts: 10,
+        active_prompts: 8,
+        inactive_prompts: 2,
+        failed_prompts: 0,
+        validation_prompts: 1,
+      },
+      snapshot_created_at: now,
+    };
+    const parsed = CustomPromptSetVersionInfoSchema.parse(input);
+    expect(parsed.stats?.total_prompts).toBe(10);
+    expect(parsed.stats?.active_prompts).toBe(8);
+  });
+
+  it('accepts null stats', () => {
+    const input = { uuid: validUuid, status: 'ready', is_latest: true, stats: null };
+    const parsed = CustomPromptSetVersionInfoSchema.parse(input);
+    expect(parsed.stats).toBeNull();
+  });
+});
+
+describe('PromptSetStatsSchema', () => {
+  it('parses valid stats', () => {
+    const input = {
+      total_prompts: 100,
+      active_prompts: 80,
+      inactive_prompts: 15,
+      failed_prompts: 3,
+      validation_prompts: 2,
+    };
+    const parsed = PromptSetStatsSchema.parse(input);
+    expect(parsed.total_prompts).toBe(100);
+    expect(parsed.active_prompts).toBe(80);
+    expect(parsed.failed_prompts).toBe(3);
+  });
+
+  it('accepts optional failed/validation fields', () => {
+    const input = { total_prompts: 10, active_prompts: 8, inactive_prompts: 2 };
+    const parsed = PromptSetStatsSchema.parse(input);
+    expect(parsed.failed_prompts).toBeUndefined();
   });
 });

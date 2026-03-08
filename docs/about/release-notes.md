@@ -1,5 +1,17 @@
 # Release Notes
 
+## v0.6.0
+
+### Red Team Management — Typed Schemas & New Methods
+
+- **Typed connection schemas**: `MultiTurnStatefulConfig`, `MultiTurnStatelessConfig`, `OpenAIConnectionParams`, `HuggingfaceConnectionParams`, `DatabricksConnectionParams`, `BedrockAccessConnectionParams`, `RestConnectionParams`, `StreamingConnectionParams`, `ConnectionParams` (union)
+- **Typed context schemas**: `TargetBackground` (industry/use_case/competitors as proper types), `TargetAdditionalContext` (base_model/system_prompt/languages as proper types), `TargetMetadata` sub-fields typed (rate_limit, error_json as records)
+- **`validate` query param**: `targets.create()` and `targets.update()` now accept `{ validate: true }` to trigger connection validation on the server
+- **`customAttacks.uploadPromptsCsv()`**: Upload CSV files of custom prompts for a prompt set (multipart/form-data)
+- **`CustomPromptSetVersionInfo.stats`** now uses typed `PromptSetStatsSchema` instead of `z.unknown()`
+
+---
+
 ## v0.5.0
 
 ### OAuth Token Lifecycle Management

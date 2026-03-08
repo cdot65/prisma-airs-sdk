@@ -499,11 +499,19 @@ interface TargetListOptions extends RedTeamListOptions {
   active?: boolean;
 }
 
+interface TargetOperationOptions {
+  validate?: boolean; // validate connection before saving
+}
+
 class RedTeamTargetsClient {
-  create(request: TargetCreateRequest): Promise<TargetResponse>;
+  create(request: TargetCreateRequest, opts?: TargetOperationOptions): Promise<TargetResponse>;
   list(opts?: TargetListOptions): Promise<TargetList>;
   get(uuid: string): Promise<TargetResponse>;
-  update(uuid: string, request: TargetUpdateRequest): Promise<TargetResponse>;
+  update(
+    uuid: string,
+    request: TargetUpdateRequest,
+    opts?: TargetOperationOptions,
+  ): Promise<TargetResponse>;
   delete(uuid: string): Promise<BaseResponse>;
   probe(request: TargetProbeRequest): Promise<TargetResponse>;
   getProfile(uuid: string): Promise<TargetProfileResponse>;
@@ -542,6 +550,7 @@ class RedTeamCustomAttacksClient {
   getPromptSetVersionInfo(uuid: string): Promise<CustomPromptSetVersionInfo>;
   listActivePromptSets(): Promise<CustomPromptSetListActive>;
   downloadTemplate(uuid: string): Promise<unknown>;
+  uploadPromptsCsv(promptSetUuid: string, file: Blob): Promise<BaseResponse>;
 
   // Prompt operations
   createPrompt(request: CustomPromptCreateRequest): Promise<CustomPromptResponse>;
