@@ -98,6 +98,38 @@ class ManagementClient {
 }
 ```
 
+### `OAuthClient`
+
+```ts
+interface TokenInfo {
+  hasToken: boolean; // whether a token has been fetched
+  isValid: boolean; // not expired and outside the buffer window
+  isExpired: boolean; // past expiry time
+  isExpiringSoon: boolean; // within the pre-expiry buffer
+  expiresInMs: number; // ms until expiry (0 if expired/no token)
+  expiresAt: number; // Unix timestamp in ms (0 if no token)
+}
+
+interface OAuthClientOptions {
+  clientId: string;
+  clientSecret: string;
+  tsgId: string;
+  tokenEndpoint?: string; // default: Palo Alto Networks auth endpoint
+  tokenBufferMs?: number; // pre-expiry refresh buffer (default: 30000)
+  onTokenRefresh?: (info: TokenInfo) => void; // callback on each refresh
+}
+
+class OAuthClient {
+  constructor(opts: OAuthClientOptions);
+  readonly tokenEndpoint: string;
+  getToken(): Promise<string>; // auto-refreshes if expired/expiring
+  clearToken(): void; // force re-fetch on next call
+  isTokenExpired(): boolean; // true if no token or past expiry
+  isTokenExpiringSoon(bufferMs?: number): boolean; // true if within buffer
+  getTokenInfo(): TokenInfo; // snapshot without exposing token value
+}
+```
+
 ### `ProfilesClient`
 
 ```ts

@@ -68,7 +68,36 @@ const client = new ManagementClient({
 });
 ```
 
-Token fetch, caching, and refresh are handled automatically. If a request gets a 401, the client refreshes the token and retries once.
+Token fetch, caching, and refresh are handled automatically. If a request gets a 401 or 403, the client refreshes the token and retries once.
+
+### Token Lifecycle
+
+The SDK provides fine-grained control over OAuth token state via `OAuthClient`:
+
+```ts
+import { OAuthClient } from '@cdot65/prisma-airs-sdk';
+
+const oauth = new OAuthClient({
+  clientId: 'your-client-id',
+  clientSecret: 'your-client-secret',
+  tsgId: '1234567890',
+  tokenBufferMs: 60_000, // refresh 60s before expiry (default: 30s)
+  onTokenRefresh: (info) => {
+    console.log(`Token refreshed, expires in ${info.expiresInMs}ms`);
+  },
+});
+
+// Check token state without triggering a refresh
+const info = oauth.getTokenInfo();
+// { hasToken, isValid, isExpired, isExpiringSoon, expiresInMs, expiresAt }
+
+// Individual checks
+oauth.isTokenExpired(); // true if past expiry time
+oauth.isTokenExpiringSoon(); // true if within buffer window
+oauth.isTokenExpiringSoon(120_000); // custom buffer override (2 min)
+```
+
+The `ManagementClient` handles this internally — you only need `OAuthClient` directly for advanced monitoring or custom auth workflows.
 
 ## Security Profiles
 

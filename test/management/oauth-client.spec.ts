@@ -186,4 +186,190 @@ describe('OAuthClient', () => {
       expect(fetchSpy).toHaveBeenCalledTimes(2);
     });
   });
+
+  describe('tokenBufferMs option', () => {
+    it('uses default 30s buffer', async () => {
+      mockFetchToken('tok', 31); // expires in 31s
+      const client = new OAuthClient(opts);
+      await client.getToken();
+
+      // within default 30s buffer → should re-fetch
+      const info = client.getTokenInfo();
+      // 31s token, 30s buffer → valid for ~1s
+      expect(info.isValid).toBe(true);
+    });
+
+    it('accepts custom buffer', async () => {
+      mockFetchToken('tok', 120); // 120s token
+      const client = new OAuthClient({ ...opts, tokenBufferMs: 60_000 }); // 60s buffer
+      await client.getToken();
+
+      const info = client.getTokenInfo();
+      expect(info.isValid).toBe(true);
+    });
+
+    it('custom buffer triggers earlier refresh', async () => {
+      // Token that lasts 45s, buffer of 60s → should be "expiring soon"
+      mockFetchToken('tok', 45);
+      const client = new OAuthClient({ ...opts, tokenBufferMs: 60_000 });
+      await client.getToken();
+
+      // Token will be within 60s buffer → getToken should re-fetch
+      expect(client.isTokenExpiringSoon()).toBe(true);
+    });
+  });
+
+  describe('isTokenExpired', () => {
+    it('returns true when no token fetched', () => {
+      const client = new OAuthClient(opts);
+      expect(client.isTokenExpired()).toBe(true);
+    });
+
+    it('returns false for valid token', async () => {
+      mockFetchToken('tok', 3600);
+      const client = new OAuthClient(opts);
+      await client.getToken();
+
+      expect(client.isTokenExpired()).toBe(false);
+    });
+
+    it('returns true for expired token (expires_in=0)', async () => {
+      mockFetchToken('tok', 0);
+      const client = new OAuthClient(opts);
+      await client.getToken();
+
+      expect(client.isTokenExpired()).toBe(true);
+    });
+
+    it('returns true after clearToken', async () => {
+      mockFetchToken('tok', 3600);
+      const client = new OAuthClient(opts);
+      await client.getToken();
+      client.clearToken();
+
+      expect(client.isTokenExpired()).toBe(true);
+    });
+  });
+
+  describe('isTokenExpiringSoon', () => {
+    it('returns true when no token', () => {
+      const client = new OAuthClient(opts);
+      expect(client.isTokenExpiringSoon()).toBe(true);
+    });
+
+    it('returns false for token with plenty of time', async () => {
+      mockFetchToken('tok', 3600);
+      const client = new OAuthClient(opts);
+      await client.getToken();
+
+      expect(client.isTokenExpiringSoon()).toBe(false);
+    });
+
+    it('uses configured buffer by default', async () => {
+      mockFetchToken('tok', 25); // 25s, within default 30s buffer
+      const client = new OAuthClient(opts);
+      await client.getToken();
+
+      expect(client.isTokenExpiringSoon()).toBe(true);
+    });
+
+    it('accepts custom buffer override', async () => {
+      mockFetchToken('tok', 3600);
+      const client = new OAuthClient(opts);
+      await client.getToken();
+
+      expect(client.isTokenExpiringSoon(3600_000)).toBe(true); // 1hr buffer
+      expect(client.isTokenExpiringSoon(1000)).toBe(false); // 1s buffer
+    });
+  });
+
+  describe('getTokenInfo', () => {
+    it('returns no-token state before fetch', () => {
+      const client = new OAuthClient(opts);
+      const info = client.getTokenInfo();
+
+      expect(info.hasToken).toBe(false);
+      expect(info.isValid).toBe(false);
+      expect(info.isExpired).toBe(true);
+      expect(info.isExpiringSoon).toBe(true);
+      expect(info.expiresInMs).toBe(0);
+    });
+
+    it('returns valid state after fetch', async () => {
+      mockFetchToken('tok', 3600);
+      const client = new OAuthClient(opts);
+      await client.getToken();
+
+      const info = client.getTokenInfo();
+      expect(info.hasToken).toBe(true);
+      expect(info.isValid).toBe(true);
+      expect(info.isExpired).toBe(false);
+      expect(info.isExpiringSoon).toBe(false);
+      expect(info.expiresInMs).toBeGreaterThan(3500_000); // ~1hr minus processing
+      expect(info.expiresInMs).toBeLessThanOrEqual(3600_000);
+      expect(info.expiresAt).toBeGreaterThan(Date.now());
+    });
+
+    it('returns expired state for expired token', async () => {
+      mockFetchToken('tok', 0);
+      const client = new OAuthClient(opts);
+      await client.getToken();
+
+      const info = client.getTokenInfo();
+      expect(info.hasToken).toBe(true);
+      expect(info.isValid).toBe(false);
+      expect(info.isExpired).toBe(true);
+      expect(info.expiresInMs).toBe(0);
+    });
+  });
+
+  describe('onTokenRefresh callback', () => {
+    it('calls onTokenRefresh after successful fetch', async () => {
+      mockFetchToken('tok', 3600);
+      const onRefresh = vi.fn();
+      const client = new OAuthClient({ ...opts, onTokenRefresh: onRefresh });
+      await client.getToken();
+
+      expect(onRefresh).toHaveBeenCalledTimes(1);
+      const info = onRefresh.mock.calls[0][0];
+      expect(info.expiresInMs).toBeGreaterThan(0);
+      expect(info.hasToken).toBe(true);
+      expect(info.isValid).toBe(true);
+    });
+
+    it('calls onTokenRefresh on each refresh', async () => {
+      const fetchSpy = vi
+        .fn()
+        .mockResolvedValueOnce({
+          ok: true,
+          status: 200,
+          json: () => Promise.resolve({ access_token: 'tok1', expires_in: 0 }),
+        })
+        .mockResolvedValueOnce({
+          ok: true,
+          status: 200,
+          json: () => Promise.resolve({ access_token: 'tok2', expires_in: 3600 }),
+        });
+      globalThis.fetch = fetchSpy;
+      const onRefresh = vi.fn();
+      const client = new OAuthClient({ ...opts, onTokenRefresh: onRefresh });
+      await client.getToken();
+      await client.getToken(); // triggers refresh because expires_in=0
+
+      expect(onRefresh).toHaveBeenCalledTimes(2);
+    });
+
+    it('does not block getToken if callback throws', async () => {
+      mockFetchToken('tok', 3600);
+      const onRefresh = vi.fn().mockImplementation(() => {
+        throw new Error('callback error');
+      });
+      const client = new OAuthClient({ ...opts, onTokenRefresh: onRefresh });
+
+      // should not throw despite callback error
+      const token = await client.getToken();
+      expect(token).toBe('tok');
+      expect(onRefresh).toHaveBeenCalled();
+    });
+  });
 });

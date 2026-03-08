@@ -52,7 +52,7 @@ export async function managementHttpRequest<T>(
       return fetch(url.toString(), { method, headers, body: bodyStr });
     },
     onRetryableFailure: async (response) => {
-      if (response.status === 401 && !hadTokenRefresh) {
+      if ((response.status === 401 || response.status === 403) && !hadTokenRefresh) {
         hadTokenRefresh = true;
         oauthClient.clearToken();
         return true;
