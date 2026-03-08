@@ -9,7 +9,11 @@ export {
   type AttackListOptions,
   type GoalListOptions,
 } from './reports-client.js';
-export { RedTeamCustomAttackReportsClient } from './custom-attack-reports-client.js';
+export {
+  RedTeamCustomAttackReportsClient,
+  type PromptsBySetListOptions,
+  type CustomAttacksReportListOptions,
+} from './custom-attack-reports-client.js';
 export {
   RedTeamTargetsClient,
   type TargetListOptions,

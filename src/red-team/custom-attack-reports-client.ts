@@ -9,8 +9,21 @@ import type {
   PromptSetsReportResponse,
   PromptDetailResponse,
   CustomAttacksListResponse,
+  CustomAttackOutput,
   PropertyStatistic,
 } from '../models/red-team.js';
+
+/** Filter options for listing prompts by set in a report. */
+export interface PromptsBySetListOptions extends RedTeamListOptions {
+  is_threat?: boolean;
+}
+
+/** Filter options for listing custom attacks in a report. */
+export interface CustomAttacksReportListOptions extends RedTeamListOptions {
+  threat?: boolean;
+  prompt_set_id?: string;
+  property_value?: string;
+}
 
 /** @internal */
 export interface RedTeamCustomAttackReportsClientOptions {
@@ -75,8 +88,8 @@ export class RedTeamCustomAttackReportsClient {
   async getPromptsBySet(
     jobId: string,
     promptSetId: string,
-    opts?: RedTeamListOptions,
-  ): Promise<unknown> {
+    opts?: PromptsBySetListOptions,
+  ): Promise<PromptDetailResponse[]> {
     validateJobId(jobId);
     if (!isValidUuid(promptSetId)) {
       throw new AISecSDKException(
@@ -85,11 +98,14 @@ export class RedTeamCustomAttackReportsClient {
       );
     }
 
-    const res = await managementHttpRequest<unknown>({
+    const params = buildListParams(opts);
+    if (opts?.is_threat !== undefined) params.is_threat = String(opts.is_threat);
+
+    const res = await managementHttpRequest<PromptDetailResponse[]>({
       method: 'GET',
       baseUrl: this.baseUrl,
       path: `${RED_TEAM_CUSTOM_ATTACKS_REPORT_PATH}/report/${jobId}/prompt-set/${promptSetId}/prompts`,
-      params: buildListParams(opts),
+      params,
       oauthClient: this.oauthClient,
       numRetries: this.numRetries,
     });
@@ -119,14 +135,19 @@ export class RedTeamCustomAttackReportsClient {
   /** List custom attacks for a scan. */
   async listCustomAttacks(
     jobId: string,
-    opts?: RedTeamListOptions,
+    opts?: CustomAttacksReportListOptions,
   ): Promise<CustomAttacksListResponse> {
     validateJobId(jobId);
+    const params = buildListParams(opts);
+    if (opts?.threat !== undefined) params.threat = String(opts.threat);
+    if (opts?.prompt_set_id !== undefined) params.prompt_set_id = opts.prompt_set_id;
+    if (opts?.property_value !== undefined) params.property_value = opts.property_value;
+
     const res = await managementHttpRequest<CustomAttacksListResponse>({
       method: 'GET',
       baseUrl: this.baseUrl,
       path: `${RED_TEAM_CUSTOM_ATTACKS_REPORT_PATH}/job/${jobId}/list-custom-attacks`,
-      params: buildListParams(opts),
+      params,
       oauthClient: this.oauthClient,
       numRetries: this.numRetries,
     });
@@ -134,7 +155,7 @@ export class RedTeamCustomAttackReportsClient {
   }
 
   /** Get attack outputs for a custom attack. */
-  async getAttackOutputs(jobId: string, attackId: string): Promise<unknown> {
+  async getAttackOutputs(jobId: string, attackId: string): Promise<CustomAttackOutput[]> {
     validateJobId(jobId);
     if (!isValidUuid(attackId)) {
       throw new AISecSDKException(
@@ -143,7 +164,7 @@ export class RedTeamCustomAttackReportsClient {
       );
     }
 
-    const res = await managementHttpRequest<unknown>({
+    const res = await managementHttpRequest<CustomAttackOutput[]>({
       method: 'GET',
       baseUrl: this.baseUrl,
       path: `${RED_TEAM_CUSTOM_ATTACKS_REPORT_PATH}/job/${jobId}/attack/${attackId}/list-outputs`,

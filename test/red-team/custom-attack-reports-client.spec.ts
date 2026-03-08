@@ -95,6 +95,14 @@ describe('RedTeamCustomAttackReportsClient', () => {
     it('rejects invalid prompt set UUID', async () => {
       await expect(client.getPromptsBySet(validUuid, 'bad')).rejects.toThrow(AISecSDKException);
     });
+
+    it('passes is_threat filter', async () => {
+      mockFetch([]);
+      await client.getPromptsBySet(validUuid, validUuid2, { is_threat: true });
+
+      const [url] = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0];
+      expect(url).toContain('is_threat=true');
+    });
   });
 
   // -----------------------------------------------------------------------
@@ -130,6 +138,20 @@ describe('RedTeamCustomAttackReportsClient', () => {
       expect(result.attacks).toEqual([]);
       const [url] = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0];
       expect(url).toContain(`/v1/custom-attacks/job/${validUuid}/list-custom-attacks`);
+    });
+
+    it('passes filter params', async () => {
+      mockFetch({ attacks: [], total: 0 });
+      await client.listCustomAttacks(validUuid, {
+        threat: true,
+        prompt_set_id: validUuid2,
+        property_value: '{"severity":"HIGH"}',
+      });
+
+      const [url] = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0];
+      expect(url).toContain('threat=true');
+      expect(url).toContain(`prompt_set_id=${validUuid2}`);
+      expect(url).toContain('property_value=');
     });
 
     it('rejects invalid UUID', async () => {

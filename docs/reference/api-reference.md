@@ -437,10 +437,14 @@ interface AttackListOptions extends RedTeamListOptions {
   severity?: string;
   category?: string;
   sub_category?: string;
+  attack_type?: string;
+  threat?: boolean;
 }
 
 interface GoalListOptions extends RedTeamListOptions {
   goal_type?: string;
+  status?: string;
+  count?: boolean;
 }
 
 class RedTeamReportsClient {
@@ -465,7 +469,7 @@ class RedTeamReportsClient {
 
   // Common
   getStreamDetail(streamId: string): Promise<StreamDetailResponse>;
-  downloadReport(jobId: string, format?: string): Promise<unknown>;
+  downloadReport(jobId: string, format: string): Promise<unknown>;
   generatePartialReport(jobId: string): Promise<unknown>;
 }
 ```
@@ -475,13 +479,30 @@ class RedTeamReportsClient {
 Data plane custom attack report operations.
 
 ```ts
+interface PromptsBySetListOptions extends RedTeamListOptions {
+  is_threat?: boolean;
+}
+
+interface CustomAttacksReportListOptions extends RedTeamListOptions {
+  threat?: boolean;
+  prompt_set_id?: string;
+  property_value?: string;
+}
+
 class RedTeamCustomAttackReportsClient {
   getReport(jobId: string): Promise<CustomAttackReportResponse>;
   getPromptSets(jobId: string): Promise<PromptSetsReportResponse>;
-  getPromptsBySet(jobId: string, promptSetId: string, opts?: RedTeamListOptions): Promise<unknown>;
+  getPromptsBySet(
+    jobId: string,
+    promptSetId: string,
+    opts?: PromptsBySetListOptions,
+  ): Promise<PromptDetailResponse[]>;
   getPromptDetail(jobId: string, promptId: string): Promise<PromptDetailResponse>;
-  listCustomAttacks(jobId: string, opts?: RedTeamListOptions): Promise<CustomAttacksListResponse>;
-  getAttackOutputs(jobId: string, attackId: string): Promise<unknown>;
+  listCustomAttacks(
+    jobId: string,
+    opts?: CustomAttacksReportListOptions,
+  ): Promise<CustomAttacksListResponse>;
+  getAttackOutputs(jobId: string, attackId: string): Promise<CustomAttackOutput[]>;
   getPropertyStats(jobId: string): Promise<PropertyStatistic[]>;
 }
 ```
