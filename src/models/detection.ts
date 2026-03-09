@@ -44,14 +44,16 @@ export const DSResultMetadataSchema = z
 export type DSResultMetadata = z.infer<typeof DSResultMetadataSchema>;
 
 /** Zod schema for an individual detection service result. */
-export const DetectionServiceResultSchema = z.object({
-  data_type: z.string().optional(),
-  detection_service: z.string().optional(),
-  verdict: z.string().optional(),
-  action: z.string().optional(),
-  metadata: DSResultMetadataSchema.optional(),
-  result_detail: DSDetailResultSchema.optional(),
-});
+export const DetectionServiceResultSchema = z
+  .object({
+    data_type: z.string().optional(),
+    detection_service: z.string().optional(),
+    verdict: z.string().optional(),
+    action: z.string().optional(),
+    metadata: DSResultMetadataSchema.optional(),
+    result_detail: DSDetailResultSchema.optional(),
+  })
+  .passthrough();
 
 /** Individual detection service result with verdict, action, and details. */
 export type DetectionServiceResult = z.infer<typeof DetectionServiceResultSchema>;

@@ -5,10 +5,12 @@ import { ToolEventMetadataSchema } from './tool-event.js';
 import { PatternDetectionSchema, ContentErrorSchema } from './detection-reports.js';
 
 /** Zod schema for masked data in scan results. */
-export const MaskedDataSchema = z.object({
-  data: z.string().optional(),
-  pattern_detections: z.array(PatternDetectionSchema).optional(),
-});
+export const MaskedDataSchema = z
+  .object({
+    data: z.string().optional(),
+    pattern_detections: z.array(PatternDetectionSchema).optional(),
+  })
+  .passthrough();
 
 /** Masked data containing redacted content and pattern detections. */
 export type MaskedData = z.infer<typeof MaskedDataSchema>;
@@ -39,41 +41,45 @@ export const ScanSummarySchema = z
 export type ScanSummary = z.infer<typeof ScanSummarySchema>;
 
 /** Zod schema for tool/agent detection results. */
-export const ToolDetectedSchema = z.object({
-  verdict: z.string().optional(),
-  metadata: ToolEventMetadataSchema.optional(),
-  summary: ScanSummarySchema.optional(),
-  input_detected: IODetectedSchema.optional(),
-  output_detected: IODetectedSchema.optional(),
-});
+export const ToolDetectedSchema = z
+  .object({
+    verdict: z.string().optional(),
+    metadata: ToolEventMetadataSchema.optional(),
+    summary: ScanSummarySchema.optional(),
+    input_detected: IODetectedSchema.optional(),
+    output_detected: IODetectedSchema.optional(),
+  })
+  .passthrough();
 
 /** Detection results for tool/agent interactions. */
 export type ToolDetected = z.infer<typeof ToolDetectedSchema>;
 
 /** Zod schema for a complete scan response from the AIRS API. */
-export const ScanResponseSchema = z.object({
-  source: z.string().optional(),
-  report_id: z.string(),
-  scan_id: z.string(),
-  tr_id: z.string().optional(),
-  session_id: z.string().optional(),
-  profile_id: z.string().optional(),
-  profile_name: z.string().optional(),
-  category: z.string(),
-  action: z.string(),
-  timeout: z.boolean().optional(),
-  error: z.boolean().optional(),
-  errors: z.array(ContentErrorSchema).optional(),
-  prompt_detected: PromptDetectedSchema.optional(),
-  response_detected: ResponseDetectedSchema.optional(),
-  prompt_masked_data: MaskedDataSchema.optional(),
-  response_masked_data: MaskedDataSchema.optional(),
-  prompt_detection_details: PromptDetectionDetailsSchema.optional(),
-  response_detection_details: ResponseDetectionDetailsSchema.optional(),
-  tool_detected: ToolDetectedSchema.optional(),
-  created_at: z.string().optional(),
-  completed_at: z.string().optional(),
-});
+export const ScanResponseSchema = z
+  .object({
+    source: z.string().optional(),
+    report_id: z.string(),
+    scan_id: z.string(),
+    tr_id: z.string().optional(),
+    session_id: z.string().optional(),
+    profile_id: z.string().optional(),
+    profile_name: z.string().optional(),
+    category: z.string(),
+    action: z.string(),
+    timeout: z.boolean().optional(),
+    error: z.boolean().optional(),
+    errors: z.array(ContentErrorSchema).optional(),
+    prompt_detected: PromptDetectedSchema.optional(),
+    response_detected: ResponseDetectedSchema.optional(),
+    prompt_masked_data: MaskedDataSchema.optional(),
+    response_masked_data: MaskedDataSchema.optional(),
+    prompt_detection_details: PromptDetectionDetailsSchema.optional(),
+    response_detection_details: ResponseDetectionDetailsSchema.optional(),
+    tool_detected: ToolDetectedSchema.optional(),
+    created_at: z.string().optional(),
+    completed_at: z.string().optional(),
+  })
+  .passthrough();
 
 /** Complete scan response with verdict, action, and detection details. */
 export type ScanResponse = z.infer<typeof ScanResponseSchema>;
