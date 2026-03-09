@@ -52,7 +52,11 @@ export class RedTeamScansClient {
     this.numRetries = opts.numRetries;
   }
 
-  /** Create a new red team scan job. */
+  /**
+   * Create a new red team scan job.
+   * @param request - Job creation request body.
+   * @returns The created job response.
+   */
   async create(request: JobCreateRequest): Promise<JobResponse> {
     const res = await managementHttpRequest<JobResponse>({
       method: 'POST',

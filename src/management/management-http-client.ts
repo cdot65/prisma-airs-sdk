@@ -19,6 +19,12 @@ export interface MgmtHttpResponse<T = unknown> {
   data: T;
 }
 
+/**
+ * @internal Execute an authenticated HTTP request against the management API.
+ * Handles OAuth token refresh on 401/403 and retries with exponential backoff.
+ * @param opts - Request options including method, path, body, and auth.
+ * @returns Typed response with HTTP status and parsed JSON body.
+ */
 export async function managementHttpRequest<T>(
   opts: MgmtHttpRequestOptions,
 ): Promise<MgmtHttpResponse<T>> {
