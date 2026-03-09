@@ -54,7 +54,12 @@ export class RedTeamTargetsClient {
     this.numRetries = opts.numRetries;
   }
 
-  /** Create a new target. */
+  /**
+   * Create a new target.
+   * @param request - Target creation request body.
+   * @param opts - Optional operation options (e.g. validate connection).
+   * @returns The created target response.
+   */
   async create(
     request: TargetCreateRequest,
     opts?: TargetOperationOptions,

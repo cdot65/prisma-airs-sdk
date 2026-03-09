@@ -38,6 +38,11 @@ export class Content {
   private _codeResponse?: string;
   private _toolEvent?: ToolEvent;
 
+  /**
+   * Create a new Content instance.
+   * @param opts - Content fields; at least one of prompt, response, codePrompt, codeResponse, or toolEvent is required.
+   * @throws {AISecSDKException} If no content field is provided or a field exceeds its byte-length limit.
+   */
   constructor(opts: ContentOptions) {
     if (
       !opts.prompt &&

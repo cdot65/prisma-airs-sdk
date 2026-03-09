@@ -349,6 +349,7 @@ export class ModelSecurityScansClient {
    * Delete labels from a scan by key.
    * @param scanUuid - Scan UUID.
    * @param keys - Label keys to delete.
+   * @returns Resolves when the labels are deleted.
    */
   async deleteLabels(scanUuid: string, keys: string[]): Promise<void> {
     if (!isValidUuid(scanUuid)) {
