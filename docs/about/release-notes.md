@@ -1,5 +1,19 @@
 # Release Notes
 
+## v0.6.2
+
+### Documentation Accuracy Fixes
+
+- **Model Security**: Corrected scan list parameter names (`sort_field`/`sort_dir`/`search_query` instead of `sort_by`/`sort_direction`/`search`)
+- **Management API**: Added documentation sections for 6 sub-clients (`ApiKeysClient`, `CustomerAppsClient`, `DlpProfilesClient`, `DeploymentProfilesClient`, `ScanLogsClient`, `OAuthManagementClient`)
+- **Type definitions**: Added missing type definitions for new management and model security option types
+
+### Other
+
+- Hotfix version bump
+
+---
+
 ## v0.6.1
 
 ### OpenAPI Spec Alignment
