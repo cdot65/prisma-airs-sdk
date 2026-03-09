@@ -1,12 +1,14 @@
 import { z } from 'zod';
 
 /** Zod schema for a URL filtering report entry. */
-export const UrlfEntrySchema = z.object({
-  url: z.string().optional(),
-  risk_level: z.string().optional(),
-  action: z.string().optional(),
-  categories: z.array(z.string()).optional(),
-});
+export const UrlfEntrySchema = z
+  .object({
+    url: z.string().optional(),
+    risk_level: z.string().optional(),
+    action: z.string().optional(),
+    categories: z.array(z.string()).optional(),
+  })
+  .passthrough();
 
 /** URL filtering report entry with URL, risk level, action, and categories. */
 export type UrlfEntry = z.infer<typeof UrlfEntrySchema>;
