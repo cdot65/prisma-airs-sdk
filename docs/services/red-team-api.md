@@ -100,8 +100,6 @@ const filtered = await client.scans.list({
   target_id: 'target-uuid',
   skip: 0,
   limit: 10,
-  sort_by: 'created_at',
-  sort_direction: 'desc',
 });
 ```
 
@@ -244,7 +242,6 @@ const target = await client.targets.create({
 const targets = await client.targets.list({
   target_type: 'api',
   status: 'active',
-  active: true,
   skip: 0,
   limit: 10,
 });

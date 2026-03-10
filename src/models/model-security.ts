@@ -21,18 +21,22 @@ export type ModelSecurityPagination = z.infer<typeof ModelSecurityPaginationSche
 // ---------------------------------------------------------------------------
 
 /** Zod schema for a single label key-value pair. */
-export const LabelSchema = z.object({
-  key: z.string(),
-  value: z.string(),
-});
+export const LabelSchema = z
+  .object({
+    key: z.string(),
+    value: z.string(),
+  })
+  .passthrough();
 
 /** A single label key-value pair. */
 export type Label = z.infer<typeof LabelSchema>;
 
 /** Zod schema for creating/setting labels on a scan. */
-export const LabelsCreateRequestSchema = z.object({
-  labels: z.array(LabelSchema),
-});
+export const LabelsCreateRequestSchema = z
+  .object({
+    labels: z.array(LabelSchema),
+  })
+  .passthrough();
 
 /** Request body for creating or setting scan labels. */
 export type LabelsCreateRequest = z.infer<typeof LabelsCreateRequestSchema>;
@@ -119,18 +123,20 @@ export type FileScanData = z.infer<typeof FileScanDataSchema>;
 // ---------------------------------------------------------------------------
 
 /** Zod schema for detailed scan results submitted with a scan creation. */
-export const ScanDetailsSchema = z.object({
-  scanner_version: z.string(),
-  time_started: z.string(),
-  files: z.array(FileScanDataSchema),
-  total_files_scanned: z.number().int(),
-  total_files_skipped: z.number().int(),
-  model_formats: z.array(z.string()),
-  model_size_bytes: z.number().int(),
-  scan_duration_ms: z.number().int(),
-  error_code: z.string().nullable().optional(),
-  error_message: z.string().nullable().optional(),
-});
+export const ScanDetailsSchema = z
+  .object({
+    scanner_version: z.string(),
+    time_started: z.string(),
+    files: z.array(FileScanDataSchema),
+    total_files_scanned: z.number().int(),
+    total_files_skipped: z.number().int(),
+    model_formats: z.array(z.string()),
+    model_size_bytes: z.number().int(),
+    scan_duration_ms: z.number().int(),
+    error_code: z.string().nullable().optional(),
+    error_message: z.string().nullable().optional(),
+  })
+  .passthrough();
 
 /** Detailed scan results submitted with a scan creation request. */
 export type ScanDetails = z.infer<typeof ScanDetailsSchema>;
@@ -140,18 +146,20 @@ export type ScanDetails = z.infer<typeof ScanDetailsSchema>;
 // ---------------------------------------------------------------------------
 
 /** Zod schema for creating a new model security scan. */
-export const ScanCreateRequestSchema = z.object({
-  model_uri: z.string(),
-  security_group_uuid: z.string(),
-  scan_origin: z.string(),
-  allow_patterns: z.array(z.string()).nullable().optional(),
-  ignore_patterns: z.array(z.string()).nullable().optional(),
-  labels: z.array(LabelSchema).nullable().optional(),
-  model_author: z.string().nullable().optional(),
-  model_name: z.string().nullable().optional(),
-  model_version: z.string().nullable().optional(),
-  scan_details: ScanDetailsSchema.nullable().optional(),
-});
+export const ScanCreateRequestSchema = z
+  .object({
+    model_uri: z.string(),
+    security_group_uuid: z.string(),
+    scan_origin: z.string(),
+    allow_patterns: z.array(z.string()).nullable().optional(),
+    ignore_patterns: z.array(z.string()).nullable().optional(),
+    labels: z.array(LabelSchema).nullable().optional(),
+    model_author: z.string().nullable().optional(),
+    model_name: z.string().nullable().optional(),
+    model_version: z.string().nullable().optional(),
+    scan_details: ScanDetailsSchema.nullable().optional(),
+  })
+  .passthrough();
 
 /** Request body for creating a new model security scan. */
 export type ScanCreateRequest = z.infer<typeof ScanCreateRequestSchema>;
@@ -433,11 +441,13 @@ export type ModelSecurityRuleInstanceResponse = z.infer<
 >;
 
 /** Zod schema for updating a rule instance. */
-export const ModelSecurityRuleInstanceUpdateRequestSchema = z.object({
-  security_group_uuid: z.string(),
-  state: z.string().nullable().optional(),
-  field_values: z.record(z.unknown()).nullable().optional(),
-});
+export const ModelSecurityRuleInstanceUpdateRequestSchema = z
+  .object({
+    security_group_uuid: z.string(),
+    state: z.string().nullable().optional(),
+    field_values: z.record(z.unknown()).nullable().optional(),
+  })
+  .passthrough();
 
 /** Request body for updating a rule instance. */
 export type ModelSecurityRuleInstanceUpdateRequest = z.infer<
@@ -462,12 +472,14 @@ export type ListModelSecurityRuleInstancesResponse = z.infer<
 // ---------------------------------------------------------------------------
 
 /** Zod schema for creating a model security group. */
-export const ModelSecurityGroupCreateRequestSchema = z.object({
-  name: z.string(),
-  source_type: z.string(),
-  description: z.string().optional().default(''),
-  rule_configurations: z.record(RuleConfigurationSchema).optional(),
-});
+export const ModelSecurityGroupCreateRequestSchema = z
+  .object({
+    name: z.string(),
+    source_type: z.string(),
+    description: z.string().optional().default(''),
+    rule_configurations: z.record(RuleConfigurationSchema).optional(),
+  })
+  .passthrough();
 
 /** Request body for creating a new model security group. */
 export type ModelSecurityGroupCreateRequest = z.infer<typeof ModelSecurityGroupCreateRequestSchema>;
@@ -491,10 +503,12 @@ export const ModelSecurityGroupResponseSchema = z
 export type ModelSecurityGroupResponse = z.infer<typeof ModelSecurityGroupResponseSchema>;
 
 /** Zod schema for updating a model security group. */
-export const ModelSecurityGroupUpdateRequestSchema = z.object({
-  name: z.string().nullable().optional(),
-  description: z.string().nullable().optional(),
-});
+export const ModelSecurityGroupUpdateRequestSchema = z
+  .object({
+    name: z.string().nullable().optional(),
+    description: z.string().nullable().optional(),
+  })
+  .passthrough();
 
 /** Request body for updating a model security group. */
 export type ModelSecurityGroupUpdateRequest = z.infer<typeof ModelSecurityGroupUpdateRequestSchema>;

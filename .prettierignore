@@ -4,3 +4,4 @@ coverage
 .venv
 *.lock
 tsup.config.bundled_*
+review-*

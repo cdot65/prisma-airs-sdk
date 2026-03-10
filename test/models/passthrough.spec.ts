@@ -21,6 +21,35 @@ import {
   MaskedDataSchema,
   ToolDetectedSchema,
   DetectionServiceResultSchema,
+  ErrorResponseSchema,
+  LabelSchema,
+  LabelsCreateRequestSchema,
+  ScanDetailsSchema,
+  ScanCreateRequestSchema,
+  ModelSecurityGroupCreateRequestSchema,
+  ModelSecurityGroupUpdateRequestSchema,
+  ModelSecurityRuleInstanceUpdateRequestSchema,
+  CountByNameSchema,
+  ValidationErrorSchema,
+  TargetJobRequestSchema,
+  JobCreateRequestSchema,
+  JobAbortResponseSchema,
+  PrerequisiteModelSchema,
+  PropertyAssignmentSchema,
+  PropertyValueStatisticSchema,
+  PropertyStatisticSchema,
+  ScoreTrendSeriesSchema,
+  ScoreTrendResponseSchema,
+  SentimentRequestSchema,
+  QuotaDetailsSchema,
+  QuotaSummarySchema,
+  BaseResponseSchema,
+  CustomPromptSetCreateRequestSchema,
+  CustomPromptSetArchiveRequestSchema,
+  CustomPromptCreateRequestSchema,
+  PropertyNameCreateRequestSchema,
+  PropertyValueCreateRequestSchema,
+  PropertyDefinitionSchema,
 } from '../../src/models/index.js';
 
 /**
@@ -183,6 +212,289 @@ describe('passthrough — scan-related schemas preserve unknown fields', () => {
   it('DetectionServiceResultSchema', () => {
     const r = DetectionServiceResultSchema.safeParse({
       data_type: 'prompt',
+      _future: 1,
+    });
+    expect(r.success).toBe(true);
+    if (r.success) expect(r.data).toHaveProperty('_future', 1);
+  });
+});
+
+describe('passthrough — error-response schemas preserve unknown fields', () => {
+  it('ErrorResponseSchema', () => {
+    const r = ErrorResponseSchema.safeParse({ _future: 1 });
+    expect(r.success).toBe(true);
+    if (r.success) expect(r.data).toHaveProperty('_future', 1);
+  });
+});
+
+describe('passthrough — model-security schemas preserve unknown fields', () => {
+  it('LabelSchema', () => {
+    const r = LabelSchema.safeParse({ key: 'k', value: 'v', _future: 1 });
+    expect(r.success).toBe(true);
+    if (r.success) expect(r.data).toHaveProperty('_future', 1);
+  });
+
+  it('LabelsCreateRequestSchema', () => {
+    const r = LabelsCreateRequestSchema.safeParse({
+      labels: [{ key: 'k', value: 'v' }],
+      _future: 1,
+    });
+    expect(r.success).toBe(true);
+    if (r.success) expect(r.data).toHaveProperty('_future', 1);
+  });
+
+  it('ScanDetailsSchema', () => {
+    const r = ScanDetailsSchema.safeParse({
+      scanner_version: '1.0',
+      time_started: '2024-01-01',
+      files: [],
+      total_files_scanned: 0,
+      total_files_skipped: 0,
+      model_formats: [],
+      model_size_bytes: 0,
+      scan_duration_ms: 0,
+      _future: 1,
+    });
+    expect(r.success).toBe(true);
+    if (r.success) expect(r.data).toHaveProperty('_future', 1);
+  });
+
+  it('ScanCreateRequestSchema', () => {
+    const r = ScanCreateRequestSchema.safeParse({
+      model_uri: 'hf://model',
+      security_group_uuid: 'sg-1',
+      scan_origin: 'sdk',
+      _future: 1,
+    });
+    expect(r.success).toBe(true);
+    if (r.success) expect(r.data).toHaveProperty('_future', 1);
+  });
+
+  it('ModelSecurityGroupCreateRequestSchema', () => {
+    const r = ModelSecurityGroupCreateRequestSchema.safeParse({
+      name: 'group1',
+      source_type: 'huggingface',
+      _future: 1,
+    });
+    expect(r.success).toBe(true);
+    if (r.success) expect(r.data).toHaveProperty('_future', 1);
+  });
+
+  it('ModelSecurityGroupUpdateRequestSchema', () => {
+    const r = ModelSecurityGroupUpdateRequestSchema.safeParse({ _future: 1 });
+    expect(r.success).toBe(true);
+    if (r.success) expect(r.data).toHaveProperty('_future', 1);
+  });
+
+  it('ModelSecurityRuleInstanceUpdateRequestSchema', () => {
+    const r = ModelSecurityRuleInstanceUpdateRequestSchema.safeParse({
+      security_group_uuid: 'sg-1',
+      _future: 1,
+    });
+    expect(r.success).toBe(true);
+    if (r.success) expect(r.data).toHaveProperty('_future', 1);
+  });
+});
+
+describe('passthrough — red-team schemas preserve unknown fields', () => {
+  it('CountByNameSchema', () => {
+    const r = CountByNameSchema.safeParse({ name: 'n', count: 1, _future: 1 });
+    expect(r.success).toBe(true);
+    if (r.success) expect(r.data).toHaveProperty('_future', 1);
+  });
+
+  it('ValidationErrorSchema', () => {
+    const r = ValidationErrorSchema.safeParse({
+      loc: ['body'],
+      msg: 'err',
+      type: 'value_error',
+      _future: 1,
+    });
+    expect(r.success).toBe(true);
+    if (r.success) expect(r.data).toHaveProperty('_future', 1);
+  });
+
+  it('TargetJobRequestSchema', () => {
+    const r = TargetJobRequestSchema.safeParse({ uuid: 'u1', _future: 1 });
+    expect(r.success).toBe(true);
+    if (r.success) expect(r.data).toHaveProperty('_future', 1);
+  });
+
+  it('JobCreateRequestSchema', () => {
+    const r = JobCreateRequestSchema.safeParse({
+      name: 'job1',
+      target: { uuid: 'u1' },
+      job_type: 'static',
+      job_metadata: { categories: ['cat1'] },
+      _future: 1,
+    });
+    expect(r.success).toBe(true);
+    if (r.success) expect(r.data).toHaveProperty('_future', 1);
+  });
+
+  it('JobAbortResponseSchema', () => {
+    const r = JobAbortResponseSchema.safeParse({
+      job_id: 'j1',
+      message: 'aborted',
+      _future: 1,
+    });
+    expect(r.success).toBe(true);
+    if (r.success) expect(r.data).toHaveProperty('_future', 1);
+  });
+
+  it('PrerequisiteModelSchema', () => {
+    const r = PrerequisiteModelSchema.safeParse({
+      id: 'p1',
+      display_name: 'Pre',
+      description: 'desc',
+      _future: 1,
+    });
+    expect(r.success).toBe(true);
+    if (r.success) expect(r.data).toHaveProperty('_future', 1);
+  });
+
+  it('PropertyAssignmentSchema', () => {
+    const r = PropertyAssignmentSchema.safeParse({
+      name: 'n',
+      value: 'v',
+      _future: 1,
+    });
+    expect(r.success).toBe(true);
+    if (r.success) expect(r.data).toHaveProperty('_future', 1);
+  });
+
+  it('PropertyValueStatisticSchema', () => {
+    const r = PropertyValueStatisticSchema.safeParse({
+      value: 'v',
+      successful_attack_count: 1,
+      total_attack_count: 2,
+      success_rate: 0.5,
+      _future: 1,
+    });
+    expect(r.success).toBe(true);
+    if (r.success) expect(r.data).toHaveProperty('_future', 1);
+  });
+
+  it('PropertyStatisticSchema', () => {
+    const r = PropertyStatisticSchema.safeParse({
+      property_name: 'p',
+      values: [],
+      _future: 1,
+    });
+    expect(r.success).toBe(true);
+    if (r.success) expect(r.data).toHaveProperty('_future', 1);
+  });
+
+  it('ScoreTrendSeriesSchema', () => {
+    const r = ScoreTrendSeriesSchema.safeParse({
+      label: 'l',
+      data: [1, 2],
+      _future: 1,
+    });
+    expect(r.success).toBe(true);
+    if (r.success) expect(r.data).toHaveProperty('_future', 1);
+  });
+
+  it('ScoreTrendResponseSchema', () => {
+    const r = ScoreTrendResponseSchema.safeParse({
+      labels: ['l'],
+      series: [],
+      _future: 1,
+    });
+    expect(r.success).toBe(true);
+    if (r.success) expect(r.data).toHaveProperty('_future', 1);
+  });
+
+  it('SentimentRequestSchema', () => {
+    const r = SentimentRequestSchema.safeParse({ job_id: 'j1', _future: 1 });
+    expect(r.success).toBe(true);
+    if (r.success) expect(r.data).toHaveProperty('_future', 1);
+  });
+
+  it('QuotaDetailsSchema', () => {
+    const r = QuotaDetailsSchema.safeParse({
+      allocated: 100,
+      unlimited: false,
+      consumed: 50,
+      _future: 1,
+    });
+    expect(r.success).toBe(true);
+    if (r.success) expect(r.data).toHaveProperty('_future', 1);
+  });
+
+  it('QuotaSummarySchema', () => {
+    const quota = { allocated: 100, unlimited: false, consumed: 50 };
+    const r = QuotaSummarySchema.safeParse({
+      static: quota,
+      dynamic: quota,
+      custom: quota,
+      _future: 1,
+    });
+    expect(r.success).toBe(true);
+    if (r.success) expect(r.data).toHaveProperty('_future', 1);
+  });
+
+  it('BaseResponseSchema', () => {
+    const r = BaseResponseSchema.safeParse({
+      message: 'ok',
+      status: 200,
+      _future: 1,
+    });
+    expect(r.success).toBe(true);
+    if (r.success) expect(r.data).toHaveProperty('_future', 1);
+  });
+
+  it('CustomPromptSetCreateRequestSchema', () => {
+    const r = CustomPromptSetCreateRequestSchema.safeParse({
+      name: 'set1',
+      _future: 1,
+    });
+    expect(r.success).toBe(true);
+    if (r.success) expect(r.data).toHaveProperty('_future', 1);
+  });
+
+  it('CustomPromptSetArchiveRequestSchema', () => {
+    const r = CustomPromptSetArchiveRequestSchema.safeParse({
+      archive: true,
+      _future: 1,
+    });
+    expect(r.success).toBe(true);
+    if (r.success) expect(r.data).toHaveProperty('_future', 1);
+  });
+
+  it('CustomPromptCreateRequestSchema', () => {
+    const r = CustomPromptCreateRequestSchema.safeParse({
+      prompt: 'hello',
+      prompt_set_id: 'ps1',
+      _future: 1,
+    });
+    expect(r.success).toBe(true);
+    if (r.success) expect(r.data).toHaveProperty('_future', 1);
+  });
+
+  it('PropertyNameCreateRequestSchema', () => {
+    const r = PropertyNameCreateRequestSchema.safeParse({
+      name: 'prop',
+      _future: 1,
+    });
+    expect(r.success).toBe(true);
+    if (r.success) expect(r.data).toHaveProperty('_future', 1);
+  });
+
+  it('PropertyValueCreateRequestSchema', () => {
+    const r = PropertyValueCreateRequestSchema.safeParse({
+      property_name: 'p',
+      property_value: 'v',
+      _future: 1,
+    });
+    expect(r.success).toBe(true);
+    if (r.success) expect(r.data).toHaveProperty('_future', 1);
+  });
+
+  it('PropertyDefinitionSchema', () => {
+    const r = PropertyDefinitionSchema.safeParse({
+      property_name: 'p',
+      created_at: '2024-01-01',
       _future: 1,
     });
     expect(r.success).toBe(true);
