@@ -11,14 +11,18 @@ export const RedTeamPaginationSchema = z
   .passthrough();
 export type RedTeamPagination = z.infer<typeof RedTeamPaginationSchema>;
 
-export const CountByNameSchema = z.object({ name: z.string(), count: z.number().int() });
+export const CountByNameSchema = z
+  .object({ name: z.string(), count: z.number().int() })
+  .passthrough();
 export type CountByName = z.infer<typeof CountByNameSchema>;
 
-export const ValidationErrorSchema = z.object({
-  loc: z.array(z.union([z.string(), z.number()])),
-  msg: z.string(),
-  type: z.string(),
-});
+export const ValidationErrorSchema = z
+  .object({
+    loc: z.array(z.union([z.string(), z.number()])),
+    msg: z.string(),
+    type: z.string(),
+  })
+  .passthrough();
 export type ValidationError = z.infer<typeof ValidationErrorSchema>;
 
 export const HTTPValidationErrorSchema = z
@@ -169,10 +173,12 @@ export type ConnectionParams = z.infer<typeof ConnectionParamsSchema>;
 // DataPlane — Job / Scan schemas
 // ---------------------------------------------------------------------------
 
-export const TargetJobRequestSchema = z.object({
-  uuid: z.string(),
-  version: z.number().int().nullable().optional(),
-});
+export const TargetJobRequestSchema = z
+  .object({
+    uuid: z.string(),
+    version: z.number().int().nullable().optional(),
+  })
+  .passthrough();
 export type TargetJobRequest = z.infer<typeof TargetJobRequestSchema>;
 
 export const JobTimeRecordSchema = z
@@ -240,18 +246,20 @@ export const CustomJobMetadataSchema = z
   .passthrough();
 export type CustomJobMetadata = z.infer<typeof CustomJobMetadataSchema>;
 
-export const JobCreateRequestSchema = z.object({
-  name: z.string(),
-  target: TargetJobRequestSchema,
-  job_type: z.string(),
-  job_metadata: z.union([
-    StaticJobMetadataSchema,
-    DynamicJobMetadataSchema,
-    CustomJobMetadataSchema,
-  ]),
-  version: z.number().int().nullable().optional(),
-  extra_info: z.record(z.unknown()).nullable().optional(),
-});
+export const JobCreateRequestSchema = z
+  .object({
+    name: z.string(),
+    target: TargetJobRequestSchema,
+    job_type: z.string(),
+    job_metadata: z.union([
+      StaticJobMetadataSchema,
+      DynamicJobMetadataSchema,
+      CustomJobMetadataSchema,
+    ]),
+    version: z.number().int().nullable().optional(),
+    extra_info: z.record(z.unknown()).nullable().optional(),
+  })
+  .passthrough();
 export type JobCreateRequest = z.infer<typeof JobCreateRequestSchema>;
 
 export const StaticJobReportStatsSchema = z
@@ -341,21 +349,25 @@ export const JobListResponseSchema = z
   .passthrough();
 export type JobListResponse = z.infer<typeof JobListResponseSchema>;
 
-export const JobAbortResponseSchema = z.object({
-  job_id: z.string(),
-  message: z.string(),
-});
+export const JobAbortResponseSchema = z
+  .object({
+    job_id: z.string(),
+    message: z.string(),
+  })
+  .passthrough();
 export type JobAbortResponse = z.infer<typeof JobAbortResponseSchema>;
 
 // ---------------------------------------------------------------------------
 // DataPlane — Category schemas
 // ---------------------------------------------------------------------------
 
-export const PrerequisiteModelSchema = z.object({
-  id: z.string(),
-  display_name: z.string(),
-  description: z.string(),
-});
+export const PrerequisiteModelSchema = z
+  .object({
+    id: z.string(),
+    display_name: z.string(),
+    description: z.string(),
+  })
+  .passthrough();
 export type PrerequisiteModel = z.infer<typeof PrerequisiteModelSchema>;
 
 export const SubCategoryModelSchema = z
@@ -781,24 +793,30 @@ export const CustomAttackOutputSchema = z
   .passthrough();
 export type CustomAttackOutput = z.infer<typeof CustomAttackOutputSchema>;
 
-export const PropertyAssignmentSchema = z.object({
-  name: z.string(),
-  value: z.string(),
-});
+export const PropertyAssignmentSchema = z
+  .object({
+    name: z.string(),
+    value: z.string(),
+  })
+  .passthrough();
 export type PropertyAssignment = z.infer<typeof PropertyAssignmentSchema>;
 
-export const PropertyValueStatisticSchema = z.object({
-  value: z.string(),
-  successful_attack_count: z.number().int(),
-  total_attack_count: z.number().int(),
-  success_rate: z.number(),
-});
+export const PropertyValueStatisticSchema = z
+  .object({
+    value: z.string(),
+    successful_attack_count: z.number().int(),
+    total_attack_count: z.number().int(),
+    success_rate: z.number(),
+  })
+  .passthrough();
 export type PropertyValueStatistic = z.infer<typeof PropertyValueStatisticSchema>;
 
-export const PropertyStatisticSchema = z.object({
-  property_name: z.string(),
-  values: z.array(PropertyValueStatisticSchema),
-});
+export const PropertyStatisticSchema = z
+  .object({
+    property_name: z.string(),
+    values: z.array(PropertyValueStatisticSchema),
+  })
+  .passthrough();
 export type PropertyStatistic = z.infer<typeof PropertyStatisticSchema>;
 
 export const PromptSetSummarySchema = z
@@ -890,27 +908,33 @@ export const ScanStatisticsResponseSchema = z
   .passthrough();
 export type ScanStatisticsResponse = z.infer<typeof ScanStatisticsResponseSchema>;
 
-export const ScoreTrendSeriesSchema = z.object({
-  label: z.string(),
-  data: z.array(z.number().nullable()),
-});
+export const ScoreTrendSeriesSchema = z
+  .object({
+    label: z.string(),
+    data: z.array(z.number().nullable()),
+  })
+  .passthrough();
 export type ScoreTrendSeries = z.infer<typeof ScoreTrendSeriesSchema>;
 
-export const ScoreTrendResponseSchema = z.object({
-  labels: z.array(z.string()),
-  series: z.array(ScoreTrendSeriesSchema),
-});
+export const ScoreTrendResponseSchema = z
+  .object({
+    labels: z.array(z.string()),
+    series: z.array(ScoreTrendSeriesSchema),
+  })
+  .passthrough();
 export type ScoreTrendResponse = z.infer<typeof ScoreTrendResponseSchema>;
 
 // ---------------------------------------------------------------------------
 // DataPlane — Sentiment, Quota, Error Log schemas
 // ---------------------------------------------------------------------------
 
-export const SentimentRequestSchema = z.object({
-  job_id: z.string(),
-  up_vote: z.boolean().optional(),
-  down_vote: z.boolean().optional(),
-});
+export const SentimentRequestSchema = z
+  .object({
+    job_id: z.string(),
+    up_vote: z.boolean().optional(),
+    down_vote: z.boolean().optional(),
+  })
+  .passthrough();
 export type SentimentRequest = z.infer<typeof SentimentRequestSchema>;
 
 export const SentimentResponseSchema = z
@@ -922,18 +946,22 @@ export const SentimentResponseSchema = z
   .passthrough();
 export type SentimentResponse = z.infer<typeof SentimentResponseSchema>;
 
-export const QuotaDetailsSchema = z.object({
-  allocated: z.number().int(),
-  unlimited: z.boolean(),
-  consumed: z.number().int(),
-});
+export const QuotaDetailsSchema = z
+  .object({
+    allocated: z.number().int(),
+    unlimited: z.boolean(),
+    consumed: z.number().int(),
+  })
+  .passthrough();
 export type QuotaDetails = z.infer<typeof QuotaDetailsSchema>;
 
-export const QuotaSummarySchema = z.object({
-  static: QuotaDetailsSchema,
-  dynamic: QuotaDetailsSchema,
-  custom: QuotaDetailsSchema,
-});
+export const QuotaSummarySchema = z
+  .object({
+    static: QuotaDetailsSchema,
+    dynamic: QuotaDetailsSchema,
+    custom: QuotaDetailsSchema,
+  })
+  .passthrough();
 export type QuotaSummary = z.infer<typeof QuotaSummarySchema>;
 
 export const ErrorLogSchema = z
@@ -1103,10 +1131,12 @@ export const TargetProfileResponseSchema = z
   .passthrough();
 export type TargetProfileResponse = z.infer<typeof TargetProfileResponseSchema>;
 
-export const BaseResponseSchema = z.object({
-  message: z.string(),
-  status: z.number().int(),
-});
+export const BaseResponseSchema = z
+  .object({
+    message: z.string(),
+    status: z.number().int(),
+  })
+  .passthrough();
 export type BaseResponse = z.infer<typeof BaseResponseSchema>;
 
 // ---------------------------------------------------------------------------
@@ -1124,11 +1154,13 @@ export const PromptSetStatsSchema = z
   .passthrough();
 export type PromptSetStats = z.infer<typeof PromptSetStatsSchema>;
 
-export const CustomPromptSetCreateRequestSchema = z.object({
-  name: z.string(),
-  description: z.unknown().optional(),
-  property_names: z.array(z.string()).optional(),
-});
+export const CustomPromptSetCreateRequestSchema = z
+  .object({
+    name: z.string(),
+    description: z.unknown().optional(),
+    property_names: z.array(z.string()).optional(),
+  })
+  .passthrough();
 export type CustomPromptSetCreateRequest = z.infer<typeof CustomPromptSetCreateRequestSchema>;
 
 export const CustomPromptSetUpdateRequestSchema = z
@@ -1141,7 +1173,7 @@ export const CustomPromptSetUpdateRequestSchema = z
   .passthrough();
 export type CustomPromptSetUpdateRequest = z.infer<typeof CustomPromptSetUpdateRequestSchema>;
 
-export const CustomPromptSetArchiveRequestSchema = z.object({ archive: z.boolean() });
+export const CustomPromptSetArchiveRequestSchema = z.object({ archive: z.boolean() }).passthrough();
 export type CustomPromptSetArchiveRequest = z.infer<typeof CustomPromptSetArchiveRequestSchema>;
 
 export const CustomPromptSetResponseSchema = z
@@ -1221,12 +1253,14 @@ export const CustomPromptSetVersionInfoSchema = z
   .passthrough();
 export type CustomPromptSetVersionInfo = z.infer<typeof CustomPromptSetVersionInfoSchema>;
 
-export const CustomPromptCreateRequestSchema = z.object({
-  prompt: z.string(),
-  prompt_set_id: z.string(),
-  goal: z.unknown().optional(),
-  properties: z.unknown().optional(),
-});
+export const CustomPromptCreateRequestSchema = z
+  .object({
+    prompt: z.string(),
+    prompt_set_id: z.string(),
+    goal: z.unknown().optional(),
+    properties: z.unknown().optional(),
+  })
+  .passthrough();
 export type CustomPromptCreateRequest = z.infer<typeof CustomPromptCreateRequestSchema>;
 
 export const CustomPromptUpdateRequestSchema = z
@@ -1285,19 +1319,23 @@ export type CustomPromptList = z.infer<typeof CustomPromptListSchema>;
 // Management — Property schemas
 // ---------------------------------------------------------------------------
 
-export const PropertyNameCreateRequestSchema = z.object({ name: z.string() });
+export const PropertyNameCreateRequestSchema = z.object({ name: z.string() }).passthrough();
 export type PropertyNameCreateRequest = z.infer<typeof PropertyNameCreateRequestSchema>;
 
-export const PropertyValueCreateRequestSchema = z.object({
-  property_name: z.string(),
-  property_value: z.string(),
-});
+export const PropertyValueCreateRequestSchema = z
+  .object({
+    property_name: z.string(),
+    property_value: z.string(),
+  })
+  .passthrough();
 export type PropertyValueCreateRequest = z.infer<typeof PropertyValueCreateRequestSchema>;
 
-export const PropertyDefinitionSchema = z.object({
-  property_name: z.string(),
-  created_at: z.string(),
-});
+export const PropertyDefinitionSchema = z
+  .object({
+    property_name: z.string(),
+    created_at: z.string(),
+  })
+  .passthrough();
 export type PropertyDefinition = z.infer<typeof PropertyDefinitionSchema>;
 
 export const PropertyNamesListResponseSchema = z
