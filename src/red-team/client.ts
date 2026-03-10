@@ -28,6 +28,7 @@ import { RedTeamCustomAttackReportsClient } from './custom-attack-reports-client
 import { RedTeamTargetsClient } from './targets-client.js';
 import { RedTeamCustomAttacksClient } from './custom-attacks-client.js';
 import type { RedTeamListOptions } from './scans-client.js';
+import { buildRedTeamListParams } from './list-params.js';
 import type {
   ScanStatisticsResponse,
   ScoreTrendResponse,
@@ -54,14 +55,6 @@ export interface RedTeamClientOptions {
   tokenEndpoint?: string;
   /** Max retry attempts (0-5). Defaults to 5. */
   numRetries?: number;
-}
-
-function buildListParams(opts?: RedTeamListOptions): Record<string, string> {
-  const params: Record<string, string> = {};
-  if (opts?.skip !== undefined) params.skip = String(opts.skip);
-  if (opts?.limit !== undefined) params.limit = String(opts.limit);
-  if (opts?.search !== undefined) params.search = opts.search;
-  return params;
 }
 
 /**
@@ -223,7 +216,7 @@ export class RedTeamClient {
       method: 'GET',
       baseUrl: this.dataEndpoint,
       path: `${RED_TEAM_ERROR_LOG_PATH}/${jobId}`,
-      params: buildListParams(opts),
+      params: buildRedTeamListParams(opts),
       oauthClient: this.oauthClient,
       numRetries: this.numRetries,
     });

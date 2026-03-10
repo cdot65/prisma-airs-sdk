@@ -16,6 +16,7 @@ export const ErrorResponseSchema = z
         interval: z.number().optional(),
         unit: z.string().optional(),
       })
+      .passthrough()
       .optional(),
   })
   .passthrough();

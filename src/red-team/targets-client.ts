@@ -2,6 +2,7 @@ import { RED_TEAM_TARGET_PATH } from '../constants.js';
 import { AISecSDKException, ErrorType } from '../errors.js';
 import { isValidUuid } from '../utils.js';
 import { managementHttpRequest } from '../management/management-http-client.js';
+import { buildRedTeamListParams } from './list-params.js';
 import type { OAuthClient } from '../management/oauth-client.js';
 import type { RedTeamListOptions } from './scans-client.js';
 import type {
@@ -32,14 +33,6 @@ export interface RedTeamTargetsClientOptions {
   baseUrl: string;
   oauthClient: OAuthClient;
   numRetries: number;
-}
-
-function buildListParams(opts?: RedTeamListOptions): Record<string, string> {
-  const params: Record<string, string> = {};
-  if (opts?.skip !== undefined) params.skip = String(opts.skip);
-  if (opts?.limit !== undefined) params.limit = String(opts.limit);
-  if (opts?.search !== undefined) params.search = opts.search;
-  return params;
 }
 
 /** Client for Red Team management plane target operations. */
@@ -81,7 +74,7 @@ export class RedTeamTargetsClient {
 
   /** List targets with optional filters. */
   async list(opts?: TargetListOptions): Promise<TargetList> {
-    const params = buildListParams(opts);
+    const params = buildRedTeamListParams(opts);
     if (opts?.target_type !== undefined) params.target_type = opts.target_type;
     if (opts?.status !== undefined) params.status = opts.status;
 

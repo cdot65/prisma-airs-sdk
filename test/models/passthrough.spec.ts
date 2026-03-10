@@ -50,6 +50,9 @@ import {
   PropertyNameCreateRequestSchema,
   PropertyValueCreateRequestSchema,
   PropertyDefinitionSchema,
+  ApiKeyCreateRequestSchema,
+  ApiKeyRegenerateRequestSchema,
+  ClientIdAndCustomerAppSchema,
 } from '../../src/models/index.js';
 
 /**
@@ -499,5 +502,53 @@ describe('passthrough — red-team schemas preserve unknown fields', () => {
     });
     expect(r.success).toBe(true);
     if (r.success) expect(r.data).toHaveProperty('_future', 1);
+  });
+});
+
+describe('passthrough — management schemas preserve unknown fields', () => {
+  it('ApiKeyCreateRequestSchema', () => {
+    const r = ApiKeyCreateRequestSchema.safeParse({
+      auth_code: 'ac',
+      cust_app: 'app',
+      revoked: false,
+      created_by: 'user',
+      api_key_name: 'key1',
+      rotation_time_interval: 30,
+      rotation_time_unit: 'days',
+      _future: 1,
+    });
+    expect(r.success).toBe(true);
+    if (r.success) expect(r.data).toHaveProperty('_future', 1);
+  });
+
+  it('ApiKeyRegenerateRequestSchema', () => {
+    const r = ApiKeyRegenerateRequestSchema.safeParse({
+      rotation_time_interval: 30,
+      rotation_time_unit: 'days',
+      _future: 1,
+    });
+    expect(r.success).toBe(true);
+    if (r.success) expect(r.data).toHaveProperty('_future', 1);
+  });
+
+  it('ClientIdAndCustomerAppSchema', () => {
+    const r = ClientIdAndCustomerAppSchema.safeParse({
+      client_id: 'cid',
+      customer_app: 'app',
+      _future: 1,
+    });
+    expect(r.success).toBe(true);
+    if (r.success) expect(r.data).toHaveProperty('_future', 1);
+  });
+
+  it('ErrorResponseSchema retry_after preserves unknown fields', () => {
+    const r = ErrorResponseSchema.safeParse({
+      retry_after: { interval: 5, unit: 'seconds', _future: 1 },
+    });
+    expect(r.success).toBe(true);
+    if (r.success) {
+      const retryAfter = r.data.retry_after as Record<string, unknown>;
+      expect(retryAfter).toHaveProperty('_future', 1);
+    }
   });
 });

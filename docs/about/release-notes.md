@@ -1,5 +1,15 @@
 # Release Notes
 
+## v0.6.5
+
+### Reliability & Code Quality
+
+- **Zod passthrough**: Added `.passthrough()` to final 4 schemas (`ApiKeyCreateRequestSchema`, `ApiKeyRegenerateRequestSchema`, `ClientIdAndCustomerAppSchema`, `ErrorResponseSchema.retry_after`)
+- **Backoff jitter**: Exponential backoff now uses full jitter strategy (`uniform [0, 2^attempt × 1000ms]`) to prevent thundering herd
+- **Dedup**: Extracted `buildRedTeamListParams()` shared utility, removing 6× identical `buildListParams()` functions across red-team sub-clients
+
+---
+
 ## v0.6.4
 
 ### Schema Forward Compatibility & Doc Fixes

@@ -1,10 +1,12 @@
 import { z } from 'zod';
 
 /** Zod schema for OAuth client_id + customer_app request body. */
-export const ClientIdAndCustomerAppSchema = z.object({
-  client_id: z.string(),
-  customer_app: z.string(),
-});
+export const ClientIdAndCustomerAppSchema = z
+  .object({
+    client_id: z.string(),
+    customer_app: z.string(),
+  })
+  .passthrough();
 
 /** OAuth client_id and customer_app request body. */
 export type ClientIdAndCustomerApp = z.infer<typeof ClientIdAndCustomerAppSchema>;

@@ -18,11 +18,22 @@ describe('sleep', () => {
 });
 
 describe('backoffDelay', () => {
-  it('returns exponential delays', () => {
-    expect(backoffDelay(0)).toBe(1000);
-    expect(backoffDelay(1)).toBe(2000);
-    expect(backoffDelay(2)).toBe(4000);
-    expect(backoffDelay(3)).toBe(8000);
+  it('returns delays within jittered range', () => {
+    // With jitter, delay should be between 0 and 2^attempt * 1000
+    for (let attempt = 0; attempt < 4; attempt++) {
+      const max = Math.pow(2, attempt) * 1000;
+      const delay = backoffDelay(attempt);
+      expect(delay).toBeGreaterThanOrEqual(0);
+      expect(delay).toBeLessThanOrEqual(max);
+    }
+  });
+
+  it('produces varying delays (jitter)', () => {
+    // Run multiple times — with jitter, we should get different values
+    const delays = Array.from({ length: 20 }, () => backoffDelay(3));
+    const unique = new Set(delays);
+    // With true randomness over 20 samples, we should get >1 unique value
+    expect(unique.size).toBeGreaterThan(1);
   });
 });
 
