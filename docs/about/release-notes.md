@@ -1,5 +1,26 @@
 # Release Notes
 
+## v0.6.4
+
+### Schema Forward Compatibility & Doc Fixes
+
+- **Zod passthrough**: Added `.passthrough()` to 29 remaining Zod schemas across `error-response.ts`, `model-security.ts`, and `red-team.ts`
+- **Test coverage**: 29 new passthrough tests (total 50 passthrough tests)
+- **Docs**: Fixed incorrect `sort_by`/`sort_direction` params in Red Team `scans.list()` docs, removed nonexistent `active` param from `targets.list()` docs
+
+---
+
+## v0.6.3
+
+### Forward Compatibility & Documentation
+
+- **Zod passthrough**: Added `.passthrough()` to 18 scan-related Zod schemas for forward compatibility with new API fields
+- **Test coverage**: 21 new tests verifying passthrough behavior on scan schemas
+- **JSDoc**: Added documentation to exported utility functions (`isValidUuid`, `generatePayloadHash`, `managementHttpRequest`) and incomplete method docstrings (`RedTeamScansClient.create`, `Content.constructor`, `Scanner.queryByReportIds`, `RedTeamTargetsClient.create`, `ModelSecurityScansClient.deleteLabels`, `OAuthManagementClient.invalidateToken`)
+- **Build**: Added `.prettierignore` entry for tsup build artifacts
+
+---
+
 ## v0.6.2
 
 ### Documentation Accuracy Fixes
