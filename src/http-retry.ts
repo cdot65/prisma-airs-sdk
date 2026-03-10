@@ -12,12 +12,14 @@ export function sleep(ms: number): Promise<void> {
 }
 
 /**
- * Calculate exponential backoff delay for the given attempt.
+ * Calculate exponential backoff delay with full jitter for the given attempt.
+ * Uses the "full jitter" strategy: uniform random in [0, 2^attempt * 1000].
  * @param attempt - Zero-based attempt number.
  * @returns Delay in milliseconds.
  */
 export function backoffDelay(attempt: number): number {
-  return Math.pow(2, attempt) * 1000;
+  const maxDelay = Math.pow(2, attempt) * 1000;
+  return Math.floor(Math.random() * (maxDelay + 1));
 }
 
 /**

@@ -2,6 +2,7 @@ import { RED_TEAM_CUSTOM_ATTACKS_REPORT_PATH } from '../constants.js';
 import { AISecSDKException, ErrorType } from '../errors.js';
 import { isValidUuid } from '../utils.js';
 import { managementHttpRequest } from '../management/management-http-client.js';
+import { buildRedTeamListParams } from './list-params.js';
 import type { OAuthClient } from '../management/oauth-client.js';
 import type { RedTeamListOptions } from './scans-client.js';
 import type {
@@ -30,14 +31,6 @@ export interface RedTeamCustomAttackReportsClientOptions {
   baseUrl: string;
   oauthClient: OAuthClient;
   numRetries: number;
-}
-
-function buildListParams(opts?: RedTeamListOptions): Record<string, string> {
-  const params: Record<string, string> = {};
-  if (opts?.skip !== undefined) params.skip = String(opts.skip);
-  if (opts?.limit !== undefined) params.limit = String(opts.limit);
-  if (opts?.search !== undefined) params.search = opts.search;
-  return params;
 }
 
 function validateJobId(jobId: string): void {
@@ -98,7 +91,7 @@ export class RedTeamCustomAttackReportsClient {
       );
     }
 
-    const params = buildListParams(opts);
+    const params = buildRedTeamListParams(opts);
     if (opts?.is_threat !== undefined) params.is_threat = String(opts.is_threat);
 
     const res = await managementHttpRequest<PromptDetailResponse[]>({
@@ -138,7 +131,7 @@ export class RedTeamCustomAttackReportsClient {
     opts?: CustomAttacksReportListOptions,
   ): Promise<CustomAttacksListResponse> {
     validateJobId(jobId);
-    const params = buildListParams(opts);
+    const params = buildRedTeamListParams(opts);
     if (opts?.threat !== undefined) params.threat = String(opts.threat);
     if (opts?.prompt_set_id !== undefined) params.prompt_set_id = opts.prompt_set_id;
     if (opts?.property_value !== undefined) params.property_value = opts.property_value;

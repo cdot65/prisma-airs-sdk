@@ -35,29 +35,33 @@ export const ApiKeySchema = z
 export type ApiKey = z.infer<typeof ApiKeySchema>;
 
 /** Zod schema for API key creation request. */
-export const ApiKeyCreateRequestSchema = z.object({
-  dp_name: z.string().optional(),
-  auth_code: z.string(),
-  cust_app: z.string(),
-  cust_env: z.string().optional(),
-  cust_cloud_provider: z.string().optional(),
-  cust_ai_agent_framework: z.string().optional(),
-  revoked: z.boolean(),
-  created_by: z.string(),
-  api_key_name: z.string(),
-  rotation_time_interval: z.number(),
-  rotation_time_unit: z.string(),
-});
+export const ApiKeyCreateRequestSchema = z
+  .object({
+    dp_name: z.string().optional(),
+    auth_code: z.string(),
+    cust_app: z.string(),
+    cust_env: z.string().optional(),
+    cust_cloud_provider: z.string().optional(),
+    cust_ai_agent_framework: z.string().optional(),
+    revoked: z.boolean(),
+    created_by: z.string(),
+    api_key_name: z.string(),
+    rotation_time_interval: z.number(),
+    rotation_time_unit: z.string(),
+  })
+  .passthrough();
 
 /** API key creation request. */
 export type ApiKeyCreateRequest = z.infer<typeof ApiKeyCreateRequestSchema>;
 
 /** Zod schema for API key regeneration request. */
-export const ApiKeyRegenerateRequestSchema = z.object({
-  rotation_time_interval: z.number(),
-  rotation_time_unit: z.string(),
-  updated_by: z.string().optional(),
-});
+export const ApiKeyRegenerateRequestSchema = z
+  .object({
+    rotation_time_interval: z.number(),
+    rotation_time_unit: z.string(),
+    updated_by: z.string().optional(),
+  })
+  .passthrough();
 
 /** API key regeneration request. */
 export type ApiKeyRegenerateRequest = z.infer<typeof ApiKeyRegenerateRequestSchema>;

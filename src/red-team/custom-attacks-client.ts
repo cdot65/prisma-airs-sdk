@@ -2,6 +2,7 @@ import { RED_TEAM_CUSTOM_ATTACK_PATH, USER_AGENT } from '../constants.js';
 import { AISecSDKException, ErrorType } from '../errors.js';
 import { isValidUuid } from '../utils.js';
 import { managementHttpRequest } from '../management/management-http-client.js';
+import { buildRedTeamListParams } from './list-params.js';
 import type { OAuthClient } from '../management/oauth-client.js';
 import type { RedTeamListOptions } from './scans-client.js';
 import type {
@@ -44,14 +45,6 @@ export interface RedTeamCustomAttacksClientOptions {
   numRetries: number;
 }
 
-function buildListParams(opts?: RedTeamListOptions): Record<string, string> {
-  const params: Record<string, string> = {};
-  if (opts?.skip !== undefined) params.skip = String(opts.skip);
-  if (opts?.limit !== undefined) params.limit = String(opts.limit);
-  if (opts?.search !== undefined) params.search = opts.search;
-  return params;
-}
-
 function validateUuid(uuid: string, label: string): void {
   if (!isValidUuid(uuid)) {
     throw new AISecSDKException(`Invalid ${label}: ${uuid}`, ErrorType.USER_REQUEST_PAYLOAD_ERROR);
@@ -89,7 +82,7 @@ export class RedTeamCustomAttacksClient {
 
   /** List custom prompt sets. */
   async listPromptSets(opts?: PromptSetListOptions): Promise<CustomPromptSetList> {
-    const params = buildListParams(opts);
+    const params = buildRedTeamListParams(opts);
     if (opts?.status !== undefined) params.status = opts.status;
     if (opts?.active !== undefined) params.active = String(opts.active);
     if (opts?.archive !== undefined) params.archive = String(opts.archive);
@@ -257,7 +250,7 @@ export class RedTeamCustomAttacksClient {
   /** List prompts in a prompt set. */
   async listPrompts(promptSetUuid: string, opts?: PromptListOptions): Promise<CustomPromptList> {
     validateUuid(promptSetUuid, 'prompt set uuid');
-    const params = buildListParams(opts);
+    const params = buildRedTeamListParams(opts);
     if (opts?.active !== undefined) params.active = String(opts.active);
 
     const res = await managementHttpRequest<CustomPromptList>({

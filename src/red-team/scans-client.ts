@@ -2,6 +2,7 @@ import { RED_TEAM_SCAN_PATH, RED_TEAM_CATEGORIES_PATH } from '../constants.js';
 import { AISecSDKException, ErrorType } from '../errors.js';
 import { isValidUuid } from '../utils.js';
 import { managementHttpRequest } from '../management/management-http-client.js';
+import { buildRedTeamListParams } from './list-params.js';
 import type { OAuthClient } from '../management/oauth-client.js';
 import type {
   JobCreateRequest,
@@ -30,14 +31,6 @@ export interface RedTeamScansClientOptions {
   baseUrl: string;
   oauthClient: OAuthClient;
   numRetries: number;
-}
-
-function buildListParams(opts?: RedTeamListOptions): Record<string, string> {
-  const params: Record<string, string> = {};
-  if (opts?.skip !== undefined) params.skip = String(opts.skip);
-  if (opts?.limit !== undefined) params.limit = String(opts.limit);
-  if (opts?.search !== undefined) params.search = opts.search;
-  return params;
 }
 
 /** Client for Red Team data plane scan operations. */
@@ -71,7 +64,7 @@ export class RedTeamScansClient {
 
   /** List red team scan jobs with optional filters. */
   async list(opts?: RedTeamScanListOptions): Promise<JobListResponse> {
-    const params = buildListParams(opts);
+    const params = buildRedTeamListParams(opts);
     if (opts?.status !== undefined) params.status = opts.status;
     if (opts?.job_type !== undefined) params.job_type = opts.job_type;
     if (opts?.target_id !== undefined) params.target_id = opts.target_id;

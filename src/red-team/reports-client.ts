@@ -6,6 +6,7 @@ import {
 import { AISecSDKException, ErrorType } from '../errors.js';
 import { isValidUuid } from '../utils.js';
 import { managementHttpRequest } from '../management/management-http-client.js';
+import { buildRedTeamListParams } from './list-params.js';
 import type { OAuthClient } from '../management/oauth-client.js';
 import type { RedTeamListOptions } from './scans-client.js';
 import type {
@@ -45,14 +46,6 @@ export interface RedTeamReportsClientOptions {
   numRetries: number;
 }
 
-function buildListParams(opts?: RedTeamListOptions): Record<string, string> {
-  const params: Record<string, string> = {};
-  if (opts?.skip !== undefined) params.skip = String(opts.skip);
-  if (opts?.limit !== undefined) params.limit = String(opts.limit);
-  if (opts?.search !== undefined) params.search = opts.search;
-  return params;
-}
-
 function validateJobId(jobId: string): void {
   if (!isValidUuid(jobId)) {
     throw new AISecSDKException(`Invalid job id: ${jobId}`, ErrorType.USER_REQUEST_PAYLOAD_ERROR);
@@ -78,7 +71,7 @@ export class RedTeamReportsClient {
   /** List attacks for a static scan. */
   async listAttacks(jobId: string, opts?: AttackListOptions): Promise<AttackListResponse> {
     validateJobId(jobId);
-    const params = buildListParams(opts);
+    const params = buildRedTeamListParams(opts);
     if (opts?.status !== undefined) params.status = opts.status;
     if (opts?.severity !== undefined) params.severity = opts.severity;
     if (opts?.category !== undefined) params.category = opts.category;
@@ -225,7 +218,7 @@ export class RedTeamReportsClient {
   /** List goals for a dynamic scan. */
   async listGoals(jobId: string, opts?: GoalListOptions): Promise<GoalListResponse> {
     validateJobId(jobId);
-    const params = buildListParams(opts);
+    const params = buildRedTeamListParams(opts);
     if (opts?.goal_type !== undefined) params.goal_type = opts.goal_type;
     if (opts?.status !== undefined) params.status = opts.status;
     if (opts?.count !== undefined) params.count = String(opts.count);
@@ -259,7 +252,7 @@ export class RedTeamReportsClient {
       method: 'GET',
       baseUrl: this.baseUrl,
       path: `${RED_TEAM_REPORT_DYNAMIC_PATH}/${jobId}/goal/${goalId}/list-streams`,
-      params: buildListParams(opts),
+      params: buildRedTeamListParams(opts),
       oauthClient: this.oauthClient,
       numRetries: this.numRetries,
     });
