@@ -177,6 +177,7 @@ export class ModelSecurityGroupsClient {
   /**
    * Delete a security group.
    * @param uuid - Security group UUID.
+   * @returns Resolves when the security group is deleted.
    */
   async delete(uuid: string): Promise<void> {
     if (!isValidUuid(uuid)) {

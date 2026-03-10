@@ -51,7 +51,11 @@ export class RedTeamCustomAttackReportsClient {
     this.numRetries = opts.numRetries;
   }
 
-  /** Get custom attack report for a scan. */
+  /**
+   * Get custom attack report for a scan.
+   * @param jobId - The job UUID.
+   * @returns The custom attack report response.
+   */
   async getReport(jobId: string): Promise<CustomAttackReportResponse> {
     validateJobId(jobId);
     const res = await managementHttpRequest<CustomAttackReportResponse>({
@@ -64,7 +68,11 @@ export class RedTeamCustomAttackReportsClient {
     return res.data;
   }
 
-  /** Get prompt sets for a custom attack scan. */
+  /**
+   * Get prompt sets for a custom attack scan.
+   * @param jobId - The job UUID.
+   * @returns The prompt sets report response.
+   */
   async getPromptSets(jobId: string): Promise<PromptSetsReportResponse> {
     validateJobId(jobId);
     const res = await managementHttpRequest<PromptSetsReportResponse>({
@@ -77,7 +85,13 @@ export class RedTeamCustomAttackReportsClient {
     return res.data;
   }
 
-  /** Get prompts for a specific prompt set in a scan. */
+  /**
+   * Get prompts for a specific prompt set in a scan.
+   * @param jobId - The job UUID.
+   * @param promptSetId - The prompt set UUID.
+   * @param opts - Optional pagination, search, and filter options.
+   * @returns The list of prompt detail responses.
+   */
   async getPromptsBySet(
     jobId: string,
     promptSetId: string,
@@ -105,7 +119,12 @@ export class RedTeamCustomAttackReportsClient {
     return res.data;
   }
 
-  /** Get details for a specific prompt. */
+  /**
+   * Get details for a specific prompt.
+   * @param jobId - The job UUID.
+   * @param promptId - The prompt UUID.
+   * @returns The prompt detail response.
+   */
   async getPromptDetail(jobId: string, promptId: string): Promise<PromptDetailResponse> {
     validateJobId(jobId);
     if (!isValidUuid(promptId)) {
@@ -125,7 +144,12 @@ export class RedTeamCustomAttackReportsClient {
     return res.data;
   }
 
-  /** List custom attacks for a scan. */
+  /**
+   * List custom attacks for a scan.
+   * @param jobId - The job UUID.
+   * @param opts - Optional pagination, search, and filter options.
+   * @returns The paginated list of custom attacks.
+   */
   async listCustomAttacks(
     jobId: string,
     opts?: CustomAttacksReportListOptions,
@@ -147,7 +171,12 @@ export class RedTeamCustomAttackReportsClient {
     return res.data;
   }
 
-  /** Get attack outputs for a custom attack. */
+  /**
+   * Get attack outputs for a custom attack.
+   * @param jobId - The job UUID.
+   * @param attackId - The attack UUID.
+   * @returns The list of attack outputs.
+   */
   async getAttackOutputs(jobId: string, attackId: string): Promise<CustomAttackOutput[]> {
     validateJobId(jobId);
     if (!isValidUuid(attackId)) {
@@ -167,7 +196,11 @@ export class RedTeamCustomAttackReportsClient {
     return res.data;
   }
 
-  /** Get property statistics for a custom attack scan. */
+  /**
+   * Get property statistics for a custom attack scan.
+   * @param jobId - The job UUID.
+   * @returns The list of property statistics.
+   */
   async getPropertyStats(jobId: string): Promise<PropertyStatistic[]> {
     validateJobId(jobId);
     const res = await managementHttpRequest<PropertyStatistic[]>({

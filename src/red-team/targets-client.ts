@@ -72,7 +72,11 @@ export class RedTeamTargetsClient {
     return res.data;
   }
 
-  /** List targets with optional filters. */
+  /**
+   * List targets with optional filters.
+   * @param opts - Optional pagination, search, and filter options.
+   * @returns The paginated list of targets.
+   */
   async list(opts?: TargetListOptions): Promise<TargetList> {
     const params = buildRedTeamListParams(opts);
     if (opts?.target_type !== undefined) params.target_type = opts.target_type;
@@ -89,7 +93,11 @@ export class RedTeamTargetsClient {
     return res.data;
   }
 
-  /** Get a target by UUID. */
+  /**
+   * Get a target by UUID.
+   * @param uuid - The target UUID.
+   * @returns The target response.
+   */
   async get(uuid: string): Promise<TargetResponse> {
     if (!isValidUuid(uuid)) {
       throw new AISecSDKException(
@@ -108,7 +116,13 @@ export class RedTeamTargetsClient {
     return res.data;
   }
 
-  /** Update a target. */
+  /**
+   * Update a target.
+   * @param uuid - The target UUID.
+   * @param request - Target update request body.
+   * @param opts - Optional operation options (e.g. validate connection).
+   * @returns The updated target response.
+   */
   async update(
     uuid: string,
     request: TargetUpdateRequest,
@@ -136,7 +150,11 @@ export class RedTeamTargetsClient {
     return res.data;
   }
 
-  /** Delete a target. */
+  /**
+   * Delete a target.
+   * @param uuid - The target UUID.
+   * @returns The delete response.
+   */
   async delete(uuid: string): Promise<BaseResponse> {
     if (!isValidUuid(uuid)) {
       throw new AISecSDKException(
@@ -155,7 +173,11 @@ export class RedTeamTargetsClient {
     return res.data;
   }
 
-  /** Run profiling probes on a target. */
+  /**
+   * Run profiling probes on a target.
+   * @param request - The probe request body.
+   * @returns The target response after probing.
+   */
   async probe(request: TargetProbeRequest): Promise<TargetResponse> {
     const res = await managementHttpRequest<TargetResponse>({
       method: 'POST',
@@ -168,7 +190,11 @@ export class RedTeamTargetsClient {
     return res.data;
   }
 
-  /** Get profiling results for a target. */
+  /**
+   * Get profiling results for a target.
+   * @param uuid - The target UUID.
+   * @returns The target profile response.
+   */
   async getProfile(uuid: string): Promise<TargetProfileResponse> {
     if (!isValidUuid(uuid)) {
       throw new AISecSDKException(
@@ -187,7 +213,12 @@ export class RedTeamTargetsClient {
     return res.data;
   }
 
-  /** Update a target profile (background + additional context). */
+  /**
+   * Update a target profile (background + additional context).
+   * @param uuid - The target UUID.
+   * @param request - The context update request body.
+   * @returns The updated target response.
+   */
   async updateProfile(uuid: string, request: TargetContextUpdate): Promise<TargetResponse> {
     if (!isValidUuid(uuid)) {
       throw new AISecSDKException(
