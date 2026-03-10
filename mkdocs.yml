@@ -78,6 +78,8 @@ nav:
       - OAuth Lifecycle: services/oauth-lifecycle.md
       - Model Security API: services/model-security-api.md
       - Red Team API: services/red-team-api.md
+  - Examples:
+      - API Key Rotation: examples/api-key-rotation.md
   - Reference:
       - API Reference: reference/api-reference.md
       - Environment Variables: reference/environment-variables.md
