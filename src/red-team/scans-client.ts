@@ -62,7 +62,11 @@ export class RedTeamScansClient {
     return res.data;
   }
 
-  /** List red team scan jobs with optional filters. */
+  /**
+   * List red team scan jobs with optional filters.
+   * @param opts - Optional pagination, search, and filter options.
+   * @returns The paginated list of scan jobs.
+   */
   async list(opts?: RedTeamScanListOptions): Promise<JobListResponse> {
     const params = buildRedTeamListParams(opts);
     if (opts?.status !== undefined) params.status = opts.status;
@@ -80,7 +84,11 @@ export class RedTeamScansClient {
     return res.data;
   }
 
-  /** Get a single scan job by ID. */
+  /**
+   * Get a single scan job by ID.
+   * @param jobId - The job UUID.
+   * @returns The job response.
+   */
   async get(jobId: string): Promise<JobResponse> {
     if (!isValidUuid(jobId)) {
       throw new AISecSDKException(`Invalid job id: ${jobId}`, ErrorType.USER_REQUEST_PAYLOAD_ERROR);
@@ -96,7 +104,11 @@ export class RedTeamScansClient {
     return res.data;
   }
 
-  /** Abort a running scan job. */
+  /**
+   * Abort a running scan job.
+   * @param jobId - The job UUID.
+   * @returns The abort response.
+   */
   async abort(jobId: string): Promise<JobAbortResponse> {
     if (!isValidUuid(jobId)) {
       throw new AISecSDKException(`Invalid job id: ${jobId}`, ErrorType.USER_REQUEST_PAYLOAD_ERROR);
@@ -112,7 +124,10 @@ export class RedTeamScansClient {
     return res.data;
   }
 
-  /** Get all categories with subcategories. */
+  /**
+   * Get all categories with subcategories.
+   * @returns The list of category models.
+   */
   async getCategories(): Promise<CategoryModel[]> {
     const res = await managementHttpRequest<CategoryModel[]>({
       method: 'GET',

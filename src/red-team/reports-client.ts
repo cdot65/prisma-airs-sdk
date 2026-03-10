@@ -68,7 +68,12 @@ export class RedTeamReportsClient {
   // Static (attack library) report endpoints
   // -----------------------------------------------------------------------
 
-  /** List attacks for a static scan. */
+  /**
+   * List attacks for a static scan.
+   * @param jobId - The job UUID.
+   * @param opts - Optional pagination, search, and filter options.
+   * @returns The paginated list of attacks.
+   */
   async listAttacks(jobId: string, opts?: AttackListOptions): Promise<AttackListResponse> {
     validateJobId(jobId);
     const params = buildRedTeamListParams(opts);
@@ -90,7 +95,12 @@ export class RedTeamReportsClient {
     return res.data;
   }
 
-  /** Get attack details for a static scan. */
+  /**
+   * Get attack details for a static scan.
+   * @param jobId - The job UUID.
+   * @param attackId - The attack UUID.
+   * @returns The attack detail response.
+   */
   async getAttackDetail(jobId: string, attackId: string): Promise<AttackDetailResponse> {
     validateJobId(jobId);
     if (!isValidUuid(attackId)) {
@@ -110,7 +120,12 @@ export class RedTeamReportsClient {
     return res.data;
   }
 
-  /** Get multi-turn attack details for a static scan. */
+  /**
+   * Get multi-turn attack details for a static scan.
+   * @param jobId - The job UUID.
+   * @param attackId - The attack UUID.
+   * @returns The multi-turn attack detail response.
+   */
   async getMultiTurnAttackDetail(
     jobId: string,
     attackId: string,
@@ -133,7 +148,11 @@ export class RedTeamReportsClient {
     return res.data;
   }
 
-  /** Get the attack library report for a static scan. */
+  /**
+   * Get the attack library report for a static scan.
+   * @param jobId - The job UUID.
+   * @returns The static job report.
+   */
   async getStaticReport(jobId: string): Promise<StaticJobReport> {
     validateJobId(jobId);
     const res = await managementHttpRequest<StaticJobReport>({
@@ -146,7 +165,11 @@ export class RedTeamReportsClient {
     return res.data;
   }
 
-  /** Get remediation recommendations for a static scan. */
+  /**
+   * Get remediation recommendations for a static scan.
+   * @param jobId - The job UUID.
+   * @returns The remediation response.
+   */
   async getStaticRemediation(jobId: string): Promise<RemediationResponse> {
     validateJobId(jobId);
     const res = await managementHttpRequest<RemediationResponse>({
@@ -159,7 +182,11 @@ export class RedTeamReportsClient {
     return res.data;
   }
 
-  /** Get runtime security profile config for a static scan. */
+  /**
+   * Get runtime security profile config for a static scan.
+   * @param jobId - The job UUID.
+   * @returns The runtime security profile response.
+   */
   async getStaticRuntimePolicy(jobId: string): Promise<RuntimeSecurityProfileResponse> {
     validateJobId(jobId);
     const res = await managementHttpRequest<RuntimeSecurityProfileResponse>({
@@ -176,7 +203,11 @@ export class RedTeamReportsClient {
   // Dynamic (agent) report endpoints
   // -----------------------------------------------------------------------
 
-  /** Get the agent scan report for a dynamic scan. */
+  /**
+   * Get the agent scan report for a dynamic scan.
+   * @param jobId - The job UUID.
+   * @returns The dynamic job report.
+   */
   async getDynamicReport(jobId: string): Promise<DynamicJobReport> {
     validateJobId(jobId);
     const res = await managementHttpRequest<DynamicJobReport>({
@@ -189,7 +220,11 @@ export class RedTeamReportsClient {
     return res.data;
   }
 
-  /** Get remediation recommendations for a dynamic scan. */
+  /**
+   * Get remediation recommendations for a dynamic scan.
+   * @param jobId - The job UUID.
+   * @returns The remediation response.
+   */
   async getDynamicRemediation(jobId: string): Promise<RemediationResponse> {
     validateJobId(jobId);
     const res = await managementHttpRequest<RemediationResponse>({
@@ -202,7 +237,11 @@ export class RedTeamReportsClient {
     return res.data;
   }
 
-  /** Get runtime security profile config for a dynamic scan. */
+  /**
+   * Get runtime security profile config for a dynamic scan.
+   * @param jobId - The job UUID.
+   * @returns The runtime security profile response.
+   */
   async getDynamicRuntimePolicy(jobId: string): Promise<RuntimeSecurityProfileResponse> {
     validateJobId(jobId);
     const res = await managementHttpRequest<RuntimeSecurityProfileResponse>({
@@ -215,7 +254,12 @@ export class RedTeamReportsClient {
     return res.data;
   }
 
-  /** List goals for a dynamic scan. */
+  /**
+   * List goals for a dynamic scan.
+   * @param jobId - The job UUID.
+   * @param opts - Optional pagination, search, and filter options.
+   * @returns The paginated list of goals.
+   */
   async listGoals(jobId: string, opts?: GoalListOptions): Promise<GoalListResponse> {
     validateJobId(jobId);
     const params = buildRedTeamListParams(opts);
@@ -234,7 +278,13 @@ export class RedTeamReportsClient {
     return res.data;
   }
 
-  /** List streams for a goal in a dynamic scan. */
+  /**
+   * List streams for a goal in a dynamic scan.
+   * @param jobId - The job UUID.
+   * @param goalId - The goal UUID.
+   * @param opts - Optional pagination and search options.
+   * @returns The paginated list of streams.
+   */
   async listGoalStreams(
     jobId: string,
     goalId: string,
@@ -263,7 +313,11 @@ export class RedTeamReportsClient {
   // Common report endpoints
   // -----------------------------------------------------------------------
 
-  /** Get stream details by stream ID. */
+  /**
+   * Get stream details by stream ID.
+   * @param streamId - The stream UUID.
+   * @returns The stream detail response.
+   */
   async getStreamDetail(streamId: string): Promise<StreamDetailResponse> {
     if (!isValidUuid(streamId)) {
       throw new AISecSDKException(
@@ -282,7 +336,12 @@ export class RedTeamReportsClient {
     return res.data;
   }
 
-  /** Download a report in the specified format. */
+  /**
+   * Download a report in the specified format.
+   * @param jobId - The job UUID.
+   * @param format - The file format (e.g. "pdf", "csv").
+   * @returns The downloaded report data.
+   */
   async downloadReport(jobId: string, format: string): Promise<unknown> {
     validateJobId(jobId);
     const params: Record<string, string> = { file_format: format };
@@ -298,7 +357,11 @@ export class RedTeamReportsClient {
     return res.data;
   }
 
-  /** Generate a partial report for a running scan. */
+  /**
+   * Generate a partial report for a running scan.
+   * @param jobId - The job UUID.
+   * @returns The partial report data.
+   */
   async generatePartialReport(jobId: string): Promise<unknown> {
     validateJobId(jobId);
     const res = await managementHttpRequest<unknown>({

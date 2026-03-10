@@ -81,13 +81,19 @@ export class OAuthClient {
     return this.pendingFetch;
   }
 
-  /** Clear the cached token, forcing a fresh fetch on next call. */
+  /**
+   * Clear the cached token, forcing a fresh fetch on next call.
+   * @returns Nothing.
+   */
   clearToken(): void {
     this.accessToken = null;
     this.expiresAt = 0;
   }
 
-  /** Check if the current token has passed its expiry time. Returns true if no token exists. */
+  /**
+   * Check if the current token has passed its expiry time. Returns true if no token exists.
+   * @returns Whether the token is expired.
+   */
   isTokenExpired(): boolean {
     if (!this.accessToken) return true;
     return Date.now() >= this.expiresAt;
@@ -97,6 +103,7 @@ export class OAuthClient {
    * Check if the token is within the pre-expiry buffer window.
    * Returns true if no token exists.
    * @param bufferMs - Custom buffer in ms. Defaults to the configured `tokenBufferMs`.
+   * @returns Whether the token is expiring soon.
    */
   isTokenExpiringSoon(bufferMs?: number): boolean {
     if (!this.accessToken) return true;

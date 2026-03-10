@@ -67,7 +67,11 @@ export class RedTeamCustomAttacksClient {
   // Prompt Set operations
   // -----------------------------------------------------------------------
 
-  /** Create a new custom prompt set. */
+  /**
+   * Create a new custom prompt set.
+   * @param request - Prompt set creation request body.
+   * @returns The created prompt set response.
+   */
   async createPromptSet(request: CustomPromptSetCreateRequest): Promise<CustomPromptSetResponse> {
     const res = await managementHttpRequest<CustomPromptSetResponse>({
       method: 'POST',
@@ -80,7 +84,11 @@ export class RedTeamCustomAttacksClient {
     return res.data;
   }
 
-  /** List custom prompt sets. */
+  /**
+   * List custom prompt sets.
+   * @param opts - Optional pagination, search, and filter options.
+   * @returns The paginated list of prompt sets.
+   */
   async listPromptSets(opts?: PromptSetListOptions): Promise<CustomPromptSetList> {
     const params = buildRedTeamListParams(opts);
     if (opts?.status !== undefined) params.status = opts.status;
@@ -98,7 +106,11 @@ export class RedTeamCustomAttacksClient {
     return res.data;
   }
 
-  /** Get a prompt set by UUID. */
+  /**
+   * Get a prompt set by UUID.
+   * @param uuid - The prompt set UUID.
+   * @returns The prompt set response.
+   */
   async getPromptSet(uuid: string): Promise<CustomPromptSetResponse> {
     validateUuid(uuid, 'prompt set uuid');
     const res = await managementHttpRequest<CustomPromptSetResponse>({
@@ -111,7 +123,12 @@ export class RedTeamCustomAttacksClient {
     return res.data;
   }
 
-  /** Update a prompt set. */
+  /**
+   * Update a prompt set.
+   * @param uuid - The prompt set UUID.
+   * @param request - Prompt set update request body.
+   * @returns The updated prompt set response.
+   */
   async updatePromptSet(
     uuid: string,
     request: CustomPromptSetUpdateRequest,
@@ -128,7 +145,12 @@ export class RedTeamCustomAttacksClient {
     return res.data;
   }
 
-  /** Archive or unarchive a prompt set. */
+  /**
+   * Archive or unarchive a prompt set.
+   * @param uuid - The prompt set UUID.
+   * @param request - Archive request body.
+   * @returns The updated prompt set response.
+   */
   async archivePromptSet(
     uuid: string,
     request: CustomPromptSetArchiveRequest,
@@ -145,7 +167,11 @@ export class RedTeamCustomAttacksClient {
     return res.data;
   }
 
-  /** Resolve a prompt set reference for data plane consumption. */
+  /**
+   * Resolve a prompt set reference for data plane consumption.
+   * @param uuid - The prompt set UUID.
+   * @returns The prompt set reference.
+   */
   async getPromptSetReference(uuid: string): Promise<CustomPromptSetReference> {
     validateUuid(uuid, 'prompt set uuid');
     const res = await managementHttpRequest<CustomPromptSetReference>({
@@ -158,7 +184,11 @@ export class RedTeamCustomAttacksClient {
     return res.data;
   }
 
-  /** Get version information for a prompt set. */
+  /**
+   * Get version information for a prompt set.
+   * @param uuid - The prompt set UUID.
+   * @returns The prompt set version info.
+   */
   async getPromptSetVersionInfo(uuid: string): Promise<CustomPromptSetVersionInfo> {
     validateUuid(uuid, 'prompt set uuid');
     const res = await managementHttpRequest<CustomPromptSetVersionInfo>({
@@ -171,7 +201,10 @@ export class RedTeamCustomAttacksClient {
     return res.data;
   }
 
-  /** List active prompt sets (for data plane). */
+  /**
+   * List active prompt sets (for data plane).
+   * @returns The list of active prompt sets.
+   */
   async listActivePromptSets(): Promise<CustomPromptSetListActive> {
     const res = await managementHttpRequest<CustomPromptSetListActive>({
       method: 'GET',
@@ -183,7 +216,11 @@ export class RedTeamCustomAttacksClient {
     return res.data;
   }
 
-  /** Download CSV template for a prompt set. */
+  /**
+   * Download CSV template for a prompt set.
+   * @param uuid - The prompt set UUID.
+   * @returns The CSV template data.
+   */
   async downloadTemplate(uuid: string): Promise<unknown> {
     validateUuid(uuid, 'prompt set uuid');
     const res = await managementHttpRequest<unknown>({
@@ -196,7 +233,12 @@ export class RedTeamCustomAttacksClient {
     return res.data;
   }
 
-  /** Upload a CSV file of custom prompts for a prompt set. */
+  /**
+   * Upload a CSV file of custom prompts for a prompt set.
+   * @param promptSetUuid - The prompt set UUID.
+   * @param file - The CSV file blob.
+   * @returns The upload response.
+   */
   async uploadPromptsCsv(promptSetUuid: string, file: Blob): Promise<BaseResponse> {
     validateUuid(promptSetUuid, 'prompt set uuid');
 
@@ -234,7 +276,11 @@ export class RedTeamCustomAttacksClient {
   // Prompt operations
   // -----------------------------------------------------------------------
 
-  /** Create a new custom prompt. */
+  /**
+   * Create a new custom prompt.
+   * @param request - Prompt creation request body.
+   * @returns The created prompt response.
+   */
   async createPrompt(request: CustomPromptCreateRequest): Promise<CustomPromptResponse> {
     const res = await managementHttpRequest<CustomPromptResponse>({
       method: 'POST',
@@ -247,7 +293,12 @@ export class RedTeamCustomAttacksClient {
     return res.data;
   }
 
-  /** List prompts in a prompt set. */
+  /**
+   * List prompts in a prompt set.
+   * @param promptSetUuid - The prompt set UUID.
+   * @param opts - Optional pagination, search, and filter options.
+   * @returns The paginated list of prompts.
+   */
   async listPrompts(promptSetUuid: string, opts?: PromptListOptions): Promise<CustomPromptList> {
     validateUuid(promptSetUuid, 'prompt set uuid');
     const params = buildRedTeamListParams(opts);
@@ -264,7 +315,12 @@ export class RedTeamCustomAttacksClient {
     return res.data;
   }
 
-  /** Get a prompt by UUID. */
+  /**
+   * Get a prompt by UUID.
+   * @param promptSetUuid - The prompt set UUID.
+   * @param promptUuid - The prompt UUID.
+   * @returns The prompt response.
+   */
   async getPrompt(promptSetUuid: string, promptUuid: string): Promise<CustomPromptResponse> {
     validateUuid(promptSetUuid, 'prompt set uuid');
     validateUuid(promptUuid, 'prompt uuid');
@@ -278,7 +334,13 @@ export class RedTeamCustomAttacksClient {
     return res.data;
   }
 
-  /** Update a prompt. */
+  /**
+   * Update a prompt.
+   * @param promptSetUuid - The prompt set UUID.
+   * @param promptUuid - The prompt UUID.
+   * @param request - Prompt update request body.
+   * @returns The updated prompt response.
+   */
   async updatePrompt(
     promptSetUuid: string,
     promptUuid: string,
@@ -297,7 +359,12 @@ export class RedTeamCustomAttacksClient {
     return res.data;
   }
 
-  /** Delete a prompt. */
+  /**
+   * Delete a prompt.
+   * @param promptSetUuid - The prompt set UUID.
+   * @param promptUuid - The prompt UUID.
+   * @returns The delete response.
+   */
   async deletePrompt(promptSetUuid: string, promptUuid: string): Promise<BaseResponse> {
     validateUuid(promptSetUuid, 'prompt set uuid');
     validateUuid(promptUuid, 'prompt uuid');
@@ -315,7 +382,10 @@ export class RedTeamCustomAttacksClient {
   // Property operations
   // -----------------------------------------------------------------------
 
-  /** Get all property names. */
+  /**
+   * Get all property names.
+   * @returns The list of property names.
+   */
   async getPropertyNames(): Promise<PropertyNamesListResponse> {
     const res = await managementHttpRequest<PropertyNamesListResponse>({
       method: 'GET',
@@ -327,7 +397,11 @@ export class RedTeamCustomAttacksClient {
     return res.data;
   }
 
-  /** Create a new property name. */
+  /**
+   * Create a new property name.
+   * @param request - Property name creation request body.
+   * @returns The creation response.
+   */
   async createPropertyName(request: PropertyNameCreateRequest): Promise<BaseResponse> {
     const res = await managementHttpRequest<BaseResponse>({
       method: 'POST',
@@ -340,7 +414,11 @@ export class RedTeamCustomAttacksClient {
     return res.data;
   }
 
-  /** Get values for a property name. */
+  /**
+   * Get values for a property name.
+   * @param propertyName - The property name to look up.
+   * @returns The property values response.
+   */
   async getPropertyValues(propertyName: string): Promise<PropertyValuesResponse> {
     const res = await managementHttpRequest<PropertyValuesResponse>({
       method: 'GET',
@@ -352,7 +430,11 @@ export class RedTeamCustomAttacksClient {
     return res.data;
   }
 
-  /** Get values for multiple property names. */
+  /**
+   * Get values for multiple property names.
+   * @param propertyNames - Array of property names to look up.
+   * @returns The property values for all requested names.
+   */
   async getPropertyValuesMultiple(
     propertyNames: string[],
   ): Promise<PropertyValuesMultipleResponse> {
@@ -373,7 +455,11 @@ export class RedTeamCustomAttacksClient {
     return res.data;
   }
 
-  /** Create a property value. */
+  /**
+   * Create a property value.
+   * @param request - Property value creation request body.
+   * @returns The creation response.
+   */
   async createPropertyValue(request: PropertyValueCreateRequest): Promise<BaseResponse> {
     const res = await managementHttpRequest<BaseResponse>({
       method: 'POST',

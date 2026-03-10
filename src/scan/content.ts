@@ -137,7 +137,10 @@ export class Content {
     this._toolEvent = value;
   }
 
-  /** Total byte length of all text content fields. */
+  /**
+   * Total byte length of all text content fields.
+   * @returns Combined byte length of all text content fields.
+   */
   get length(): number {
     let total = 0;
     if (this._prompt) total += Buffer.byteLength(this._prompt);
@@ -148,7 +151,10 @@ export class Content {
     return total;
   }
 
-  /** Serialize to the API request format. */
+  /**
+   * Serialize to the API request format.
+   * @returns The content as a scan request contents inner object.
+   */
   toJSON(): ScanRequestContentsInner {
     const obj: ScanRequestContentsInner = {};
     if (this._prompt !== undefined) obj.prompt = this._prompt;

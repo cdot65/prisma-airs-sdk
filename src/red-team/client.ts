@@ -156,7 +156,11 @@ export class RedTeamClient {
   // Data plane convenience methods
   // -----------------------------------------------------------------------
 
-  /** Get scan statistics and risk profile (data plane dashboard). */
+  /**
+   * Get scan statistics and risk profile (data plane dashboard).
+   * @param params - Optional date range and target ID filters.
+   * @returns The scan statistics response.
+   */
   async getScanStatistics(params?: {
     date_range?: string;
     target_id?: string;
@@ -176,7 +180,11 @@ export class RedTeamClient {
     return res.data;
   }
 
-  /** Get score trend for a target (data plane dashboard). */
+  /**
+   * Get score trend for a target (data plane dashboard).
+   * @param targetId - The target UUID.
+   * @returns The score trend response.
+   */
   async getScoreTrend(targetId: string): Promise<ScoreTrendResponse> {
     if (!isValidUuid(targetId)) {
       throw new AISecSDKException(
@@ -195,7 +203,10 @@ export class RedTeamClient {
     return res.data;
   }
 
-  /** Get quota summary. */
+  /**
+   * Get quota summary.
+   * @returns The quota summary.
+   */
   async getQuota(): Promise<QuotaSummary> {
     const res = await managementHttpRequest<QuotaSummary>({
       method: 'POST',
@@ -207,7 +218,12 @@ export class RedTeamClient {
     return res.data;
   }
 
-  /** List error logs for a scan job. */
+  /**
+   * List error logs for a scan job.
+   * @param jobId - The job UUID.
+   * @param opts - Optional pagination and search options.
+   * @returns The paginated list of error logs.
+   */
   async getErrorLogs(jobId: string, opts?: RedTeamListOptions): Promise<ErrorLogListResponse> {
     if (!isValidUuid(jobId)) {
       throw new AISecSDKException(`Invalid job id: ${jobId}`, ErrorType.USER_REQUEST_PAYLOAD_ERROR);
@@ -223,7 +239,11 @@ export class RedTeamClient {
     return res.data;
   }
 
-  /** Update sentiment for a scan report. */
+  /**
+   * Update sentiment for a scan report.
+   * @param request - The sentiment request body.
+   * @returns The sentiment response.
+   */
   async updateSentiment(request: SentimentRequest): Promise<SentimentResponse> {
     const res = await managementHttpRequest<SentimentResponse>({
       method: 'POST',
@@ -236,7 +256,11 @@ export class RedTeamClient {
     return res.data;
   }
 
-  /** Get sentiment for a scan report. */
+  /**
+   * Get sentiment for a scan report.
+   * @param jobId - The job UUID.
+   * @returns The sentiment response.
+   */
   async getSentiment(jobId: string): Promise<SentimentResponse> {
     if (!isValidUuid(jobId)) {
       throw new AISecSDKException(`Invalid job id: ${jobId}`, ErrorType.USER_REQUEST_PAYLOAD_ERROR);
@@ -255,7 +279,10 @@ export class RedTeamClient {
   // Management plane convenience methods
   // -----------------------------------------------------------------------
 
-  /** Get management dashboard overview. */
+  /**
+   * Get management dashboard overview.
+   * @returns The dashboard overview response.
+   */
   async getDashboardOverview(): Promise<DashboardOverviewResponse> {
     const res = await managementHttpRequest<DashboardOverviewResponse>({
       method: 'GET',
