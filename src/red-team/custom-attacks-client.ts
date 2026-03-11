@@ -219,7 +219,7 @@ export class RedTeamCustomAttacksClient {
   /**
    * Download CSV template for a prompt set.
    * @param uuid - The prompt set UUID.
-   * @returns The CSV template data.
+   * @returns The CSV template content (untyped — raw response from the API).
    */
   async downloadTemplate(uuid: string): Promise<unknown> {
     validateUuid(uuid, 'prompt set uuid');
