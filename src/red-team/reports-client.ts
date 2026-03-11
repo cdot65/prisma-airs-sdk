@@ -340,7 +340,7 @@ export class RedTeamReportsClient {
    * Download a report in the specified format.
    * @param jobId - The job UUID.
    * @param format - The file format (e.g. "pdf", "csv").
-   * @returns The downloaded report data.
+   * @returns The report data in the requested format (untyped — shape depends on `format`).
    */
   async downloadReport(jobId: string, format: string): Promise<unknown> {
     validateJobId(jobId);
@@ -360,7 +360,7 @@ export class RedTeamReportsClient {
   /**
    * Generate a partial report for a running scan.
    * @param jobId - The job UUID.
-   * @returns The partial report data.
+   * @returns The partial report payload (untyped — schema not yet defined by the API).
    */
   async generatePartialReport(jobId: string): Promise<unknown> {
     validateJobId(jobId);

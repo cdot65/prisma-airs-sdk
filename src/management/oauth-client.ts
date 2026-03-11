@@ -83,7 +83,6 @@ export class OAuthClient {
 
   /**
    * Clear the cached token, forcing a fresh fetch on next call.
-   * @returns Nothing.
    */
   clearToken(): void {
     this.accessToken = null;
