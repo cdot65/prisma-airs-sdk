@@ -113,6 +113,12 @@ const evaluations = await client.scans.getEvaluations('scan-uuid', {
   limit: 20,
 });
 
+// With sorting
+const sorted = await client.scans.getEvaluations('scan-uuid', {
+  sort_field: 'severity',
+  sort_order: 'desc',
+});
+
 // Get a single evaluation by UUID
 const evaluation = await client.scans.getEvaluation('evaluation-uuid');
 ```

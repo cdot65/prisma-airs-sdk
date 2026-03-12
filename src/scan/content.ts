@@ -184,6 +184,7 @@ export class Content {
   /**
    * Load content from a JSON file.
    * @param filePath - Path to JSON file containing scan request contents.
+   * @returns A new Content instance populated from the JSON file.
    */
   static fromJSONFile(filePath: string): Content {
     const raw = readFileSync(filePath, 'utf-8');
