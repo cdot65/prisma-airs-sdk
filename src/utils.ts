@@ -15,12 +15,6 @@ export function isValidUuid(value: string): boolean {
 }
 
 /**
- * Generate an HMAC-SHA256 hex digest for API key authentication.
- * @param payload - The JSON payload string to sign.
- * @param secret - The API key secret.
- * @returns Hex-encoded HMAC-SHA256 hash.
- */
-/**
  * Validate that a job ID is a valid UUID, throwing if not.
  * @param jobId - The job ID string to validate.
  * @throws {AISecSDKException} If the job ID is not a valid UUID.
@@ -31,6 +25,12 @@ export function validateJobId(jobId: string): void {
   }
 }
 
+/**
+ * Generate an HMAC-SHA256 hex digest for API key authentication.
+ * @param payload - The JSON payload string to sign.
+ * @param secret - The API key secret.
+ * @returns Hex-encoded HMAC-SHA256 hash.
+ */
 export function generatePayloadHash(payload: string, secret: string): string {
   return createHmac('sha256', secret).update(payload).digest('hex');
 }
