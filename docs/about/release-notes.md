@@ -1,5 +1,15 @@
 # Release Notes
 
+## v0.6.6
+
+### Code Quality & Documentation
+
+- **DRY**: Extracted duplicated `validateJobId()` from two Red Team clients into shared `src/utils.ts`
+- **Docs**: Added `sort_field`/`sort_order` example to Model Security `getEvaluations()` guide
+- **JSDoc**: Added missing `@returns` tag on `Content.fromJSONFile()`, noted optionality on `TopicsClient.forceDelete()` `updatedBy` param
+
+---
+
 ## v0.6.5
 
 ### Reliability & Code Quality
