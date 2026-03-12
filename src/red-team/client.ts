@@ -1,17 +1,8 @@
 import {
   DEFAULT_RED_TEAM_DATA_ENDPOINT,
   DEFAULT_RED_TEAM_MGMT_ENDPOINT,
-  RED_TEAM_CLIENT_ID,
-  RED_TEAM_CLIENT_SECRET,
-  RED_TEAM_TSG_ID,
   RED_TEAM_DATA_ENDPOINT,
   RED_TEAM_MGMT_ENDPOINT,
-  RED_TEAM_TOKEN_ENDPOINT,
-  MGMT_CLIENT_ID,
-  MGMT_CLIENT_SECRET,
-  MGMT_TSG_ID,
-  MGMT_TOKEN_ENDPOINT,
-  MAX_NUMBER_OF_RETRIES,
   RED_TEAM_DASHBOARD_PATH,
   RED_TEAM_QUOTA_PATH,
   RED_TEAM_ERROR_LOG_PATH,
@@ -20,8 +11,9 @@ import {
 } from '../constants.js';
 import { AISecSDKException, ErrorType } from '../errors.js';
 import { isValidUuid } from '../utils.js';
-import { OAuthClient } from '../management/oauth-client.js';
+import { resolveOAuthConfig } from '../oauth-config.js';
 import { managementHttpRequest } from '../management/management-http-client.js';
+import type { OAuthClient } from '../management/oauth-client.js';
 import { RedTeamScansClient } from './scans-client.js';
 import { RedTeamReportsClient } from './reports-client.js';
 import { RedTeamCustomAttackReportsClient } from './custom-attack-reports-client.js';
@@ -79,75 +71,54 @@ export class RedTeamClient {
   private readonly numRetries: number;
 
   constructor(opts: RedTeamClientOptions = {}) {
-    const clientId =
-      opts.clientId ?? process.env[RED_TEAM_CLIENT_ID] ?? process.env[MGMT_CLIENT_ID];
-    const clientSecret =
-      opts.clientSecret ?? process.env[RED_TEAM_CLIENT_SECRET] ?? process.env[MGMT_CLIENT_SECRET];
-    const tsgId = opts.tsgId ?? process.env[RED_TEAM_TSG_ID] ?? process.env[MGMT_TSG_ID];
     const dataEndpoint =
       opts.dataEndpoint ?? process.env[RED_TEAM_DATA_ENDPOINT] ?? DEFAULT_RED_TEAM_DATA_ENDPOINT;
     const mgmtEndpoint =
       opts.mgmtEndpoint ?? process.env[RED_TEAM_MGMT_ENDPOINT] ?? DEFAULT_RED_TEAM_MGMT_ENDPOINT;
-    const tokenEndpoint =
-      opts.tokenEndpoint ??
-      process.env[RED_TEAM_TOKEN_ENDPOINT] ??
-      process.env[MGMT_TOKEN_ENDPOINT];
-    const numRetries = Math.min(
-      Math.max(opts.numRetries ?? MAX_NUMBER_OF_RETRIES, 0),
-      MAX_NUMBER_OF_RETRIES,
-    );
 
-    if (!clientId) {
-      throw new AISecSDKException(
-        'clientId is required (option or PANW_RED_TEAM_CLIENT_ID / PANW_MGMT_CLIENT_ID env var)',
-        ErrorType.MISSING_VARIABLE,
-      );
-    }
-    if (!clientSecret) {
-      throw new AISecSDKException(
-        'clientSecret is required (option or PANW_RED_TEAM_CLIENT_SECRET / PANW_MGMT_CLIENT_SECRET env var)',
-        ErrorType.MISSING_VARIABLE,
-      );
-    }
-    if (!tsgId) {
-      throw new AISecSDKException(
-        'tsgId is required (option or PANW_RED_TEAM_TSG_ID / PANW_MGMT_TSG_ID env var)',
-        ErrorType.MISSING_VARIABLE,
-      );
-    }
+    const { oauthClient, numRetries } = resolveOAuthConfig({
+      clientId: opts.clientId,
+      clientSecret: opts.clientSecret,
+      tsgId: opts.tsgId,
+      baseUrl: dataEndpoint,
+      numRetries: opts.numRetries,
+      tokenEndpoint: opts.tokenEndpoint,
+      primaryEnvPrefix: 'PANW_RED_TEAM',
+      fallbackEnvPrefix: 'PANW_MGMT',
+    });
 
-    this.oauthClient = new OAuthClient({ clientId, clientSecret, tsgId, tokenEndpoint });
+    this.oauthClient = oauthClient;
     this.dataEndpoint = dataEndpoint;
     this.mgmtEndpoint = mgmtEndpoint;
     this.numRetries = numRetries;
 
     this.scans = new RedTeamScansClient({
       baseUrl: dataEndpoint,
-      oauthClient: this.oauthClient,
+      oauthClient,
       numRetries,
     });
 
     this.reports = new RedTeamReportsClient({
       baseUrl: dataEndpoint,
-      oauthClient: this.oauthClient,
+      oauthClient,
       numRetries,
     });
 
     this.customAttackReports = new RedTeamCustomAttackReportsClient({
       baseUrl: dataEndpoint,
-      oauthClient: this.oauthClient,
+      oauthClient,
       numRetries,
     });
 
     this.targets = new RedTeamTargetsClient({
       baseUrl: mgmtEndpoint,
-      oauthClient: this.oauthClient,
+      oauthClient,
       numRetries,
     });
 
     this.customAttacks = new RedTeamCustomAttacksClient({
       baseUrl: mgmtEndpoint,
-      oauthClient: this.oauthClient,
+      oauthClient,
       numRetries,
     });
   }

@@ -11,6 +11,8 @@ export interface OAuthServiceConfig {
   oauthClient: OAuthClient;
   /** Clamped retry count. */
   numRetries: number;
+  /** Resolved Tenant Service Group ID. */
+  tsgId: string;
 }
 
 /** Options for {@link resolveOAuthConfig}. */
@@ -108,5 +110,5 @@ export function resolveOAuthConfig(opts: ResolveOAuthConfigOptions): OAuthServic
     onTokenRefresh: opts.onTokenRefresh,
   });
 
-  return { baseUrl: opts.baseUrl, oauthClient, numRetries };
+  return { baseUrl: opts.baseUrl, oauthClient, numRetries, tsgId };
 }

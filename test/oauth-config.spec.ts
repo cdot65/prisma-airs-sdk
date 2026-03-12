@@ -23,6 +23,7 @@ describe('resolveOAuthConfig', () => {
     expect(cfg.oauthClient).toBeInstanceOf(OAuthClient);
     expect(cfg.baseUrl).toBe('https://api.example.com');
     expect(cfg.numRetries).toBe(MAX_NUMBER_OF_RETRIES);
+    expect(cfg.tsgId).toBe('tsg1');
   });
 
   it('falls back to primary env prefix when opts missing', () => {

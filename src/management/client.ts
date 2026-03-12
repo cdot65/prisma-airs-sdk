@@ -1,14 +1,5 @@
-import {
-  DEFAULT_MGMT_ENDPOINT,
-  MGMT_CLIENT_ID,
-  MGMT_CLIENT_SECRET,
-  MGMT_TSG_ID,
-  MGMT_ENDPOINT,
-  MGMT_TOKEN_ENDPOINT,
-  MAX_NUMBER_OF_RETRIES,
-} from '../constants.js';
-import { AISecSDKException, ErrorType } from '../errors.js';
-import { OAuthClient } from './oauth-client.js';
+import { DEFAULT_MGMT_ENDPOINT, MGMT_ENDPOINT } from '../constants.js';
+import { resolveOAuthConfig } from '../oauth-config.js';
 import { ProfilesClient } from './profiles.js';
 import { TopicsClient } from './topics.js';
 import { ApiKeysClient } from './api-keys.js';
@@ -49,90 +40,66 @@ export class ManagementClient {
   public readonly oauth: OAuthManagementClient;
 
   constructor(opts: ManagementClientOptions = {}) {
-    const clientId = opts.clientId ?? process.env[MGMT_CLIENT_ID];
-    const clientSecret = opts.clientSecret ?? process.env[MGMT_CLIENT_SECRET];
-    const tsgId = opts.tsgId ?? process.env[MGMT_TSG_ID];
     const apiEndpoint = opts.apiEndpoint ?? process.env[MGMT_ENDPOINT] ?? DEFAULT_MGMT_ENDPOINT;
-    const tokenEndpoint = opts.tokenEndpoint ?? process.env[MGMT_TOKEN_ENDPOINT];
-    const numRetries = Math.min(
-      Math.max(opts.numRetries ?? MAX_NUMBER_OF_RETRIES, 0),
-      MAX_NUMBER_OF_RETRIES,
-    );
 
-    if (!clientId) {
-      throw new AISecSDKException(
-        'clientId is required (option or PANW_MGMT_CLIENT_ID env var)',
-        ErrorType.MISSING_VARIABLE,
-      );
-    }
-    if (!clientSecret) {
-      throw new AISecSDKException(
-        'clientSecret is required (option or PANW_MGMT_CLIENT_SECRET env var)',
-        ErrorType.MISSING_VARIABLE,
-      );
-    }
-    if (!tsgId) {
-      throw new AISecSDKException(
-        'tsgId is required (option or PANW_MGMT_TSG_ID env var)',
-        ErrorType.MISSING_VARIABLE,
-      );
-    }
-
-    const oauthClient = new OAuthClient({
-      clientId,
-      clientSecret,
-      tsgId,
-      tokenEndpoint,
+    const { baseUrl, oauthClient, numRetries, tsgId } = resolveOAuthConfig({
+      clientId: opts.clientId,
+      clientSecret: opts.clientSecret,
+      tsgId: opts.tsgId,
+      baseUrl: apiEndpoint,
+      numRetries: opts.numRetries,
+      tokenEndpoint: opts.tokenEndpoint,
+      primaryEnvPrefix: 'PANW_MGMT',
     });
 
     this.profiles = new ProfilesClient({
-      baseUrl: apiEndpoint,
+      baseUrl,
       oauthClient,
       tsgId,
       numRetries,
     });
 
     this.topics = new TopicsClient({
-      baseUrl: apiEndpoint,
+      baseUrl,
       oauthClient,
       tsgId,
       numRetries,
     });
 
     this.apiKeys = new ApiKeysClient({
-      baseUrl: apiEndpoint,
+      baseUrl,
       oauthClient,
       tsgId,
       numRetries,
     });
 
     this.customerApps = new CustomerAppsClient({
-      baseUrl: apiEndpoint,
+      baseUrl,
       oauthClient,
       tsgId,
       numRetries,
     });
 
     this.dlpProfiles = new DlpProfilesClient({
-      baseUrl: apiEndpoint,
+      baseUrl,
       oauthClient,
       numRetries,
     });
 
     this.deploymentProfiles = new DeploymentProfilesClient({
-      baseUrl: apiEndpoint,
+      baseUrl,
       oauthClient,
       numRetries,
     });
 
     this.scanLogs = new ScanLogsClient({
-      baseUrl: apiEndpoint,
+      baseUrl,
       oauthClient,
       numRetries,
     });
 
     this.oauth = new OAuthManagementClient({
-      baseUrl: apiEndpoint,
+      baseUrl,
       oauthClient,
       numRetries,
     });
