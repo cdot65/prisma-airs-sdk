@@ -1,6 +1,6 @@
 import { RED_TEAM_CUSTOM_ATTACKS_REPORT_PATH } from '../constants.js';
 import { AISecSDKException, ErrorType } from '../errors.js';
-import { isValidUuid } from '../utils.js';
+import { isValidUuid, validateJobId } from '../utils.js';
 import { managementHttpRequest } from '../management/management-http-client.js';
 import { buildRedTeamListParams } from './list-params.js';
 import type { OAuthClient } from '../management/oauth-client.js';
@@ -31,12 +31,6 @@ export interface RedTeamCustomAttackReportsClientOptions {
   baseUrl: string;
   oauthClient: OAuthClient;
   numRetries: number;
-}
-
-function validateJobId(jobId: string): void {
-  if (!isValidUuid(jobId)) {
-    throw new AISecSDKException(`Invalid job id: ${jobId}`, ErrorType.USER_REQUEST_PAYLOAD_ERROR);
-  }
 }
 
 /** Client for Red Team custom attack report operations. */
