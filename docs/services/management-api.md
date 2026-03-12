@@ -196,6 +196,7 @@ If the profile is in use by a policy, the API returns a 409 conflict with the re
 
 ```ts
 // Force delete removes the profile even if referenced by a policy
+// updatedBy is required for profiles
 const result = await client.profiles.forceDelete(profile.profile_id, 'user@example.com');
 ```
 
@@ -238,7 +239,10 @@ const updated = await client.topics.update(topic.topic_id, {
 const result = await client.topics.delete(topic.topic_id);
 
 // Force delete (removes even if referenced)
-const result = await client.topics.forceDelete(topic.topic_id, 'user@example.com');
+// updatedBy is optional for topics
+const result = await client.topics.forceDelete(topic.topic_id);
+// or with updatedBy
+const resultWithUser = await client.topics.forceDelete(topic.topic_id, 'user@example.com');
 ```
 
 ## API Keys
