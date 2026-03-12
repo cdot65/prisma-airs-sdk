@@ -123,7 +123,7 @@ export class TopicsClient {
   /**
    * Force-delete a custom topic, removing it from any referencing profiles.
    * @param topicId - UUID of the topic to force-delete.
-   * @param updatedBy - Email of the user performing the deletion.
+   * @param updatedBy - Optional. Email of the user performing the deletion.
    * @returns Deletion confirmation message.
    */
   async forceDelete(topicId: string, updatedBy?: string): Promise<DeleteTopicResponse> {
