@@ -24,7 +24,7 @@ Requires Node.js 18+. Zero external HTTP dependencies (native `fetch` + `crypto`
 | Service                 | Client                | Auth    | Capabilities                                               |
 | ----------------------- | --------------------- | ------- | ---------------------------------------------------------- |
 | **AI Runtime Security** | `Scanner`             | API Key | Sync/async content scanning, prompt injection detection    |
-| **Management**          | `ManagementClient`    | OAuth2  | Security profiles and custom topics CRUD                   |
+| **Management**          | `ManagementClient`    | OAuth2  | Profiles, topics, API keys, apps, DLP, deployment, logs    |
 | **Model Security**      | `ModelSecurityClient` | OAuth2  | ML model scanning, security groups, rule management        |
 | **AI Red Teaming**      | `RedTeamClient`       | OAuth2  | Automated red team scans, reports, targets, custom attacks |
 
@@ -53,28 +53,20 @@ console.log(result.action); // "allow" | "block"
 
 ### Management — Configuration CRUD (OAuth2)
 
-CRUD operations for all three Prisma AIRS services use OAuth2:
-
 ```ts
 import { ManagementClient } from '@cdot65/prisma-airs-sdk';
 
 const client = new ManagementClient(); // reads PANW_MGMT_* env vars
 
-// Security Profiles
-const profiles = await client.profiles.list();
-const created = await client.profiles.create({
-  profile_name: 'my-profile',
-  active: true,
-  policy: {
-    /* ... */
-  },
-});
-
-// Custom Topics
-const topic = await client.topics.create({
-  topic_name: 'pii-detector',
-  examples: ['SSN: 123-45-6789'],
-});
+// 8 sub-clients available:
+client.profiles; // AI security profile CRUD
+client.topics; // Custom detection topic CRUD
+client.apiKeys; // API key lifecycle (create, list, regenerate, delete)
+client.customerApps; // Customer application management
+client.dlpProfiles; // DLP data profile listing
+client.deploymentProfiles; // Deployment profile listing
+client.scanLogs; // Scan activity log queries
+client.oauth; // OAuth token management (get/invalidate)
 ```
 
 ### Model Security — ML Model Scanning (OAuth2)
@@ -84,6 +76,7 @@ import { ModelSecurityClient } from '@cdot65/prisma-airs-sdk';
 
 const client = new ModelSecurityClient(); // falls back to PANW_MGMT_* env vars
 
+// 3 sub-clients: scans, securityGroups, securityRules
 const scans = await client.scans.list({ limit: 10 });
 const groups = await client.securityGroups.list();
 const rules = await client.securityRules.list();
@@ -96,6 +89,7 @@ import { RedTeamClient } from '@cdot65/prisma-airs-sdk';
 
 const client = new RedTeamClient(); // falls back to PANW_MGMT_* env vars
 
+// 5 sub-clients: scans, reports, customAttackReports, targets, customAttacks
 const scans = await client.scans.list({ limit: 5 });
 const targets = await client.targets.list();
 const categories = await client.scans.getCategories();
@@ -117,15 +111,6 @@ export PANW_MGMT_CLIENT_ID=your-client-id
 export PANW_MGMT_CLIENT_SECRET=your-client-secret
 export PANW_MGMT_TSG_ID=1234567890
 ```
-
-## Scanner Methods
-
-| Method                                | Description                                |
-| ------------------------------------- | ------------------------------------------ |
-| `syncScan(aiProfile, content, opts?)` | Synchronous inline scan                    |
-| `asyncScan(scanObjects)`              | Batch async scan (up to 5)                 |
-| `queryByScanIds(scanIds)`             | Get results by scan IDs (up to 5)          |
-| `queryByReportIds(reportIds)`         | Get threat reports by report IDs (up to 5) |
 
 ## Error Handling
 
@@ -153,7 +138,7 @@ Full documentation at **[cdot65.github.io/prisma-airs-sdk](https://cdot65.github
 ```bash
 npm install
 npm run build          # tsup (CJS + ESM + .d.ts)
-npm run test           # vitest (617 tests, 99%+ coverage)
+npm run test           # vitest (829 tests, 99%+ coverage)
 npm run lint           # eslint
 npm run typecheck      # tsc --noEmit
 ```
