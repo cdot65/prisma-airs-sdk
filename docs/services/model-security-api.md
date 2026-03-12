@@ -115,7 +115,7 @@ const evaluations = await client.scans.getEvaluations('scan-uuid', {
 
 // With sorting
 const sorted = await client.scans.getEvaluations('scan-uuid', {
-  sort_field: 'severity',
+  sort_field: 'created_at',
   sort_order: 'desc',
 });
 

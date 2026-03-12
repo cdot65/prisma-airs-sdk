@@ -48,6 +48,6 @@ try {
 The SDK automatically retries on transient errors:
 
 - **Status codes**: 500, 502, 503, 504
-- **Backoff**: Exponential (`2^attempt * 1000ms`)
+- **Backoff**: Exponential with full jitter (`uniform [0, 2^attempt × 1000ms]`)
 - **Max retries**: Configurable 0-5, default 5
 - **401/403 handling**: Management/Model Security/Red Team clients automatically refresh the OAuth token and retry once on 401 or 403 responses
