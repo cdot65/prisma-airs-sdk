@@ -1,5 +1,15 @@
 # Release Notes
 
+## v0.6.7
+
+### Refactoring & Documentation
+
+- **DRY**: Extracted shared `resolveOAuthConfig()` factory from 3 OAuth2 parent clients, eliminating ~150 lines of duplicated credential resolution
+- **Fix**: Repositioned orphaned JSDoc block in `src/utils.ts` — `generatePayloadHash` docs were misattributed to `validateJobId`
+- **Docs**: Clarified `forceDelete()` parameter differences (required vs optional `updatedBy`) in Management API guide
+
+---
+
 ## v0.6.6
 
 ### Code Quality & Documentation
