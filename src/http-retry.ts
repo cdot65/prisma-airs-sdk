@@ -4,6 +4,7 @@ import { HTTP_FORCE_RETRY_STATUS_CODES } from './constants.js';
 import { AISecSDKException, ErrorType } from './errors.js';
 
 /**
+ * @internal
  * Sleep for the given number of milliseconds.
  * @param ms - Milliseconds to wait.
  */
@@ -12,6 +13,7 @@ export function sleep(ms: number): Promise<void> {
 }
 
 /**
+ * @internal
  * Calculate exponential backoff delay with full jitter for the given attempt.
  * Uses the "full jitter" strategy: uniform random in [0, 2^attempt * 1000].
  * @param attempt - Zero-based attempt number.
@@ -23,6 +25,7 @@ export function backoffDelay(attempt: number): number {
 }
 
 /**
+ * @internal
  * Check if an HTTP status code should trigger a retry.
  * @param status - HTTP status code.
  */
@@ -31,6 +34,7 @@ export function isRetryableStatus(status: number): boolean {
 }
 
 /**
+ * @internal
  * Classify an HTTP status code as server-side or client-side error.
  * @param status - HTTP status code.
  */
@@ -39,6 +43,7 @@ export function classifyErrorType(status: number): ErrorType {
 }
 
 /**
+ * @internal
  * Extract a human-readable error message from an API error response body.
  * Tries `error_message`, `message`, and `error.message` fields in order.
  * @param body - Raw response body string.
@@ -58,7 +63,7 @@ export function extractErrorMessage(body: string, status: number): string {
   }
 }
 
-/** Options for {@link executeWithRetry}. */
+/** @internal Options for {@link executeWithRetry}. */
 export interface RetryOptions {
   /** Maximum number of retry attempts. */
   maxRetries: number;
@@ -69,6 +74,7 @@ export interface RetryOptions {
 }
 
 /**
+ * @internal
  * Execute an HTTP request with exponential backoff retry.
  * @param opts - Retry configuration and request function.
  * @returns Successful HTTP Response.
