@@ -4,12 +4,11 @@ Complete reference for all environment variables used by the SDK.
 
 ## Scan API
 
-| Variable                   | Required         | Default                                               | Description                       |
-| -------------------------- | ---------------- | ----------------------------------------------------- | --------------------------------- |
-| `PANW_AI_SEC_API_KEY`      | One of key/token | —                                                     | API key for HMAC-SHA256 auth      |
-| `PANW_AI_SEC_API_TOKEN`    | One of key/token | —                                                     | Pre-obtained bearer token         |
-| `PANW_AI_SEC_PROFILE_NAME` | For examples     | —                                                     | Default profile name for examples |
-| `PANW_AI_SEC_API_ENDPOINT` | No               | `https://service.api.aisecurity.paloaltonetworks.com` | Scan API base URL                 |
+| Variable                   | Required         | Default                                               | Description                  |
+| -------------------------- | ---------------- | ----------------------------------------------------- | ---------------------------- |
+| `PANW_AI_SEC_API_KEY`      | One of key/token | —                                                     | API key for HMAC-SHA256 auth |
+| `PANW_AI_SEC_API_TOKEN`    | One of key/token | —                                                     | Pre-obtained bearer token    |
+| `PANW_AI_SEC_API_ENDPOINT` | No               | `https://service.api.aisecurity.paloaltonetworks.com` | Scan API base URL            |
 
 ## Management API
 
@@ -46,3 +45,11 @@ All fall back to the corresponding `PANW_MGMT_*` variable if not set.
 | `PANW_RED_TEAM_DATA_ENDPOINT`  | —                          | `https://api.sase.paloaltonetworks.com/ai-red-teaming/data-plane` | Data plane base URL       |
 | `PANW_RED_TEAM_MGMT_ENDPOINT`  | —                          | `https://api.sase.paloaltonetworks.com/ai-red-teaming/mgmt-plane` | Management plane base URL |
 | `PANW_RED_TEAM_TOKEN_ENDPOINT` | `PANW_MGMT_TOKEN_ENDPOINT` | —                                                                 | OAuth2 token endpoint     |
+
+## Example Scripts
+
+The following variables are **not** consumed by the SDK itself. They are used only by the example scripts in `examples/`.
+
+| Variable                   | Used By         | Description                                   |
+| -------------------------- | --------------- | --------------------------------------------- |
+| `PANW_AI_SEC_PROFILE_NAME` | `examples/*.py` | Security profile name passed to scan requests |
