@@ -6,6 +6,7 @@ import { AISecSDKException, ErrorType } from './errors.js';
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 /**
+ * @internal
  * Test whether a string is a valid RFC 4122 UUID.
  * @param value - The string to validate.
  * @returns `true` if the string matches the UUID format.
@@ -15,6 +16,7 @@ export function isValidUuid(value: string): boolean {
 }
 
 /**
+ * @internal
  * Validate that a job ID is a valid UUID, throwing if not.
  * @param jobId - The job ID string to validate.
  * @throws {AISecSDKException} If the job ID is not a valid UUID.
@@ -26,6 +28,7 @@ export function validateJobId(jobId: string): void {
 }
 
 /**
+ * @internal
  * Generate an HMAC-SHA256 hex digest for API key authentication.
  * @param payload - The JSON payload string to sign.
  * @param secret - The API key secret.

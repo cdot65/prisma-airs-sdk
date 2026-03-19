@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-/** Zod schema for an OAuth2 token response. */
+/** @internal Zod schema for an OAuth2 token response. */
 export const OAuthTokenResponseSchema = z
   .object({
     access_token: z.string(),
@@ -10,5 +10,5 @@ export const OAuthTokenResponseSchema = z
   })
   .passthrough();
 
-/** OAuth2 token response with access token and expiry. */
+/** @internal OAuth2 token response with access token and expiry. */
 export type OAuthTokenResponse = z.infer<typeof OAuthTokenResponseSchema>;

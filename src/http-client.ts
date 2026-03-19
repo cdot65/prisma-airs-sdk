@@ -12,7 +12,7 @@ import { AISecSDKException, ErrorType } from './errors.js';
 import { executeWithRetry } from './http-retry.js';
 import { generatePayloadHash } from './utils.js';
 
-/** Options for a scan API HTTP request. */
+/** @internal Options for a scan API HTTP request. */
 export interface HttpRequestOptions {
   /** HTTP method. */
   method: 'GET' | 'POST';
@@ -24,7 +24,7 @@ export interface HttpRequestOptions {
   params?: Record<string, string>;
 }
 
-/** Typed HTTP response wrapper. */
+/** @internal Typed HTTP response wrapper. */
 export interface HttpResponse<T = unknown> {
   /** HTTP status code. */
   status: number;
@@ -49,6 +49,10 @@ function buildHeaders(): Record<string, string> {
   return headers;
 }
 
+/**
+ * @internal
+ * Perform an HTTP request to the scan API with retry logic.
+ */
 export async function httpRequest<T>(opts: HttpRequestOptions): Promise<HttpResponse<T>> {
   if (!globalConfiguration.initialized) {
     throw new AISecSDKException(
