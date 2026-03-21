@@ -110,6 +110,44 @@ describe('ProfilesClient', () => {
     });
   });
 
+  describe('get', () => {
+    it('returns matching profile by UUID', async () => {
+      mockFetch({ ai_profiles: [sampleProfile, { ...sampleProfile, profile_id: 'other-uuid' }] });
+      const result = await client.get('550e8400-e29b-41d4-a716-446655440000');
+
+      expect(result.profile_id).toBe('550e8400-e29b-41d4-a716-446655440000');
+    });
+
+    it('throws when profile not found', async () => {
+      mockFetch({ ai_profiles: [sampleProfile] });
+      await expect(client.get('no-such-id')).rejects.toThrow(AISecSDKException);
+      await expect(client.get('no-such-id')).rejects.toThrow('Profile not found: no-such-id');
+    });
+  });
+
+  describe('getByName', () => {
+    it('returns highest revision when multiple matches exist', async () => {
+      mockFetch({
+        ai_profiles: [
+          { ...sampleProfile, revision: 1 },
+          { ...sampleProfile, revision: 3 },
+          { ...sampleProfile, revision: 2 },
+        ],
+      });
+      const result = await client.getByName('test-prof');
+
+      expect(result.revision).toBe(3);
+    });
+
+    it('throws when no profile matches name', async () => {
+      mockFetch({ ai_profiles: [sampleProfile] });
+      await expect(client.getByName('nonexistent')).rejects.toThrow(AISecSDKException);
+      await expect(client.getByName('nonexistent')).rejects.toThrow(
+        'Profile not found: nonexistent',
+      );
+    });
+  });
+
   describe('forceDelete', () => {
     it('DELETEs /v1/mgmt/profile/:id/force with updated_by', async () => {
       mockFetch({ message: 'force deleted' });
