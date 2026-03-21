@@ -80,6 +80,42 @@ export class ProfilesClient {
   }
 
   /**
+   * Get a security profile by UUID.
+   * Fetches all profiles and filters — no dedicated API endpoint exists.
+   * @param profileId - UUID of the profile to retrieve.
+   * @returns The matching security profile.
+   */
+  async get(profileId: string): Promise<SecurityProfile> {
+    const { ai_profiles } = await this.list();
+    const profile = ai_profiles.find((p) => p.profile_id === profileId);
+    if (!profile) {
+      throw new AISecSDKException(
+        `Profile not found: ${profileId}`,
+        ErrorType.USER_REQUEST_PAYLOAD_ERROR,
+      );
+    }
+    return profile;
+  }
+
+  /**
+   * Get a security profile by name.
+   * Returns the highest-revision match (latest version).
+   * @param profileName - Name of the profile to retrieve.
+   * @returns The matching security profile with the highest revision.
+   */
+  async getByName(profileName: string): Promise<SecurityProfile> {
+    const { ai_profiles } = await this.list();
+    const matches = ai_profiles.filter((p) => p.profile_name === profileName);
+    if (matches.length === 0) {
+      throw new AISecSDKException(
+        `Profile not found: ${profileName}`,
+        ErrorType.USER_REQUEST_PAYLOAD_ERROR,
+      );
+    }
+    return matches.reduce((best, p) => ((p.revision ?? 0) > (best.revision ?? 0) ? p : best));
+  }
+
+  /**
    * Update an existing security profile.
    * @param profileId - UUID of the profile to update.
    * @param request - Updated profile configuration.
