@@ -139,6 +139,18 @@ const profile = await client.profiles.create({
 console.log(profile.profile_id);
 ```
 
+### Get
+
+```ts
+// Get by UUID
+const profile = await client.profiles.get('profile-uuid');
+
+// Get by name (returns highest revision if multiple exist)
+const profile = await client.profiles.getByName('my-profile');
+```
+
+Both methods throw `AISecSDKException` if no matching profile is found.
+
 ### List
 
 ```ts
