@@ -119,6 +119,7 @@ export const ModelProtectionItemSchema = z
     name: z.string(),
     action: z.string(),
     'topic-list': z.array(TopicArraySchema).optional(),
+    options: z.array(z.unknown()).optional(),
   })
   .passthrough();
 
@@ -153,6 +154,7 @@ export const DlpDataProfilePolicySchema = z
     uuid: z.string(),
     id: z.string().optional(),
     version: z.string().optional(),
+    description: z.string().optional(),
     rule1: DlpRuleSchema.optional(),
     rule2: DlpRuleSchema.optional(),
     'log-severity': z.string().optional(),
@@ -210,6 +212,8 @@ export type Policy = z.infer<typeof PolicySchema>;
 export interface SecurityProfile {
   profile_id?: string;
   profile_name: string;
+  csp_id?: string;
+  tsg_id?: string;
   revision?: number;
   active?: boolean;
   policy?: Policy;
@@ -224,6 +228,8 @@ export const SecurityProfileSchema: z.ZodType<SecurityProfile> = z
   .object({
     profile_id: z.string().optional(),
     profile_name: z.string(),
+    csp_id: z.string().optional(),
+    tsg_id: z.string().optional(),
     revision: z.number().optional(),
     active: z.boolean().optional(),
     policy: PolicySchema.optional(),
@@ -237,6 +243,8 @@ export const SecurityProfileSchema: z.ZodType<SecurityProfile> = z
 export interface CreateSecurityProfileRequest {
   profile_id?: string;
   profile_name: string;
+  csp_id?: string;
+  tsg_id?: string;
   revision?: number;
   active?: boolean;
   policy?: Policy;
@@ -251,6 +259,8 @@ export const CreateSecurityProfileRequestSchema: z.ZodType<CreateSecurityProfile
   .object({
     profile_id: z.string().optional(),
     profile_name: z.string(),
+    csp_id: z.string().optional(),
+    tsg_id: z.string().optional(),
     revision: z.number().optional(),
     active: z.boolean().optional(),
     policy: PolicySchema.optional(),

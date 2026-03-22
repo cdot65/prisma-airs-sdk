@@ -249,6 +249,8 @@ class OAuthManagementClient {
 interface SecurityProfile {
   profile_id?: string;
   profile_name: string;
+  csp_id?: string;
+  tsg_id?: string;
   revision?: number;
   active?: boolean;
   policy?: Policy;
@@ -330,6 +332,7 @@ interface ModelProtectionItem {
   name: string;
   action: string;
   'topic-list'?: TopicArray[];
+  options?: unknown[];
 }
 
 interface TopicArray {
@@ -352,6 +355,7 @@ interface DlpDataProfilePolicy {
   uuid: string;
   id?: string;
   version?: string;
+  description?: string;
   rule1?: DlpRule;
   rule2?: DlpRule;
   'log-severity'?: string;

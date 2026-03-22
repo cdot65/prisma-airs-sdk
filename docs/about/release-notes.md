@@ -1,5 +1,14 @@
 # Release Notes
 
+## v0.6.10
+
+### Bug Fixes
+
+- **Add 4 missing fields from live API**: `csp_id` and `tsg_id` on `SecurityProfile`, `options` on `ModelProtectionItem`, `description` on `DlpDataProfilePolicy`
+- 6 new schema tests (876 total, up from 870)
+
+---
+
 ## v0.6.9
 
 ### Bug Fixes

@@ -253,6 +253,23 @@ describe('ModelProtectionItemSchema', () => {
     const result = ModelProtectionItemSchema.parse({ name: 'simple', action: 'alert' });
     expect(result['topic-list']).toBeUndefined();
   });
+
+  it('parses item with options array', () => {
+    const result = ModelProtectionItemSchema.parse({
+      name: 'guardrail',
+      action: 'block',
+      options: [],
+    });
+    // Type assertion: options should be unknown[] | undefined
+    const _opts: unknown[] | undefined = result.options;
+    expect(_opts).toEqual([]);
+  });
+
+  it('parses item without options (optional)', () => {
+    const result = ModelProtectionItemSchema.parse({ name: 'simple', action: 'alert' });
+    const _opts: unknown[] | undefined = result.options;
+    expect(_opts).toBeUndefined();
+  });
 });
 
 describe('AgentProtectionItemSchema', () => {
@@ -291,6 +308,23 @@ describe('DlpDataProfilePolicySchema', () => {
     const result = DlpDataProfilePolicySchema.parse({ name: 'minimal', uuid: 'u1' });
     expect(result.name).toBe('minimal');
     expect(result.rule1).toBeUndefined();
+  });
+
+  it('parses DLP data profile with description', () => {
+    const result = DlpDataProfilePolicySchema.parse({
+      name: 'with-desc',
+      uuid: 'u2',
+      description: 'Detects credit card numbers',
+    });
+    // Type assertion: description should be string | undefined
+    const _desc: string | undefined = result.description;
+    expect(_desc).toBe('Detects credit card numbers');
+  });
+
+  it('parses DLP data profile without description (optional)', () => {
+    const result = DlpDataProfilePolicySchema.parse({ name: 'no-desc', uuid: 'u3' });
+    const _desc: string | undefined = result.description;
+    expect(_desc).toBeUndefined();
   });
 
   it('rejects missing name', () => {
@@ -383,6 +417,29 @@ describe('SecurityProfileSchema', () => {
   it('allows extra fields via passthrough', () => {
     const result = SecurityProfileSchema.parse({ ...validProfile, new_field: 'test' });
     expect((result as Record<string, unknown>).new_field).toBe('test');
+  });
+
+  it('parses profile with csp_id and tsg_id', () => {
+    const result = SecurityProfileSchema.parse({
+      ...validProfile,
+      csp_id: 'csp-abc-123',
+      tsg_id: 'tsg-def-456',
+    });
+    expect(result.csp_id).toBe('csp-abc-123');
+    expect(result.tsg_id).toBe('tsg-def-456');
+    // Type assertion: csp_id and tsg_id should be string | undefined, not unknown
+    const _cspId: string | undefined = result.csp_id;
+    const _tsgId: string | undefined = result.tsg_id;
+    expect(_cspId).toBe('csp-abc-123');
+    expect(_tsgId).toBe('tsg-def-456');
+  });
+
+  it('parses profile without csp_id and tsg_id (optional)', () => {
+    const result = SecurityProfileSchema.parse(validProfile);
+    const _cspId: string | undefined = result.csp_id;
+    const _tsgId: string | undefined = result.tsg_id;
+    expect(_cspId).toBeUndefined();
+    expect(_tsgId).toBeUndefined();
   });
 
   it('rejects missing profile_name', () => {
