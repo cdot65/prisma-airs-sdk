@@ -1,5 +1,16 @@
 # Release Notes
 
+## v0.6.9
+
+### Bug Fixes
+
+- **Fix `PolicySchema`**: Replaced 9 incorrect flat policy sub-schemas with 15 properly nested schemas matching the actual AIRS Management API OpenAPI spec
+- Policy now correctly typed with `ai-security-profiles[]` array containing `model-configuration` → `data-protection`, `app-protection` (URL categories), `model-protection[]` (topic guardrails), `agent-protection[]`, `latency`
+- Added `dlp-data-profiles[]` with rule definitions
+- 37 new schema tests with realistic API data (46 total, up from 9)
+
+---
+
 ## v0.6.8
 
 ### New Features
