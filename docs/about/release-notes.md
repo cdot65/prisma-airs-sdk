@@ -1,5 +1,15 @@
 # Release Notes
 
+## v0.6.8
+
+### New Features
+
+- **`profiles.get(profileId)`** — retrieve a security profile by UUID (filters from `list()` since no dedicated API endpoint exists)
+- **`profiles.getByName(profileName)`** — retrieve a security profile by name, returns highest revision when multiple matches exist
+- **E2E validation**: Added `npm run example:profiles-get` self-contained validation script with mock servers
+
+---
+
 ## v0.6.7
 
 ### Refactoring & Documentation

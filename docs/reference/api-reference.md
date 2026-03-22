@@ -145,6 +145,8 @@ interface PaginationOptions {
 }
 
 class ProfilesClient {
+  get(profileId: string): Promise<SecurityProfile>;
+  getByName(profileName: string): Promise<SecurityProfile>;
   create(request: CreateSecurityProfileRequest): Promise<SecurityProfile>;
   list(opts?: PaginationOptions): Promise<SecurityProfileListResponse>;
   update(profileId: string, request: CreateSecurityProfileRequest): Promise<SecurityProfile>;
