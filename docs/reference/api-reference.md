@@ -251,34 +251,116 @@ interface SecurityProfile {
   profile_name: string;
   revision?: number;
   active?: boolean;
-  policy?: Policy; // passthrough — accepts any shape
+  policy?: Policy;
   created_by?: string;
   updated_by?: string;
   last_modified_ts?: string;
-  [key: string]: unknown; // forward-compat via .passthrough()
 }
 ```
 
-#### Real API policy shape (from live testing)
+#### Policy
 
 ```ts
-{
-  policy: {
-    'ai-security-profiles': [
-      {
-        'model-type': 'default',
-        'model-configuration': {
-          'app-protection': { 'default-url-category': { member: null }, 'url-detected-action': '' },
-          'data-protection': { 'data-leak-detection': { action: '', member: null }, 'database-security': null },
-          latency: { 'inline-timeout-action': 'block', 'max-inline-latency': 5 },
-          'mask-data-in-storage': false,
-          'model-protection': [],
-          'agent-protection': [],
-        },
-      },
-    ],
-    'dlp-data-profiles': [],
-  }
+interface Policy {
+  'ai-security-profiles'?: AiSecurityProfile[];
+  'dlp-data-profiles'?: DlpDataProfilePolicy[];
+}
+
+interface AiSecurityProfile {
+  'model-type'?: string;
+  'content-type'?: string;
+  'model-configuration'?: ModelConfiguration;
+}
+
+interface ModelConfiguration {
+  'mask-data-in-storage'?: boolean;
+  latency?: PolicyLatency;
+  'data-protection'?: DataProtection;
+  'app-protection'?: PolicyAppProtection;
+  'model-protection'?: ModelProtectionItem[];
+  'agent-protection'?: AgentProtectionItem[];
+}
+```
+
+#### Policy Sub-Types
+
+```ts
+interface PolicyLatency {
+  'inline-timeout-action'?: string;
+  'max-inline-latency'?: number;
+}
+
+interface DataProtection {
+  'data-leak-detection'?: {
+    member?: DataLeakDetectionMember[] | null;
+    action: string;
+    'mask-data-inline'?: boolean;
+  };
+  'database-security'?: DatabaseSecurityItem[] | null;
+}
+
+interface DataLeakDetectionMember {
+  text: string;
+  id?: string;
+  version?: string;
+}
+interface DatabaseSecurityItem {
+  name: string;
+  action: string;
+}
+
+interface PolicyAppProtection {
+  'alert-url-category'?: UrlCategory;
+  'block-url-category'?: UrlCategory;
+  'allow-url-category'?: UrlCategory;
+  'default-url-category'?: UrlCategory;
+  'url-detected-action'?: string;
+  'malicious-code-protection'?: MaliciousCodeProtection;
+}
+
+interface UrlCategory {
+  member?: string[] | null;
+}
+interface MaliciousCodeProtection {
+  name: string;
+  action: string;
+}
+
+interface ModelProtectionItem {
+  name: string;
+  action: string;
+  'topic-list'?: TopicArray[];
+}
+
+interface TopicArray {
+  action: string;
+  topic: TopicObject[];
+}
+
+interface TopicObject {
+  topic_name: string;
+  topic_id: string;
+  revision: number;
+}
+interface AgentProtectionItem {
+  name: string;
+  action: string;
+}
+
+interface DlpDataProfilePolicy {
+  name: string;
+  uuid: string;
+  id?: string;
+  version?: string;
+  rule1?: DlpRule;
+  rule2?: DlpRule;
+  'log-severity'?: string;
+  'non-file-based'?: string;
+  'file-based'?: string;
+}
+
+interface DlpRule {
+  action?: string;
 }
 ```
 
