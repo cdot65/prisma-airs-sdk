@@ -80,6 +80,9 @@ const client = new ModelSecurityClient(); // falls back to PANW_MGMT_* env vars
 const scans = await client.scans.list({ limit: 10 });
 const groups = await client.securityGroups.list();
 const rules = await client.securityRules.list();
+
+// PyPI integration auth
+const pypiAuth = await client.getPyPIAuth();
 ```
 
 ### AI Red Teaming — Automated Testing (OAuth2)
@@ -93,6 +96,13 @@ const client = new RedTeamClient(); // falls back to PANW_MGMT_* env vars
 const scans = await client.scans.list({ limit: 5 });
 const targets = await client.targets.list();
 const categories = await client.scans.getCategories();
+
+// 7 convenience methods on the top-level client
+const stats = await client.getScanStatistics();
+const trend = await client.getScoreTrend('target-uuid');
+const quota = await client.getQuota();
+const errors = await client.getErrorLogs('job-uuid');
+const dashboard = await client.getDashboardOverview();
 ```
 
 ## Authentication
@@ -138,7 +148,7 @@ Full documentation at **[cdot65.github.io/prisma-airs-sdk](https://cdot65.github
 ```bash
 npm install
 npm run build          # tsup (CJS + ESM + .d.ts)
-npm run test           # vitest (829 tests, 99%+ coverage)
+npm run test           # vitest (876 tests, 99%+ coverage)
 npm run lint           # eslint
 npm run typecheck      # tsc --noEmit
 ```

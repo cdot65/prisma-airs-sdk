@@ -1,5 +1,17 @@
 # Release Notes
 
+## v0.6.11
+
+### Documentation
+
+- **README**: Fix stale test count (829 → 876), add Red Team convenience methods and `getPyPIAuth()` to quick start
+- **Docs index**: Fix schema/enum counts (53 typed enum consts, 226 Zod schemas)
+- **Quick start**: Add self-contained validation scripts to example listing
+- **Management API docs**: Add `profiles-crud` validation script to examples section
+- **New example**: `npm run example:profiles-crud` — full CRUD lifecycle with mock servers (create/list/get/update/delete/force-delete)
+
+---
+
 ## v0.6.10
 
 ### Bug Fixes

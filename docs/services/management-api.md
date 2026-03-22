@@ -441,8 +441,12 @@ try {
 # Copy env file and fill in credentials
 cp .env.example .env
 
-# Run examples
+# Run examples (require credentials)
 npm run example:mgmt-auth
 npm run example:mgmt-profiles
 npm run example:mgmt-topics
+
+# Self-contained validation (no credentials needed — uses mock servers)
+npm run example:profiles-get       # get() and getByName() methods
+npm run example:profiles-crud      # full CRUD lifecycle (create/list/get/update/delete/force-delete)
 ```

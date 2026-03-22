@@ -173,4 +173,10 @@ npm run example:red-team-targets
 
 # OAuth lifecycle validation
 npm run example:oauth-lifecycle
+
+# Self-contained validation (no credentials needed — uses mock servers)
+npm run example:profiles-get       # get() and getByName() methods
+npm run example:profiles-crud      # full CRUD lifecycle
+npm run example:oauth-lifecycle    # OAuth token state machine
+npm run example:red-team-mgmt     # Red Team target + custom attack CRUD
 ```
