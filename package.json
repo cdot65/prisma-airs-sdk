@@ -58,6 +58,7 @@
     "example:model-sec-scans": "npx tsx --env-file=.env examples/model-security-scans.ts",
     "example:red-team-scans": "npx tsx --env-file=.env examples/red-team-scans.ts",
     "example:red-team-targets": "npx tsx --env-file=.env examples/red-team-targets.ts",
+    "example:profiles-get": "npx tsx examples/profiles-get-validation.ts",
     "example:oauth-lifecycle": "npx tsx examples/oauth-lifecycle-validation.ts",
     "example:red-team-mgmt": "npx tsx examples/red-team-mgmt-validation.ts"
   },
