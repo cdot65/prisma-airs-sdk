@@ -263,4 +263,44 @@ describe('RedTeamTargetsClient', () => {
       expect(JSON.parse(init.body)).toEqual(body);
     });
   });
+
+  // -----------------------------------------------------------------------
+  // getTargetMetadata
+  // -----------------------------------------------------------------------
+  describe('getTargetMetadata', () => {
+    it('GETs /v1/template/target-metadata', async () => {
+      const metadata = { fields: ['name', 'type'] };
+      mockFetch(metadata);
+      const result = await client.getTargetMetadata();
+
+      expect(result.fields).toEqual(['name', 'type']);
+      const [url, init] = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0];
+      expect(url).toContain('/v1/template/target-metadata');
+      expect(init.method).toBe('GET');
+    });
+  });
+
+  // -----------------------------------------------------------------------
+  // getTargetTemplates
+  // -----------------------------------------------------------------------
+  describe('getTargetTemplates', () => {
+    it('GETs /v1/template/target-templates', async () => {
+      const templates = {
+        OPENAI: { model: 'gpt-4' },
+        HUGGING_FACE: {},
+        DATABRICKS: {},
+        BEDROCK: {},
+        REST: {},
+        STREAMING: {},
+        WEBSOCKET: {},
+      };
+      mockFetch(templates);
+      const result = await client.getTargetTemplates();
+
+      expect(result.OPENAI).toEqual({ model: 'gpt-4' });
+      const [url, init] = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0];
+      expect(url).toContain('/v1/template/target-templates');
+      expect(init.method).toBe('GET');
+    });
+  });
 });

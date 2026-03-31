@@ -1201,6 +1201,19 @@ export const TargetProfileResponseSchema = z
   .passthrough();
 export type TargetProfileResponse = z.infer<typeof TargetProfileResponseSchema>;
 
+export const TargetTemplateCollectionSchema = z
+  .object({
+    OPENAI: z.record(z.unknown()),
+    HUGGING_FACE: z.record(z.unknown()),
+    DATABRICKS: z.record(z.unknown()),
+    BEDROCK: z.record(z.unknown()),
+    REST: z.record(z.unknown()),
+    STREAMING: z.record(z.unknown()),
+    WEBSOCKET: z.record(z.unknown()),
+  })
+  .passthrough();
+export type TargetTemplateCollection = z.infer<typeof TargetTemplateCollectionSchema>;
+
 export const BaseResponseSchema = z
   .object({
     message: z.string(),

@@ -1,4 +1,8 @@
-import { RED_TEAM_TARGET_PATH, RED_TEAM_TARGET_VALIDATE_AUTH_PATH } from '../constants.js';
+import {
+  RED_TEAM_TARGET_PATH,
+  RED_TEAM_TARGET_VALIDATE_AUTH_PATH,
+  RED_TEAM_TEMPLATE_PATH,
+} from '../constants.js';
 import { AISecSDKException, ErrorType } from '../errors.js';
 import { isValidUuid } from '../utils.js';
 import { managementHttpRequest } from '../management/management-http-client.js';
@@ -15,6 +19,7 @@ import type {
   TargetProfileResponse,
   TargetAuthValidationRequest,
   TargetAuthValidationResponse,
+  TargetTemplateCollection,
   BaseResponse,
 } from '../models/red-team.js';
 
@@ -251,6 +256,36 @@ export class RedTeamTargetsClient {
       baseUrl: this.baseUrl,
       path: RED_TEAM_TARGET_VALIDATE_AUTH_PATH,
       body: request,
+      oauthClient: this.oauthClient,
+      numRetries: this.numRetries,
+    });
+    return res.data;
+  }
+
+  /**
+   * Get target metadata (field definitions for target configuration).
+   * @returns The target metadata object.
+   */
+  async getTargetMetadata(): Promise<Record<string, unknown>> {
+    const res = await managementHttpRequest<Record<string, unknown>>({
+      method: 'GET',
+      baseUrl: this.baseUrl,
+      path: `${RED_TEAM_TEMPLATE_PATH}/target-metadata`,
+      oauthClient: this.oauthClient,
+      numRetries: this.numRetries,
+    });
+    return res.data;
+  }
+
+  /**
+   * Get target templates for all supported provider types.
+   * @returns The collection of target templates keyed by provider.
+   */
+  async getTargetTemplates(): Promise<TargetTemplateCollection> {
+    const res = await managementHttpRequest<TargetTemplateCollection>({
+      method: 'GET',
+      baseUrl: this.baseUrl,
+      path: `${RED_TEAM_TEMPLATE_PATH}/target-templates`,
       oauthClient: this.oauthClient,
       numRetries: this.numRetries,
     });
