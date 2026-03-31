@@ -38,6 +38,7 @@ import {
   AuthConfigSchema,
   TargetAuthValidationRequestSchema,
   TargetAuthValidationResponseSchema,
+  TargetTemplateCollectionSchema,
 } from '../../src/models/red-team.js';
 
 // ---------------------------------------------------------------------------
@@ -1249,5 +1250,59 @@ describe('TargetAuthValidationResponseSchema', () => {
 
   it('rejects missing validated', () => {
     expect(() => TargetAuthValidationResponseSchema.parse({ token_preview: 'x' })).toThrow();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Target template schemas
+// ---------------------------------------------------------------------------
+
+describe('TargetTemplateCollectionSchema', () => {
+  it('parses with all 7 keys', () => {
+    const data = {
+      OPENAI: { model: 'gpt-4' },
+      HUGGING_FACE: { model: 'llama' },
+      DATABRICKS: { endpoint: '/serving' },
+      BEDROCK: { region: 'us-east-1' },
+      REST: { method: 'POST' },
+      STREAMING: { stream: true },
+      WEBSOCKET: { url: 'wss://example.com' },
+    };
+    const parsed = TargetTemplateCollectionSchema.parse(data);
+    expect(parsed.OPENAI).toEqual({ model: 'gpt-4' });
+    expect(parsed.HUGGING_FACE).toEqual({ model: 'llama' });
+    expect(parsed.DATABRICKS).toEqual({ endpoint: '/serving' });
+    expect(parsed.BEDROCK).toEqual({ region: 'us-east-1' });
+    expect(parsed.REST).toEqual({ method: 'POST' });
+    expect(parsed.STREAMING).toEqual({ stream: true });
+    expect(parsed.WEBSOCKET).toEqual({ url: 'wss://example.com' });
+  });
+
+  it('rejects missing a required key', () => {
+    const data = {
+      OPENAI: {},
+      HUGGING_FACE: {},
+      DATABRICKS: {},
+      BEDROCK: {},
+      REST: {},
+      STREAMING: {},
+      // missing WEBSOCKET
+    };
+    expect(() => TargetTemplateCollectionSchema.parse(data)).toThrow();
+  });
+
+  it('passes through unknown fields', () => {
+    const data = {
+      OPENAI: {},
+      HUGGING_FACE: {},
+      DATABRICKS: {},
+      BEDROCK: {},
+      REST: {},
+      STREAMING: {},
+      WEBSOCKET: {},
+      FUTURE_PROVIDER: { x: 1 },
+    };
+    const parsed = TargetTemplateCollectionSchema.parse(data);
+    expect((parsed as Record<string, unknown>).FUTURE_PROVIDER).toEqual({ x: 1 });
   });
 });
