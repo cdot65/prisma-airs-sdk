@@ -28,6 +28,7 @@ import {
   CustomPromptCreateRequestSchema,
   CustomPromptResponseSchema,
   PropertyNamesListResponseSchema,
+  CustomPromptSetListActiveSchema,
   BaseResponseSchema,
   DashboardOverviewResponseSchema,
   PromptSetStatsSchema,
@@ -895,16 +896,12 @@ describe('CustomPromptResponseSchema', () => {
 // ---------------------------------------------------------------------------
 
 describe('PropertyNamesListResponseSchema', () => {
-  it('parses valid list', () => {
-    const data = {
-      data: [
-        { property_name: 'category', created_at: now },
-        { property_name: 'severity', created_at: now },
-      ],
-    };
+  it('parses string array per OpenAPI spec', () => {
+    const data = { data: ['category', 'severity'] };
     const parsed = PropertyNamesListResponseSchema.parse(data);
     expect(parsed.data).toHaveLength(2);
-    expect(parsed.data![0].property_name).toBe('category');
+    expect(parsed.data![0]).toBe('category');
+    expect(parsed.data![1]).toBe('severity');
   });
 
   it('accepts missing data', () => {
@@ -915,6 +912,33 @@ describe('PropertyNamesListResponseSchema', () => {
   it('passes through unknown fields', () => {
     const res = PropertyNamesListResponseSchema.parse({ extra: 'val' });
     expect((res as Record<string, unknown>).extra).toBe('val');
+  });
+});
+
+describe('CustomPromptSetListActiveSchema', () => {
+  it('uses CustomPromptSetReference items per OpenAPI spec', () => {
+    const data = {
+      data: [
+        {
+          uuid: validUuid,
+          name: 'active-set',
+          status: 'ACTIVE',
+          active: true,
+          tsg_id: '123',
+          created_at: now,
+          updated_at: now,
+        },
+      ],
+    };
+    const parsed = CustomPromptSetListActiveSchema.parse(data);
+    expect(parsed.data).toHaveLength(1);
+    expect(parsed.data![0].uuid).toBe(validUuid);
+    expect(parsed.data![0].tsg_id).toBe('123');
+  });
+
+  it('accepts missing data', () => {
+    const parsed = CustomPromptSetListActiveSchema.parse({});
+    expect(parsed.data).toBeUndefined();
   });
 });
 
