@@ -33,6 +33,21 @@ export const AuthType = {
 } as const;
 export type AuthType = (typeof AuthType)[keyof typeof AuthType];
 
+/** Target authentication type (distinct from Databricks AuthType). */
+export const TargetAuthType = {
+  HEADERS: 'HEADERS',
+  BASIC_AUTH: 'BASIC_AUTH',
+  OAUTH2: 'OAUTH2',
+} as const;
+export type TargetAuthType = (typeof TargetAuthType)[keyof typeof TargetAuthType];
+
+/** Location for basic auth credentials. */
+export const BasicAuthLocation = {
+  HEADER: 'HEADER',
+  PAYLOAD: 'PAYLOAD',
+} as const;
+export type BasicAuthLocation = (typeof BasicAuthLocation)[keyof typeof BasicAuthLocation];
+
 /** Brand risk subcategories. */
 export const BrandSubCategory = {
   COMPETITOR_ENDORSEMENTS: 'COMPETITOR_ENDORSEMENTS',
