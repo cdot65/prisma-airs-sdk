@@ -42,6 +42,19 @@ import {
   EulaAcceptRequestSchema,
   EulaContentResponseSchema,
   EulaResponseSchema,
+  DeviceInstanceSchema,
+  DeviceLicenseSchema,
+  DeviceSchema,
+  DeviceStatusSchema,
+  DeviceRequestSchema,
+  DeviceResponseSchema,
+  DeploymentProfileAttributeSchema,
+  DeploymentProfileRequestSchema,
+  InstanceExtraDetailsSchema,
+  InstanceRequestSchema,
+  InstanceResponseSchema,
+  InstanceGetResponseSchema,
+  RegistryCredentialsSchema,
 } from '../../src/models/red-team.js';
 
 // ---------------------------------------------------------------------------
@@ -1399,5 +1412,270 @@ describe('EulaResponseSchema', () => {
   it('passes through unknown fields', () => {
     const parsed = EulaResponseSchema.parse({ is_accepted: true, extra: 42 });
     expect((parsed as Record<string, unknown>).extra).toBe(42);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Instance/Licensing schemas
+// ---------------------------------------------------------------------------
+
+describe('DeviceInstanceSchema', () => {
+  it('parses with all required fields', () => {
+    const parsed = DeviceInstanceSchema.parse({
+      app_id: 'app-1',
+      region: 'us-east-1',
+      tenant_id: 'tenant-1',
+      tsg_id: 'tsg-1',
+    });
+    expect(parsed.app_id).toBe('app-1');
+    expect(parsed.region).toBe('us-east-1');
+  });
+
+  it('rejects missing required field', () => {
+    expect(() => DeviceInstanceSchema.parse({ app_id: 'a', region: 'r' })).toThrow();
+  });
+
+  it('passes through unknown fields', () => {
+    const parsed = DeviceInstanceSchema.parse({
+      app_id: 'a',
+      region: 'r',
+      tenant_id: 't',
+      tsg_id: 'g',
+      extra: true,
+    });
+    expect((parsed as Record<string, unknown>).extra).toBe(true);
+  });
+});
+
+describe('DeviceLicenseSchema', () => {
+  it('parses empty object (all fields optional)', () => {
+    const parsed = DeviceLicenseSchema.parse({});
+    expect(parsed).toBeDefined();
+  });
+
+  it('parses with all fields', () => {
+    const parsed = DeviceLicenseSchema.parse({
+      authorizationCode: 'AC-123',
+      expirationDate: '2025-12-31',
+      licensePanDbIdentification: 'pan-db-1',
+      partNumber: 'PN-001',
+      serialNumber: 'SN-001',
+      subtypeName: 'Premium',
+      registrationDate: '2025-01-01',
+    });
+    expect(parsed.authorizationCode).toBe('AC-123');
+    expect(parsed.serialNumber).toBe('SN-001');
+  });
+});
+
+describe('DeviceSchema', () => {
+  it('parses with serial_number only', () => {
+    const parsed = DeviceSchema.parse({ serial_number: 'SN-001' });
+    expect(parsed.serial_number).toBe('SN-001');
+  });
+
+  it('parses with nested licenses', () => {
+    const parsed = DeviceSchema.parse({
+      serial_number: 'SN-001',
+      licenses: [{ authorizationCode: 'AC-1' }],
+    });
+    expect(parsed.licenses).toHaveLength(1);
+  });
+
+  it('rejects missing serial_number', () => {
+    expect(() => DeviceSchema.parse({ model: 'test' })).toThrow();
+  });
+});
+
+describe('DeviceStatusSchema', () => {
+  it('parses with status only', () => {
+    const parsed = DeviceStatusSchema.parse({ status: 'SUCCESS' });
+    expect(parsed.status).toBe('SUCCESS');
+  });
+
+  it('parses with all fields', () => {
+    const parsed = DeviceStatusSchema.parse({
+      status: 'FAILED',
+      error: 'Invalid serial',
+      serial_number: 'SN-001',
+    });
+    expect(parsed.error).toBe('Invalid serial');
+  });
+});
+
+describe('DeviceRequestSchema', () => {
+  it('parses with nested instance', () => {
+    const parsed = DeviceRequestSchema.parse({
+      instance: { app_id: 'a', region: 'r', tenant_id: 't', tsg_id: 'g' },
+    });
+    expect(parsed.instance.app_id).toBe('a');
+  });
+
+  it('parses with devices array', () => {
+    const parsed = DeviceRequestSchema.parse({
+      instance: { app_id: 'a', region: 'r', tenant_id: 't', tsg_id: 'g' },
+      devices: [{ serial_number: 'SN-1' }],
+    });
+    expect(parsed.devices).toHaveLength(1);
+  });
+});
+
+describe('DeviceResponseSchema', () => {
+  it('parses empty object', () => {
+    const parsed = DeviceResponseSchema.parse({});
+    expect(parsed).toBeDefined();
+  });
+
+  it('parses with devices statuses', () => {
+    const parsed = DeviceResponseSchema.parse({
+      devices: [{ status: 'SUCCESS', serial_number: 'SN-1' }],
+      status: 'COMPLETED',
+    });
+    expect(parsed.devices).toHaveLength(1);
+  });
+});
+
+describe('DeploymentProfileAttributeSchema', () => {
+  it('parses empty object', () => {
+    const parsed = DeploymentProfileAttributeSchema.parse({});
+    expect(parsed).toBeDefined();
+  });
+
+  it('parses with all fields', () => {
+    const parsed = DeploymentProfileAttributeSchema.parse({
+      quantity: 100,
+      unit_of_measure: 'requests',
+    });
+    expect(parsed.quantity).toBe(100);
+  });
+});
+
+describe('DeploymentProfileRequestSchema', () => {
+  it('parses empty object', () => {
+    const parsed = DeploymentProfileRequestSchema.parse({});
+    expect(parsed).toBeDefined();
+  });
+
+  it('parses with nested attributes', () => {
+    const parsed = DeploymentProfileRequestSchema.parse({
+      profileName: 'Default',
+      attributes: [{ quantity: 10 }],
+    });
+    expect(parsed.profileName).toBe('Default');
+    expect(parsed.attributes).toHaveLength(1);
+  });
+
+  it('defaults aveTextRecord to 0', () => {
+    const parsed = DeploymentProfileRequestSchema.parse({});
+    expect(parsed.aveTextRecord).toBe(0);
+  });
+});
+
+describe('InstanceExtraDetailsSchema', () => {
+  it('parses empty object', () => {
+    const parsed = InstanceExtraDetailsSchema.parse({});
+    expect(parsed).toBeDefined();
+  });
+
+  it('parses with deployment_profiles', () => {
+    const parsed = InstanceExtraDetailsSchema.parse({
+      deployment_profiles: [{ profileName: 'P1' }],
+    });
+    expect(parsed.deployment_profiles).toHaveLength(1);
+  });
+});
+
+describe('InstanceRequestSchema', () => {
+  it('parses with required fields', () => {
+    const parsed = InstanceRequestSchema.parse({
+      tsg_id: 'tsg-1',
+      tenant_id: 'tenant-1',
+      app_id: 'app-1',
+      region: 'us-east-1',
+    });
+    expect(parsed.tsg_id).toBe('tsg-1');
+  });
+
+  it('rejects missing required field', () => {
+    expect(() =>
+      InstanceRequestSchema.parse({ tsg_id: 'tsg-1', tenant_id: 't' }),
+    ).toThrow();
+  });
+
+  it('parses with nested extra details', () => {
+    const parsed = InstanceRequestSchema.parse({
+      tsg_id: 'tsg',
+      tenant_id: 't',
+      app_id: 'a',
+      region: 'r',
+      extra: { deployment_profiles: [{ profileName: 'P1' }] },
+    });
+    expect(parsed.extra?.deployment_profiles).toHaveLength(1);
+  });
+});
+
+describe('InstanceResponseSchema', () => {
+  it('parses with tsg_id only', () => {
+    const parsed = InstanceResponseSchema.parse({ tsg_id: 'tsg-1' });
+    expect(parsed.tsg_id).toBe('tsg-1');
+  });
+
+  it('parses with all fields', () => {
+    const parsed = InstanceResponseSchema.parse({
+      tsg_id: 'tsg-1',
+      tenant_id: 'tenant-1',
+      app_id: 'app-1',
+      is_success: true,
+    });
+    expect(parsed.is_success).toBe(true);
+  });
+});
+
+describe('InstanceGetResponseSchema', () => {
+  it('parses with required fields', () => {
+    const parsed = InstanceGetResponseSchema.parse({
+      tsg_id: 'tsg-1',
+      tenant_id: 't',
+      app_id: 'a',
+      region: 'r',
+    });
+    expect(parsed.tsg_id).toBe('tsg-1');
+  });
+
+  it('parses with optional fields', () => {
+    const parsed = InstanceGetResponseSchema.parse({
+      tsg_id: 'tsg',
+      tenant_id: 't',
+      app_id: 'a',
+      region: 'r',
+      support_account_id: 'sa-1',
+      deployment_profiles: [{ profileName: 'P1' }],
+    });
+    expect(parsed.support_account_id).toBe('sa-1');
+    expect(parsed.deployment_profiles).toHaveLength(1);
+  });
+});
+
+describe('RegistryCredentialsSchema', () => {
+  it('parses valid credentials', () => {
+    const parsed = RegistryCredentialsSchema.parse({
+      token: 'eyJhbGci...',
+      expiry: '2025-12-31T23:59:59Z',
+    });
+    expect(parsed.token).toBe('eyJhbGci...');
+    expect(parsed.expiry).toBe('2025-12-31T23:59:59Z');
+  });
+
+  it('rejects missing token', () => {
+    expect(() => RegistryCredentialsSchema.parse({ expiry: '2025-12-31' })).toThrow();
+  });
+
+  it('rejects missing expiry', () => {
+    expect(() => RegistryCredentialsSchema.parse({ token: 'tok' })).toThrow();
+  });
+
+  it('passes through unknown fields', () => {
+    const parsed = RegistryCredentialsSchema.parse({ token: 't', expiry: 'e', extra: 1 });
+    expect((parsed as Record<string, unknown>).extra).toBe(1);
   });
 });

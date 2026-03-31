@@ -4,7 +4,7 @@ import type { OAuthClient } from './oauth-client.js';
 
 /** @internal Options for a management API HTTP request. */
 export interface MgmtHttpRequestOptions {
-  method: 'GET' | 'POST' | 'PUT' | 'DELETE';
+  method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
   baseUrl: string;
   path: string;
   body?: unknown;
