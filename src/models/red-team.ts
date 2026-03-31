@@ -1450,3 +1450,32 @@ export const DashboardOverviewResponseSchema = z
   })
   .passthrough();
 export type DashboardOverviewResponse = z.infer<typeof DashboardOverviewResponseSchema>;
+
+// ---------------------------------------------------------------------------
+// Management — EULA schemas
+// ---------------------------------------------------------------------------
+
+export const EulaAcceptRequestSchema = z
+  .object({
+    eula_content: z.string(),
+    accepted_at: z.string().nullable().optional(),
+  })
+  .passthrough();
+export type EulaAcceptRequest = z.infer<typeof EulaAcceptRequestSchema>;
+
+export const EulaContentResponseSchema = z
+  .object({
+    content: z.string(),
+  })
+  .passthrough();
+export type EulaContentResponse = z.infer<typeof EulaContentResponseSchema>;
+
+export const EulaResponseSchema = z
+  .object({
+    uuid: z.string().nullable().optional(),
+    is_accepted: z.boolean(),
+    accepted_at: z.string().nullable().optional(),
+    accepted_by_user_id: z.string().nullable().optional(),
+  })
+  .passthrough();
+export type EulaResponse = z.infer<typeof EulaResponseSchema>;
