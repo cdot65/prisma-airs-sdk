@@ -96,6 +96,42 @@ export const MultiTurnStatelessConfigSchema = z
 export type MultiTurnStatelessConfig = z.infer<typeof MultiTurnStatelessConfigSchema>;
 
 // ---------------------------------------------------------------------------
+// Auth config schemas
+// ---------------------------------------------------------------------------
+
+export const HeadersAuthConfigSchema = z
+  .object({ auth_header: z.record(z.unknown()) })
+  .passthrough();
+export type HeadersAuthConfig = z.infer<typeof HeadersAuthConfigSchema>;
+
+export const BasicAuthAuthConfigSchema = z
+  .object({
+    basic_auth_location: z.string().default('HEADER'),
+    basic_auth_header: z.record(z.unknown()).nullable().optional(),
+  })
+  .passthrough();
+export type BasicAuthAuthConfig = z.infer<typeof BasicAuthAuthConfigSchema>;
+
+export const OAuth2AuthConfigSchema = z
+  .object({
+    oauth2_token_url: z.string(),
+    oauth2_expiry_minutes: z.number().int().default(60),
+    oauth2_headers: z.record(z.unknown()).optional(),
+    oauth2_body_params: z.record(z.unknown()).optional(),
+    oauth2_token_response_key: z.string().default('access_token'),
+    oauth2_inject_header: z.record(z.unknown()),
+  })
+  .passthrough();
+export type OAuth2AuthConfig = z.infer<typeof OAuth2AuthConfigSchema>;
+
+export const AuthConfigSchema = z.union([
+  HeadersAuthConfigSchema,
+  BasicAuthAuthConfigSchema,
+  OAuth2AuthConfigSchema,
+]);
+export type AuthConfig = z.infer<typeof AuthConfigSchema>;
+
+// ---------------------------------------------------------------------------
 // Provider-specific connection parameter schemas
 // ---------------------------------------------------------------------------
 
@@ -314,6 +350,7 @@ export const TargetReferenceSchema = z
     target_background: TargetBackgroundSchema.nullable().optional(),
     profiling_status: z.string().nullable().optional(),
     additional_context: TargetAdditionalContextSchema.nullable().optional(),
+    auth_type: z.string().nullable().optional(),
   })
   .passthrough();
 export type TargetReference = z.infer<typeof TargetReferenceSchema>;
@@ -1012,6 +1049,8 @@ export const TargetCreateRequestSchema = z
     additional_context: z.unknown().optional(),
     extra_info: z.unknown().optional(),
     network_broker_channel_uuid: z.unknown().optional(),
+    auth_type: z.string().nullable().optional(),
+    auth_config: z.unknown().nullable().optional(),
   })
   .passthrough();
 export type TargetCreateRequest = z.infer<typeof TargetCreateRequestSchema>;
@@ -1031,6 +1070,8 @@ export const TargetUpdateRequestSchema = z
     additional_context: z.unknown().optional(),
     extra_info: z.unknown().optional(),
     network_broker_channel_uuid: z.unknown().optional(),
+    auth_type: z.string().nullable().optional(),
+    auth_config: z.unknown().nullable().optional(),
   })
   .passthrough();
 export type TargetUpdateRequest = z.infer<typeof TargetUpdateRequestSchema>;
@@ -1068,6 +1109,7 @@ export const TargetResponseSchema = z
     target_background: z.unknown().optional(),
     profiling_status: z.unknown().optional(),
     additional_context: z.unknown().optional(),
+    auth_type: z.string().nullable().optional(),
   })
   .passthrough();
 export type TargetResponse = z.infer<typeof TargetResponseSchema>;
@@ -1093,6 +1135,7 @@ export const TargetListItemSchema = z
     secret_version: z.unknown().optional(),
     created_by_user_id: z.unknown().optional(),
     updated_by_user_id: z.unknown().optional(),
+    auth_type: z.string().nullable().optional(),
   })
   .passthrough();
 export type TargetListItem = z.infer<typeof TargetListItemSchema>;
@@ -1119,6 +1162,8 @@ export const TargetProbeRequestSchema = z
     extra_info: z.unknown().optional(),
     network_broker_channel_uuid: z.unknown().optional(),
     probe_fields: z.unknown().optional(),
+    auth_type: z.string().nullable().optional(),
+    auth_config: z.unknown().nullable().optional(),
   })
   .passthrough();
 export type TargetProbeRequest = z.infer<typeof TargetProbeRequestSchema>;

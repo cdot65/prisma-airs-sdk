@@ -4,6 +4,7 @@ import {
   AttackStatus,
   AttackType,
   AuthType,
+  BasicAuthLocation,
   BrandSubCategory,
   ComplianceSubCategory,
   CountedQuotaEnum,
@@ -27,6 +28,7 @@ import {
   SeverityFilter,
   StatusQueryParam,
   StreamType,
+  TargetAuthType,
   TargetConnectionType,
   TargetStatus,
   TargetType,
@@ -380,6 +382,29 @@ describe('TargetStatus', () => {
 
   it('has exactly 7 values', () => {
     expect(Object.keys(TargetStatus)).toHaveLength(7);
+  });
+});
+
+describe('TargetAuthType', () => {
+  it('has expected values', () => {
+    expect(TargetAuthType.HEADERS).toBe('HEADERS');
+    expect(TargetAuthType.BASIC_AUTH).toBe('BASIC_AUTH');
+    expect(TargetAuthType.OAUTH2).toBe('OAUTH2');
+  });
+
+  it('has exactly 3 values', () => {
+    expect(Object.keys(TargetAuthType)).toHaveLength(3);
+  });
+});
+
+describe('BasicAuthLocation', () => {
+  it('has expected values', () => {
+    expect(BasicAuthLocation.HEADER).toBe('HEADER');
+    expect(BasicAuthLocation.PAYLOAD).toBe('PAYLOAD');
+  });
+
+  it('has exactly 2 values', () => {
+    expect(Object.keys(BasicAuthLocation)).toHaveLength(2);
   });
 });
 
