@@ -246,4 +246,21 @@ describe('RedTeamTargetsClient', () => {
       );
     });
   });
+
+  // -----------------------------------------------------------------------
+  // validateAuth
+  // -----------------------------------------------------------------------
+  describe('validateAuth', () => {
+    it('POSTs to /v1/target/validate-auth', async () => {
+      const body = { auth_type: 'HEADERS', auth_config: { auth_header: { key: 'val' } } };
+      mockFetch({ validated: true, token_preview: 'Bearer eyJ...', expires_in: 3600 });
+      const result = await client.validateAuth(body);
+
+      expect(result.validated).toBe(true);
+      const [url, init] = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0];
+      expect(url).toContain('/v1/target/validate-auth');
+      expect(init.method).toBe('POST');
+      expect(JSON.parse(init.body)).toEqual(body);
+    });
+  });
 });

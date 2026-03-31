@@ -36,6 +36,8 @@ import {
   BasicAuthAuthConfigSchema,
   OAuth2AuthConfigSchema,
   AuthConfigSchema,
+  TargetAuthValidationRequestSchema,
+  TargetAuthValidationResponseSchema,
 } from '../../src/models/red-team.js';
 
 // ---------------------------------------------------------------------------
@@ -1193,5 +1195,61 @@ describe('TargetResponseSchema (auth_type field)', () => {
       auth_type: 'OAUTH2',
     });
     expect(parsed.auth_type).toBe('OAUTH2');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Target auth validation schemas
+// ---------------------------------------------------------------------------
+
+describe('TargetAuthValidationRequestSchema', () => {
+  it('parses with auth_type + auth_config', () => {
+    const parsed = TargetAuthValidationRequestSchema.parse({
+      auth_type: 'HEADERS',
+      auth_config: { auth_header: { Authorization: 'Bearer tok' } },
+    });
+    expect(parsed.auth_type).toBe('HEADERS');
+    expect(parsed.auth_config).toEqual({ auth_header: { Authorization: 'Bearer tok' } });
+  });
+
+  it('rejects missing auth_type', () => {
+    expect(() =>
+      TargetAuthValidationRequestSchema.parse({ auth_config: { key: 'val' } }),
+    ).toThrow();
+  });
+
+  it('parses with optional target_id and network_broker_channel_uuid', () => {
+    const parsed = TargetAuthValidationRequestSchema.parse({
+      auth_type: 'BASIC',
+      auth_config: { username: 'u', password: 'p' },
+      target_id: validUuid,
+      network_broker_channel_uuid: validUuid,
+    });
+    expect(parsed.target_id).toBe(validUuid);
+    expect(parsed.network_broker_channel_uuid).toBe(validUuid);
+  });
+});
+
+describe('TargetAuthValidationResponseSchema', () => {
+  it('parses { validated: true }', () => {
+    const parsed = TargetAuthValidationResponseSchema.parse({ validated: true });
+    expect(parsed.validated).toBe(true);
+  });
+
+  it('parses with all fields', () => {
+    const parsed = TargetAuthValidationResponseSchema.parse({
+      validated: true,
+      token_preview: 'Bearer eyJ...',
+      expires_in: 3600,
+    });
+    expect(parsed.validated).toBe(true);
+    expect(parsed.token_preview).toBe('Bearer eyJ...');
+    expect(parsed.expires_in).toBe(3600);
+  });
+
+  it('rejects missing validated', () => {
+    expect(() =>
+      TargetAuthValidationResponseSchema.parse({ token_preview: 'x' }),
+    ).toThrow();
   });
 });
