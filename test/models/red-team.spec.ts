@@ -1248,8 +1248,6 @@ describe('TargetAuthValidationResponseSchema', () => {
   });
 
   it('rejects missing validated', () => {
-    expect(() =>
-      TargetAuthValidationResponseSchema.parse({ token_preview: 'x' }),
-    ).toThrow();
+    expect(() => TargetAuthValidationResponseSchema.parse({ token_preview: 'x' })).toThrow();
   });
 });
