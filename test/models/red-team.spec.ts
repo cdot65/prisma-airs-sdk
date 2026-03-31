@@ -32,6 +32,10 @@ import {
   BaseResponseSchema,
   DashboardOverviewResponseSchema,
   PromptSetStatsSchema,
+  HeadersAuthConfigSchema,
+  BasicAuthAuthConfigSchema,
+  OAuth2AuthConfigSchema,
+  AuthConfigSchema,
 } from '../../src/models/red-team.js';
 
 // ---------------------------------------------------------------------------
@@ -1077,5 +1081,117 @@ describe('PromptSetStatsSchema', () => {
     const input = { total_prompts: 10, active_prompts: 8, inactive_prompts: 2 };
     const parsed = PromptSetStatsSchema.parse(input);
     expect(parsed.failed_prompts).toBeUndefined();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Auth config schemas
+// ---------------------------------------------------------------------------
+
+describe('HeadersAuthConfigSchema', () => {
+  it('parses with auth_header object', () => {
+    const parsed = HeadersAuthConfigSchema.parse({
+      auth_header: { Authorization: 'Bearer tok' },
+    });
+    expect(parsed.auth_header).toEqual({ Authorization: 'Bearer tok' });
+  });
+});
+
+describe('BasicAuthAuthConfigSchema', () => {
+  it('defaults basic_auth_location to HEADER', () => {
+    const parsed = BasicAuthAuthConfigSchema.parse({});
+    expect(parsed.basic_auth_location).toBe('HEADER');
+  });
+
+  it('parses with PAYLOAD location', () => {
+    const parsed = BasicAuthAuthConfigSchema.parse({
+      basic_auth_location: 'PAYLOAD',
+      basic_auth_header: { user: 'admin', pass: 'secret' },
+    });
+    expect(parsed.basic_auth_location).toBe('PAYLOAD');
+    expect(parsed.basic_auth_header).toEqual({ user: 'admin', pass: 'secret' });
+  });
+});
+
+describe('OAuth2AuthConfigSchema', () => {
+  it('parses with required fields and applies defaults', () => {
+    const parsed = OAuth2AuthConfigSchema.parse({
+      oauth2_token_url: 'https://auth.example.com/token',
+      oauth2_inject_header: { Authorization: 'Bearer {{token}}' },
+    });
+    expect(parsed.oauth2_token_url).toBe('https://auth.example.com/token');
+    expect(parsed.oauth2_expiry_minutes).toBe(60);
+    expect(parsed.oauth2_token_response_key).toBe('access_token');
+  });
+
+  it('rejects missing oauth2_token_url', () => {
+    expect(() =>
+      OAuth2AuthConfigSchema.parse({
+        oauth2_inject_header: { Authorization: 'Bearer {{token}}' },
+      }),
+    ).toThrow();
+  });
+});
+
+describe('AuthConfigSchema', () => {
+  it('accepts headers auth config', () => {
+    const parsed = AuthConfigSchema.parse({
+      auth_header: { Authorization: 'Bearer tok' },
+    });
+    expect(parsed).toHaveProperty('auth_header');
+  });
+
+  it('accepts basic auth config', () => {
+    const parsed = AuthConfigSchema.parse({
+      basic_auth_location: 'HEADER',
+    });
+    expect(parsed).toHaveProperty('basic_auth_location');
+  });
+
+  it('accepts oauth2 auth config', () => {
+    const parsed = AuthConfigSchema.parse({
+      oauth2_token_url: 'https://auth.example.com/token',
+      oauth2_inject_header: { Authorization: 'Bearer {{token}}' },
+    });
+    expect(parsed).toHaveProperty('oauth2_token_url');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Auth fields on existing target schemas
+// ---------------------------------------------------------------------------
+
+describe('TargetCreateRequestSchema (auth fields)', () => {
+  it('parses with auth_type and auth_config', () => {
+    const parsed = TargetCreateRequestSchema.parse({
+      name: 'authed-target',
+      auth_type: 'HEADERS',
+      auth_config: { auth_header: { Authorization: 'Bearer tok' } },
+    });
+    expect(parsed.auth_type).toBe('HEADERS');
+    expect(parsed.auth_config).toEqual({ auth_header: { Authorization: 'Bearer tok' } });
+  });
+
+  it('parses without auth_type/auth_config (still optional)', () => {
+    const parsed = TargetCreateRequestSchema.parse({ name: 'no-auth' });
+    expect(parsed.auth_type).toBeUndefined();
+    expect(parsed.auth_config).toBeUndefined();
+  });
+});
+
+describe('TargetResponseSchema (auth_type field)', () => {
+  it('parses with auth_type', () => {
+    const parsed = TargetResponseSchema.parse({
+      uuid: validUuid,
+      tsg_id: '123',
+      name: 'my-target',
+      status: 'active',
+      active: true,
+      validated: true,
+      created_at: now,
+      updated_at: now,
+      auth_type: 'OAUTH2',
+    });
+    expect(parsed.auth_type).toBe('OAUTH2');
   });
 });
