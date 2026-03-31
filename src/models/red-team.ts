@@ -1479,3 +1479,157 @@ export const EulaResponseSchema = z
   })
   .passthrough();
 export type EulaResponse = z.infer<typeof EulaResponseSchema>;
+
+// ---------------------------------------------------------------------------
+// Management — Instance/Licensing schemas
+// ---------------------------------------------------------------------------
+
+export const DeviceInstanceSchema = z
+  .object({
+    app_id: z.string(),
+    region: z.string(),
+    tenant_id: z.string(),
+    tsg_id: z.string(),
+  })
+  .passthrough();
+export type DeviceInstance = z.infer<typeof DeviceInstanceSchema>;
+
+export const DeviceLicenseSchema = z
+  .object({
+    authorizationCode: z.string().optional(),
+    expirationDate: z.string().optional(),
+    licensePanDbIdentification: z.string().optional(),
+    partNumber: z.string().optional(),
+    serialNumber: z.string().optional(),
+    subtypeName: z.string().optional(),
+    registrationDate: z.string().optional(),
+  })
+  .passthrough();
+export type DeviceLicense = z.infer<typeof DeviceLicenseSchema>;
+
+export const DeviceSchema = z
+  .object({
+    serial_number: z.string(),
+    model: z.string().optional(),
+    sku: z.string().optional(),
+    device_type: z.string().optional(),
+    device_name: z.string().optional(),
+    tsg_id: z.string().optional(),
+    support_account_id: z.string().optional(),
+    asset_type: z.string().optional(),
+    licenses: z.array(DeviceLicenseSchema).optional(),
+  })
+  .passthrough();
+export type Device = z.infer<typeof DeviceSchema>;
+
+export const DeviceStatusSchema = z
+  .object({
+    status: z.string(),
+    error: z.string().optional(),
+    serial_number: z.string().optional(),
+  })
+  .passthrough();
+export type DeviceStatus = z.infer<typeof DeviceStatusSchema>;
+
+export const DeviceRequestSchema = z
+  .object({
+    instance: DeviceInstanceSchema,
+    created_by: z.string().optional(),
+    devices: z.array(DeviceSchema).optional(),
+  })
+  .passthrough();
+export type DeviceRequest = z.infer<typeof DeviceRequestSchema>;
+
+export const DeviceResponseSchema = z
+  .object({
+    devices: z.array(DeviceStatusSchema).optional(),
+    status: z.string().optional(),
+  })
+  .passthrough();
+export type DeviceResponse = z.infer<typeof DeviceResponseSchema>;
+
+export const DeploymentProfileAttributeSchema = z
+  .object({
+    quantity: z.number().optional(),
+    unit_of_measure: z.string().optional(),
+  })
+  .passthrough();
+export type DeploymentProfileAttribute = z.infer<typeof DeploymentProfileAttributeSchema>;
+
+export const DeploymentProfileRequestSchema = z
+  .object({
+    dAuthCode: z.string().optional(),
+    deploymentProfileId: z.string().optional(),
+    license_expiration: z.string().optional(),
+    profileName: z.string().optional(),
+    subType: z.string().optional(),
+    subscriptions: z.string().optional(),
+    type: z.string().optional(),
+    aveTextRecord: z.number().default(0),
+    attributes: z.array(DeploymentProfileAttributeSchema).optional(),
+  })
+  .passthrough();
+export type DeploymentProfileRequest = z.infer<typeof DeploymentProfileRequestSchema>;
+
+export const InstanceExtraDetailsSchema = z
+  .object({
+    deployment_profiles: z.array(DeploymentProfileRequestSchema).optional(),
+    airs_shared_by_tsg: z.string().optional(),
+    airs_unshared_dps: z.string().optional(),
+  })
+  .passthrough();
+export type InstanceExtraDetails = z.infer<typeof InstanceExtraDetailsSchema>;
+
+export const InstanceRequestSchema = z
+  .object({
+    tsg_id: z.string(),
+    tenant_id: z.string(),
+    app_id: z.string(),
+    region: z.string(),
+    support_account_id: z.string().optional(),
+    support_account_name: z.string().optional(),
+    created_by: z.string().optional(),
+    internal: z.boolean().optional(),
+    tenant_instance_name: z.string().optional(),
+    extra: InstanceExtraDetailsSchema.optional(),
+    iam_controlled: z.boolean().optional(),
+    platform_region: z.string().optional(),
+    csp_tenant_id: z.string().optional(),
+    tsg_instances: z.unknown().optional(),
+  })
+  .passthrough();
+export type InstanceRequest = z.infer<typeof InstanceRequestSchema>;
+
+export const InstanceResponseSchema = z
+  .object({
+    tsg_id: z.string(),
+    tenant_id: z.string().optional(),
+    app_id: z.string().optional(),
+    is_success: z.boolean().optional(),
+  })
+  .passthrough();
+export type InstanceResponse = z.infer<typeof InstanceResponseSchema>;
+
+export const InstanceGetResponseSchema = z
+  .object({
+    tsg_id: z.string(),
+    tenant_id: z.string(),
+    app_id: z.string(),
+    region: z.string(),
+    support_account_id: z.string().optional(),
+    support_account_name: z.string().optional(),
+    created_by: z.string().optional(),
+    internal: z.boolean().optional(),
+    tenant_instance_name: z.string().optional(),
+    deployment_profiles: z.array(DeploymentProfileRequestSchema).optional(),
+  })
+  .passthrough();
+export type InstanceGetResponse = z.infer<typeof InstanceGetResponseSchema>;
+
+export const RegistryCredentialsSchema = z
+  .object({
+    token: z.string(),
+    expiry: z.string(),
+  })
+  .passthrough();
+export type RegistryCredentials = z.infer<typeof RegistryCredentialsSchema>;

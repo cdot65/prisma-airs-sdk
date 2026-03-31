@@ -25,3 +25,4 @@ export {
   type PromptListOptions,
 } from './custom-attacks-client.js';
 export { RedTeamEulaClient } from './eula-client.js';
+export { RedTeamInstancesClient } from './instances-client.js';

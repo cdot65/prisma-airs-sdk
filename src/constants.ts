@@ -136,5 +136,7 @@ export const RED_TEAM_TARGET_PATH = '/v1/target';
 export const RED_TEAM_TARGET_VALIDATE_AUTH_PATH = '/v1/target/validate-auth';
 export const RED_TEAM_TEMPLATE_PATH = '/v1/template';
 export const RED_TEAM_EULA_PATH = '/v1/eula';
+export const RED_TEAM_INSTANCES_PATH = '/v1/instances';
+export const RED_TEAM_REGISTRY_CREDENTIALS_PATH = '/v1/registry-credentials';
 export const RED_TEAM_CUSTOM_ATTACK_PATH = '/v1/custom-attack';
 export const RED_TEAM_MGMT_DASHBOARD_PATH = '/v1/dashboard/overview';

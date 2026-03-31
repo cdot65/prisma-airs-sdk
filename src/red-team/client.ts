@@ -20,6 +20,7 @@ import { RedTeamCustomAttackReportsClient } from './custom-attack-reports-client
 import { RedTeamTargetsClient } from './targets-client.js';
 import { RedTeamCustomAttacksClient } from './custom-attacks-client.js';
 import { RedTeamEulaClient } from './eula-client.js';
+import { RedTeamInstancesClient } from './instances-client.js';
 import type { RedTeamListOptions } from './scans-client.js';
 import { buildRedTeamListParams } from './list-params.js';
 import type {
@@ -67,6 +68,8 @@ export class RedTeamClient {
   public readonly customAttacks: RedTeamCustomAttacksClient;
   /** Management plane EULA operations. */
   public readonly eula: RedTeamEulaClient;
+  /** Management plane instance/licensing operations. */
+  public readonly instances: RedTeamInstancesClient;
 
   private readonly dataEndpoint: string;
   private readonly mgmtEndpoint: string;
@@ -126,6 +129,12 @@ export class RedTeamClient {
     });
 
     this.eula = new RedTeamEulaClient({
+      baseUrl: mgmtEndpoint,
+      oauthClient,
+      numRetries,
+    });
+
+    this.instances = new RedTeamInstancesClient({
       baseUrl: mgmtEndpoint,
       oauthClient,
       numRetries,

@@ -1597,9 +1597,7 @@ describe('InstanceRequestSchema', () => {
   });
 
   it('rejects missing required field', () => {
-    expect(() =>
-      InstanceRequestSchema.parse({ tsg_id: 'tsg-1', tenant_id: 't' }),
-    ).toThrow();
+    expect(() => InstanceRequestSchema.parse({ tsg_id: 'tsg-1', tenant_id: 't' })).toThrow();
   });
 
   it('parses with nested extra details', () => {
