@@ -1168,6 +1168,25 @@ export const TargetProbeRequestSchema = z
   .passthrough();
 export type TargetProbeRequest = z.infer<typeof TargetProbeRequestSchema>;
 
+export const TargetAuthValidationRequestSchema = z
+  .object({
+    auth_type: z.string(),
+    auth_config: z.unknown(),
+    target_id: z.string().nullable().optional(),
+    network_broker_channel_uuid: z.string().nullable().optional(),
+  })
+  .passthrough();
+export type TargetAuthValidationRequest = z.infer<typeof TargetAuthValidationRequestSchema>;
+
+export const TargetAuthValidationResponseSchema = z
+  .object({
+    validated: z.boolean(),
+    token_preview: z.string().nullable().optional(),
+    expires_in: z.number().int().nullable().optional(),
+  })
+  .passthrough();
+export type TargetAuthValidationResponse = z.infer<typeof TargetAuthValidationResponseSchema>;
+
 export const TargetProfileResponseSchema = z
   .object({
     target_id: z.string(),

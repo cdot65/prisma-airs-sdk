@@ -133,5 +133,6 @@ export const RED_TEAM_SENTIMENT_PATH = '/v1/sentiment';
 
 // API paths — red team management plane
 export const RED_TEAM_TARGET_PATH = '/v1/target';
+export const RED_TEAM_TARGET_VALIDATE_AUTH_PATH = '/v1/target/validate-auth';
 export const RED_TEAM_CUSTOM_ATTACK_PATH = '/v1/custom-attack';
 export const RED_TEAM_MGMT_DASHBOARD_PATH = '/v1/dashboard/overview';

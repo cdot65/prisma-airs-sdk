@@ -1,4 +1,4 @@
-import { RED_TEAM_TARGET_PATH } from '../constants.js';
+import { RED_TEAM_TARGET_PATH, RED_TEAM_TARGET_VALIDATE_AUTH_PATH } from '../constants.js';
 import { AISecSDKException, ErrorType } from '../errors.js';
 import { isValidUuid } from '../utils.js';
 import { managementHttpRequest } from '../management/management-http-client.js';
@@ -13,6 +13,8 @@ import type {
   TargetList,
   TargetProbeRequest,
   TargetProfileResponse,
+  TargetAuthValidationRequest,
+  TargetAuthValidationResponse,
   BaseResponse,
 } from '../models/red-team.js';
 
@@ -231,6 +233,23 @@ export class RedTeamTargetsClient {
       method: 'PUT',
       baseUrl: this.baseUrl,
       path: `${RED_TEAM_TARGET_PATH}/${uuid}/profile`,
+      body: request,
+      oauthClient: this.oauthClient,
+      numRetries: this.numRetries,
+    });
+    return res.data;
+  }
+
+  /**
+   * Validate target authentication credentials.
+   * @param request - The auth validation request body.
+   * @returns The auth validation response.
+   */
+  async validateAuth(request: TargetAuthValidationRequest): Promise<TargetAuthValidationResponse> {
+    const res = await managementHttpRequest<TargetAuthValidationResponse>({
+      method: 'POST',
+      baseUrl: this.baseUrl,
+      path: RED_TEAM_TARGET_VALIDATE_AUTH_PATH,
       body: request,
       oauthClient: this.oauthClient,
       numRetries: this.numRetries,
