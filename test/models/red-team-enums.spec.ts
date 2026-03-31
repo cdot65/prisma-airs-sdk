@@ -276,8 +276,12 @@ describe('ResponseMode', () => {
     expect(ResponseMode.STREAMING).toBe('STREAMING');
   });
 
-  it('has exactly 2 values', () => {
-    expect(Object.keys(ResponseMode)).toHaveLength(2);
+  it('includes WEBSOCKET', () => {
+    expect(ResponseMode.WEBSOCKET).toBe('WEBSOCKET');
+  });
+
+  it('has exactly 3 values', () => {
+    expect(Object.keys(ResponseMode)).toHaveLength(3);
   });
 });
 
@@ -358,8 +362,12 @@ describe('TargetConnectionType', () => {
     expect(TargetConnectionType.STREAMING).toBe('STREAMING');
   });
 
-  it('has exactly 7 values', () => {
-    expect(Object.keys(TargetConnectionType)).toHaveLength(7);
+  it('includes WEBSOCKET', () => {
+    expect(TargetConnectionType.WEBSOCKET).toBe('WEBSOCKET');
+  });
+
+  it('has exactly 8 values', () => {
+    expect(Object.keys(TargetConnectionType)).toHaveLength(8);
   });
 });
 

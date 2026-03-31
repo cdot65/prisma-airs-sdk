@@ -8,6 +8,7 @@ import {
   BedrockAccessConnectionParamsSchema,
   RestConnectionParamsSchema,
   StreamingConnectionParamsSchema,
+  WebSocketConnectionParamsSchema,
   ConnectionParamsSchema,
 } from '../../src/models/red-team.js';
 
@@ -233,6 +234,47 @@ describe('StreamingConnectionParamsSchema', () => {
 });
 
 // ---------------------------------------------------------------------------
+// WebSocketConnectionParams
+// ---------------------------------------------------------------------------
+
+describe('WebSocketConnectionParamsSchema', () => {
+  it('parses with ws_response_timeout', () => {
+    const input = {
+      api_endpoint: 'wss://api.example.com/ws',
+      ws_response_timeout: 60,
+    };
+    const result = WebSocketConnectionParamsSchema.parse(input);
+    expect(result.ws_response_timeout).toBe(60);
+    expect(result.api_endpoint).toBe('wss://api.example.com/ws');
+  });
+
+  it('defaults ws_response_timeout to 110', () => {
+    const input = { api_endpoint: 'wss://api.example.com/ws' };
+    const result = WebSocketConnectionParamsSchema.parse(input);
+    expect(result.ws_response_timeout).toBe(110);
+  });
+
+  it('inherits all REST connection param fields', () => {
+    const input = {
+      api_endpoint: 'wss://api.example.com/ws',
+      request_headers: { 'X-Api-Key': 'key' },
+      request_json: { model: 'gpt-4' },
+      response_key: 'content',
+      ws_response_timeout: 30,
+    };
+    const result = WebSocketConnectionParamsSchema.parse(input);
+    expect(result.request_headers).toEqual({ 'X-Api-Key': 'key' });
+    expect(result.response_key).toBe('content');
+  });
+
+  it('passes through unknown fields', () => {
+    const input = { ws_response_timeout: 60, future_field: true };
+    const result = WebSocketConnectionParamsSchema.parse(input);
+    expect((result as Record<string, unknown>).future_field).toBe(true);
+  });
+});
+
+// ---------------------------------------------------------------------------
 // ConnectionParams (union)
 // ---------------------------------------------------------------------------
 
@@ -254,5 +296,14 @@ describe('ConnectionParamsSchema', () => {
     };
     const result = ConnectionParamsSchema.parse(input);
     expect((result as Record<string, unknown>).response_stop_key).toBe('type');
+  });
+
+  it('parses WebSocket connection params', () => {
+    const input = {
+      api_endpoint: 'wss://example.com/ws',
+      ws_response_timeout: 30,
+    };
+    const result = ConnectionParamsSchema.parse(input);
+    expect((result as Record<string, unknown>).ws_response_timeout).toBe(30);
   });
 });

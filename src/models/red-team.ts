@@ -162,8 +162,14 @@ export const StreamingConnectionParamsSchema = RestConnectionParamsSchema.extend
 }).passthrough();
 export type StreamingConnectionParams = z.infer<typeof StreamingConnectionParamsSchema>;
 
-/** Union of REST and Streaming connection params. */
+export const WebSocketConnectionParamsSchema = RestConnectionParamsSchema.extend({
+  ws_response_timeout: z.number().default(110),
+}).passthrough();
+export type WebSocketConnectionParams = z.infer<typeof WebSocketConnectionParamsSchema>;
+
+/** Union of WebSocket, Streaming, and REST connection params. */
 export const ConnectionParamsSchema = z.union([
+  WebSocketConnectionParamsSchema,
   StreamingConnectionParamsSchema,
   RestConnectionParamsSchema,
 ]);
