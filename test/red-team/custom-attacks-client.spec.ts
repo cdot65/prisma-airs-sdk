@@ -161,6 +161,22 @@ describe('RedTeamCustomAttacksClient', () => {
     it('rejects invalid UUID', async () => {
       await expect(client.getPromptSetVersionInfo('bad')).rejects.toThrow(AISecSDKException);
     });
+
+    it('passes version query param when provided', async () => {
+      mockFetch({ uuid: validUuid, version: 2 });
+      await client.getPromptSetVersionInfo(validUuid, { version: 'v2' });
+
+      const [url] = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0];
+      expect(url).toContain('version=v2');
+    });
+
+    it('omits version param when not provided', async () => {
+      mockFetch({ uuid: validUuid, version: 3 });
+      await client.getPromptSetVersionInfo(validUuid);
+
+      const [url] = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0];
+      expect(url).not.toContain('version=');
+    });
   });
 
   describe('listActivePromptSets', () => {
@@ -229,6 +245,14 @@ describe('RedTeamCustomAttacksClient', () => {
 
       const [url] = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0];
       expect(url).toContain('active=true');
+    });
+
+    it('passes status filter param', async () => {
+      mockFetch({ prompts: [], total: 0 });
+      await client.listPrompts(validUuid, { status: 'ACTIVE' });
+
+      const [url] = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0];
+      expect(url).toContain('status=ACTIVE');
     });
   });
 
