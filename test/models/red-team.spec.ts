@@ -39,6 +39,9 @@ import {
   TargetAuthValidationRequestSchema,
   TargetAuthValidationResponseSchema,
   TargetTemplateCollectionSchema,
+  EulaAcceptRequestSchema,
+  EulaContentResponseSchema,
+  EulaResponseSchema,
 } from '../../src/models/red-team.js';
 
 // ---------------------------------------------------------------------------
@@ -1304,5 +1307,97 @@ describe('TargetTemplateCollectionSchema', () => {
     };
     const parsed = TargetTemplateCollectionSchema.parse(data);
     expect((parsed as Record<string, unknown>).FUTURE_PROVIDER).toEqual({ x: 1 });
+  });
+});
+
+// ---------------------------------------------------------------------------
+// EULA schemas
+// ---------------------------------------------------------------------------
+
+describe('EulaAcceptRequestSchema', () => {
+  it('parses valid accept request', () => {
+    const parsed = EulaAcceptRequestSchema.parse({
+      eula_content: 'I agree to the terms...',
+      accepted_at: '2025-01-01T00:00:00Z',
+    });
+    expect(parsed.eula_content).toBe('I agree to the terms...');
+    expect(parsed.accepted_at).toBe('2025-01-01T00:00:00Z');
+  });
+
+  it('accepts null accepted_at', () => {
+    const parsed = EulaAcceptRequestSchema.parse({
+      eula_content: 'terms',
+      accepted_at: null,
+    });
+    expect(parsed.accepted_at).toBeNull();
+  });
+
+  it('rejects missing eula_content', () => {
+    expect(() => EulaAcceptRequestSchema.parse({ accepted_at: null })).toThrow();
+  });
+
+  it('passes through unknown fields', () => {
+    const parsed = EulaAcceptRequestSchema.parse({
+      eula_content: 'terms',
+      future_field: true,
+    });
+    expect((parsed as Record<string, unknown>).future_field).toBe(true);
+  });
+});
+
+describe('EulaContentResponseSchema', () => {
+  it('parses valid content response', () => {
+    const parsed = EulaContentResponseSchema.parse({ content: 'EULA text here...' });
+    expect(parsed.content).toBe('EULA text here...');
+  });
+
+  it('rejects missing content', () => {
+    expect(() => EulaContentResponseSchema.parse({})).toThrow();
+  });
+
+  it('passes through unknown fields', () => {
+    const parsed = EulaContentResponseSchema.parse({ content: 'text', version: '2.0' });
+    expect((parsed as Record<string, unknown>).version).toBe('2.0');
+  });
+});
+
+describe('EulaResponseSchema', () => {
+  it('parses minimal response (is_accepted only)', () => {
+    const parsed = EulaResponseSchema.parse({ is_accepted: true });
+    expect(parsed.is_accepted).toBe(true);
+  });
+
+  it('parses with all fields', () => {
+    const parsed = EulaResponseSchema.parse({
+      uuid: validUuid,
+      is_accepted: true,
+      accepted_at: '2025-01-01T00:00:00Z',
+      accepted_by_user_id: 'user-123',
+    });
+    expect(parsed.uuid).toBe(validUuid);
+    expect(parsed.is_accepted).toBe(true);
+    expect(parsed.accepted_at).toBe('2025-01-01T00:00:00Z');
+    expect(parsed.accepted_by_user_id).toBe('user-123');
+  });
+
+  it('accepts null optional fields', () => {
+    const parsed = EulaResponseSchema.parse({
+      is_accepted: false,
+      uuid: null,
+      accepted_at: null,
+      accepted_by_user_id: null,
+    });
+    expect(parsed.uuid).toBeNull();
+    expect(parsed.accepted_at).toBeNull();
+    expect(parsed.accepted_by_user_id).toBeNull();
+  });
+
+  it('rejects missing is_accepted', () => {
+    expect(() => EulaResponseSchema.parse({ uuid: validUuid })).toThrow();
+  });
+
+  it('passes through unknown fields', () => {
+    const parsed = EulaResponseSchema.parse({ is_accepted: true, extra: 42 });
+    expect((parsed as Record<string, unknown>).extra).toBe(42);
   });
 });
