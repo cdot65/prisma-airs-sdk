@@ -1,5 +1,50 @@
 # Release Notes
 
+## v0.7.0
+
+### New Features — Red Team Management Plane Alignment
+
+Full alignment with the updated Red Team management-plane OpenAPI spec. Adds 2 new sub-clients, 3 new target methods, and 19 new Zod schemas.
+
+**New sub-clients:**
+
+- **`RedTeamEulaClient`** (`client.eula`) — EULA management with `getContent()`, `getStatus()`, `accept()` methods
+- **`RedTeamInstancesClient`** (`client.instances`) — Instance/device CRUD with `createInstance()`, `getInstance()`, `updateInstance()`, `deleteInstance()`, `createDevices()`, `updateDevices()` (PATCH), `deleteDevices()`, `getRegistryCredentials()`
+
+**New target methods:**
+
+- `targets.validateAuth()` — validate target authentication credentials
+- `targets.getTargetMetadata()` — get field definitions for target configuration
+- `targets.getTargetTemplates()` — get provider-specific target templates (OPENAI, HUGGING_FACE, DATABRICKS, BEDROCK, REST, STREAMING, WEBSOCKET)
+
+**Auth config schemas:**
+
+- `HeadersAuthConfigSchema`, `BasicAuthAuthConfigSchema`, `OAuth2AuthConfigSchema`, `AuthConfigSchema` (union)
+- `TargetAuthValidationRequestSchema`, `TargetAuthValidationResponseSchema`
+- `auth_type` field added to 6 target schemas; `auth_config` added to 3 request schemas
+
+**WebSocket support:**
+
+- `WebSocketConnectionParamsSchema` extends REST params with `ws_response_timeout` (default 110)
+- `ConnectionParamsSchema` union now includes WebSocket variant
+- `ResponseMode.WEBSOCKET` and `TargetConnectionType.WEBSOCKET` enum values
+
+**New enums:** `TargetAuthType` (HEADERS, BASIC_AUTH, OAUTH2), `BasicAuthLocation` (HEADER, PAYLOAD)
+
+**Instance/licensing schemas:** `DeviceInstanceSchema`, `DeviceLicenseSchema`, `DeviceSchema`, `DeviceStatusSchema`, `DeviceRequestSchema`, `DeviceResponseSchema`, `DeploymentProfileAttributeSchema`, `DeploymentProfileRequestSchema`, `InstanceExtraDetailsSchema`, `InstanceRequestSchema`, `InstanceResponseSchema`, `InstanceGetResponseSchema`, `RegistryCredentialsSchema`
+
+**Other schema fixes (#96):**
+
+- `PropertyNamesListResponseSchema.data`: `z.array(PropertyDefinitionSchema)` → `z.array(z.string())`
+- `CustomPromptSetListActiveSchema.data`: now uses `CustomPromptSetReferenceSchema`
+- `customAttacks.listPrompts()` gains `status` filter; `getPromptSetVersionInfo()` gains `version` query param
+
+**Infrastructure:** PATCH method support added to `managementHttpRequest`
+
+970 tests across 44 test files.
+
+---
+
 ## v0.6.11
 
 ### Documentation
