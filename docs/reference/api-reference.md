@@ -752,6 +752,8 @@ class RedTeamClient {
   readonly customAttackReports: RedTeamCustomAttackReportsClient;
   readonly targets: RedTeamTargetsClient;
   readonly customAttacks: RedTeamCustomAttacksClient;
+  readonly eula: RedTeamEulaClient;
+  readonly instances: RedTeamInstancesClient;
 
   // Data plane convenience methods
   getScanStatistics(params?: {
@@ -902,6 +904,9 @@ class RedTeamTargetsClient {
   probe(request: TargetProbeRequest): Promise<TargetResponse>;
   getProfile(uuid: string): Promise<TargetProfileResponse>;
   updateProfile(uuid: string, request: TargetContextUpdate): Promise<TargetResponse>;
+  validateAuth(request: TargetAuthValidationRequest): Promise<TargetAuthValidationResponse>;
+  getTargetMetadata(): Promise<Record<string, unknown>>;
+  getTargetTemplates(): Promise<TargetTemplateCollection>;
 }
 ```
 
@@ -918,6 +923,7 @@ interface PromptSetListOptions extends RedTeamListOptions {
 
 interface PromptListOptions extends RedTeamListOptions {
   active?: boolean;
+  status?: string;
 }
 
 class RedTeamCustomAttacksClient {
@@ -934,7 +940,10 @@ class RedTeamCustomAttacksClient {
     request: CustomPromptSetArchiveRequest,
   ): Promise<CustomPromptSetResponse>;
   getPromptSetReference(uuid: string): Promise<CustomPromptSetReference>;
-  getPromptSetVersionInfo(uuid: string): Promise<CustomPromptSetVersionInfo>;
+  getPromptSetVersionInfo(
+    uuid: string,
+    opts?: { version?: string },
+  ): Promise<CustomPromptSetVersionInfo>;
   listActivePromptSets(): Promise<CustomPromptSetListActive>;
   downloadTemplate(uuid: string): Promise<unknown>;
   uploadPromptsCsv(promptSetUuid: string, file: Blob): Promise<BaseResponse>;
@@ -956,6 +965,35 @@ class RedTeamCustomAttacksClient {
   getPropertyValues(propertyName: string): Promise<PropertyValuesResponse>;
   getPropertyValuesMultiple(propertyNames: string[]): Promise<PropertyValuesMultipleResponse>;
   createPropertyValue(request: PropertyValueCreateRequest): Promise<BaseResponse>;
+}
+```
+
+### `RedTeamEulaClient`
+
+Management plane EULA operations.
+
+```ts
+class RedTeamEulaClient {
+  getContent(): Promise<EulaContentResponse>;
+  getStatus(): Promise<EulaResponse>;
+  accept(request: EulaAcceptRequest): Promise<EulaResponse>;
+}
+```
+
+### `RedTeamInstancesClient`
+
+Management plane instance/licensing and registry credential operations.
+
+```ts
+class RedTeamInstancesClient {
+  createInstance(request: InstanceRequest): Promise<InstanceResponse>;
+  getInstance(tenantId: string): Promise<InstanceGetResponse>;
+  updateInstance(tenantId: string, request: InstanceRequest): Promise<InstanceResponse>;
+  deleteInstance(tenantId: string): Promise<InstanceResponse>;
+  createDevices(tenantId: string, request: DeviceRequest): Promise<DeviceResponse>;
+  updateDevices(tenantId: string, request: DeviceRequest): Promise<DeviceResponse>; // PATCH
+  deleteDevices(tenantId: string, serialNumbers: string): Promise<DeviceResponse>;
+  getRegistryCredentials(): Promise<RegistryCredentials>;
 }
 ```
 
@@ -1095,6 +1133,8 @@ import {
   SeverityFilter,
   StatusQueryParam,
   StreamType,
+  TargetAuthType,
+  BasicAuthLocation,
   TargetConnectionType,
   TargetStatus,
   TargetType,
@@ -1123,14 +1163,16 @@ import {
 | `PolicyType`            | `PROMPT_INJECTION`, `TOXIC_CONTENT`, `CUSTOM_TOPIC_GUARDRAILS`, `MALICIOUS_CODE_DETECTION`, `MALICIOUS_URL_DETECTION`, `SENSITIVE_DATA_PROTECTION`                                            |
 | `ProfilingStatus`       | `INIT`, `QUEUED`, `IN_PROGRESS`, `COMPLETED`, `FAILED`                                                                                                                                        |
 | `RedTeamCategory`       | `SECURITY`, `SAFETY`, `COMPLIANCE`, `BRAND`                                                                                                                                                   |
-| `ResponseMode`          | `REST`, `STREAMING`                                                                                                                                                                           |
+| `ResponseMode`          | `REST`, `STREAMING`, `WEBSOCKET`                                                                                                                                                              |
 | `RiskRating`            | `LOW`, `MEDIUM`, `HIGH`, `CRITICAL`                                                                                                                                                           |
 | `SafetySubCategory`     | `BIAS`, `CBRN`, `CYBERCRIME`, `DRUGS`, `HATE_TOXIC_ABUSE`, `NON_VIOLENT_CRIMES`, `POLITICAL`, `SELF_HARM`, `SEXUAL`, `VIOLENT_CRIMES_WEAPONS`                                                 |
 | `SecuritySubCategory`   | `ADVERSARIAL_SUFFIX`, `EVASION`, `INDIRECT_PROMPT_INJECTION`, `JAILBREAK`, `MULTI_TURN`, `PROMPT_INJECTION`, `REMOTE_CODE_EXECUTION`, `SYSTEM_PROMPT_LEAK`, `TOOL_LEAK`, `MALWARE_GENERATION` |
 | `SeverityFilter`        | `LOW`, `MEDIUM`, `HIGH`, `CRITICAL`                                                                                                                                                           |
 | `StatusQueryParam`      | `SUCCESSFUL`, `FAILED`                                                                                                                                                                        |
 | `StreamType`            | `NORMAL`, `ADVERSARIAL`                                                                                                                                                                       |
-| `TargetConnectionType`  | `DATABRICKS`, `BEDROCK`, `OPENAI`, `HUGGING_FACE`, `CUSTOM`, `REST`, `STREAMING`                                                                                                              |
+| `TargetAuthType`        | `HEADERS`, `BASIC_AUTH`, `OAUTH2`                                                                                                                                                             |
+| `BasicAuthLocation`     | `HEADER`, `PAYLOAD`                                                                                                                                                                           |
+| `TargetConnectionType`  | `DATABRICKS`, `BEDROCK`, `OPENAI`, `HUGGING_FACE`, `CUSTOM`, `REST`, `STREAMING`, `WEBSOCKET`                                                                                                 |
 | `TargetStatus`          | `DRAFT`, `VALIDATING`, `VALIDATED`, `ACTIVE`, `INACTIVE`, `FAILED`, `PENDING_AUTH`                                                                                                            |
 | `TargetType`            | `APPLICATION`, `AGENT`, `MODEL`                                                                                                                                                               |
 

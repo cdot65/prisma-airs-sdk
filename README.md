@@ -92,10 +92,14 @@ import { RedTeamClient } from '@cdot65/prisma-airs-sdk';
 
 const client = new RedTeamClient(); // falls back to PANW_MGMT_* env vars
 
-// 5 sub-clients: scans, reports, customAttackReports, targets, customAttacks
+// 7 sub-clients: scans, reports, customAttackReports, targets, customAttacks, eula, instances
 const scans = await client.scans.list({ limit: 5 });
 const targets = await client.targets.list();
 const categories = await client.scans.getCategories();
+
+// EULA + instance management
+const eulaStatus = await client.eula.getStatus();
+const templates = await client.targets.getTargetTemplates();
 
 // 7 convenience methods on the top-level client
 const stats = await client.getScanStatistics();
@@ -148,7 +152,7 @@ Full documentation at **[cdot65.github.io/prisma-airs-sdk](https://cdot65.github
 ```bash
 npm install
 npm run build          # tsup (CJS + ESM + .d.ts)
-npm run test           # vitest (876 tests, 99%+ coverage)
+npm run test           # vitest (970 tests, 99%+ coverage)
 npm run lint           # eslint
 npm run typecheck      # tsc --noEmit
 ```

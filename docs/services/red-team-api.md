@@ -60,7 +60,7 @@ Token fetch, caching, and refresh are handled automatically. Retries (up to 5) u
 
 ## Sub-Clients
 
-The `RedTeamClient` exposes five sub-clients:
+The `RedTeamClient` exposes seven sub-clients:
 
 | Sub-Client            | Plane      | Access                       |
 | --------------------- | ---------- | ---------------------------- |
@@ -69,6 +69,8 @@ The `RedTeamClient` exposes five sub-clients:
 | `customAttackReports` | Data       | `client.customAttackReports` |
 | `targets`             | Management | `client.targets`             |
 | `customAttacks`       | Management | `client.customAttacks`       |
+| `eula`                | Management | `client.eula`                |
+| `instances`           | Management | `client.instances`           |
 
 Plus 7 convenience methods directly on `RedTeamClient` for dashboard, quota, error logs, and sentiment.
 
@@ -224,7 +226,7 @@ const stats = await client.customAttackReports.getPropertyStats('job-uuid');
 
 ## Targets
 
-CRUD for scan targets, plus profiling probes (9 methods, management plane).
+CRUD for scan targets, profiling probes, auth validation, and template retrieval (12 methods, management plane).
 
 ### Create
 
@@ -275,6 +277,102 @@ const updatedProfile = await client.targets.updateProfile('target-uuid', {
   background: 'Customer support chatbot for e-commerce',
   additional_context: 'Has access to order database',
 });
+```
+
+### Validate Auth, Metadata, and Templates
+
+```ts
+// Validate target authentication credentials
+const validation = await client.targets.validateAuth({
+  auth_type: 'HEADERS',
+  auth_config: { auth_header: { Authorization: 'Bearer token' } },
+});
+console.log(validation.validated); // true
+
+// Get target field metadata
+const metadata = await client.targets.getTargetMetadata();
+
+// Get target templates for all provider types (OPENAI, HUGGING_FACE, DATABRICKS, BEDROCK, REST, STREAMING, WEBSOCKET)
+const templates = await client.targets.getTargetTemplates();
+console.log(templates.OPENAI);
+```
+
+## EULA Management
+
+Manage EULA (End User License Agreement) acceptance for the Red Team service (3 methods, management plane).
+
+```ts
+// Get the current EULA content
+const content = await client.eula.getContent();
+console.log(content.content); // EULA text
+
+// Check acceptance status
+const status = await client.eula.getStatus();
+console.log(status.is_accepted); // true | false
+
+// Accept the EULA
+const result = await client.eula.accept({
+  eula_content: content.content,
+  accepted_at: new Date().toISOString(),
+});
+```
+
+## Instances and Licensing
+
+Manage tenant instances, device licensing, and registry credentials (8 methods, management plane).
+
+### Instance CRUD
+
+```ts
+// Create an instance
+const instance = await client.instances.createInstance({
+  tsg_id: 'tsg-1',
+  tenant_id: 'tenant-1',
+  app_id: 'app-1',
+  region: 'us-east-1',
+});
+
+// Get an instance
+const details = await client.instances.getInstance('tenant-1');
+
+// Update an instance
+const updated = await client.instances.updateInstance('tenant-1', {
+  tsg_id: 'tsg-1',
+  tenant_id: 'tenant-1',
+  app_id: 'app-1',
+  region: 'us-west-2',
+});
+
+// Delete an instance
+const result = await client.instances.deleteInstance('tenant-1');
+```
+
+### Device Management
+
+```ts
+// Create devices for an instance
+const devices = await client.instances.createDevices('tenant-1', {
+  instance: { app_id: 'app-1', region: 'us-east-1', tenant_id: 'tenant-1', tsg_id: 'tsg-1' },
+  devices: [{ serial_number: 'SN-001' }],
+});
+
+// Update devices (uses PATCH)
+const updated = await client.instances.updateDevices('tenant-1', {
+  instance: { app_id: 'app-1', region: 'us-east-1', tenant_id: 'tenant-1', tsg_id: 'tsg-1' },
+  devices: [{ serial_number: 'SN-001', device_name: 'updated-name' }],
+});
+
+// Delete devices by serial number
+const deleted = await client.instances.deleteDevices('tenant-1', 'SN-001,SN-002');
+```
+
+### Registry Credentials
+
+```ts
+// Get or create registry credentials
+const creds = await client.instances.getRegistryCredentials();
+console.log(creds.token); // JWT token
+console.log(creds.expiry); // expiration timestamp
 ```
 
 ## Custom Attacks
