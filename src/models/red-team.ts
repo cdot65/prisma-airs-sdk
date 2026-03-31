@@ -1222,11 +1222,6 @@ export const CustomPromptSetListSchema = z
   .passthrough();
 export type CustomPromptSetList = z.infer<typeof CustomPromptSetListSchema>;
 
-export const CustomPromptSetListActiveSchema = z
-  .object({ data: z.array(CustomPromptSetListItemSchema).optional() })
-  .passthrough();
-export type CustomPromptSetListActive = z.infer<typeof CustomPromptSetListActiveSchema>;
-
 export const CustomPromptSetReferenceSchema = z
   .object({
     uuid: z.string(),
@@ -1240,6 +1235,11 @@ export const CustomPromptSetReferenceSchema = z
   })
   .passthrough();
 export type CustomPromptSetReference = z.infer<typeof CustomPromptSetReferenceSchema>;
+
+export const CustomPromptSetListActiveSchema = z
+  .object({ data: z.array(CustomPromptSetReferenceSchema).optional() })
+  .passthrough();
+export type CustomPromptSetListActive = z.infer<typeof CustomPromptSetListActiveSchema>;
 
 export const CustomPromptSetVersionInfoSchema = z
   .object({
@@ -1339,7 +1339,7 @@ export const PropertyDefinitionSchema = z
 export type PropertyDefinition = z.infer<typeof PropertyDefinitionSchema>;
 
 export const PropertyNamesListResponseSchema = z
-  .object({ data: z.array(PropertyDefinitionSchema).optional() })
+  .object({ data: z.array(z.string()).optional() })
   .passthrough();
 export type PropertyNamesListResponse = z.infer<typeof PropertyNamesListResponseSchema>;
 

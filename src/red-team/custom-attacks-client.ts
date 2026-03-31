@@ -35,6 +35,7 @@ export interface PromptSetListOptions extends RedTeamListOptions {
 
 /** Prompt list filter options. */
 export interface PromptListOptions extends RedTeamListOptions {
+  status?: string;
   active?: boolean;
 }
 
@@ -187,14 +188,22 @@ export class RedTeamCustomAttacksClient {
   /**
    * Get version information for a prompt set.
    * @param uuid - The prompt set UUID.
+   * @param opts - Optional query params (e.g. specific version ID).
    * @returns The prompt set version info.
    */
-  async getPromptSetVersionInfo(uuid: string): Promise<CustomPromptSetVersionInfo> {
+  async getPromptSetVersionInfo(
+    uuid: string,
+    opts?: { version?: string },
+  ): Promise<CustomPromptSetVersionInfo> {
     validateUuid(uuid, 'prompt set uuid');
+    const params: Record<string, string> = {};
+    if (opts?.version !== undefined) params.version = opts.version;
+
     const res = await managementHttpRequest<CustomPromptSetVersionInfo>({
       method: 'GET',
       baseUrl: this.baseUrl,
       path: `${RED_TEAM_CUSTOM_ATTACK_PATH}/custom-prompt-set/${uuid}/version-info`,
+      params: Object.keys(params).length > 0 ? params : undefined,
       oauthClient: this.oauthClient,
       numRetries: this.numRetries,
     });
@@ -302,6 +311,7 @@ export class RedTeamCustomAttacksClient {
   async listPrompts(promptSetUuid: string, opts?: PromptListOptions): Promise<CustomPromptList> {
     validateUuid(promptSetUuid, 'prompt set uuid');
     const params = buildRedTeamListParams(opts);
+    if (opts?.status !== undefined) params.status = opts.status;
     if (opts?.active !== undefined) params.active = String(opts.active);
 
     const res = await managementHttpRequest<CustomPromptList>({
