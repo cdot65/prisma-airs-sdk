@@ -186,6 +186,7 @@ export type RedTeamCategory = (typeof RedTeamCategory)[keyof typeof RedTeamCateg
 export const ResponseMode = {
   REST: 'REST',
   STREAMING: 'STREAMING',
+  WEBSOCKET: 'WEBSOCKET',
 } as const;
 export type ResponseMode = (typeof ResponseMode)[keyof typeof ResponseMode];
 
@@ -260,6 +261,7 @@ export const TargetConnectionType = {
   CUSTOM: 'CUSTOM',
   REST: 'REST',
   STREAMING: 'STREAMING',
+  WEBSOCKET: 'WEBSOCKET',
 } as const;
 export type TargetConnectionType = (typeof TargetConnectionType)[keyof typeof TargetConnectionType];
 
