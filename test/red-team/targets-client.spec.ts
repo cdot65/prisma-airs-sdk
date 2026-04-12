@@ -74,6 +74,32 @@ describe('RedTeamTargetsClient', () => {
       const [url] = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0];
       expect(url).not.toContain('validate');
     });
+
+    it('sends only the fields in the request body (no extra SDK fields)', async () => {
+      mockFetch({ uuid: validUuid, name: 'test' }, 201);
+      await client.create({
+        name: 'test-target',
+        target_type: 'APPLICATION',
+        connection_type: 'CUSTOM',
+        api_endpoint_type: 'PUBLIC',
+        response_mode: 'REST',
+        connection_params: {
+          api_endpoint: 'https://api.example.com/v1/chat',
+          request_headers: { 'Content-Type': 'application/json' },
+          request_json: { model: 'gpt-4' },
+          response_json: { content: '{RESPONSE}' },
+          response_key: 'content',
+        },
+      });
+
+      const [, init] = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0];
+      const body = JSON.parse(init.body);
+      expect(body).not.toHaveProperty('auth_type');
+      expect(body).not.toHaveProperty('auth_config');
+      expect(body.name).toBe('test-target');
+      expect(body.target_type).toBe('APPLICATION');
+      expect(body.connection_params.api_endpoint).toBe('https://api.example.com/v1/chat');
+    });
   });
 
   // -----------------------------------------------------------------------
@@ -169,6 +195,22 @@ describe('RedTeamTargetsClient', () => {
 
       const [url] = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0];
       expect(url).toContain('validate=false');
+    });
+
+    it('sends only the fields in the request body (no extra SDK fields)', async () => {
+      mockFetch({ uuid: validUuid, name: 'updated' });
+      await client.update(validUuid, {
+        name: 'updated',
+        target_type: 'AGENT',
+        response_mode: 'REST',
+      });
+
+      const [, init] = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0];
+      const body = JSON.parse(init.body);
+      expect(body).not.toHaveProperty('auth_type');
+      expect(body).not.toHaveProperty('auth_config');
+      expect(body.name).toBe('updated');
+      expect(body.target_type).toBe('AGENT');
     });
   });
 
