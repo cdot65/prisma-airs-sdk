@@ -20,6 +20,7 @@ import {
   TargetCreateRequestSchema,
   TargetUpdateRequestSchema,
   TargetProbeRequestSchema,
+  TargetContextUpdateSchema,
   TargetResponseSchema,
   TargetListSchema,
   TargetBackgroundSchema,
@@ -828,6 +829,30 @@ describe('TargetProbeRequestSchema', () => {
 
   it('rejects missing name', () => {
     expect(() => TargetProbeRequestSchema.parse({})).toThrow();
+  });
+});
+
+describe('TargetContextUpdateSchema', () => {
+  it('parses with typed background and context', () => {
+    const parsed = TargetContextUpdateSchema.parse({
+      target_background: { industry: 'finance', use_case: 'chatbot' },
+      additional_context: { base_model: 'gpt-4', system_prompt: 'Be helpful.' },
+    });
+    expect(parsed.target_background).toBeDefined();
+    expect(parsed.additional_context).toBeDefined();
+  });
+
+  it('accepts null values', () => {
+    const parsed = TargetContextUpdateSchema.parse({
+      target_background: null,
+      additional_context: null,
+    });
+    expect(parsed.target_background).toBeNull();
+  });
+
+  it('parses empty object', () => {
+    const parsed = TargetContextUpdateSchema.parse({});
+    expect(parsed.target_background).toBeUndefined();
   });
 });
 

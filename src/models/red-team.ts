@@ -1062,8 +1062,8 @@ export type TargetUpdateRequest = z.infer<typeof TargetUpdateRequestSchema>;
 
 export const TargetContextUpdateSchema = z
   .object({
-    target_background: z.unknown().optional(),
-    additional_context: z.unknown().optional(),
+    target_background: TargetBackgroundSchema.nullable().optional(),
+    additional_context: TargetAdditionalContextSchema.nullable().optional(),
   })
   .passthrough();
 export type TargetContextUpdate = z.infer<typeof TargetContextUpdateSchema>;
