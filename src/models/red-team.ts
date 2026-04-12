@@ -1034,25 +1034,27 @@ export type ErrorLogListResponse = z.infer<typeof ErrorLogListResponseSchema>;
 // Management — Target schemas
 // ---------------------------------------------------------------------------
 
-export const TargetCreateRequestSchema = z
-  .object({
-    name: z.string(),
-    description: z.unknown().optional(),
-    target_type: z.unknown().optional(),
-    connection_type: z.unknown().optional(),
-    api_endpoint_type: z.unknown().optional(),
-    response_mode: z.unknown().optional(),
-    connection_params: z.unknown().optional(),
-    session_supported: z.boolean().optional(),
-    target_metadata: z.unknown().optional(),
-    target_background: z.unknown().optional(),
-    additional_context: z.unknown().optional(),
-    extra_info: z.unknown().optional(),
-    network_broker_channel_uuid: z.unknown().optional(),
-    auth_type: z.string().nullable().optional(),
-    auth_config: z.unknown().nullable().optional(),
-  })
-  .passthrough();
+/** Shared base fields for target create, update, and probe requests. */
+const TargetRequestBaseFields = {
+  name: z.string(),
+  description: z.string().nullable().optional(),
+  target_type: z.string().nullable().optional(),
+  connection_type: z.string().nullable().optional(),
+  api_endpoint_type: z.string().nullable().optional(),
+  response_mode: z.string().nullable().optional(),
+  connection_params: z
+    .union([RestConnectionParamsSchema, StreamingConnectionParamsSchema])
+    .nullable()
+    .optional(),
+  session_supported: z.boolean().optional().default(false),
+  target_metadata: TargetMetadataSchema.optional(),
+  target_background: TargetBackgroundSchema.nullable().optional(),
+  additional_context: TargetAdditionalContextSchema.nullable().optional(),
+  extra_info: z.record(z.unknown()).nullable().optional(),
+  network_broker_channel_uuid: z.string().nullable().optional(),
+} as const;
+
+export const TargetCreateRequestSchema = z.object(TargetRequestBaseFields).strict();
 export type TargetCreateRequest = z.infer<typeof TargetCreateRequestSchema>;
 
 export const TargetUpdateRequestSchema = z
