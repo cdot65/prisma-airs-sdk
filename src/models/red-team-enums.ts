@@ -201,7 +201,6 @@ export type RedTeamCategory = (typeof RedTeamCategory)[keyof typeof RedTeamCateg
 export const ResponseMode = {
   REST: 'REST',
   STREAMING: 'STREAMING',
-  WEBSOCKET: 'WEBSOCKET',
 } as const;
 export type ResponseMode = (typeof ResponseMode)[keyof typeof ResponseMode];
 

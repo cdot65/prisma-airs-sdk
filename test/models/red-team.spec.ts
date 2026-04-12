@@ -18,6 +18,9 @@ import {
   QuotaSummarySchema,
   ErrorLogSchema,
   TargetCreateRequestSchema,
+  TargetUpdateRequestSchema,
+  TargetProbeRequestSchema,
+  TargetContextUpdateSchema,
   TargetResponseSchema,
   TargetListSchema,
   TargetBackgroundSchema,
@@ -691,35 +694,165 @@ describe('ErrorLogSchema', () => {
 // ---------------------------------------------------------------------------
 
 describe('TargetCreateRequestSchema', () => {
-  it('parses minimal request', () => {
+  it('parses minimal request (name only)', () => {
     const parsed = TargetCreateRequestSchema.parse({ name: 'my-target' });
     expect(parsed.name).toBe('my-target');
   });
 
-  it('parses full request with optionals', () => {
+  it('parses full request with typed fields', () => {
     const req = {
       name: 'my-target',
       description: 'A test target',
-      target_type: 'llm',
-      connection_type: 'api',
-      api_endpoint_type: 'openai',
-      response_mode: 'streaming',
+      target_type: 'APPLICATION',
+      connection_type: 'CUSTOM',
+      api_endpoint_type: 'PUBLIC',
+      response_mode: 'REST',
       session_supported: true,
       target_metadata: { probe_message: 'hello' },
       target_background: { industry: 'finance' },
       additional_context: { base_model: 'gpt-4' },
+      extra_info: { custom_key: 'custom_value' },
+      connection_params: {
+        api_endpoint: 'https://api.example.com/v1/chat',
+        request_headers: { 'Content-Type': 'application/json' },
+        request_json: { model: 'gpt-4' },
+        response_json: { content: '{RESPONSE}' },
+        response_key: 'content',
+      },
+      network_broker_channel_uuid: '550e8400-e29b-41d4-a716-446655440000',
     };
     const parsed = TargetCreateRequestSchema.parse(req);
     expect(parsed.session_supported).toBe(true);
+    expect(parsed.target_type).toBe('APPLICATION');
+    expect(parsed.connection_type).toBe('CUSTOM');
   });
 
-  it('passes through unknown fields', () => {
-    const res = TargetCreateRequestSchema.parse({ name: 'x', custom: true });
-    expect((res as Record<string, unknown>).custom).toBe(true);
+  it('rejects unknown fields (strict mode)', () => {
+    expect(() => TargetCreateRequestSchema.parse({ name: 'x', auth_type: 'HEADERS' })).toThrow();
+  });
+
+  it('rejects unknown fields like auth_config', () => {
+    expect(() => TargetCreateRequestSchema.parse({ name: 'x', auth_config: {} })).toThrow();
+  });
+
+  it('accepts null for nullable fields', () => {
+    const parsed = TargetCreateRequestSchema.parse({
+      name: 'test',
+      description: null,
+      target_type: null,
+      connection_type: null,
+      api_endpoint_type: null,
+      response_mode: null,
+      connection_params: null,
+      target_background: null,
+      additional_context: null,
+      extra_info: null,
+      network_broker_channel_uuid: null,
+    });
+    expect(parsed.description).toBeNull();
+    expect(parsed.target_type).toBeNull();
   });
 
   it('rejects missing name', () => {
     expect(() => TargetCreateRequestSchema.parse({})).toThrow();
+  });
+
+  it('accepts streaming connection params with stop fields', () => {
+    const parsed = TargetCreateRequestSchema.parse({
+      name: 'streaming-target',
+      connection_params: {
+        api_endpoint: 'https://api.example.com/v1/stream',
+        response_stop_key: 'done',
+        response_stop_value: 'true',
+      },
+    });
+    expect(parsed.connection_params).toBeDefined();
+  });
+});
+
+describe('TargetUpdateRequestSchema', () => {
+  it('parses minimal request (name only)', () => {
+    const parsed = TargetUpdateRequestSchema.parse({ name: 'updated-target' });
+    expect(parsed.name).toBe('updated-target');
+  });
+
+  it('parses full request with typed fields', () => {
+    const req = {
+      name: 'updated-target',
+      description: 'Updated description',
+      target_type: 'AGENT',
+      connection_type: 'OPENAI',
+      api_endpoint_type: 'PUBLIC',
+      response_mode: 'REST',
+      session_supported: false,
+      target_metadata: { rate_limit_enabled: true },
+      target_background: { industry: 'healthcare' },
+      additional_context: { system_prompt: 'You are helpful.' },
+      extra_info: { key: 'val' },
+      connection_params: {
+        api_endpoint: 'https://api.example.com/v1/chat',
+      },
+      network_broker_channel_uuid: null,
+    };
+    const parsed = TargetUpdateRequestSchema.parse(req);
+    expect(parsed.target_type).toBe('AGENT');
+  });
+
+  it('rejects unknown fields (strict mode)', () => {
+    expect(() => TargetUpdateRequestSchema.parse({ name: 'x', auth_type: 'HEADERS' })).toThrow();
+  });
+
+  it('rejects missing name', () => {
+    expect(() => TargetUpdateRequestSchema.parse({})).toThrow();
+  });
+});
+
+describe('TargetProbeRequestSchema', () => {
+  it('parses minimal probe request', () => {
+    const parsed = TargetProbeRequestSchema.parse({ name: 'probe-target' });
+    expect(parsed.name).toBe('probe-target');
+  });
+
+  it('parses with uuid and probe_fields', () => {
+    const parsed = TargetProbeRequestSchema.parse({
+      name: 'probe-target',
+      uuid: '550e8400-e29b-41d4-a716-446655440000',
+      probe_fields: ['industry', 'use_case', 'base_model'],
+    });
+    expect(parsed.uuid).toBe('550e8400-e29b-41d4-a716-446655440000');
+    expect(parsed.probe_fields).toHaveLength(3);
+  });
+
+  it('rejects unknown fields (strict mode)', () => {
+    expect(() => TargetProbeRequestSchema.parse({ name: 'x', auth_type: 'HEADERS' })).toThrow();
+  });
+
+  it('rejects missing name', () => {
+    expect(() => TargetProbeRequestSchema.parse({})).toThrow();
+  });
+});
+
+describe('TargetContextUpdateSchema', () => {
+  it('parses with typed background and context', () => {
+    const parsed = TargetContextUpdateSchema.parse({
+      target_background: { industry: 'finance', use_case: 'chatbot' },
+      additional_context: { base_model: 'gpt-4', system_prompt: 'Be helpful.' },
+    });
+    expect(parsed.target_background).toBeDefined();
+    expect(parsed.additional_context).toBeDefined();
+  });
+
+  it('accepts null values', () => {
+    const parsed = TargetContextUpdateSchema.parse({
+      target_background: null,
+      additional_context: null,
+    });
+    expect(parsed.target_background).toBeNull();
+  });
+
+  it('parses empty object', () => {
+    const parsed = TargetContextUpdateSchema.parse({});
+    expect(parsed.target_background).toBeUndefined();
   });
 });
 
@@ -1173,28 +1306,6 @@ describe('AuthConfigSchema', () => {
       oauth2_inject_header: { Authorization: 'Bearer {{token}}' },
     });
     expect(parsed).toHaveProperty('oauth2_token_url');
-  });
-});
-
-// ---------------------------------------------------------------------------
-// Auth fields on existing target schemas
-// ---------------------------------------------------------------------------
-
-describe('TargetCreateRequestSchema (auth fields)', () => {
-  it('parses with auth_type and auth_config', () => {
-    const parsed = TargetCreateRequestSchema.parse({
-      name: 'authed-target',
-      auth_type: 'HEADERS',
-      auth_config: { auth_header: { Authorization: 'Bearer tok' } },
-    });
-    expect(parsed.auth_type).toBe('HEADERS');
-    expect(parsed.auth_config).toEqual({ auth_header: { Authorization: 'Bearer tok' } });
-  });
-
-  it('parses without auth_type/auth_config (still optional)', () => {
-    const parsed = TargetCreateRequestSchema.parse({ name: 'no-auth' });
-    expect(parsed.auth_type).toBeUndefined();
-    expect(parsed.auth_config).toBeUndefined();
   });
 });
 

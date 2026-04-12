@@ -52,7 +52,7 @@ Type-safe clients for all four AIRS service domains — real-time content scanni
 
   ***
 
-  55 typed enum const objects, 245 Zod schemas with `.passthrough()` for forward compatibility, and JSDoc on every exported symbol.
+  50 typed enum const objects, 250 Zod schemas with `.passthrough()` for forward compatibility, and JSDoc on every exported symbol.
 
 - :material-lightning-bolt:{ .lg .middle } **Zero Dependencies**
 

@@ -233,8 +233,16 @@ CRUD for scan targets, profiling probes, auth validation, and template retrieval
 ```ts
 const target = await client.targets.create({
   name: 'my-chatbot',
-  target_type: 'api',
-  // endpoint config, etc.
+  target_type: 'REST',
+  connection_params: {
+    api_endpoint: 'https://example.com/api/v1/chat/completions',
+    request_headers: { 'Content-Type': 'application/json' },
+    request_json: { messages: [{ role: 'user', content: '{INPUT}' }] },
+    response_json: {
+      choices: [{ index: 0, message: { role: 'assistant', content: '{RESPONSE}' } }],
+    },
+    response_key: 'content',
+  },
 });
 ```
 
@@ -292,7 +300,7 @@ console.log(validation.validated); // true
 // Get target field metadata
 const metadata = await client.targets.getTargetMetadata();
 
-// Get target templates for all provider types (OPENAI, HUGGING_FACE, DATABRICKS, BEDROCK, REST, STREAMING, WEBSOCKET)
+// Get target templates for all provider types (OPENAI, HUGGING_FACE, DATABRICKS, BEDROCK, REST, STREAMING)
 const templates = await client.targets.getTargetTemplates();
 console.log(templates.OPENAI);
 ```
