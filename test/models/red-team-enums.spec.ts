@@ -273,17 +273,13 @@ describe('RedTeamCategory', () => {
 });
 
 describe('ResponseMode', () => {
-  it('has expected values', () => {
+  it('has REST and STREAMING values', () => {
     expect(ResponseMode.REST).toBe('REST');
     expect(ResponseMode.STREAMING).toBe('STREAMING');
   });
 
-  it('includes WEBSOCKET', () => {
-    expect(ResponseMode.WEBSOCKET).toBe('WEBSOCKET');
-  });
-
-  it('has exactly 3 values', () => {
-    expect(Object.keys(ResponseMode)).toHaveLength(3);
+  it('has exactly 2 members', () => {
+    expect(Object.keys(ResponseMode)).toHaveLength(2);
   });
 });
 
