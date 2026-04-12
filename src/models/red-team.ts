@@ -1131,25 +1131,11 @@ export type TargetList = z.infer<typeof TargetListSchema>;
 
 export const TargetProbeRequestSchema = z
   .object({
-    name: z.string(),
-    uuid: z.unknown().optional(),
-    description: z.unknown().optional(),
-    target_type: z.unknown().optional(),
-    connection_type: z.unknown().optional(),
-    api_endpoint_type: z.unknown().optional(),
-    response_mode: z.unknown().optional(),
-    connection_params: z.unknown().optional(),
-    session_supported: z.boolean().optional(),
-    target_metadata: z.unknown().optional(),
-    target_background: z.unknown().optional(),
-    additional_context: z.unknown().optional(),
-    extra_info: z.unknown().optional(),
-    network_broker_channel_uuid: z.unknown().optional(),
-    probe_fields: z.unknown().optional(),
-    auth_type: z.string().nullable().optional(),
-    auth_config: z.unknown().nullable().optional(),
+    ...TargetRequestBaseFields,
+    uuid: z.string().nullable().optional(),
+    probe_fields: z.array(z.string()).nullable().optional(),
   })
-  .passthrough();
+  .strict();
 export type TargetProbeRequest = z.infer<typeof TargetProbeRequestSchema>;
 
 export const TargetAuthValidationRequestSchema = z

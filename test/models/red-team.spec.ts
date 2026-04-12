@@ -19,6 +19,7 @@ import {
   ErrorLogSchema,
   TargetCreateRequestSchema,
   TargetUpdateRequestSchema,
+  TargetProbeRequestSchema,
   TargetResponseSchema,
   TargetListSchema,
   TargetBackgroundSchema,
@@ -802,6 +803,31 @@ describe('TargetUpdateRequestSchema', () => {
 
   it('rejects missing name', () => {
     expect(() => TargetUpdateRequestSchema.parse({})).toThrow();
+  });
+});
+
+describe('TargetProbeRequestSchema', () => {
+  it('parses minimal probe request', () => {
+    const parsed = TargetProbeRequestSchema.parse({ name: 'probe-target' });
+    expect(parsed.name).toBe('probe-target');
+  });
+
+  it('parses with uuid and probe_fields', () => {
+    const parsed = TargetProbeRequestSchema.parse({
+      name: 'probe-target',
+      uuid: '550e8400-e29b-41d4-a716-446655440000',
+      probe_fields: ['industry', 'use_case', 'base_model'],
+    });
+    expect(parsed.uuid).toBe('550e8400-e29b-41d4-a716-446655440000');
+    expect(parsed.probe_fields).toHaveLength(3);
+  });
+
+  it('rejects unknown fields (strict mode)', () => {
+    expect(() => TargetProbeRequestSchema.parse({ name: 'x', auth_type: 'HEADERS' })).toThrow();
+  });
+
+  it('rejects missing name', () => {
+    expect(() => TargetProbeRequestSchema.parse({})).toThrow();
   });
 });
 
