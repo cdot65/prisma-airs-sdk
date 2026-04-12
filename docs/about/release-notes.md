@@ -1,5 +1,22 @@
 # Release Notes
 
+## v0.7.1
+
+### Bug Fix — Target Create/Update/Probe 422
+
+Fixed `targets.create()`, `targets.update()`, and `targets.probe()` returning HTTP 422 for all payloads. Root cause: the API's `additionalProperties: false` rejected `auth_type` and `auth_config` fields that the SDK included but the API does not accept on these endpoints.
+
+**Schema changes:**
+
+- `TargetCreateRequestSchema`, `TargetUpdateRequestSchema`, `TargetProbeRequestSchema` — switched from `.passthrough()` to `.strict()` to match API's `additionalProperties: false`; removed `auth_type`/`auth_config` fields; properly typed all fields using existing sub-schemas (`RestConnectionParamsSchema`, `StreamingConnectionParamsSchema`, `TargetMetadataSchema`, `TargetBackgroundSchema`, `TargetAdditionalContextSchema`)
+- Extracted shared `TargetRequestBaseFields` (internal, not exported) for DRY across all three request schemas
+- Added `TargetContextUpdateSchema` with properly typed `target_background`/`additional_context` fields
+- Removed `ResponseMode.WEBSOCKET` — API only supports `REST` and `STREAMING`
+
+983 tests across 44 test files.
+
+---
+
 ## v0.7.0
 
 ### New Features — Red Team Management Plane Alignment
@@ -15,7 +32,7 @@ Full alignment with the updated Red Team management-plane OpenAPI spec. Adds 2 n
 
 - `targets.validateAuth()` — validate target authentication credentials
 - `targets.getTargetMetadata()` — get field definitions for target configuration
-- `targets.getTargetTemplates()` — get provider-specific target templates (OPENAI, HUGGING_FACE, DATABRICKS, BEDROCK, REST, STREAMING, WEBSOCKET)
+- `targets.getTargetTemplates()` — get provider-specific target templates (OPENAI, HUGGING_FACE, DATABRICKS, BEDROCK, REST, STREAMING)
 
 **Auth config schemas:**
 
