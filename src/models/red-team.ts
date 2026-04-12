@@ -1046,7 +1046,7 @@ const TargetRequestBaseFields = {
     .union([RestConnectionParamsSchema, StreamingConnectionParamsSchema])
     .nullable()
     .optional(),
-  session_supported: z.boolean().optional().default(false),
+  session_supported: z.boolean().optional(),
   target_metadata: TargetMetadataSchema.optional(),
   target_background: TargetBackgroundSchema.nullable().optional(),
   additional_context: TargetAdditionalContextSchema.nullable().optional(),
