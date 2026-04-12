@@ -18,6 +18,7 @@ import {
   QuotaSummarySchema,
   ErrorLogSchema,
   TargetCreateRequestSchema,
+  TargetUpdateRequestSchema,
   TargetResponseSchema,
   TargetListSchema,
   TargetBackgroundSchema,
@@ -764,6 +765,43 @@ describe('TargetCreateRequestSchema', () => {
       },
     });
     expect(parsed.connection_params).toBeDefined();
+  });
+});
+
+describe('TargetUpdateRequestSchema', () => {
+  it('parses minimal request (name only)', () => {
+    const parsed = TargetUpdateRequestSchema.parse({ name: 'updated-target' });
+    expect(parsed.name).toBe('updated-target');
+  });
+
+  it('parses full request with typed fields', () => {
+    const req = {
+      name: 'updated-target',
+      description: 'Updated description',
+      target_type: 'AGENT',
+      connection_type: 'OPENAI',
+      api_endpoint_type: 'PUBLIC',
+      response_mode: 'REST',
+      session_supported: false,
+      target_metadata: { rate_limit_enabled: true },
+      target_background: { industry: 'healthcare' },
+      additional_context: { system_prompt: 'You are helpful.' },
+      extra_info: { key: 'val' },
+      connection_params: {
+        api_endpoint: 'https://api.example.com/v1/chat',
+      },
+      network_broker_channel_uuid: null,
+    };
+    const parsed = TargetUpdateRequestSchema.parse(req);
+    expect(parsed.target_type).toBe('AGENT');
+  });
+
+  it('rejects unknown fields (strict mode)', () => {
+    expect(() => TargetUpdateRequestSchema.parse({ name: 'x', auth_type: 'HEADERS' })).toThrow();
+  });
+
+  it('rejects missing name', () => {
+    expect(() => TargetUpdateRequestSchema.parse({})).toThrow();
   });
 });
 
