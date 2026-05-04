@@ -156,6 +156,9 @@ describe('passthrough — scan-related schemas preserve unknown fields', () => {
       scan_id: 's1',
       category: 'benign',
       action: 'allow',
+      timeout: false,
+      error: false,
+      errors: [],
       _future: 1,
     });
     expect(r.success).toBe(true);

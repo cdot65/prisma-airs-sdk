@@ -1,8 +1,20 @@
 import { z } from 'zod';
-import { ScanResponseSchema } from './scan-response.js';
+import { ScanResponseSchema, type ScanResponse } from './scan-response.js';
+
+/** Result of querying a scan by its scan ID, including status and full scan response. */
+export interface ScanIdResult {
+  source?: string;
+  req_id?: number;
+  status?: string;
+  scan_id?: string;
+  result?: ScanResponse;
+  [key: string]: unknown;
+}
 
 /** Zod schema for a scan ID query result. */
-export const ScanIdResultSchema = z
+// Explicit type annotation: ScanResponseSchema is now structurally too complex
+// for TypeScript to serialize the inferred type. The annotation breaks that cycle.
+export const ScanIdResultSchema: z.ZodType<ScanIdResult> = z
   .object({
     source: z.string().optional(),
     req_id: z.number().optional(),
@@ -11,6 +23,3 @@ export const ScanIdResultSchema = z
     result: ScanResponseSchema.optional(),
   })
   .passthrough();
-
-/** Result of querying a scan by its scan ID, including status and full scan response. */
-export type ScanIdResult = z.infer<typeof ScanIdResultSchema>;

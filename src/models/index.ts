@@ -31,6 +31,12 @@ export {
 export {
   MaskedDataSchema,
   type MaskedData,
+  ToolDetectionFlagsSchema,
+  type ToolDetectionFlags,
+  ToolDetectionDetailsSchema,
+  type ToolDetectionDetails,
+  ToolDetectionEntrySchema,
+  type ToolDetectionEntry,
   IODetectedSchema,
   type IODetected,
   ScanSummarySchema,
