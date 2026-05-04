@@ -1,27 +1,33 @@
+import { z } from 'zod';
 import {
   RED_TEAM_TARGET_PATH,
   RED_TEAM_TARGET_VALIDATE_AUTH_PATH,
   RED_TEAM_TEMPLATE_PATH,
 } from '../constants.js';
-import { AISecSDKException, ErrorType } from '../errors.js';
-import { isValidUuid } from '../utils.js';
-import { managementHttpRequest } from '../management/management-http-client.js';
-import { buildRedTeamListParams } from './list-params.js';
-import type { OAuthClient } from '../management/oauth-client.js';
-import type { RedTeamListOptions } from './scans-client.js';
-import type {
-  TargetCreateRequest,
-  TargetUpdateRequest,
-  TargetContextUpdate,
-  TargetResponse,
-  TargetList,
-  TargetProbeRequest,
-  TargetProfileResponse,
-  TargetAuthValidationRequest,
-  TargetAuthValidationResponse,
-  TargetTemplateCollection,
-  BaseResponse,
+import { request } from '../http/request.js';
+import type { AuthAdapter } from '../http/types.js';
+import { serializeListing } from '../listing.js';
+import { assertUuid } from '../validators.js';
+import {
+  TargetResponseSchema,
+  TargetListSchema,
+  TargetProfileResponseSchema,
+  TargetAuthValidationResponseSchema,
+  TargetTemplateCollectionSchema,
+  BaseResponseSchema,
+  type TargetCreateRequest,
+  type TargetUpdateRequest,
+  type TargetContextUpdate,
+  type TargetResponse,
+  type TargetList,
+  type TargetProbeRequest,
+  type TargetProfileResponse,
+  type TargetAuthValidationRequest,
+  type TargetAuthValidationResponse,
+  type TargetTemplateCollection,
+  type BaseResponse,
 } from '../models/red-team.js';
+import type { RedTeamListOptions } from './scans-client.js';
 
 /** Target list filter options. */
 export interface TargetListOptions extends RedTeamListOptions {
@@ -38,45 +44,42 @@ export interface TargetOperationOptions {
 /** @internal */
 export interface RedTeamTargetsClientOptions {
   baseUrl: string;
-  oauthClient: OAuthClient;
+  auth: AuthAdapter;
   numRetries: number;
 }
 
 /** Client for Red Team management plane target operations. */
 export class RedTeamTargetsClient {
   private readonly baseUrl: string;
-  private readonly oauthClient: OAuthClient;
+  private readonly auth: AuthAdapter;
   private readonly numRetries: number;
 
   constructor(opts: RedTeamTargetsClientOptions) {
     this.baseUrl = opts.baseUrl;
-    this.oauthClient = opts.oauthClient;
+    this.auth = opts.auth;
     this.numRetries = opts.numRetries;
   }
 
   /**
    * Create a new target.
-   * @param request - Target creation request body.
+   * @param body - Target creation request body.
    * @param opts - Optional operation options (e.g. validate connection).
    * @returns The created target response.
    */
-  async create(
-    request: TargetCreateRequest,
-    opts?: TargetOperationOptions,
-  ): Promise<TargetResponse> {
+  async create(body: TargetCreateRequest, opts?: TargetOperationOptions): Promise<TargetResponse> {
     const params: Record<string, string> = {};
     if (opts?.validate !== undefined) params.validate = String(opts.validate);
 
-    const res = await managementHttpRequest<TargetResponse>({
+    return request({
       method: 'POST',
       baseUrl: this.baseUrl,
       path: RED_TEAM_TARGET_PATH,
-      body: request,
+      body,
       params: Object.keys(params).length > 0 ? params : undefined,
-      oauthClient: this.oauthClient,
+      responseSchema: TargetResponseSchema,
+      auth: this.auth,
       numRetries: this.numRetries,
     });
-    return res.data;
   }
 
   /**
@@ -85,19 +88,19 @@ export class RedTeamTargetsClient {
    * @returns The paginated list of targets.
    */
   async list(opts?: TargetListOptions): Promise<TargetList> {
-    const params = buildRedTeamListParams(opts);
+    const params = serializeListing(opts);
     if (opts?.target_type !== undefined) params.target_type = opts.target_type;
     if (opts?.status !== undefined) params.status = opts.status;
 
-    const res = await managementHttpRequest<TargetList>({
+    return request({
       method: 'GET',
       baseUrl: this.baseUrl,
       path: RED_TEAM_TARGET_PATH,
       params,
-      oauthClient: this.oauthClient,
+      responseSchema: TargetListSchema,
+      auth: this.auth,
       numRetries: this.numRetries,
     });
-    return res.data;
   }
 
   /**
@@ -106,55 +109,43 @@ export class RedTeamTargetsClient {
    * @returns The target response.
    */
   async get(uuid: string): Promise<TargetResponse> {
-    if (!isValidUuid(uuid)) {
-      throw new AISecSDKException(
-        `Invalid target uuid: ${uuid}`,
-        ErrorType.USER_REQUEST_PAYLOAD_ERROR,
-      );
-    }
-
-    const res = await managementHttpRequest<TargetResponse>({
+    assertUuid(uuid, 'target uuid');
+    return request({
       method: 'GET',
       baseUrl: this.baseUrl,
       path: `${RED_TEAM_TARGET_PATH}/${uuid}`,
-      oauthClient: this.oauthClient,
+      responseSchema: TargetResponseSchema,
+      auth: this.auth,
       numRetries: this.numRetries,
     });
-    return res.data;
   }
 
   /**
    * Update a target.
    * @param uuid - The target UUID.
-   * @param request - Target update request body.
+   * @param body - Target update request body.
    * @param opts - Optional operation options (e.g. validate connection).
    * @returns The updated target response.
    */
   async update(
     uuid: string,
-    request: TargetUpdateRequest,
+    body: TargetUpdateRequest,
     opts?: TargetOperationOptions,
   ): Promise<TargetResponse> {
-    if (!isValidUuid(uuid)) {
-      throw new AISecSDKException(
-        `Invalid target uuid: ${uuid}`,
-        ErrorType.USER_REQUEST_PAYLOAD_ERROR,
-      );
-    }
-
+    assertUuid(uuid, 'target uuid');
     const params: Record<string, string> = {};
     if (opts?.validate !== undefined) params.validate = String(opts.validate);
 
-    const res = await managementHttpRequest<TargetResponse>({
+    return request({
       method: 'PUT',
       baseUrl: this.baseUrl,
       path: `${RED_TEAM_TARGET_PATH}/${uuid}`,
-      body: request,
+      body,
       params: Object.keys(params).length > 0 ? params : undefined,
-      oauthClient: this.oauthClient,
+      responseSchema: TargetResponseSchema,
+      auth: this.auth,
       numRetries: this.numRetries,
     });
-    return res.data;
   }
 
   /**
@@ -163,38 +154,32 @@ export class RedTeamTargetsClient {
    * @returns The delete response.
    */
   async delete(uuid: string): Promise<BaseResponse> {
-    if (!isValidUuid(uuid)) {
-      throw new AISecSDKException(
-        `Invalid target uuid: ${uuid}`,
-        ErrorType.USER_REQUEST_PAYLOAD_ERROR,
-      );
-    }
-
-    const res = await managementHttpRequest<BaseResponse>({
+    assertUuid(uuid, 'target uuid');
+    return request({
       method: 'DELETE',
       baseUrl: this.baseUrl,
       path: `${RED_TEAM_TARGET_PATH}/${uuid}`,
-      oauthClient: this.oauthClient,
+      responseSchema: BaseResponseSchema,
+      auth: this.auth,
       numRetries: this.numRetries,
     });
-    return res.data;
   }
 
   /**
    * Run profiling probes on a target.
-   * @param request - The probe request body.
+   * @param body - The probe request body.
    * @returns The target response after probing.
    */
-  async probe(request: TargetProbeRequest): Promise<TargetResponse> {
-    const res = await managementHttpRequest<TargetResponse>({
+  async probe(body: TargetProbeRequest): Promise<TargetResponse> {
+    return request({
       method: 'POST',
       baseUrl: this.baseUrl,
       path: `${RED_TEAM_TARGET_PATH}/probe`,
-      body: request,
-      oauthClient: this.oauthClient,
+      body,
+      responseSchema: TargetResponseSchema,
+      auth: this.auth,
       numRetries: this.numRetries,
     });
-    return res.data;
   }
 
   /**
@@ -203,63 +188,51 @@ export class RedTeamTargetsClient {
    * @returns The target profile response.
    */
   async getProfile(uuid: string): Promise<TargetProfileResponse> {
-    if (!isValidUuid(uuid)) {
-      throw new AISecSDKException(
-        `Invalid target uuid: ${uuid}`,
-        ErrorType.USER_REQUEST_PAYLOAD_ERROR,
-      );
-    }
-
-    const res = await managementHttpRequest<TargetProfileResponse>({
+    assertUuid(uuid, 'target uuid');
+    return request({
       method: 'GET',
       baseUrl: this.baseUrl,
       path: `${RED_TEAM_TARGET_PATH}/${uuid}/profile`,
-      oauthClient: this.oauthClient,
+      responseSchema: TargetProfileResponseSchema,
+      auth: this.auth,
       numRetries: this.numRetries,
     });
-    return res.data;
   }
 
   /**
    * Update a target profile (background + additional context).
    * @param uuid - The target UUID.
-   * @param request - The context update request body.
+   * @param body - The context update request body.
    * @returns The updated target response.
    */
-  async updateProfile(uuid: string, request: TargetContextUpdate): Promise<TargetResponse> {
-    if (!isValidUuid(uuid)) {
-      throw new AISecSDKException(
-        `Invalid target uuid: ${uuid}`,
-        ErrorType.USER_REQUEST_PAYLOAD_ERROR,
-      );
-    }
-
-    const res = await managementHttpRequest<TargetResponse>({
+  async updateProfile(uuid: string, body: TargetContextUpdate): Promise<TargetResponse> {
+    assertUuid(uuid, 'target uuid');
+    return request({
       method: 'PUT',
       baseUrl: this.baseUrl,
       path: `${RED_TEAM_TARGET_PATH}/${uuid}/profile`,
-      body: request,
-      oauthClient: this.oauthClient,
+      body,
+      responseSchema: TargetResponseSchema,
+      auth: this.auth,
       numRetries: this.numRetries,
     });
-    return res.data;
   }
 
   /**
    * Validate target authentication credentials.
-   * @param request - The auth validation request body.
+   * @param body - The auth validation request body.
    * @returns The auth validation response.
    */
-  async validateAuth(request: TargetAuthValidationRequest): Promise<TargetAuthValidationResponse> {
-    const res = await managementHttpRequest<TargetAuthValidationResponse>({
+  async validateAuth(body: TargetAuthValidationRequest): Promise<TargetAuthValidationResponse> {
+    return request({
       method: 'POST',
       baseUrl: this.baseUrl,
       path: RED_TEAM_TARGET_VALIDATE_AUTH_PATH,
-      body: request,
-      oauthClient: this.oauthClient,
+      body,
+      responseSchema: TargetAuthValidationResponseSchema,
+      auth: this.auth,
       numRetries: this.numRetries,
     });
-    return res.data;
   }
 
   /**
@@ -267,14 +240,14 @@ export class RedTeamTargetsClient {
    * @returns The target metadata object.
    */
   async getTargetMetadata(): Promise<Record<string, unknown>> {
-    const res = await managementHttpRequest<Record<string, unknown>>({
+    return request({
       method: 'GET',
       baseUrl: this.baseUrl,
       path: `${RED_TEAM_TEMPLATE_PATH}/target-metadata`,
-      oauthClient: this.oauthClient,
+      responseSchema: z.record(z.unknown()),
+      auth: this.auth,
       numRetries: this.numRetries,
     });
-    return res.data;
   }
 
   /**
@@ -282,13 +255,13 @@ export class RedTeamTargetsClient {
    * @returns The collection of target templates keyed by provider.
    */
   async getTargetTemplates(): Promise<TargetTemplateCollection> {
-    const res = await managementHttpRequest<TargetTemplateCollection>({
+    return request({
       method: 'GET',
       baseUrl: this.baseUrl,
       path: `${RED_TEAM_TEMPLATE_PATH}/target-templates`,
-      oauthClient: this.oauthClient,
+      responseSchema: TargetTemplateCollectionSchema,
+      auth: this.auth,
       numRetries: this.numRetries,
     });
-    return res.data;
   }
 }

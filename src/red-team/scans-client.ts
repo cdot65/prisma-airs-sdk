@@ -1,23 +1,23 @@
 import { RED_TEAM_SCAN_PATH, RED_TEAM_CATEGORIES_PATH } from '../constants.js';
-import { AISecSDKException, ErrorType } from '../errors.js';
-import { isValidUuid } from '../utils.js';
-import { managementHttpRequest } from '../management/management-http-client.js';
-import { buildRedTeamListParams } from './list-params.js';
-import type { OAuthClient } from '../management/oauth-client.js';
-import type {
-  JobCreateRequest,
-  JobResponse,
-  JobListResponse,
-  JobAbortResponse,
-  CategoryModel,
+import { request } from '../http/request.js';
+import type { AuthAdapter } from '../http/types.js';
+import { z } from 'zod';
+import { serializeListing, type ListingOptions } from '../listing.js';
+import { assertUuid } from '../validators.js';
+import {
+  JobResponseSchema,
+  JobListResponseSchema,
+  JobAbortResponseSchema,
+  CategoryModelSchema,
+  type JobCreateRequest,
+  type JobResponse,
+  type JobListResponse,
+  type JobAbortResponse,
+  type CategoryModel,
 } from '../models/red-team.js';
 
-/** Pagination and filter options for Red Team list operations. */
-export interface RedTeamListOptions {
-  skip?: number;
-  limit?: number;
-  search?: string;
-}
+/** Pagination + filter options for Red Team list operations. */
+export type RedTeamListOptions = ListingOptions;
 
 /** Extended list options for scan/job listing. */
 export interface RedTeamScanListOptions extends RedTeamListOptions {
@@ -29,37 +29,37 @@ export interface RedTeamScanListOptions extends RedTeamListOptions {
 /** @internal */
 export interface RedTeamScansClientOptions {
   baseUrl: string;
-  oauthClient: OAuthClient;
+  auth: AuthAdapter;
   numRetries: number;
 }
 
 /** Client for Red Team data plane scan operations. */
 export class RedTeamScansClient {
   private readonly baseUrl: string;
-  private readonly oauthClient: OAuthClient;
+  private readonly auth: AuthAdapter;
   private readonly numRetries: number;
 
   constructor(opts: RedTeamScansClientOptions) {
     this.baseUrl = opts.baseUrl;
-    this.oauthClient = opts.oauthClient;
+    this.auth = opts.auth;
     this.numRetries = opts.numRetries;
   }
 
   /**
    * Create a new red team scan job.
-   * @param request - Job creation request body.
+   * @param body - Job creation request body.
    * @returns The created job response.
    */
-  async create(request: JobCreateRequest): Promise<JobResponse> {
-    const res = await managementHttpRequest<JobResponse>({
+  async create(body: JobCreateRequest): Promise<JobResponse> {
+    return request({
       method: 'POST',
       baseUrl: this.baseUrl,
       path: RED_TEAM_SCAN_PATH,
-      body: request,
-      oauthClient: this.oauthClient,
+      body,
+      responseSchema: JobResponseSchema,
+      auth: this.auth,
       numRetries: this.numRetries,
     });
-    return res.data;
   }
 
   /**
@@ -68,20 +68,20 @@ export class RedTeamScansClient {
    * @returns The paginated list of scan jobs.
    */
   async list(opts?: RedTeamScanListOptions): Promise<JobListResponse> {
-    const params = buildRedTeamListParams(opts);
+    const params = serializeListing(opts);
     if (opts?.status !== undefined) params.status = opts.status;
     if (opts?.job_type !== undefined) params.job_type = opts.job_type;
     if (opts?.target_id !== undefined) params.target_id = opts.target_id;
 
-    const res = await managementHttpRequest<JobListResponse>({
+    return request({
       method: 'GET',
       baseUrl: this.baseUrl,
       path: RED_TEAM_SCAN_PATH,
       params,
-      oauthClient: this.oauthClient,
+      responseSchema: JobListResponseSchema,
+      auth: this.auth,
       numRetries: this.numRetries,
     });
-    return res.data;
   }
 
   /**
@@ -90,18 +90,15 @@ export class RedTeamScansClient {
    * @returns The job response.
    */
   async get(jobId: string): Promise<JobResponse> {
-    if (!isValidUuid(jobId)) {
-      throw new AISecSDKException(`Invalid job id: ${jobId}`, ErrorType.USER_REQUEST_PAYLOAD_ERROR);
-    }
-
-    const res = await managementHttpRequest<JobResponse>({
+    assertUuid(jobId, 'job id');
+    return request({
       method: 'GET',
       baseUrl: this.baseUrl,
       path: `${RED_TEAM_SCAN_PATH}/${jobId}`,
-      oauthClient: this.oauthClient,
+      responseSchema: JobResponseSchema,
+      auth: this.auth,
       numRetries: this.numRetries,
     });
-    return res.data;
   }
 
   /**
@@ -110,18 +107,15 @@ export class RedTeamScansClient {
    * @returns The abort response.
    */
   async abort(jobId: string): Promise<JobAbortResponse> {
-    if (!isValidUuid(jobId)) {
-      throw new AISecSDKException(`Invalid job id: ${jobId}`, ErrorType.USER_REQUEST_PAYLOAD_ERROR);
-    }
-
-    const res = await managementHttpRequest<JobAbortResponse>({
+    assertUuid(jobId, 'job id');
+    return request({
       method: 'POST',
       baseUrl: this.baseUrl,
       path: `${RED_TEAM_SCAN_PATH}/${jobId}/abort`,
-      oauthClient: this.oauthClient,
+      responseSchema: JobAbortResponseSchema,
+      auth: this.auth,
       numRetries: this.numRetries,
     });
-    return res.data;
   }
 
   /**
@@ -129,13 +123,13 @@ export class RedTeamScansClient {
    * @returns The list of category models.
    */
   async getCategories(): Promise<CategoryModel[]> {
-    const res = await managementHttpRequest<CategoryModel[]>({
+    return request({
       method: 'GET',
       baseUrl: this.baseUrl,
       path: RED_TEAM_CATEGORIES_PATH,
-      oauthClient: this.oauthClient,
+      responseSchema: z.array(CategoryModelSchema),
+      auth: this.auth,
       numRetries: this.numRetries,
     });
-    return res.data;
   }
 }

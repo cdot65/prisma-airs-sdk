@@ -1,49 +1,53 @@
 import { RED_TEAM_INSTANCES_PATH, RED_TEAM_REGISTRY_CREDENTIALS_PATH } from '../constants.js';
-import { managementHttpRequest } from '../management/management-http-client.js';
-import type { OAuthClient } from '../management/oauth-client.js';
-import type {
-  InstanceRequest,
-  InstanceResponse,
-  InstanceGetResponse,
-  DeviceRequest,
-  DeviceResponse,
-  RegistryCredentials,
+import { request } from '../http/request.js';
+import type { AuthAdapter } from '../http/types.js';
+import {
+  InstanceResponseSchema,
+  InstanceGetResponseSchema,
+  DeviceResponseSchema,
+  RegistryCredentialsSchema,
+  type InstanceRequest,
+  type InstanceResponse,
+  type InstanceGetResponse,
+  type DeviceRequest,
+  type DeviceResponse,
+  type RegistryCredentials,
 } from '../models/red-team.js';
 
 /** @internal */
 export interface RedTeamInstancesClientOptions {
   baseUrl: string;
-  oauthClient: OAuthClient;
+  auth: AuthAdapter;
   numRetries: number;
 }
 
 /** Client for Red Team instance/licensing and registry credential operations. */
 export class RedTeamInstancesClient {
   private readonly baseUrl: string;
-  private readonly oauthClient: OAuthClient;
+  private readonly auth: AuthAdapter;
   private readonly numRetries: number;
 
   constructor(opts: RedTeamInstancesClientOptions) {
     this.baseUrl = opts.baseUrl;
-    this.oauthClient = opts.oauthClient;
+    this.auth = opts.auth;
     this.numRetries = opts.numRetries;
   }
 
   /**
    * Create a new tenant instance.
-   * @param request - The instance creation request.
+   * @param body - The instance creation request.
    * @returns The instance response.
    */
-  async createInstance(request: InstanceRequest): Promise<InstanceResponse> {
-    const res = await managementHttpRequest<InstanceResponse>({
+  async createInstance(body: InstanceRequest): Promise<InstanceResponse> {
+    return request({
       method: 'POST',
       baseUrl: this.baseUrl,
       path: RED_TEAM_INSTANCES_PATH,
-      body: request,
-      oauthClient: this.oauthClient,
+      body,
+      responseSchema: InstanceResponseSchema,
+      auth: this.auth,
       numRetries: this.numRetries,
     });
-    return res.data;
   }
 
   /**
@@ -52,32 +56,32 @@ export class RedTeamInstancesClient {
    * @returns The instance details.
    */
   async getInstance(tenantId: string): Promise<InstanceGetResponse> {
-    const res = await managementHttpRequest<InstanceGetResponse>({
+    return request({
       method: 'GET',
       baseUrl: this.baseUrl,
       path: `${RED_TEAM_INSTANCES_PATH}/${tenantId}`,
-      oauthClient: this.oauthClient,
+      responseSchema: InstanceGetResponseSchema,
+      auth: this.auth,
       numRetries: this.numRetries,
     });
-    return res.data;
   }
 
   /**
    * Update an existing tenant instance.
    * @param tenantId - The tenant ID.
-   * @param request - The instance update request.
+   * @param body - The instance update request.
    * @returns The instance response.
    */
-  async updateInstance(tenantId: string, request: InstanceRequest): Promise<InstanceResponse> {
-    const res = await managementHttpRequest<InstanceResponse>({
+  async updateInstance(tenantId: string, body: InstanceRequest): Promise<InstanceResponse> {
+    return request({
       method: 'PUT',
       baseUrl: this.baseUrl,
       path: `${RED_TEAM_INSTANCES_PATH}/${tenantId}`,
-      body: request,
-      oauthClient: this.oauthClient,
+      body,
+      responseSchema: InstanceResponseSchema,
+      auth: this.auth,
       numRetries: this.numRetries,
     });
-    return res.data;
   }
 
   /**
@@ -86,50 +90,50 @@ export class RedTeamInstancesClient {
    * @returns The instance response.
    */
   async deleteInstance(tenantId: string): Promise<InstanceResponse> {
-    const res = await managementHttpRequest<InstanceResponse>({
+    return request({
       method: 'DELETE',
       baseUrl: this.baseUrl,
       path: `${RED_TEAM_INSTANCES_PATH}/${tenantId}`,
-      oauthClient: this.oauthClient,
+      responseSchema: InstanceResponseSchema,
+      auth: this.auth,
       numRetries: this.numRetries,
     });
-    return res.data;
   }
 
   /**
    * Create devices for a tenant instance.
    * @param tenantId - The tenant ID.
-   * @param request - The device creation request.
+   * @param body - The device creation request.
    * @returns The device response with statuses.
    */
-  async createDevices(tenantId: string, request: DeviceRequest): Promise<DeviceResponse> {
-    const res = await managementHttpRequest<DeviceResponse>({
+  async createDevices(tenantId: string, body: DeviceRequest): Promise<DeviceResponse> {
+    return request({
       method: 'POST',
       baseUrl: this.baseUrl,
       path: `${RED_TEAM_INSTANCES_PATH}/${tenantId}/devices`,
-      body: request,
-      oauthClient: this.oauthClient,
+      body,
+      responseSchema: DeviceResponseSchema,
+      auth: this.auth,
       numRetries: this.numRetries,
     });
-    return res.data;
   }
 
   /**
    * Update devices for a tenant instance.
    * @param tenantId - The tenant ID.
-   * @param request - The device update request.
+   * @param body - The device update request.
    * @returns The device response with statuses.
    */
-  async updateDevices(tenantId: string, request: DeviceRequest): Promise<DeviceResponse> {
-    const res = await managementHttpRequest<DeviceResponse>({
+  async updateDevices(tenantId: string, body: DeviceRequest): Promise<DeviceResponse> {
+    return request({
       method: 'PATCH',
       baseUrl: this.baseUrl,
       path: `${RED_TEAM_INSTANCES_PATH}/${tenantId}/devices`,
-      body: request,
-      oauthClient: this.oauthClient,
+      body,
+      responseSchema: DeviceResponseSchema,
+      auth: this.auth,
       numRetries: this.numRetries,
     });
-    return res.data;
   }
 
   /**
@@ -139,15 +143,15 @@ export class RedTeamInstancesClient {
    * @returns The device response with statuses.
    */
   async deleteDevices(tenantId: string, serialNumbers: string): Promise<DeviceResponse> {
-    const res = await managementHttpRequest<DeviceResponse>({
+    return request({
       method: 'DELETE',
       baseUrl: this.baseUrl,
       path: `${RED_TEAM_INSTANCES_PATH}/${tenantId}/devices`,
       params: { serial_numbers: serialNumbers },
-      oauthClient: this.oauthClient,
+      responseSchema: DeviceResponseSchema,
+      auth: this.auth,
       numRetries: this.numRetries,
     });
-    return res.data;
   }
 
   /**
@@ -155,13 +159,13 @@ export class RedTeamInstancesClient {
    * @returns The registry credentials with token and expiry.
    */
   async getRegistryCredentials(): Promise<RegistryCredentials> {
-    const res = await managementHttpRequest<RegistryCredentials>({
+    return request({
       method: 'POST',
       baseUrl: this.baseUrl,
       path: RED_TEAM_REGISTRY_CREDENTIALS_PATH,
-      oauthClient: this.oauthClient,
+      responseSchema: RegistryCredentialsSchema,
+      auth: this.auth,
       numRetries: this.numRetries,
     });
-    return res.data;
   }
 }

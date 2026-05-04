@@ -1,30 +1,42 @@
+import { z } from 'zod';
 import { RED_TEAM_CUSTOM_ATTACK_PATH, USER_AGENT } from '../constants.js';
 import { AISecSDKException, ErrorType } from '../errors.js';
-import { isValidUuid } from '../utils.js';
-import { managementHttpRequest } from '../management/management-http-client.js';
-import { buildRedTeamListParams } from './list-params.js';
-import type { OAuthClient } from '../management/oauth-client.js';
-import type { RedTeamListOptions } from './scans-client.js';
-import type {
-  CustomPromptSetCreateRequest,
-  CustomPromptSetUpdateRequest,
-  CustomPromptSetArchiveRequest,
-  CustomPromptSetResponse,
-  CustomPromptSetList,
-  CustomPromptSetListActive,
-  CustomPromptSetReference,
-  CustomPromptSetVersionInfo,
-  CustomPromptCreateRequest,
-  CustomPromptUpdateRequest,
-  CustomPromptResponse,
-  CustomPromptList,
-  PropertyNameCreateRequest,
-  PropertyValueCreateRequest,
-  PropertyNamesListResponse,
-  PropertyValuesResponse,
-  PropertyValuesMultipleResponse,
-  BaseResponse,
+import { request } from '../http/request.js';
+import type { AuthAdapter, PreparedRequest } from '../http/types.js';
+import { serializeListing } from '../listing.js';
+import { assertUuid } from '../validators.js';
+import {
+  BaseResponseSchema,
+  CustomPromptSetResponseSchema,
+  CustomPromptSetListSchema,
+  CustomPromptSetListActiveSchema,
+  CustomPromptSetReferenceSchema,
+  CustomPromptSetVersionInfoSchema,
+  CustomPromptResponseSchema,
+  CustomPromptListSchema,
+  PropertyNamesListResponseSchema,
+  PropertyValuesResponseSchema,
+  PropertyValuesMultipleResponseSchema,
+  type CustomPromptSetCreateRequest,
+  type CustomPromptSetUpdateRequest,
+  type CustomPromptSetArchiveRequest,
+  type CustomPromptSetResponse,
+  type CustomPromptSetList,
+  type CustomPromptSetListActive,
+  type CustomPromptSetReference,
+  type CustomPromptSetVersionInfo,
+  type CustomPromptCreateRequest,
+  type CustomPromptUpdateRequest,
+  type CustomPromptResponse,
+  type CustomPromptList,
+  type PropertyNameCreateRequest,
+  type PropertyValueCreateRequest,
+  type PropertyNamesListResponse,
+  type PropertyValuesResponse,
+  type PropertyValuesMultipleResponse,
+  type BaseResponse,
 } from '../models/red-team.js';
+import type { RedTeamListOptions } from './scans-client.js';
 
 /** Prompt set list filter options. */
 export interface PromptSetListOptions extends RedTeamListOptions {
@@ -42,25 +54,19 @@ export interface PromptListOptions extends RedTeamListOptions {
 /** @internal */
 export interface RedTeamCustomAttacksClientOptions {
   baseUrl: string;
-  oauthClient: OAuthClient;
+  auth: AuthAdapter;
   numRetries: number;
-}
-
-function validateUuid(uuid: string, label: string): void {
-  if (!isValidUuid(uuid)) {
-    throw new AISecSDKException(`Invalid ${label}: ${uuid}`, ErrorType.USER_REQUEST_PAYLOAD_ERROR);
-  }
 }
 
 /** Client for Red Team management plane custom attack operations. */
 export class RedTeamCustomAttacksClient {
   private readonly baseUrl: string;
-  private readonly oauthClient: OAuthClient;
+  private readonly auth: AuthAdapter;
   private readonly numRetries: number;
 
   constructor(opts: RedTeamCustomAttacksClientOptions) {
     this.baseUrl = opts.baseUrl;
-    this.oauthClient = opts.oauthClient;
+    this.auth = opts.auth;
     this.numRetries = opts.numRetries;
   }
 
@@ -70,19 +76,19 @@ export class RedTeamCustomAttacksClient {
 
   /**
    * Create a new custom prompt set.
-   * @param request - Prompt set creation request body.
+   * @param body - Prompt set creation request body.
    * @returns The created prompt set response.
    */
-  async createPromptSet(request: CustomPromptSetCreateRequest): Promise<CustomPromptSetResponse> {
-    const res = await managementHttpRequest<CustomPromptSetResponse>({
+  async createPromptSet(body: CustomPromptSetCreateRequest): Promise<CustomPromptSetResponse> {
+    return request({
       method: 'POST',
       baseUrl: this.baseUrl,
       path: `${RED_TEAM_CUSTOM_ATTACK_PATH}/custom-prompt-set`,
-      body: request,
-      oauthClient: this.oauthClient,
+      body,
+      responseSchema: CustomPromptSetResponseSchema,
+      auth: this.auth,
       numRetries: this.numRetries,
     });
-    return res.data;
   }
 
   /**
@@ -91,20 +97,20 @@ export class RedTeamCustomAttacksClient {
    * @returns The paginated list of prompt sets.
    */
   async listPromptSets(opts?: PromptSetListOptions): Promise<CustomPromptSetList> {
-    const params = buildRedTeamListParams(opts);
+    const params = serializeListing(opts);
     if (opts?.status !== undefined) params.status = opts.status;
     if (opts?.active !== undefined) params.active = String(opts.active);
     if (opts?.archive !== undefined) params.archive = String(opts.archive);
 
-    const res = await managementHttpRequest<CustomPromptSetList>({
+    return request({
       method: 'GET',
       baseUrl: this.baseUrl,
       path: `${RED_TEAM_CUSTOM_ATTACK_PATH}/list-custom-prompt-sets`,
       params,
-      oauthClient: this.oauthClient,
+      responseSchema: CustomPromptSetListSchema,
+      auth: this.auth,
       numRetries: this.numRetries,
     });
-    return res.data;
   }
 
   /**
@@ -113,59 +119,59 @@ export class RedTeamCustomAttacksClient {
    * @returns The prompt set response.
    */
   async getPromptSet(uuid: string): Promise<CustomPromptSetResponse> {
-    validateUuid(uuid, 'prompt set uuid');
-    const res = await managementHttpRequest<CustomPromptSetResponse>({
+    assertUuid(uuid, 'prompt set uuid');
+    return request({
       method: 'GET',
       baseUrl: this.baseUrl,
       path: `${RED_TEAM_CUSTOM_ATTACK_PATH}/custom-prompt-set/${uuid}`,
-      oauthClient: this.oauthClient,
+      responseSchema: CustomPromptSetResponseSchema,
+      auth: this.auth,
       numRetries: this.numRetries,
     });
-    return res.data;
   }
 
   /**
    * Update a prompt set.
    * @param uuid - The prompt set UUID.
-   * @param request - Prompt set update request body.
+   * @param body - Prompt set update request body.
    * @returns The updated prompt set response.
    */
   async updatePromptSet(
     uuid: string,
-    request: CustomPromptSetUpdateRequest,
+    body: CustomPromptSetUpdateRequest,
   ): Promise<CustomPromptSetResponse> {
-    validateUuid(uuid, 'prompt set uuid');
-    const res = await managementHttpRequest<CustomPromptSetResponse>({
+    assertUuid(uuid, 'prompt set uuid');
+    return request({
       method: 'PUT',
       baseUrl: this.baseUrl,
       path: `${RED_TEAM_CUSTOM_ATTACK_PATH}/custom-prompt-set/${uuid}`,
-      body: request,
-      oauthClient: this.oauthClient,
+      body,
+      responseSchema: CustomPromptSetResponseSchema,
+      auth: this.auth,
       numRetries: this.numRetries,
     });
-    return res.data;
   }
 
   /**
    * Archive or unarchive a prompt set.
    * @param uuid - The prompt set UUID.
-   * @param request - Archive request body.
+   * @param body - Archive request body.
    * @returns The updated prompt set response.
    */
   async archivePromptSet(
     uuid: string,
-    request: CustomPromptSetArchiveRequest,
+    body: CustomPromptSetArchiveRequest,
   ): Promise<CustomPromptSetResponse> {
-    validateUuid(uuid, 'prompt set uuid');
-    const res = await managementHttpRequest<CustomPromptSetResponse>({
+    assertUuid(uuid, 'prompt set uuid');
+    return request({
       method: 'PUT',
       baseUrl: this.baseUrl,
       path: `${RED_TEAM_CUSTOM_ATTACK_PATH}/custom-prompt-set/${uuid}/archive`,
-      body: request,
-      oauthClient: this.oauthClient,
+      body,
+      responseSchema: CustomPromptSetResponseSchema,
+      auth: this.auth,
       numRetries: this.numRetries,
     });
-    return res.data;
   }
 
   /**
@@ -174,15 +180,15 @@ export class RedTeamCustomAttacksClient {
    * @returns The prompt set reference.
    */
   async getPromptSetReference(uuid: string): Promise<CustomPromptSetReference> {
-    validateUuid(uuid, 'prompt set uuid');
-    const res = await managementHttpRequest<CustomPromptSetReference>({
+    assertUuid(uuid, 'prompt set uuid');
+    return request({
       method: 'GET',
       baseUrl: this.baseUrl,
       path: `${RED_TEAM_CUSTOM_ATTACK_PATH}/custom-prompt-set/${uuid}/reference`,
-      oauthClient: this.oauthClient,
+      responseSchema: CustomPromptSetReferenceSchema,
+      auth: this.auth,
       numRetries: this.numRetries,
     });
-    return res.data;
   }
 
   /**
@@ -195,19 +201,19 @@ export class RedTeamCustomAttacksClient {
     uuid: string,
     opts?: { version?: string },
   ): Promise<CustomPromptSetVersionInfo> {
-    validateUuid(uuid, 'prompt set uuid');
+    assertUuid(uuid, 'prompt set uuid');
     const params: Record<string, string> = {};
     if (opts?.version !== undefined) params.version = opts.version;
 
-    const res = await managementHttpRequest<CustomPromptSetVersionInfo>({
+    return request({
       method: 'GET',
       baseUrl: this.baseUrl,
       path: `${RED_TEAM_CUSTOM_ATTACK_PATH}/custom-prompt-set/${uuid}/version-info`,
       params: Object.keys(params).length > 0 ? params : undefined,
-      oauthClient: this.oauthClient,
+      responseSchema: CustomPromptSetVersionInfoSchema,
+      auth: this.auth,
       numRetries: this.numRetries,
     });
-    return res.data;
   }
 
   /**
@@ -215,14 +221,14 @@ export class RedTeamCustomAttacksClient {
    * @returns The list of active prompt sets.
    */
   async listActivePromptSets(): Promise<CustomPromptSetListActive> {
-    const res = await managementHttpRequest<CustomPromptSetListActive>({
+    return request({
       method: 'GET',
       baseUrl: this.baseUrl,
       path: `${RED_TEAM_CUSTOM_ATTACK_PATH}/active-custom-prompt-sets`,
-      oauthClient: this.oauthClient,
+      responseSchema: CustomPromptSetListActiveSchema,
+      auth: this.auth,
       numRetries: this.numRetries,
     });
-    return res.data;
   }
 
   /**
@@ -231,41 +237,45 @@ export class RedTeamCustomAttacksClient {
    * @returns The CSV template content (untyped — raw response from the API).
    */
   async downloadTemplate(uuid: string): Promise<unknown> {
-    validateUuid(uuid, 'prompt set uuid');
-    const res = await managementHttpRequest<unknown>({
+    assertUuid(uuid, 'prompt set uuid');
+    return request({
       method: 'GET',
       baseUrl: this.baseUrl,
       path: `${RED_TEAM_CUSTOM_ATTACK_PATH}/download-template/${uuid}`,
-      oauthClient: this.oauthClient,
+      responseSchema: z.unknown(),
+      auth: this.auth,
       numRetries: this.numRetries,
     });
-    return res.data;
   }
 
   /**
    * Upload a CSV file of custom prompts for a prompt set.
+   * Bypasses `request()` because the body is `FormData`, not JSON.
    * @param promptSetUuid - The prompt set UUID.
    * @param file - The CSV file blob.
    * @returns The upload response.
    */
   async uploadPromptsCsv(promptSetUuid: string, file: Blob): Promise<BaseResponse> {
-    validateUuid(promptSetUuid, 'prompt set uuid');
+    assertUuid(promptSetUuid, 'prompt set uuid');
 
-    const token = await this.oauthClient.getToken();
     const url = new URL(
       `${this.baseUrl.replace(/\/+$/, '')}${RED_TEAM_CUSTOM_ATTACK_PATH}/upload-custom-prompts-csv`,
     );
     url.searchParams.set('prompt_set_uuid', promptSetUuid);
 
+    const stub: PreparedRequest = {
+      method: 'POST',
+      url,
+      headers: { 'User-Agent': USER_AGENT },
+    };
+    const prepared = await this.auth.prepare(stub);
+
     const formData = new FormData();
     formData.append('file', file);
 
-    const response = await fetch(url.toString(), {
+    const response = await fetch(prepared.url.toString(), {
       method: 'POST',
-      headers: {
-        Authorization: `Bearer ${token}`,
-        'User-Agent': USER_AGENT,
-      },
+      headers: prepared.headers,
       body: formData,
     });
 
@@ -287,19 +297,19 @@ export class RedTeamCustomAttacksClient {
 
   /**
    * Create a new custom prompt.
-   * @param request - Prompt creation request body.
+   * @param body - Prompt creation request body.
    * @returns The created prompt response.
    */
-  async createPrompt(request: CustomPromptCreateRequest): Promise<CustomPromptResponse> {
-    const res = await managementHttpRequest<CustomPromptResponse>({
+  async createPrompt(body: CustomPromptCreateRequest): Promise<CustomPromptResponse> {
+    return request({
       method: 'POST',
       baseUrl: this.baseUrl,
       path: `${RED_TEAM_CUSTOM_ATTACK_PATH}/custom-prompt-set/custom-prompt`,
-      body: request,
-      oauthClient: this.oauthClient,
+      body,
+      responseSchema: CustomPromptResponseSchema,
+      auth: this.auth,
       numRetries: this.numRetries,
     });
-    return res.data;
   }
 
   /**
@@ -309,20 +319,20 @@ export class RedTeamCustomAttacksClient {
    * @returns The paginated list of prompts.
    */
   async listPrompts(promptSetUuid: string, opts?: PromptListOptions): Promise<CustomPromptList> {
-    validateUuid(promptSetUuid, 'prompt set uuid');
-    const params = buildRedTeamListParams(opts);
+    assertUuid(promptSetUuid, 'prompt set uuid');
+    const params = serializeListing(opts);
     if (opts?.status !== undefined) params.status = opts.status;
     if (opts?.active !== undefined) params.active = String(opts.active);
 
-    const res = await managementHttpRequest<CustomPromptList>({
+    return request({
       method: 'GET',
       baseUrl: this.baseUrl,
       path: `${RED_TEAM_CUSTOM_ATTACK_PATH}/custom-prompt-set/${promptSetUuid}/list-custom-prompts`,
       params,
-      oauthClient: this.oauthClient,
+      responseSchema: CustomPromptListSchema,
+      auth: this.auth,
       numRetries: this.numRetries,
     });
-    return res.data;
   }
 
   /**
@@ -332,41 +342,41 @@ export class RedTeamCustomAttacksClient {
    * @returns The prompt response.
    */
   async getPrompt(promptSetUuid: string, promptUuid: string): Promise<CustomPromptResponse> {
-    validateUuid(promptSetUuid, 'prompt set uuid');
-    validateUuid(promptUuid, 'prompt uuid');
-    const res = await managementHttpRequest<CustomPromptResponse>({
+    assertUuid(promptSetUuid, 'prompt set uuid');
+    assertUuid(promptUuid, 'prompt uuid');
+    return request({
       method: 'GET',
       baseUrl: this.baseUrl,
       path: `${RED_TEAM_CUSTOM_ATTACK_PATH}/custom-prompt-set/${promptSetUuid}/custom-prompt/${promptUuid}`,
-      oauthClient: this.oauthClient,
+      responseSchema: CustomPromptResponseSchema,
+      auth: this.auth,
       numRetries: this.numRetries,
     });
-    return res.data;
   }
 
   /**
    * Update a prompt.
    * @param promptSetUuid - The prompt set UUID.
    * @param promptUuid - The prompt UUID.
-   * @param request - Prompt update request body.
+   * @param body - Prompt update request body.
    * @returns The updated prompt response.
    */
   async updatePrompt(
     promptSetUuid: string,
     promptUuid: string,
-    request: CustomPromptUpdateRequest,
+    body: CustomPromptUpdateRequest,
   ): Promise<CustomPromptResponse> {
-    validateUuid(promptSetUuid, 'prompt set uuid');
-    validateUuid(promptUuid, 'prompt uuid');
-    const res = await managementHttpRequest<CustomPromptResponse>({
+    assertUuid(promptSetUuid, 'prompt set uuid');
+    assertUuid(promptUuid, 'prompt uuid');
+    return request({
       method: 'PUT',
       baseUrl: this.baseUrl,
       path: `${RED_TEAM_CUSTOM_ATTACK_PATH}/custom-prompt-set/${promptSetUuid}/custom-prompt/${promptUuid}`,
-      body: request,
-      oauthClient: this.oauthClient,
+      body,
+      responseSchema: CustomPromptResponseSchema,
+      auth: this.auth,
       numRetries: this.numRetries,
     });
-    return res.data;
   }
 
   /**
@@ -376,16 +386,16 @@ export class RedTeamCustomAttacksClient {
    * @returns The delete response.
    */
   async deletePrompt(promptSetUuid: string, promptUuid: string): Promise<BaseResponse> {
-    validateUuid(promptSetUuid, 'prompt set uuid');
-    validateUuid(promptUuid, 'prompt uuid');
-    const res = await managementHttpRequest<BaseResponse>({
+    assertUuid(promptSetUuid, 'prompt set uuid');
+    assertUuid(promptUuid, 'prompt uuid');
+    return request({
       method: 'DELETE',
       baseUrl: this.baseUrl,
       path: `${RED_TEAM_CUSTOM_ATTACK_PATH}/custom-prompt-set/${promptSetUuid}/custom-prompt/${promptUuid}`,
-      oauthClient: this.oauthClient,
+      responseSchema: BaseResponseSchema,
+      auth: this.auth,
       numRetries: this.numRetries,
     });
-    return res.data;
   }
 
   // -----------------------------------------------------------------------
@@ -397,31 +407,31 @@ export class RedTeamCustomAttacksClient {
    * @returns The list of property names.
    */
   async getPropertyNames(): Promise<PropertyNamesListResponse> {
-    const res = await managementHttpRequest<PropertyNamesListResponse>({
+    return request({
       method: 'GET',
       baseUrl: this.baseUrl,
       path: `${RED_TEAM_CUSTOM_ATTACK_PATH}/property-names`,
-      oauthClient: this.oauthClient,
+      responseSchema: PropertyNamesListResponseSchema,
+      auth: this.auth,
       numRetries: this.numRetries,
     });
-    return res.data;
   }
 
   /**
    * Create a new property name.
-   * @param request - Property name creation request body.
+   * @param body - Property name creation request body.
    * @returns The creation response.
    */
-  async createPropertyName(request: PropertyNameCreateRequest): Promise<BaseResponse> {
-    const res = await managementHttpRequest<BaseResponse>({
+  async createPropertyName(body: PropertyNameCreateRequest): Promise<BaseResponse> {
+    return request({
       method: 'POST',
       baseUrl: this.baseUrl,
       path: `${RED_TEAM_CUSTOM_ATTACK_PATH}/property-names`,
-      body: request,
-      oauthClient: this.oauthClient,
+      body,
+      responseSchema: BaseResponseSchema,
+      auth: this.auth,
       numRetries: this.numRetries,
     });
-    return res.data;
   }
 
   /**
@@ -430,14 +440,14 @@ export class RedTeamCustomAttacksClient {
    * @returns The property values response.
    */
   async getPropertyValues(propertyName: string): Promise<PropertyValuesResponse> {
-    const res = await managementHttpRequest<PropertyValuesResponse>({
+    return request({
       method: 'GET',
       baseUrl: this.baseUrl,
       path: `${RED_TEAM_CUSTOM_ATTACK_PATH}/property-values/${encodeURIComponent(propertyName)}`,
-      oauthClient: this.oauthClient,
+      responseSchema: PropertyValuesResponseSchema,
+      auth: this.auth,
       numRetries: this.numRetries,
     });
-    return res.data;
   }
 
   /**
@@ -448,37 +458,31 @@ export class RedTeamCustomAttacksClient {
   async getPropertyValuesMultiple(
     propertyNames: string[],
   ): Promise<PropertyValuesMultipleResponse> {
-    const url = new URL(`https://placeholder${RED_TEAM_CUSTOM_ATTACK_PATH}/property-values`);
-    for (const name of propertyNames) {
-      url.searchParams.append('property_names', name);
-    }
-    const queryString = url.searchParams.toString();
-    const pathWithQuery = `${RED_TEAM_CUSTOM_ATTACK_PATH}/property-values${queryString ? `?${queryString}` : ''}`;
-
-    const res = await managementHttpRequest<PropertyValuesMultipleResponse>({
+    return request({
       method: 'GET',
       baseUrl: this.baseUrl,
-      path: pathWithQuery,
-      oauthClient: this.oauthClient,
+      path: `${RED_TEAM_CUSTOM_ATTACK_PATH}/property-values`,
+      params: { property_names: propertyNames },
+      responseSchema: PropertyValuesMultipleResponseSchema,
+      auth: this.auth,
       numRetries: this.numRetries,
     });
-    return res.data;
   }
 
   /**
    * Create a property value.
-   * @param request - Property value creation request body.
+   * @param body - Property value creation request body.
    * @returns The creation response.
    */
-  async createPropertyValue(request: PropertyValueCreateRequest): Promise<BaseResponse> {
-    const res = await managementHttpRequest<BaseResponse>({
+  async createPropertyValue(body: PropertyValueCreateRequest): Promise<BaseResponse> {
+    return request({
       method: 'POST',
       baseUrl: this.baseUrl,
       path: `${RED_TEAM_CUSTOM_ATTACK_PATH}/property-values`,
-      body: request,
-      oauthClient: this.oauthClient,
+      body,
+      responseSchema: BaseResponseSchema,
+      auth: this.auth,
       numRetries: this.numRetries,
     });
-    return res.data;
   }
 }

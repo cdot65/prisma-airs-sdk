@@ -1,16 +1,22 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { RedTeamCustomAttackReportsClient } from '../../src/red-team/custom-attack-reports-client.js';
-import { OAuthClient } from '../../src/management/oauth-client.js';
+import type { AuthAdapter } from '../../src/http/types.js';
 import { AISecSDKException } from '../../src/errors.js';
+import {
+  VALID_UUID,
+  customAttackReportMock,
+  promptSetsReportMock,
+  promptDetailMock,
+  customAttacksListMock,
+  customAttackOutputMock,
+  propertyStatMock,
+} from './_fixtures.js';
 
-const validUuid = '550e8400-e29b-41d4-a716-446655440000';
+const validUuid = VALID_UUID;
 const validUuid2 = '660e8400-e29b-41d4-a716-446655440000';
 
-function createMockOAuth(): OAuthClient {
-  return {
-    getToken: vi.fn().mockResolvedValue('tok'),
-    clearToken: vi.fn(),
-  } as unknown as OAuthClient;
+function passthroughAuth(): AuthAdapter {
+  return { prepare: async (req) => req };
 }
 
 function mockFetch(data: unknown, status = 200) {
@@ -28,7 +34,7 @@ describe('RedTeamCustomAttackReportsClient', () => {
   beforeEach(() => {
     client = new RedTeamCustomAttackReportsClient({
       baseUrl: 'https://data.example.com',
-      oauthClient: createMockOAuth(),
+      auth: passthroughAuth(),
       numRetries: 0,
     });
   });
@@ -37,12 +43,9 @@ describe('RedTeamCustomAttackReportsClient', () => {
     globalThis.fetch = originalFetch;
   });
 
-  // -----------------------------------------------------------------------
-  // getReport
-  // -----------------------------------------------------------------------
   describe('getReport', () => {
     it('GETs /v1/custom-attacks/report/:jobId', async () => {
-      mockFetch({ job_id: validUuid, score: 90 });
+      mockFetch(customAttackReportMock());
       const result = await client.getReport(validUuid);
 
       expect(result.job_id).toBe(validUuid);
@@ -55,12 +58,9 @@ describe('RedTeamCustomAttackReportsClient', () => {
     });
   });
 
-  // -----------------------------------------------------------------------
-  // getPromptSets
-  // -----------------------------------------------------------------------
   describe('getPromptSets', () => {
     it('GETs /v1/custom-attacks/report/:jobId/prompt-sets', async () => {
-      mockFetch({ prompt_sets: [] });
+      mockFetch(promptSetsReportMock());
       const result = await client.getPromptSets(validUuid);
 
       expect(result.prompt_sets).toEqual([]);
@@ -73,12 +73,9 @@ describe('RedTeamCustomAttackReportsClient', () => {
     });
   });
 
-  // -----------------------------------------------------------------------
-  // getPromptsBySet
-  // -----------------------------------------------------------------------
   describe('getPromptsBySet', () => {
     it('GETs /v1/custom-attacks/report/:jobId/prompt-set/:promptSetId/prompts', async () => {
-      mockFetch({ prompts: [] });
+      mockFetch([promptDetailMock()]);
       const result = await client.getPromptsBySet(validUuid, validUuid2);
 
       expect(result).toBeDefined();
@@ -105,15 +102,12 @@ describe('RedTeamCustomAttackReportsClient', () => {
     });
   });
 
-  // -----------------------------------------------------------------------
-  // getPromptDetail
-  // -----------------------------------------------------------------------
   describe('getPromptDetail', () => {
     it('GETs /v1/custom-attacks/report/:jobId/prompt/:promptId', async () => {
-      mockFetch({ id: validUuid2, text: 'test prompt' });
+      mockFetch(promptDetailMock());
       const result = await client.getPromptDetail(validUuid, validUuid2);
 
-      expect(result.id).toBe(validUuid2);
+      expect(result.prompt_id).toBe(VALID_UUID);
       const [url] = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0];
       expect(url).toContain(`/v1/custom-attacks/report/${validUuid}/prompt/${validUuid2}`);
     });
@@ -127,21 +121,18 @@ describe('RedTeamCustomAttackReportsClient', () => {
     });
   });
 
-  // -----------------------------------------------------------------------
-  // listCustomAttacks
-  // -----------------------------------------------------------------------
   describe('listCustomAttacks', () => {
     it('GETs /v1/custom-attacks/job/:jobId/list-custom-attacks', async () => {
-      mockFetch({ attacks: [], total: 0 });
+      mockFetch(customAttacksListMock());
       const result = await client.listCustomAttacks(validUuid);
 
-      expect(result.attacks).toEqual([]);
+      expect(result.data).toEqual([]);
       const [url] = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0];
       expect(url).toContain(`/v1/custom-attacks/job/${validUuid}/list-custom-attacks`);
     });
 
     it('passes filter params', async () => {
-      mockFetch({ attacks: [], total: 0 });
+      mockFetch(customAttacksListMock());
       await client.listCustomAttacks(validUuid, {
         threat: true,
         prompt_set_id: validUuid2,
@@ -159,12 +150,9 @@ describe('RedTeamCustomAttackReportsClient', () => {
     });
   });
 
-  // -----------------------------------------------------------------------
-  // getAttackOutputs
-  // -----------------------------------------------------------------------
   describe('getAttackOutputs', () => {
     it('GETs /v1/custom-attacks/job/:jobId/attack/:attackId/list-outputs', async () => {
-      mockFetch({ outputs: [] });
+      mockFetch([customAttackOutputMock()]);
       const result = await client.getAttackOutputs(validUuid, validUuid2);
 
       expect(result).toBeDefined();
@@ -183,17 +171,13 @@ describe('RedTeamCustomAttackReportsClient', () => {
     });
   });
 
-  // -----------------------------------------------------------------------
-  // getPropertyStats
-  // -----------------------------------------------------------------------
   describe('getPropertyStats', () => {
     it('GETs /v1/custom-attacks/job/:jobId/property-stats', async () => {
-      const stats = [{ name: 'severity', count: 5 }];
-      mockFetch(stats);
+      mockFetch([propertyStatMock()]);
       const result = await client.getPropertyStats(validUuid);
 
       expect(result).toHaveLength(1);
-      expect(result[0].name).toBe('severity');
+      expect(result[0].property_name).toBe('category');
       const [url] = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0];
       expect(url).toContain(`/v1/custom-attacks/job/${validUuid}/property-stats`);
     });

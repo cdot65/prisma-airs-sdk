@@ -9,28 +9,33 @@ import {
   RED_TEAM_SENTIMENT_PATH,
   RED_TEAM_MGMT_DASHBOARD_PATH,
 } from '../constants.js';
-import { AISecSDKException, ErrorType } from '../errors.js';
-import { isValidUuid } from '../utils.js';
+import { OAuthAuth } from '../http/auth/oauth.js';
+import { request } from '../http/request.js';
+import type { AuthAdapter } from '../http/types.js';
+import { serializeListing } from '../listing.js';
 import { resolveOAuthConfig } from '../oauth-config.js';
-import { managementHttpRequest } from '../management/management-http-client.js';
-import type { OAuthClient } from '../management/oauth-client.js';
-import { RedTeamScansClient } from './scans-client.js';
+import { assertUuid } from '../validators.js';
+import { RedTeamScansClient, type RedTeamListOptions } from './scans-client.js';
 import { RedTeamReportsClient } from './reports-client.js';
 import { RedTeamCustomAttackReportsClient } from './custom-attack-reports-client.js';
 import { RedTeamTargetsClient } from './targets-client.js';
 import { RedTeamCustomAttacksClient } from './custom-attacks-client.js';
 import { RedTeamEulaClient } from './eula-client.js';
 import { RedTeamInstancesClient } from './instances-client.js';
-import type { RedTeamListOptions } from './scans-client.js';
-import { buildRedTeamListParams } from './list-params.js';
-import type {
-  ScanStatisticsResponse,
-  ScoreTrendResponse,
-  QuotaSummary,
-  ErrorLogListResponse,
-  SentimentRequest,
-  SentimentResponse,
-  DashboardOverviewResponse,
+import {
+  ScanStatisticsResponseSchema,
+  ScoreTrendResponseSchema,
+  QuotaSummarySchema,
+  ErrorLogListResponseSchema,
+  SentimentResponseSchema,
+  DashboardOverviewResponseSchema,
+  type ScanStatisticsResponse,
+  type ScoreTrendResponse,
+  type QuotaSummary,
+  type ErrorLogListResponse,
+  type SentimentRequest,
+  type SentimentResponse,
+  type DashboardOverviewResponse,
 } from '../models/red-team.js';
 
 /** Options for constructing a {@link RedTeamClient}. */
@@ -73,7 +78,7 @@ export class RedTeamClient {
 
   private readonly dataEndpoint: string;
   private readonly mgmtEndpoint: string;
-  private readonly oauthClient: OAuthClient;
+  private readonly auth: AuthAdapter;
   private readonly numRetries: number;
 
   constructor(opts: RedTeamClientOptions = {}) {
@@ -93,52 +98,27 @@ export class RedTeamClient {
       fallbackEnvPrefix: 'PANW_MGMT',
     });
 
-    this.oauthClient = oauthClient;
+    const auth = new OAuthAuth(oauthClient);
+    this.auth = auth;
     this.dataEndpoint = dataEndpoint;
     this.mgmtEndpoint = mgmtEndpoint;
     this.numRetries = numRetries;
 
-    this.scans = new RedTeamScansClient({
-      baseUrl: dataEndpoint,
-      oauthClient,
-      numRetries,
-    });
-
-    this.reports = new RedTeamReportsClient({
-      baseUrl: dataEndpoint,
-      oauthClient,
-      numRetries,
-    });
-
+    this.scans = new RedTeamScansClient({ baseUrl: dataEndpoint, auth, numRetries });
+    this.reports = new RedTeamReportsClient({ baseUrl: dataEndpoint, auth, numRetries });
     this.customAttackReports = new RedTeamCustomAttackReportsClient({
       baseUrl: dataEndpoint,
-      oauthClient,
+      auth,
       numRetries,
     });
-
-    this.targets = new RedTeamTargetsClient({
-      baseUrl: mgmtEndpoint,
-      oauthClient,
-      numRetries,
-    });
-
+    this.targets = new RedTeamTargetsClient({ baseUrl: mgmtEndpoint, auth, numRetries });
     this.customAttacks = new RedTeamCustomAttacksClient({
       baseUrl: mgmtEndpoint,
-      oauthClient,
+      auth,
       numRetries,
     });
-
-    this.eula = new RedTeamEulaClient({
-      baseUrl: mgmtEndpoint,
-      oauthClient,
-      numRetries,
-    });
-
-    this.instances = new RedTeamInstancesClient({
-      baseUrl: mgmtEndpoint,
-      oauthClient,
-      numRetries,
-    });
+    this.eula = new RedTeamEulaClient({ baseUrl: mgmtEndpoint, auth, numRetries });
+    this.instances = new RedTeamInstancesClient({ baseUrl: mgmtEndpoint, auth, numRetries });
   }
 
   // -----------------------------------------------------------------------
@@ -158,15 +138,15 @@ export class RedTeamClient {
     if (params?.date_range !== undefined) p.date_range = params.date_range;
     if (params?.target_id !== undefined) p.target_id = params.target_id;
 
-    const res = await managementHttpRequest<ScanStatisticsResponse>({
+    return request({
       method: 'GET',
       baseUrl: this.dataEndpoint,
       path: `${RED_TEAM_DASHBOARD_PATH}/scan-statistics`,
       params: p,
-      oauthClient: this.oauthClient,
+      responseSchema: ScanStatisticsResponseSchema,
+      auth: this.auth,
       numRetries: this.numRetries,
     });
-    return res.data;
   }
 
   /**
@@ -175,21 +155,16 @@ export class RedTeamClient {
    * @returns The score trend response.
    */
   async getScoreTrend(targetId: string): Promise<ScoreTrendResponse> {
-    if (!isValidUuid(targetId)) {
-      throw new AISecSDKException(
-        `Invalid target id: ${targetId}`,
-        ErrorType.USER_REQUEST_PAYLOAD_ERROR,
-      );
-    }
-    const res = await managementHttpRequest<ScoreTrendResponse>({
+    assertUuid(targetId, 'target id');
+    return request({
       method: 'GET',
       baseUrl: this.dataEndpoint,
       path: `${RED_TEAM_DASHBOARD_PATH}/score-trend`,
       params: { target_id: targetId },
-      oauthClient: this.oauthClient,
+      responseSchema: ScoreTrendResponseSchema,
+      auth: this.auth,
       numRetries: this.numRetries,
     });
-    return res.data;
   }
 
   /**
@@ -197,14 +172,14 @@ export class RedTeamClient {
    * @returns The quota summary.
    */
   async getQuota(): Promise<QuotaSummary> {
-    const res = await managementHttpRequest<QuotaSummary>({
+    return request({
       method: 'POST',
       baseUrl: this.dataEndpoint,
       path: RED_TEAM_QUOTA_PATH,
-      oauthClient: this.oauthClient,
+      responseSchema: QuotaSummarySchema,
+      auth: this.auth,
       numRetries: this.numRetries,
     });
-    return res.data;
   }
 
   /**
@@ -214,35 +189,33 @@ export class RedTeamClient {
    * @returns The paginated list of error logs.
    */
   async getErrorLogs(jobId: string, opts?: RedTeamListOptions): Promise<ErrorLogListResponse> {
-    if (!isValidUuid(jobId)) {
-      throw new AISecSDKException(`Invalid job id: ${jobId}`, ErrorType.USER_REQUEST_PAYLOAD_ERROR);
-    }
-    const res = await managementHttpRequest<ErrorLogListResponse>({
+    assertUuid(jobId, 'job id');
+    return request({
       method: 'GET',
       baseUrl: this.dataEndpoint,
       path: `${RED_TEAM_ERROR_LOG_PATH}/${jobId}`,
-      params: buildRedTeamListParams(opts),
-      oauthClient: this.oauthClient,
+      params: serializeListing(opts),
+      responseSchema: ErrorLogListResponseSchema,
+      auth: this.auth,
       numRetries: this.numRetries,
     });
-    return res.data;
   }
 
   /**
    * Update sentiment for a scan report.
-   * @param request - The sentiment request body.
+   * @param body - The sentiment request body.
    * @returns The sentiment response.
    */
-  async updateSentiment(request: SentimentRequest): Promise<SentimentResponse> {
-    const res = await managementHttpRequest<SentimentResponse>({
+  async updateSentiment(body: SentimentRequest): Promise<SentimentResponse> {
+    return request({
       method: 'POST',
       baseUrl: this.dataEndpoint,
       path: RED_TEAM_SENTIMENT_PATH,
-      body: request,
-      oauthClient: this.oauthClient,
+      body,
+      responseSchema: SentimentResponseSchema,
+      auth: this.auth,
       numRetries: this.numRetries,
     });
-    return res.data;
   }
 
   /**
@@ -251,17 +224,15 @@ export class RedTeamClient {
    * @returns The sentiment response.
    */
   async getSentiment(jobId: string): Promise<SentimentResponse> {
-    if (!isValidUuid(jobId)) {
-      throw new AISecSDKException(`Invalid job id: ${jobId}`, ErrorType.USER_REQUEST_PAYLOAD_ERROR);
-    }
-    const res = await managementHttpRequest<SentimentResponse>({
+    assertUuid(jobId, 'job id');
+    return request({
       method: 'GET',
       baseUrl: this.dataEndpoint,
       path: `${RED_TEAM_SENTIMENT_PATH}/${jobId}`,
-      oauthClient: this.oauthClient,
+      responseSchema: SentimentResponseSchema,
+      auth: this.auth,
       numRetries: this.numRetries,
     });
-    return res.data;
   }
 
   // -----------------------------------------------------------------------
@@ -273,13 +244,13 @@ export class RedTeamClient {
    * @returns The dashboard overview response.
    */
   async getDashboardOverview(): Promise<DashboardOverviewResponse> {
-    const res = await managementHttpRequest<DashboardOverviewResponse>({
+    return request({
       method: 'GET',
       baseUrl: this.mgmtEndpoint,
       path: RED_TEAM_MGMT_DASHBOARD_PATH,
-      oauthClient: this.oauthClient,
+      responseSchema: DashboardOverviewResponseSchema,
+      auth: this.auth,
       numRetries: this.numRetries,
     });
-    return res.data;
   }
 }

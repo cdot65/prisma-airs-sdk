@@ -1,18 +1,24 @@
+import { z } from 'zod';
 import { RED_TEAM_CUSTOM_ATTACKS_REPORT_PATH } from '../constants.js';
-import { AISecSDKException, ErrorType } from '../errors.js';
-import { isValidUuid, validateJobId } from '../utils.js';
-import { managementHttpRequest } from '../management/management-http-client.js';
-import { buildRedTeamListParams } from './list-params.js';
-import type { OAuthClient } from '../management/oauth-client.js';
-import type { RedTeamListOptions } from './scans-client.js';
-import type {
-  CustomAttackReportResponse,
-  PromptSetsReportResponse,
-  PromptDetailResponse,
-  CustomAttacksListResponse,
-  CustomAttackOutput,
-  PropertyStatistic,
+import { request } from '../http/request.js';
+import type { AuthAdapter } from '../http/types.js';
+import { serializeListing } from '../listing.js';
+import { assertUuid } from '../validators.js';
+import {
+  CustomAttackReportResponseSchema,
+  PromptSetsReportResponseSchema,
+  PromptDetailResponseSchema,
+  CustomAttacksListResponseSchema,
+  CustomAttackOutputSchema,
+  PropertyStatisticSchema,
+  type CustomAttackReportResponse,
+  type PromptSetsReportResponse,
+  type PromptDetailResponse,
+  type CustomAttacksListResponse,
+  type CustomAttackOutput,
+  type PropertyStatistic,
 } from '../models/red-team.js';
+import type { RedTeamListOptions } from './scans-client.js';
 
 /** Filter options for listing prompts by set in a report. */
 export interface PromptsBySetListOptions extends RedTeamListOptions {
@@ -29,19 +35,19 @@ export interface CustomAttacksReportListOptions extends RedTeamListOptions {
 /** @internal */
 export interface RedTeamCustomAttackReportsClientOptions {
   baseUrl: string;
-  oauthClient: OAuthClient;
+  auth: AuthAdapter;
   numRetries: number;
 }
 
 /** Client for Red Team custom attack report operations. */
 export class RedTeamCustomAttackReportsClient {
   private readonly baseUrl: string;
-  private readonly oauthClient: OAuthClient;
+  private readonly auth: AuthAdapter;
   private readonly numRetries: number;
 
   constructor(opts: RedTeamCustomAttackReportsClientOptions) {
     this.baseUrl = opts.baseUrl;
-    this.oauthClient = opts.oauthClient;
+    this.auth = opts.auth;
     this.numRetries = opts.numRetries;
   }
 
@@ -51,15 +57,15 @@ export class RedTeamCustomAttackReportsClient {
    * @returns The custom attack report response.
    */
   async getReport(jobId: string): Promise<CustomAttackReportResponse> {
-    validateJobId(jobId);
-    const res = await managementHttpRequest<CustomAttackReportResponse>({
+    assertUuid(jobId, 'job id');
+    return request({
       method: 'GET',
       baseUrl: this.baseUrl,
       path: `${RED_TEAM_CUSTOM_ATTACKS_REPORT_PATH}/report/${jobId}`,
-      oauthClient: this.oauthClient,
+      responseSchema: CustomAttackReportResponseSchema,
+      auth: this.auth,
       numRetries: this.numRetries,
     });
-    return res.data;
   }
 
   /**
@@ -68,15 +74,15 @@ export class RedTeamCustomAttackReportsClient {
    * @returns The prompt sets report response.
    */
   async getPromptSets(jobId: string): Promise<PromptSetsReportResponse> {
-    validateJobId(jobId);
-    const res = await managementHttpRequest<PromptSetsReportResponse>({
+    assertUuid(jobId, 'job id');
+    return request({
       method: 'GET',
       baseUrl: this.baseUrl,
       path: `${RED_TEAM_CUSTOM_ATTACKS_REPORT_PATH}/report/${jobId}/prompt-sets`,
-      oauthClient: this.oauthClient,
+      responseSchema: PromptSetsReportResponseSchema,
+      auth: this.auth,
       numRetries: this.numRetries,
     });
-    return res.data;
   }
 
   /**
@@ -91,26 +97,21 @@ export class RedTeamCustomAttackReportsClient {
     promptSetId: string,
     opts?: PromptsBySetListOptions,
   ): Promise<PromptDetailResponse[]> {
-    validateJobId(jobId);
-    if (!isValidUuid(promptSetId)) {
-      throw new AISecSDKException(
-        `Invalid prompt set id: ${promptSetId}`,
-        ErrorType.USER_REQUEST_PAYLOAD_ERROR,
-      );
-    }
+    assertUuid(jobId, 'job id');
+    assertUuid(promptSetId, 'prompt set id');
 
-    const params = buildRedTeamListParams(opts);
+    const params = serializeListing(opts);
     if (opts?.is_threat !== undefined) params.is_threat = String(opts.is_threat);
 
-    const res = await managementHttpRequest<PromptDetailResponse[]>({
+    return request({
       method: 'GET',
       baseUrl: this.baseUrl,
       path: `${RED_TEAM_CUSTOM_ATTACKS_REPORT_PATH}/report/${jobId}/prompt-set/${promptSetId}/prompts`,
       params,
-      oauthClient: this.oauthClient,
+      responseSchema: z.array(PromptDetailResponseSchema),
+      auth: this.auth,
       numRetries: this.numRetries,
     });
-    return res.data;
   }
 
   /**
@@ -120,22 +121,17 @@ export class RedTeamCustomAttackReportsClient {
    * @returns The prompt detail response.
    */
   async getPromptDetail(jobId: string, promptId: string): Promise<PromptDetailResponse> {
-    validateJobId(jobId);
-    if (!isValidUuid(promptId)) {
-      throw new AISecSDKException(
-        `Invalid prompt id: ${promptId}`,
-        ErrorType.USER_REQUEST_PAYLOAD_ERROR,
-      );
-    }
+    assertUuid(jobId, 'job id');
+    assertUuid(promptId, 'prompt id');
 
-    const res = await managementHttpRequest<PromptDetailResponse>({
+    return request({
       method: 'GET',
       baseUrl: this.baseUrl,
       path: `${RED_TEAM_CUSTOM_ATTACKS_REPORT_PATH}/report/${jobId}/prompt/${promptId}`,
-      oauthClient: this.oauthClient,
+      responseSchema: PromptDetailResponseSchema,
+      auth: this.auth,
       numRetries: this.numRetries,
     });
-    return res.data;
   }
 
   /**
@@ -148,21 +144,21 @@ export class RedTeamCustomAttackReportsClient {
     jobId: string,
     opts?: CustomAttacksReportListOptions,
   ): Promise<CustomAttacksListResponse> {
-    validateJobId(jobId);
-    const params = buildRedTeamListParams(opts);
+    assertUuid(jobId, 'job id');
+    const params = serializeListing(opts);
     if (opts?.threat !== undefined) params.threat = String(opts.threat);
     if (opts?.prompt_set_id !== undefined) params.prompt_set_id = opts.prompt_set_id;
     if (opts?.property_value !== undefined) params.property_value = opts.property_value;
 
-    const res = await managementHttpRequest<CustomAttacksListResponse>({
+    return request({
       method: 'GET',
       baseUrl: this.baseUrl,
       path: `${RED_TEAM_CUSTOM_ATTACKS_REPORT_PATH}/job/${jobId}/list-custom-attacks`,
       params,
-      oauthClient: this.oauthClient,
+      responseSchema: CustomAttacksListResponseSchema,
+      auth: this.auth,
       numRetries: this.numRetries,
     });
-    return res.data;
   }
 
   /**
@@ -172,22 +168,17 @@ export class RedTeamCustomAttackReportsClient {
    * @returns The list of attack outputs.
    */
   async getAttackOutputs(jobId: string, attackId: string): Promise<CustomAttackOutput[]> {
-    validateJobId(jobId);
-    if (!isValidUuid(attackId)) {
-      throw new AISecSDKException(
-        `Invalid attack id: ${attackId}`,
-        ErrorType.USER_REQUEST_PAYLOAD_ERROR,
-      );
-    }
+    assertUuid(jobId, 'job id');
+    assertUuid(attackId, 'attack id');
 
-    const res = await managementHttpRequest<CustomAttackOutput[]>({
+    return request({
       method: 'GET',
       baseUrl: this.baseUrl,
       path: `${RED_TEAM_CUSTOM_ATTACKS_REPORT_PATH}/job/${jobId}/attack/${attackId}/list-outputs`,
-      oauthClient: this.oauthClient,
+      responseSchema: z.array(CustomAttackOutputSchema),
+      auth: this.auth,
       numRetries: this.numRetries,
     });
-    return res.data;
   }
 
   /**
@@ -196,14 +187,14 @@ export class RedTeamCustomAttackReportsClient {
    * @returns The list of property statistics.
    */
   async getPropertyStats(jobId: string): Promise<PropertyStatistic[]> {
-    validateJobId(jobId);
-    const res = await managementHttpRequest<PropertyStatistic[]>({
+    assertUuid(jobId, 'job id');
+    return request({
       method: 'GET',
       baseUrl: this.baseUrl,
       path: `${RED_TEAM_CUSTOM_ATTACKS_REPORT_PATH}/job/${jobId}/property-stats`,
-      oauthClient: this.oauthClient,
+      responseSchema: z.array(PropertyStatisticSchema),
+      auth: this.auth,
       numRetries: this.numRetries,
     });
-    return res.data;
   }
 }

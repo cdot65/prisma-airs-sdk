@@ -189,8 +189,7 @@ describe('RedTeamClient', () => {
 
   describe('getScanStatistics', () => {
     it('GETs /v1/dashboard/scan-statistics', async () => {
-      const resp = { total_scans: 10 };
-      mockTwoFetches(resp);
+      mockTwoFetches({ total_scans: 10, targets_scanned: 5 });
       const client = makeClient();
       const result = await client.getScanStatistics();
       expect(result.total_scans).toBe(10);
@@ -202,11 +201,10 @@ describe('RedTeamClient', () => {
 
   describe('getScoreTrend', () => {
     it('GETs /v1/dashboard/score-trend', async () => {
-      const resp = { trends: [] };
-      mockTwoFetches(resp);
+      mockTwoFetches({ labels: [], series: [] });
       const client = makeClient();
       const result = await client.getScoreTrend(validUuid);
-      expect(result.trends).toEqual([]);
+      expect(result.labels).toEqual([]);
 
       const [url] = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[1];
       expect(url).toContain('/v1/dashboard/score-trend');
@@ -220,11 +218,11 @@ describe('RedTeamClient', () => {
 
   describe('getQuota', () => {
     it('POSTs to /v1/metering/quota', async () => {
-      const resp = { used: 5, total: 100 };
-      mockTwoFetches(resp);
+      const detail = { allocated: 100, unlimited: false, consumed: 5 };
+      mockTwoFetches({ static: detail, dynamic: detail, custom: detail });
       const client = makeClient();
       const result = await client.getQuota();
-      expect(result.used).toBe(5);
+      expect(result.static.consumed).toBe(5);
 
       const [url, init] = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[1];
       expect(url).toContain('/v1/metering/quota');
@@ -234,11 +232,10 @@ describe('RedTeamClient', () => {
 
   describe('getErrorLogs', () => {
     it('GETs /v1/error-log/job/:jobId', async () => {
-      const resp = { logs: [] };
-      mockTwoFetches(resp);
+      mockTwoFetches({ pagination: { total_items: 0 }, data: [] });
       const client = makeClient();
       const result = await client.getErrorLogs(validUuid);
-      expect(result.logs).toEqual([]);
+      expect(result.data).toEqual([]);
 
       const [url] = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[1];
       expect(url).toContain(`/v1/error-log/job/${validUuid}`);
@@ -252,11 +249,10 @@ describe('RedTeamClient', () => {
 
   describe('updateSentiment', () => {
     it('POSTs to /v1/sentiment', async () => {
-      const resp = { job_id: validUuid, sentiment: 'positive' };
-      mockTwoFetches(resp);
+      mockTwoFetches({ job_id: validUuid, up_vote: true });
       const client = makeClient();
-      const result = await client.updateSentiment({ job_id: validUuid, sentiment: 'positive' });
-      expect(result.sentiment).toBe('positive');
+      const result = await client.updateSentiment({ job_id: validUuid, up_vote: true });
+      expect(result.up_vote).toBe(true);
 
       const [url, init] = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[1];
       expect(url).toContain('/v1/sentiment');
@@ -266,11 +262,10 @@ describe('RedTeamClient', () => {
 
   describe('getSentiment', () => {
     it('GETs /v1/sentiment/:jobId', async () => {
-      const resp = { job_id: validUuid, sentiment: 'positive' };
-      mockTwoFetches(resp);
+      mockTwoFetches({ job_id: validUuid, up_vote: true });
       const client = makeClient();
       const result = await client.getSentiment(validUuid);
-      expect(result.sentiment).toBe('positive');
+      expect(result.up_vote).toBe(true);
 
       const [url] = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[1];
       expect(url).toContain(`/v1/sentiment/${validUuid}`);
@@ -284,11 +279,10 @@ describe('RedTeamClient', () => {
 
   describe('getDashboardOverview', () => {
     it('GETs /v1/dashboard/overview', async () => {
-      const resp = { overview: {} };
-      mockTwoFetches(resp);
+      mockTwoFetches({ total_targets: 7, targets_by_type: [] });
       const client = makeClient();
       const result = await client.getDashboardOverview();
-      expect(result.overview).toEqual({});
+      expect(result.total_targets).toBe(7);
 
       const [url] = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[1];
       expect(url).toContain('/v1/dashboard/overview');

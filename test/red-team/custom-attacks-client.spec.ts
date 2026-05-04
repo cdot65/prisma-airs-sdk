@@ -1,16 +1,27 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { RedTeamCustomAttacksClient } from '../../src/red-team/custom-attacks-client.js';
-import { OAuthClient } from '../../src/management/oauth-client.js';
+import type { AuthAdapter } from '../../src/http/types.js';
 import { AISecSDKException } from '../../src/errors.js';
+import {
+  VALID_UUID,
+  promptSetMock,
+  promptSetListMock,
+  promptSetReferenceMock,
+  promptSetVersionInfoMock,
+  promptSetListActiveMock,
+  promptMock,
+  promptListMock,
+  propertyNamesMock,
+  propertyValuesMock,
+  propertyValuesMultipleMock,
+  baseResponseMock,
+} from './_fixtures.js';
 
-const validUuid = '550e8400-e29b-41d4-a716-446655440000';
+const validUuid = VALID_UUID;
 const validUuid2 = '660e8400-e29b-41d4-a716-446655440000';
 
-function createMockOAuth(): OAuthClient {
-  return {
-    getToken: vi.fn().mockResolvedValue('tok'),
-    clearToken: vi.fn(),
-  } as unknown as OAuthClient;
+function passthroughAuth(): AuthAdapter {
+  return { prepare: async (req) => req };
 }
 
 function mockFetch(data: unknown, status = 200) {
@@ -28,7 +39,7 @@ describe('RedTeamCustomAttacksClient', () => {
   beforeEach(() => {
     client = new RedTeamCustomAttacksClient({
       baseUrl: 'https://mgmt.example.com',
-      oauthClient: createMockOAuth(),
+      auth: passthroughAuth(),
       numRetries: 0,
     });
   });
@@ -37,17 +48,12 @@ describe('RedTeamCustomAttacksClient', () => {
     globalThis.fetch = originalFetch;
   });
 
-  // -----------------------------------------------------------------------
-  // Prompt Set operations
-  // -----------------------------------------------------------------------
-
   describe('createPromptSet', () => {
     it('POSTs to /v1/custom-attack/custom-prompt-set', async () => {
-      const ps = { id: validUuid, name: 'test-set' };
-      mockFetch(ps, 201);
+      mockFetch(promptSetMock({ name: 'test-set' }), 201);
       const result = await client.createPromptSet({ name: 'test-set' });
 
-      expect(result.id).toBe(validUuid);
+      expect(result.uuid).toBe(validUuid);
       const [url, init] = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0];
       expect(url).toBe('https://mgmt.example.com/v1/custom-attack/custom-prompt-set');
       expect(init.method).toBe('POST');
@@ -56,16 +62,16 @@ describe('RedTeamCustomAttacksClient', () => {
 
   describe('listPromptSets', () => {
     it('GETs /v1/custom-attack/list-custom-prompt-sets', async () => {
-      mockFetch({ prompt_sets: [], total: 0 });
+      mockFetch(promptSetListMock());
       const result = await client.listPromptSets();
 
-      expect(result.prompt_sets).toEqual([]);
+      expect(result.data).toEqual([]);
       const [url] = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0];
       expect(url).toContain('/v1/custom-attack/list-custom-prompt-sets');
     });
 
     it('passes filter params', async () => {
-      mockFetch({ prompt_sets: [], total: 0 });
+      mockFetch(promptSetListMock());
       await client.listPromptSets({ active: true, archive: false, status: 'READY' });
 
       const [url] = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0];
@@ -75,7 +81,7 @@ describe('RedTeamCustomAttacksClient', () => {
     });
 
     it('does not send sort params (not in spec)', async () => {
-      mockFetch({ prompt_sets: [], total: 0 });
+      mockFetch(promptSetListMock());
       await client.listPromptSets({ skip: 0 });
 
       const [url] = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0];
@@ -86,10 +92,10 @@ describe('RedTeamCustomAttacksClient', () => {
 
   describe('getPromptSet', () => {
     it('GETs /v1/custom-attack/custom-prompt-set/:uuid', async () => {
-      mockFetch({ id: validUuid, name: 'my-set' });
+      mockFetch(promptSetMock({ name: 'my-set' }));
       const result = await client.getPromptSet(validUuid);
 
-      expect(result.id).toBe(validUuid);
+      expect(result.uuid).toBe(validUuid);
       const [url] = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0];
       expect(url).toContain(`/v1/custom-attack/custom-prompt-set/${validUuid}`);
     });
@@ -101,7 +107,7 @@ describe('RedTeamCustomAttacksClient', () => {
 
   describe('updatePromptSet', () => {
     it('PUTs to /v1/custom-attack/custom-prompt-set/:uuid', async () => {
-      mockFetch({ id: validUuid, name: 'updated' });
+      mockFetch(promptSetMock({ name: 'updated' }));
       const result = await client.updatePromptSet(validUuid, { name: 'updated' });
 
       expect(result.name).toBe('updated');
@@ -117,10 +123,10 @@ describe('RedTeamCustomAttacksClient', () => {
 
   describe('archivePromptSet', () => {
     it('PUTs to /v1/custom-attack/custom-prompt-set/:uuid/archive', async () => {
-      mockFetch({ id: validUuid, archived: true });
+      mockFetch(promptSetMock({ archive: true }));
       const result = await client.archivePromptSet(validUuid, { archive: true });
 
-      expect(result.archived).toBe(true);
+      expect(result.archive).toBe(true);
       const [url, init] = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0];
       expect(url).toContain(`/v1/custom-attack/custom-prompt-set/${validUuid}/archive`);
       expect(init.method).toBe('PUT');
@@ -135,7 +141,7 @@ describe('RedTeamCustomAttacksClient', () => {
 
   describe('getPromptSetReference', () => {
     it('GETs /v1/custom-attack/custom-prompt-set/:uuid/reference', async () => {
-      mockFetch({ uuid: validUuid, version: 1 });
+      mockFetch(promptSetReferenceMock());
       const result = await client.getPromptSetReference(validUuid);
 
       expect(result.uuid).toBe(validUuid);
@@ -150,10 +156,10 @@ describe('RedTeamCustomAttacksClient', () => {
 
   describe('getPromptSetVersionInfo', () => {
     it('GETs /v1/custom-attack/custom-prompt-set/:uuid/version-info', async () => {
-      mockFetch({ uuid: validUuid, version: 3 });
+      mockFetch(promptSetVersionInfoMock());
       const result = await client.getPromptSetVersionInfo(validUuid);
 
-      expect(result.version).toBe(3);
+      expect(result.uuid).toBe(validUuid);
       const [url] = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0];
       expect(url).toContain(`/v1/custom-attack/custom-prompt-set/${validUuid}/version-info`);
     });
@@ -163,7 +169,7 @@ describe('RedTeamCustomAttacksClient', () => {
     });
 
     it('passes version query param when provided', async () => {
-      mockFetch({ uuid: validUuid, version: 2 });
+      mockFetch(promptSetVersionInfoMock());
       await client.getPromptSetVersionInfo(validUuid, { version: 'v2' });
 
       const [url] = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0];
@@ -171,7 +177,7 @@ describe('RedTeamCustomAttacksClient', () => {
     });
 
     it('omits version param when not provided', async () => {
-      mockFetch({ uuid: validUuid, version: 3 });
+      mockFetch(promptSetVersionInfoMock());
       await client.getPromptSetVersionInfo(validUuid);
 
       const [url] = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0];
@@ -181,10 +187,10 @@ describe('RedTeamCustomAttacksClient', () => {
 
   describe('listActivePromptSets', () => {
     it('GETs /v1/custom-attack/active-custom-prompt-sets', async () => {
-      mockFetch({ prompt_sets: [] });
+      mockFetch(promptSetListActiveMock());
       const result = await client.listActivePromptSets();
 
-      expect(result.prompt_sets).toEqual([]);
+      expect(result.data).toEqual([]);
       const [url] = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0];
       expect(url).toContain('/v1/custom-attack/active-custom-prompt-sets');
     });
@@ -205,20 +211,15 @@ describe('RedTeamCustomAttacksClient', () => {
     });
   });
 
-  // -----------------------------------------------------------------------
-  // Prompt operations
-  // -----------------------------------------------------------------------
-
   describe('createPrompt', () => {
     it('POSTs to /v1/custom-attack/custom-prompt-set/custom-prompt', async () => {
-      const prompt = { id: validUuid, text: 'test prompt' };
-      mockFetch(prompt, 201);
+      mockFetch(promptMock(), 201);
       const result = await client.createPrompt({
         prompt_set_uuid: validUuid,
         text: 'test prompt',
       });
 
-      expect(result.id).toBe(validUuid);
+      expect(result.uuid).toBe(validUuid);
       const [url, init] = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0];
       expect(url).toContain('/v1/custom-attack/custom-prompt-set/custom-prompt');
       expect(init.method).toBe('POST');
@@ -227,10 +228,10 @@ describe('RedTeamCustomAttacksClient', () => {
 
   describe('listPrompts', () => {
     it('GETs /v1/custom-attack/custom-prompt-set/:uuid/list-custom-prompts', async () => {
-      mockFetch({ prompts: [], total: 0 });
+      mockFetch(promptListMock());
       const result = await client.listPrompts(validUuid);
 
-      expect(result.prompts).toEqual([]);
+      expect(result.data).toEqual([]);
       const [url] = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0];
       expect(url).toContain(`/v1/custom-attack/custom-prompt-set/${validUuid}/list-custom-prompts`);
     });
@@ -240,7 +241,7 @@ describe('RedTeamCustomAttacksClient', () => {
     });
 
     it('passes active filter param', async () => {
-      mockFetch({ prompts: [], total: 0 });
+      mockFetch(promptListMock());
       await client.listPrompts(validUuid, { active: true });
 
       const [url] = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0];
@@ -248,7 +249,7 @@ describe('RedTeamCustomAttacksClient', () => {
     });
 
     it('passes status filter param', async () => {
-      mockFetch({ prompts: [], total: 0 });
+      mockFetch(promptListMock());
       await client.listPrompts(validUuid, { status: 'ACTIVE' });
 
       const [url] = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0];
@@ -258,10 +259,10 @@ describe('RedTeamCustomAttacksClient', () => {
 
   describe('getPrompt', () => {
     it('GETs /v1/custom-attack/custom-prompt-set/:setUuid/custom-prompt/:promptUuid', async () => {
-      mockFetch({ id: validUuid2, text: 'prompt text' });
+      mockFetch(promptMock());
       const result = await client.getPrompt(validUuid, validUuid2);
 
-      expect(result.id).toBe(validUuid2);
+      expect(result.uuid).toBe(validUuid);
       const [url] = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0];
       expect(url).toContain(
         `/v1/custom-attack/custom-prompt-set/${validUuid}/custom-prompt/${validUuid2}`,
@@ -279,10 +280,10 @@ describe('RedTeamCustomAttacksClient', () => {
 
   describe('updatePrompt', () => {
     it('PUTs to /v1/custom-attack/custom-prompt-set/:setUuid/custom-prompt/:promptUuid', async () => {
-      mockFetch({ id: validUuid2, text: 'updated' });
-      const result = await client.updatePrompt(validUuid, validUuid2, { text: 'updated' });
+      mockFetch(promptMock({ prompt: 'updated' }));
+      const result = await client.updatePrompt(validUuid, validUuid2, { prompt: 'updated' });
 
-      expect(result.text).toBe('updated');
+      expect(result.prompt).toBe('updated');
       const [url, init] = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0];
       expect(url).toContain(
         `/v1/custom-attack/custom-prompt-set/${validUuid}/custom-prompt/${validUuid2}`,
@@ -291,13 +292,13 @@ describe('RedTeamCustomAttacksClient', () => {
     });
 
     it('rejects invalid prompt set UUID', async () => {
-      await expect(client.updatePrompt('bad', validUuid2, { text: 'x' })).rejects.toThrow(
+      await expect(client.updatePrompt('bad', validUuid2, { prompt: 'x' })).rejects.toThrow(
         AISecSDKException,
       );
     });
 
     it('rejects invalid prompt UUID', async () => {
-      await expect(client.updatePrompt(validUuid, 'bad', { text: 'x' })).rejects.toThrow(
+      await expect(client.updatePrompt(validUuid, 'bad', { prompt: 'x' })).rejects.toThrow(
         AISecSDKException,
       );
     });
@@ -305,10 +306,10 @@ describe('RedTeamCustomAttacksClient', () => {
 
   describe('deletePrompt', () => {
     it('DELETEs /v1/custom-attack/custom-prompt-set/:setUuid/custom-prompt/:promptUuid', async () => {
-      mockFetch({ success: true });
+      mockFetch(baseResponseMock());
       const result = await client.deletePrompt(validUuid, validUuid2);
 
-      expect(result.success).toBe(true);
+      expect(result.message).toBe('ok');
       const [url, init] = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0];
       expect(url).toContain(
         `/v1/custom-attack/custom-prompt-set/${validUuid}/custom-prompt/${validUuid2}`,
@@ -325,16 +326,12 @@ describe('RedTeamCustomAttacksClient', () => {
     });
   });
 
-  // -----------------------------------------------------------------------
-  // Property operations
-  // -----------------------------------------------------------------------
-
   describe('getPropertyNames', () => {
     it('GETs /v1/custom-attack/property-names', async () => {
-      mockFetch({ property_names: ['severity', 'category'] });
+      mockFetch(propertyNamesMock(['severity', 'category']));
       const result = await client.getPropertyNames();
 
-      expect(result.property_names).toEqual(['severity', 'category']);
+      expect(result.data).toEqual(['severity', 'category']);
       const [url] = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0];
       expect(url).toContain('/v1/custom-attack/property-names');
     });
@@ -342,10 +339,10 @@ describe('RedTeamCustomAttacksClient', () => {
 
   describe('createPropertyName', () => {
     it('POSTs to /v1/custom-attack/property-names', async () => {
-      mockFetch({ success: true });
+      mockFetch(baseResponseMock());
       const result = await client.createPropertyName({ name: 'severity' });
 
-      expect(result.success).toBe(true);
+      expect(result.message).toBe('ok');
       const [url, init] = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0];
       expect(url).toContain('/v1/custom-attack/property-names');
       expect(init.method).toBe('POST');
@@ -354,7 +351,7 @@ describe('RedTeamCustomAttacksClient', () => {
 
   describe('getPropertyValues', () => {
     it('GETs /v1/custom-attack/property-values/:name', async () => {
-      mockFetch({ values: ['HIGH', 'LOW'] });
+      mockFetch(propertyValuesMock('severity', ['HIGH', 'LOW']));
       const result = await client.getPropertyValues('severity');
 
       expect(result.values).toEqual(['HIGH', 'LOW']);
@@ -365,7 +362,7 @@ describe('RedTeamCustomAttacksClient', () => {
 
   describe('getPropertyValuesMultiple', () => {
     it('GETs /v1/custom-attack/property-values with query params', async () => {
-      mockFetch({ values: {} });
+      mockFetch(propertyValuesMultipleMock());
       const result = await client.getPropertyValuesMultiple(['severity', 'category']);
 
       expect(result).toBeDefined();
@@ -378,22 +375,18 @@ describe('RedTeamCustomAttacksClient', () => {
 
   describe('createPropertyValue', () => {
     it('POSTs to /v1/custom-attack/property-values', async () => {
-      mockFetch({ success: true });
+      mockFetch(baseResponseMock());
       const result = await client.createPropertyValue({
         property_name: 'severity',
         value: 'CRITICAL',
       });
 
-      expect(result.success).toBe(true);
+      expect(result.message).toBe('ok');
       const [url, init] = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0];
       expect(url).toContain('/v1/custom-attack/property-values');
       expect(init.method).toBe('POST');
     });
   });
-
-  // -----------------------------------------------------------------------
-  // CSV upload
-  // -----------------------------------------------------------------------
 
   describe('uploadPromptsCsv', () => {
     it('POSTs multipart form data to upload endpoint', async () => {
