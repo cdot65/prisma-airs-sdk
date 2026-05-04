@@ -1,24 +1,30 @@
 import { RED_TEAM_EULA_PATH } from '../constants.js';
-import { managementHttpRequest } from '../management/management-http-client.js';
-import type { OAuthClient } from '../management/oauth-client.js';
-import type { EulaAcceptRequest, EulaContentResponse, EulaResponse } from '../models/red-team.js';
+import { request } from '../http/request.js';
+import type { AuthAdapter } from '../http/types.js';
+import {
+  EulaContentResponseSchema,
+  EulaResponseSchema,
+  type EulaAcceptRequest,
+  type EulaContentResponse,
+  type EulaResponse,
+} from '../models/red-team.js';
 
 /** @internal */
 export interface RedTeamEulaClientOptions {
   baseUrl: string;
-  oauthClient: OAuthClient;
+  auth: AuthAdapter;
   numRetries: number;
 }
 
 /** Client for Red Team EULA management operations. */
 export class RedTeamEulaClient {
   private readonly baseUrl: string;
-  private readonly oauthClient: OAuthClient;
+  private readonly auth: AuthAdapter;
   private readonly numRetries: number;
 
   constructor(opts: RedTeamEulaClientOptions) {
     this.baseUrl = opts.baseUrl;
-    this.oauthClient = opts.oauthClient;
+    this.auth = opts.auth;
     this.numRetries = opts.numRetries;
   }
 
@@ -27,14 +33,14 @@ export class RedTeamEulaClient {
    * @returns The EULA content response.
    */
   async getContent(): Promise<EulaContentResponse> {
-    const res = await managementHttpRequest<EulaContentResponse>({
+    return request({
       method: 'GET',
       baseUrl: this.baseUrl,
       path: `${RED_TEAM_EULA_PATH}/content`,
-      oauthClient: this.oauthClient,
+      responseSchema: EulaContentResponseSchema,
+      auth: this.auth,
       numRetries: this.numRetries,
     });
-    return res.data;
   }
 
   /**
@@ -42,30 +48,30 @@ export class RedTeamEulaClient {
    * @returns The EULA status response.
    */
   async getStatus(): Promise<EulaResponse> {
-    const res = await managementHttpRequest<EulaResponse>({
+    return request({
       method: 'GET',
       baseUrl: this.baseUrl,
       path: `${RED_TEAM_EULA_PATH}/status`,
-      oauthClient: this.oauthClient,
+      responseSchema: EulaResponseSchema,
+      auth: this.auth,
       numRetries: this.numRetries,
     });
-    return res.data;
   }
 
   /**
    * Accept the EULA.
-   * @param request - The acceptance request body.
+   * @param body - The acceptance request body.
    * @returns The EULA response with acceptance status.
    */
-  async accept(request: EulaAcceptRequest): Promise<EulaResponse> {
-    const res = await managementHttpRequest<EulaResponse>({
+  async accept(body: EulaAcceptRequest): Promise<EulaResponse> {
+    return request({
       method: 'POST',
       baseUrl: this.baseUrl,
       path: `${RED_TEAM_EULA_PATH}/accept`,
-      body: request,
-      oauthClient: this.oauthClient,
+      body,
+      responseSchema: EulaResponseSchema,
+      auth: this.auth,
       numRetries: this.numRetries,
     });
-    return res.data;
   }
 }

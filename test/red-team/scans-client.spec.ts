@@ -1,15 +1,11 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { RedTeamScansClient } from '../../src/red-team/scans-client.js';
-import { OAuthClient } from '../../src/management/oauth-client.js';
+import type { AuthAdapter } from '../../src/http/types.js';
 import { AISecSDKException } from '../../src/errors.js';
+import { VALID_UUID, jobMock, paginatedListMock, jobAbortMock, categoryMock } from './_fixtures.js';
 
-const validUuid = '550e8400-e29b-41d4-a716-446655440000';
-
-function createMockOAuth(): OAuthClient {
-  return {
-    getToken: vi.fn().mockResolvedValue('tok'),
-    clearToken: vi.fn(),
-  } as unknown as OAuthClient;
+function passthroughAuth(): AuthAdapter {
+  return { prepare: async (req) => req };
 }
 
 function mockFetch(data: unknown, status = 200) {
@@ -27,7 +23,7 @@ describe('RedTeamScansClient', () => {
   beforeEach(() => {
     client = new RedTeamScansClient({
       baseUrl: 'https://data.example.com',
-      oauthClient: createMockOAuth(),
+      auth: passthroughAuth(),
       numRetries: 0,
     });
   });
@@ -36,37 +32,30 @@ describe('RedTeamScansClient', () => {
     globalThis.fetch = originalFetch;
   });
 
-  // -----------------------------------------------------------------------
-  // create
-  // -----------------------------------------------------------------------
   describe('create', () => {
     it('POSTs to /v1/scan', async () => {
-      const job = { id: validUuid, status: 'PENDING' };
-      mockFetch(job, 201);
-      const result = await client.create({ target_id: validUuid, job_type: 'STATIC' });
+      mockFetch(jobMock({ uuid: VALID_UUID, status: 'PENDING' }), 201);
+      const result = await client.create({ target_id: VALID_UUID, job_type: 'STATIC' });
 
-      expect(result.id).toBe(validUuid);
+      expect(result.uuid).toBe(VALID_UUID);
       const [url, init] = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0];
       expect(url).toBe('https://data.example.com/v1/scan');
       expect(init.method).toBe('POST');
     });
   });
 
-  // -----------------------------------------------------------------------
-  // list
-  // -----------------------------------------------------------------------
   describe('list', () => {
     it('GETs /v1/scan', async () => {
-      mockFetch({ jobs: [], total: 0 });
+      mockFetch(paginatedListMock());
       const result = await client.list();
 
-      expect(result.jobs).toEqual([]);
+      expect(result.data).toEqual([]);
       const [url] = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0];
       expect(url).toContain('/v1/scan');
     });
 
     it('passes pagination params', async () => {
-      mockFetch({ jobs: [], total: 0 });
+      mockFetch(paginatedListMock());
       await client.list({ skip: 10, limit: 5 });
 
       const [url] = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0];
@@ -75,28 +64,24 @@ describe('RedTeamScansClient', () => {
     });
 
     it('passes filter params', async () => {
-      mockFetch({ jobs: [], total: 0 });
-      await client.list({ status: 'COMPLETED', job_type: 'STATIC', target_id: validUuid });
+      mockFetch(paginatedListMock());
+      await client.list({ status: 'COMPLETED', job_type: 'STATIC', target_id: VALID_UUID });
 
       const [url] = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0];
       expect(url).toContain('status=COMPLETED');
       expect(url).toContain('job_type=STATIC');
-      expect(url).toContain(`target_id=${validUuid}`);
+      expect(url).toContain(`target_id=${VALID_UUID}`);
     });
   });
 
-  // -----------------------------------------------------------------------
-  // get
-  // -----------------------------------------------------------------------
   describe('get', () => {
     it('GETs /v1/scan/:jobId', async () => {
-      const job = { id: validUuid, status: 'COMPLETED' };
-      mockFetch(job);
-      const result = await client.get(validUuid);
+      mockFetch(jobMock({ uuid: VALID_UUID, status: 'COMPLETED' }));
+      const result = await client.get(VALID_UUID);
 
-      expect(result.id).toBe(validUuid);
+      expect(result.uuid).toBe(VALID_UUID);
       const [url] = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0];
-      expect(url).toContain(`/v1/scan/${validUuid}`);
+      expect(url).toContain(`/v1/scan/${VALID_UUID}`);
     });
 
     it('rejects invalid UUID', async () => {
@@ -104,18 +89,14 @@ describe('RedTeamScansClient', () => {
     });
   });
 
-  // -----------------------------------------------------------------------
-  // abort
-  // -----------------------------------------------------------------------
   describe('abort', () => {
     it('POSTs to /v1/scan/:jobId/abort', async () => {
-      const resp = { id: validUuid, status: 'ABORTED' };
-      mockFetch(resp);
-      const result = await client.abort(validUuid);
+      mockFetch(jobAbortMock());
+      const result = await client.abort(VALID_UUID);
 
-      expect(result.status).toBe('ABORTED');
+      expect(result.message).toBe('aborted');
       const [url, init] = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0];
-      expect(url).toContain(`/v1/scan/${validUuid}/abort`);
+      expect(url).toContain(`/v1/scan/${VALID_UUID}/abort`);
       expect(init.method).toBe('POST');
     });
 
@@ -124,17 +105,13 @@ describe('RedTeamScansClient', () => {
     });
   });
 
-  // -----------------------------------------------------------------------
-  // getCategories
-  // -----------------------------------------------------------------------
   describe('getCategories', () => {
     it('GETs /v1/categories', async () => {
-      const categories = [{ name: 'Jailbreak', subcategories: [] }];
-      mockFetch(categories);
+      mockFetch([categoryMock()]);
       const result = await client.getCategories();
 
       expect(result).toHaveLength(1);
-      expect(result[0].name).toBe('Jailbreak');
+      expect(result[0].display_name).toBe('Jailbreak');
       const [url] = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0];
       expect(url).toContain('/v1/categories');
     });

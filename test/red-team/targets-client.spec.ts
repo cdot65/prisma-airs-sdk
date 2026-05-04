@@ -1,15 +1,21 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { RedTeamTargetsClient } from '../../src/red-team/targets-client.js';
-import { OAuthClient } from '../../src/management/oauth-client.js';
+import type { AuthAdapter } from '../../src/http/types.js';
 import { AISecSDKException } from '../../src/errors.js';
+import {
+  VALID_UUID,
+  targetMock,
+  targetListMock,
+  targetProfileMock,
+  targetAuthValidationMock,
+  targetTemplateCollectionMock,
+  baseResponseMock,
+} from './_fixtures.js';
 
-const validUuid = '550e8400-e29b-41d4-a716-446655440000';
+const validUuid = VALID_UUID;
 
-function createMockOAuth(): OAuthClient {
-  return {
-    getToken: vi.fn().mockResolvedValue('tok'),
-    clearToken: vi.fn(),
-  } as unknown as OAuthClient;
+function passthroughAuth(): AuthAdapter {
+  return { prepare: async (req) => req };
 }
 
 function mockFetch(data: unknown, status = 200) {
@@ -27,7 +33,7 @@ describe('RedTeamTargetsClient', () => {
   beforeEach(() => {
     client = new RedTeamTargetsClient({
       baseUrl: 'https://mgmt.example.com',
-      oauthClient: createMockOAuth(),
+      auth: passthroughAuth(),
       numRetries: 0,
     });
   });
@@ -36,23 +42,19 @@ describe('RedTeamTargetsClient', () => {
     globalThis.fetch = originalFetch;
   });
 
-  // -----------------------------------------------------------------------
-  // create
-  // -----------------------------------------------------------------------
   describe('create', () => {
     it('POSTs to /v1/target', async () => {
-      const target = { id: validUuid, name: 'test-target' };
-      mockFetch(target, 201);
+      mockFetch(targetMock({ name: 'test-target' }), 201);
       const result = await client.create({ name: 'test-target', target_type: 'API' });
 
-      expect(result.id).toBe(validUuid);
+      expect(result.uuid).toBe(validUuid);
       const [url, init] = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0];
       expect(url).toBe('https://mgmt.example.com/v1/target');
       expect(init.method).toBe('POST');
     });
 
     it('passes validate query param when true', async () => {
-      mockFetch({ id: validUuid }, 201);
+      mockFetch(targetMock(), 201);
       await client.create({ name: 'test' }, { validate: true });
 
       const [url] = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0];
@@ -60,7 +62,7 @@ describe('RedTeamTargetsClient', () => {
     });
 
     it('passes validate query param when false', async () => {
-      mockFetch({ id: validUuid }, 201);
+      mockFetch(targetMock(), 201);
       await client.create({ name: 'test' }, { validate: false });
 
       const [url] = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0];
@@ -68,7 +70,7 @@ describe('RedTeamTargetsClient', () => {
     });
 
     it('omits validate param when not specified', async () => {
-      mockFetch({ id: validUuid }, 201);
+      mockFetch(targetMock(), 201);
       await client.create({ name: 'test' });
 
       const [url] = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0];
@@ -76,7 +78,7 @@ describe('RedTeamTargetsClient', () => {
     });
 
     it('sends only the fields in the request body (no extra SDK fields)', async () => {
-      mockFetch({ uuid: validUuid, name: 'test' }, 201);
+      mockFetch(targetMock({ name: 'test-target' }), 201);
       await client.create({
         name: 'test-target',
         target_type: 'APPLICATION',
@@ -102,21 +104,18 @@ describe('RedTeamTargetsClient', () => {
     });
   });
 
-  // -----------------------------------------------------------------------
-  // list
-  // -----------------------------------------------------------------------
   describe('list', () => {
     it('GETs /v1/target', async () => {
-      mockFetch({ targets: [], total: 0 });
+      mockFetch(targetListMock());
       const result = await client.list();
 
-      expect(result.targets).toEqual([]);
+      expect(result.data).toEqual([]);
       const [url] = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0];
       expect(url).toContain('/v1/target');
     });
 
     it('passes filter params', async () => {
-      mockFetch({ targets: [], total: 0 });
+      mockFetch(targetListMock());
       await client.list({ target_type: 'API', status: 'ACTIVE' });
 
       const [url] = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0];
@@ -125,7 +124,7 @@ describe('RedTeamTargetsClient', () => {
     });
 
     it('passes pagination params', async () => {
-      mockFetch({ targets: [], total: 0 });
+      mockFetch(targetListMock());
       await client.list({ skip: 5, limit: 10 });
 
       const [url] = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0];
@@ -134,7 +133,7 @@ describe('RedTeamTargetsClient', () => {
     });
 
     it('does not send sort params (not in spec)', async () => {
-      mockFetch({ targets: [], total: 0 });
+      mockFetch(targetListMock());
       await client.list({ skip: 0 });
 
       const [url] = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0];
@@ -143,16 +142,12 @@ describe('RedTeamTargetsClient', () => {
     });
   });
 
-  // -----------------------------------------------------------------------
-  // get
-  // -----------------------------------------------------------------------
   describe('get', () => {
     it('GETs /v1/target/:uuid', async () => {
-      const target = { id: validUuid, name: 'test-target' };
-      mockFetch(target);
+      mockFetch(targetMock({ name: 'test-target' }));
       const result = await client.get(validUuid);
 
-      expect(result.id).toBe(validUuid);
+      expect(result.uuid).toBe(validUuid);
       const [url] = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0];
       expect(url).toContain(`/v1/target/${validUuid}`);
     });
@@ -162,13 +157,9 @@ describe('RedTeamTargetsClient', () => {
     });
   });
 
-  // -----------------------------------------------------------------------
-  // update
-  // -----------------------------------------------------------------------
   describe('update', () => {
     it('PUTs to /v1/target/:uuid', async () => {
-      const target = { id: validUuid, name: 'updated' };
-      mockFetch(target);
+      mockFetch(targetMock({ name: 'updated' }));
       const result = await client.update(validUuid, { name: 'updated' });
 
       expect(result.name).toBe('updated');
@@ -182,7 +173,7 @@ describe('RedTeamTargetsClient', () => {
     });
 
     it('passes validate query param when true', async () => {
-      mockFetch({ id: validUuid });
+      mockFetch(targetMock());
       await client.update(validUuid, { name: 'test' }, { validate: true });
 
       const [url] = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0];
@@ -190,7 +181,7 @@ describe('RedTeamTargetsClient', () => {
     });
 
     it('passes validate query param when false', async () => {
-      mockFetch({ id: validUuid });
+      mockFetch(targetMock());
       await client.update(validUuid, { name: 'test' }, { validate: false });
 
       const [url] = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0];
@@ -198,7 +189,7 @@ describe('RedTeamTargetsClient', () => {
     });
 
     it('sends only the fields in the request body (no extra SDK fields)', async () => {
-      mockFetch({ uuid: validUuid, name: 'updated' });
+      mockFetch(targetMock({ name: 'updated' }));
       await client.update(validUuid, {
         name: 'updated',
         target_type: 'AGENT',
@@ -214,15 +205,12 @@ describe('RedTeamTargetsClient', () => {
     });
   });
 
-  // -----------------------------------------------------------------------
-  // delete
-  // -----------------------------------------------------------------------
   describe('delete', () => {
     it('DELETEs /v1/target/:uuid', async () => {
-      mockFetch({ success: true });
+      mockFetch(baseResponseMock());
       const result = await client.delete(validUuid);
 
-      expect(result.success).toBe(true);
+      expect(result.message).toBe('ok');
       const [url, init] = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0];
       expect(url).toContain(`/v1/target/${validUuid}`);
       expect(init.method).toBe('DELETE');
@@ -233,13 +221,9 @@ describe('RedTeamTargetsClient', () => {
     });
   });
 
-  // -----------------------------------------------------------------------
-  // probe
-  // -----------------------------------------------------------------------
   describe('probe', () => {
     it('POSTs to /v1/target/probe', async () => {
-      const target = { id: validUuid, status: 'PROBING' };
-      mockFetch(target);
+      mockFetch(targetMock({ status: 'PROBING' }));
       const result = await client.probe({ target_id: validUuid });
 
       expect(result.status).toBe('PROBING');
@@ -249,12 +233,9 @@ describe('RedTeamTargetsClient', () => {
     });
   });
 
-  // -----------------------------------------------------------------------
-  // getProfile
-  // -----------------------------------------------------------------------
   describe('getProfile', () => {
     it('GETs /v1/target/:uuid/profile', async () => {
-      mockFetch({ target_id: validUuid, background: 'test' });
+      mockFetch(targetProfileMock());
       const result = await client.getProfile(validUuid);
 
       expect(result.target_id).toBe(validUuid);
@@ -267,12 +248,9 @@ describe('RedTeamTargetsClient', () => {
     });
   });
 
-  // -----------------------------------------------------------------------
-  // updateProfile
-  // -----------------------------------------------------------------------
   describe('updateProfile', () => {
     it('PUTs to /v1/target/:uuid/profile and returns TargetResponse', async () => {
-      mockFetch({ uuid: validUuid, name: 'my-target', target_type: 'API' });
+      mockFetch(targetMock({ name: 'my-target' }));
       const result = await client.updateProfile(validUuid, { background: 'updated' });
 
       expect(result.uuid).toBe(validUuid);
@@ -289,13 +267,14 @@ describe('RedTeamTargetsClient', () => {
     });
   });
 
-  // -----------------------------------------------------------------------
-  // validateAuth
-  // -----------------------------------------------------------------------
   describe('validateAuth', () => {
     it('POSTs to /v1/target/validate-auth', async () => {
       const body = { auth_type: 'HEADERS', auth_config: { auth_header: { key: 'val' } } };
-      mockFetch({ validated: true, token_preview: 'Bearer eyJ...', expires_in: 3600 });
+      mockFetch({
+        ...targetAuthValidationMock(),
+        token_preview: 'Bearer eyJ...',
+        expires_in: 3600,
+      });
       const result = await client.validateAuth(body);
 
       expect(result.validated).toBe(true);
@@ -306,9 +285,6 @@ describe('RedTeamTargetsClient', () => {
     });
   });
 
-  // -----------------------------------------------------------------------
-  // getTargetMetadata
-  // -----------------------------------------------------------------------
   describe('getTargetMetadata', () => {
     it('GETs /v1/template/target-metadata', async () => {
       const metadata = { fields: ['name', 'type'] };
@@ -322,24 +298,12 @@ describe('RedTeamTargetsClient', () => {
     });
   });
 
-  // -----------------------------------------------------------------------
-  // getTargetTemplates
-  // -----------------------------------------------------------------------
   describe('getTargetTemplates', () => {
     it('GETs /v1/template/target-templates', async () => {
-      const templates = {
-        OPENAI: { model: 'gpt-4' },
-        HUGGING_FACE: {},
-        DATABRICKS: {},
-        BEDROCK: {},
-        REST: {},
-        STREAMING: {},
-        WEBSOCKET: {},
-      };
-      mockFetch(templates);
+      mockFetch(targetTemplateCollectionMock());
       const result = await client.getTargetTemplates();
 
-      expect(result.OPENAI).toEqual({ model: 'gpt-4' });
+      expect(result.OPENAI).toEqual({});
       const [url, init] = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0];
       expect(url).toContain('/v1/template/target-templates');
       expect(init.method).toBe('GET');

@@ -1,16 +1,26 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { RedTeamReportsClient } from '../../src/red-team/reports-client.js';
-import { OAuthClient } from '../../src/management/oauth-client.js';
+import type { AuthAdapter } from '../../src/http/types.js';
 import { AISecSDKException } from '../../src/errors.js';
+import {
+  VALID_UUID,
+  attackListMock,
+  attackDetailMock,
+  attackMultiTurnDetailMock,
+  staticReportMock,
+  dynamicReportMock,
+  remediationMock,
+  runtimePolicyMock,
+  goalListMock,
+  streamListMock,
+  streamDetailMock,
+} from './_fixtures.js';
 
-const validUuid = '550e8400-e29b-41d4-a716-446655440000';
+const validUuid = VALID_UUID;
 const validUuid2 = '660e8400-e29b-41d4-a716-446655440000';
 
-function createMockOAuth(): OAuthClient {
-  return {
-    getToken: vi.fn().mockResolvedValue('tok'),
-    clearToken: vi.fn(),
-  } as unknown as OAuthClient;
+function passthroughAuth(): AuthAdapter {
+  return { prepare: async (req) => req };
 }
 
 function mockFetch(data: unknown, status = 200) {
@@ -28,7 +38,7 @@ describe('RedTeamReportsClient', () => {
   beforeEach(() => {
     client = new RedTeamReportsClient({
       baseUrl: 'https://data.example.com',
-      oauthClient: createMockOAuth(),
+      auth: passthroughAuth(),
       numRetries: 0,
     });
   });
@@ -37,22 +47,18 @@ describe('RedTeamReportsClient', () => {
     globalThis.fetch = originalFetch;
   });
 
-  // -----------------------------------------------------------------------
-  // Static report endpoints
-  // -----------------------------------------------------------------------
-
   describe('listAttacks', () => {
     it('GETs /v1/report/static/:jobId/list-attacks', async () => {
-      mockFetch({ attacks: [], total: 0 });
+      mockFetch(attackListMock());
       const result = await client.listAttacks(validUuid);
 
-      expect(result.attacks).toEqual([]);
+      expect(result.data).toEqual([]);
       const [url] = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0];
       expect(url).toContain(`/v1/report/static/${validUuid}/list-attacks`);
     });
 
     it('passes filter params', async () => {
-      mockFetch({ attacks: [], total: 0 });
+      mockFetch(attackListMock());
       await client.listAttacks(validUuid, {
         status: 'FAILED',
         severity: 'HIGH',
@@ -74,10 +80,10 @@ describe('RedTeamReportsClient', () => {
 
   describe('getAttackDetail', () => {
     it('GETs /v1/report/static/:jobId/attack/:attackId', async () => {
-      mockFetch({ id: validUuid2, status: 'PASSED' });
+      mockFetch(attackDetailMock());
       const result = await client.getAttackDetail(validUuid, validUuid2);
 
-      expect(result.id).toBe(validUuid2);
+      expect(result.uuid).toBe(validUuid);
       const [url] = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0];
       expect(url).toContain(`/v1/report/static/${validUuid}/attack/${validUuid2}`);
     });
@@ -93,10 +99,10 @@ describe('RedTeamReportsClient', () => {
 
   describe('getMultiTurnAttackDetail', () => {
     it('GETs /v1/report/static/:jobId/attack-multi-turn/:attackId', async () => {
-      mockFetch({ id: validUuid2, turns: [] });
+      mockFetch(attackMultiTurnDetailMock());
       const result = await client.getMultiTurnAttackDetail(validUuid, validUuid2);
 
-      expect(result.id).toBe(validUuid2);
+      expect(result.uuid).toBe(validUuid);
       const [url] = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0];
       expect(url).toContain(`/v1/report/static/${validUuid}/attack-multi-turn/${validUuid2}`);
     });
@@ -116,10 +122,10 @@ describe('RedTeamReportsClient', () => {
 
   describe('getStaticReport', () => {
     it('GETs /v1/report/static/:jobId/report', async () => {
-      mockFetch({ job_id: validUuid, score: 85 });
+      mockFetch(staticReportMock());
       const result = await client.getStaticReport(validUuid);
 
-      expect(result.score).toBe(85);
+      expect(result.severity_report).toBeDefined();
       const [url] = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0];
       expect(url).toContain(`/v1/report/static/${validUuid}/report`);
     });
@@ -131,10 +137,10 @@ describe('RedTeamReportsClient', () => {
 
   describe('getStaticRemediation', () => {
     it('GETs /v1/report/static/:jobId/remediation', async () => {
-      mockFetch({ recommendations: [] });
+      mockFetch(remediationMock());
       const result = await client.getStaticRemediation(validUuid);
 
-      expect(result.recommendations).toEqual([]);
+      expect(result.remediations).toEqual([]);
       const [url] = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0];
       expect(url).toContain(`/v1/report/static/${validUuid}/remediation`);
     });
@@ -146,10 +152,10 @@ describe('RedTeamReportsClient', () => {
 
   describe('getStaticRuntimePolicy', () => {
     it('GETs /v1/report/static/:jobId/runtime-policy-config', async () => {
-      mockFetch({ profile: {} });
+      mockFetch(runtimePolicyMock());
       const result = await client.getStaticRuntimePolicy(validUuid);
 
-      expect(result.profile).toEqual({});
+      expect(result.runtime_security_profile).toBeNull();
       const [url] = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0];
       expect(url).toContain(`/v1/report/static/${validUuid}/runtime-policy-config`);
     });
@@ -159,16 +165,12 @@ describe('RedTeamReportsClient', () => {
     });
   });
 
-  // -----------------------------------------------------------------------
-  // Dynamic report endpoints
-  // -----------------------------------------------------------------------
-
   describe('getDynamicReport', () => {
     it('GETs /v1/report/dynamic/:jobId/report', async () => {
-      mockFetch({ job_id: validUuid, score: 72 });
+      mockFetch(dynamicReportMock());
       const result = await client.getDynamicReport(validUuid);
 
-      expect(result.score).toBe(72);
+      expect(result).toBeDefined();
       const [url] = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0];
       expect(url).toContain(`/v1/report/dynamic/${validUuid}/report`);
     });
@@ -180,10 +182,10 @@ describe('RedTeamReportsClient', () => {
 
   describe('getDynamicRemediation', () => {
     it('GETs /v1/report/dynamic/:jobId/remediation', async () => {
-      mockFetch({ recommendations: [] });
+      mockFetch(remediationMock());
       const result = await client.getDynamicRemediation(validUuid);
 
-      expect(result.recommendations).toEqual([]);
+      expect(result.remediations).toEqual([]);
       const [url] = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0];
       expect(url).toContain(`/v1/report/dynamic/${validUuid}/remediation`);
     });
@@ -195,10 +197,10 @@ describe('RedTeamReportsClient', () => {
 
   describe('getDynamicRuntimePolicy', () => {
     it('GETs /v1/report/dynamic/:jobId/runtime-policy-config', async () => {
-      mockFetch({ profile: {} });
+      mockFetch(runtimePolicyMock());
       const result = await client.getDynamicRuntimePolicy(validUuid);
 
-      expect(result.profile).toEqual({});
+      expect(result.runtime_security_profile).toBeNull();
       const [url] = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0];
       expect(url).toContain(`/v1/report/dynamic/${validUuid}/runtime-policy-config`);
     });
@@ -210,16 +212,16 @@ describe('RedTeamReportsClient', () => {
 
   describe('listGoals', () => {
     it('GETs /v1/report/dynamic/:jobId/list-goals', async () => {
-      mockFetch({ goals: [], total: 0 });
+      mockFetch(goalListMock());
       const result = await client.listGoals(validUuid);
 
-      expect(result.goals).toEqual([]);
+      expect(result.data).toEqual([]);
       const [url] = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0];
       expect(url).toContain(`/v1/report/dynamic/${validUuid}/list-goals`);
     });
 
     it('passes goal_type filter', async () => {
-      mockFetch({ goals: [], total: 0 });
+      mockFetch(goalListMock());
       await client.listGoals(validUuid, {
         goal_type: 'JAILBREAK',
         status: 'SUCCESSFUL',
@@ -239,10 +241,10 @@ describe('RedTeamReportsClient', () => {
 
   describe('listGoalStreams', () => {
     it('GETs /v1/report/dynamic/:jobId/goal/:goalId/list-streams', async () => {
-      mockFetch({ streams: [], total: 0 });
+      mockFetch(streamListMock());
       const result = await client.listGoalStreams(validUuid, validUuid2);
 
-      expect(result.streams).toEqual([]);
+      expect(result.data).toEqual([]);
       const [url] = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0];
       expect(url).toContain(`/v1/report/dynamic/${validUuid}/goal/${validUuid2}/list-streams`);
     });
@@ -256,16 +258,12 @@ describe('RedTeamReportsClient', () => {
     });
   });
 
-  // -----------------------------------------------------------------------
-  // Common report endpoints
-  // -----------------------------------------------------------------------
-
   describe('getStreamDetail', () => {
     it('GETs /v1/report/dynamic/stream/:streamId', async () => {
-      mockFetch({ id: validUuid, messages: [] });
+      mockFetch(streamDetailMock());
       const result = await client.getStreamDetail(validUuid);
 
-      expect(result.id).toBe(validUuid);
+      expect(result.uuid).toBe(validUuid);
       const [url] = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0];
       expect(url).toContain(`/v1/report/dynamic/stream/${validUuid}`);
     });
