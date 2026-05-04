@@ -1,24 +1,24 @@
 import { MODEL_SEC_SECURITY_GROUPS_PATH } from '../constants.js';
-import { AISecSDKException, ErrorType } from '../errors.js';
-import { isValidUuid } from '../utils.js';
-import { managementHttpRequest } from '../management/management-http-client.js';
-import type { OAuthClient } from '../management/oauth-client.js';
-import type {
-  ModelSecurityGroupCreateRequest,
-  ModelSecurityGroupResponse,
-  ModelSecurityGroupUpdateRequest,
-  ListModelSecurityGroupsResponse,
-  ModelSecurityRuleInstanceResponse,
-  ModelSecurityRuleInstanceUpdateRequest,
-  ListModelSecurityRuleInstancesResponse,
+import { request } from '../http/request.js';
+import type { AuthAdapter } from '../http/types.js';
+import { serializeListing, type ListingOptions } from '../listing.js';
+import { assertUuid } from '../validators.js';
+import {
+  ModelSecurityGroupResponseSchema,
+  ListModelSecurityGroupsResponseSchema,
+  ModelSecurityRuleInstanceResponseSchema,
+  ListModelSecurityRuleInstancesResponseSchema,
+  type ModelSecurityGroupCreateRequest,
+  type ModelSecurityGroupResponse,
+  type ModelSecurityGroupUpdateRequest,
+  type ListModelSecurityGroupsResponse,
+  type ModelSecurityRuleInstanceResponse,
+  type ModelSecurityRuleInstanceUpdateRequest,
+  type ListModelSecurityRuleInstancesResponse,
 } from '../models/model-security.js';
 
 /** Options for listing security groups. */
-export interface ModelSecurityGroupListOptions {
-  /** Number of items to skip. */
-  skip?: number;
-  /** Maximum number of items to return (1-100). */
-  limit?: number;
+export interface ModelSecurityGroupListOptions extends ListingOptions {
   /** Field to sort by: 'created_at' or 'updated_at'. */
   sort_field?: string;
   /** Sort direction: 'asc' or 'desc'. */
@@ -32,11 +32,7 @@ export interface ModelSecurityGroupListOptions {
 }
 
 /** Options for listing rule instances within a security group. */
-export interface ModelSecurityRuleInstanceListOptions {
-  /** Number of items to skip. */
-  skip?: number;
-  /** Maximum number of items to return. */
-  limit?: number;
+export interface ModelSecurityRuleInstanceListOptions extends ListingOptions {
   /** Filter by security rule UUID. */
   security_rule_uuid?: string;
   /** Filter by rule state: 'DISABLED', 'ALLOWING', or 'BLOCKING'. */
@@ -46,17 +42,14 @@ export interface ModelSecurityRuleInstanceListOptions {
 /** @internal */
 export interface ModelSecurityGroupsClientOptions {
   baseUrl: string;
-  oauthClient: OAuthClient;
+  auth: AuthAdapter;
   numRetries: number;
 }
 
-/** Build query params for security group list. */
 function buildGroupListParams(
   opts?: ModelSecurityGroupListOptions,
 ): Record<string, string | string[]> {
-  const params: Record<string, string | string[]> = {};
-  if (opts?.skip !== undefined) params.skip = String(opts.skip);
-  if (opts?.limit !== undefined) params.limit = String(opts.limit);
+  const params: Record<string, string | string[]> = serializeListing(opts);
   if (opts?.sort_field !== undefined) params.sort_field = opts.sort_field;
   if (opts?.sort_dir !== undefined) params.sort_dir = opts.sort_dir;
   if (opts?.source_types !== undefined) params.source_types = opts.source_types;
@@ -65,13 +58,10 @@ function buildGroupListParams(
   return params;
 }
 
-/** Build query params for rule instance list. */
 function buildRuleInstanceListParams(
   opts?: ModelSecurityRuleInstanceListOptions,
 ): Record<string, string> {
-  const params: Record<string, string> = {};
-  if (opts?.skip !== undefined) params.skip = String(opts.skip);
-  if (opts?.limit !== undefined) params.limit = String(opts.limit);
+  const params = serializeListing(opts);
   if (opts?.security_rule_uuid !== undefined) params.security_rule_uuid = opts.security_rule_uuid;
   if (opts?.state !== undefined) params.state = opts.state;
   return params;
@@ -80,30 +70,30 @@ function buildRuleInstanceListParams(
 /** Client for Model Security management plane security group operations. */
 export class ModelSecurityGroupsClient {
   private readonly baseUrl: string;
-  private readonly oauthClient: OAuthClient;
+  private readonly auth: AuthAdapter;
   private readonly numRetries: number;
 
   constructor(opts: ModelSecurityGroupsClientOptions) {
     this.baseUrl = opts.baseUrl;
-    this.oauthClient = opts.oauthClient;
+    this.auth = opts.auth;
     this.numRetries = opts.numRetries;
   }
 
   /**
    * Create a new security group.
-   * @param request - Security group creation request.
+   * @param body - Security group creation request.
    * @returns The created security group.
    */
-  async create(request: ModelSecurityGroupCreateRequest): Promise<ModelSecurityGroupResponse> {
-    const res = await managementHttpRequest<ModelSecurityGroupResponse>({
+  async create(body: ModelSecurityGroupCreateRequest): Promise<ModelSecurityGroupResponse> {
+    return request({
       method: 'POST',
       baseUrl: this.baseUrl,
       path: MODEL_SEC_SECURITY_GROUPS_PATH,
-      body: request,
-      oauthClient: this.oauthClient,
+      body,
+      responseSchema: ModelSecurityGroupResponseSchema,
+      auth: this.auth,
       numRetries: this.numRetries,
     });
-    return res.data;
   }
 
   /**
@@ -112,15 +102,15 @@ export class ModelSecurityGroupsClient {
    * @returns Paginated list of security groups.
    */
   async list(opts?: ModelSecurityGroupListOptions): Promise<ListModelSecurityGroupsResponse> {
-    const res = await managementHttpRequest<ListModelSecurityGroupsResponse>({
+    return request({
       method: 'GET',
       baseUrl: this.baseUrl,
       path: MODEL_SEC_SECURITY_GROUPS_PATH,
       params: buildGroupListParams(opts),
-      oauthClient: this.oauthClient,
+      responseSchema: ListModelSecurityGroupsResponseSchema,
+      auth: this.auth,
       numRetries: this.numRetries,
     });
-    return res.data;
   }
 
   /**
@@ -129,49 +119,37 @@ export class ModelSecurityGroupsClient {
    * @returns The security group.
    */
   async get(uuid: string): Promise<ModelSecurityGroupResponse> {
-    if (!isValidUuid(uuid)) {
-      throw new AISecSDKException(
-        `Invalid security group uuid: ${uuid}`,
-        ErrorType.USER_REQUEST_PAYLOAD_ERROR,
-      );
-    }
-
-    const res = await managementHttpRequest<ModelSecurityGroupResponse>({
+    assertUuid(uuid, 'security group uuid');
+    return request({
       method: 'GET',
       baseUrl: this.baseUrl,
       path: `${MODEL_SEC_SECURITY_GROUPS_PATH}/${uuid}`,
-      oauthClient: this.oauthClient,
+      responseSchema: ModelSecurityGroupResponseSchema,
+      auth: this.auth,
       numRetries: this.numRetries,
     });
-    return res.data;
   }
 
   /**
    * Update an existing security group.
    * @param uuid - Security group UUID.
-   * @param request - Updated security group fields.
+   * @param body - Updated security group fields.
    * @returns The updated security group.
    */
   async update(
     uuid: string,
-    request: ModelSecurityGroupUpdateRequest,
+    body: ModelSecurityGroupUpdateRequest,
   ): Promise<ModelSecurityGroupResponse> {
-    if (!isValidUuid(uuid)) {
-      throw new AISecSDKException(
-        `Invalid security group uuid: ${uuid}`,
-        ErrorType.USER_REQUEST_PAYLOAD_ERROR,
-      );
-    }
-
-    const res = await managementHttpRequest<ModelSecurityGroupResponse>({
+    assertUuid(uuid, 'security group uuid');
+    return request({
       method: 'PUT',
       baseUrl: this.baseUrl,
       path: `${MODEL_SEC_SECURITY_GROUPS_PATH}/${uuid}`,
-      body: request,
-      oauthClient: this.oauthClient,
+      body,
+      responseSchema: ModelSecurityGroupResponseSchema,
+      auth: this.auth,
       numRetries: this.numRetries,
     });
-    return res.data;
   }
 
   /**
@@ -180,18 +158,12 @@ export class ModelSecurityGroupsClient {
    * @returns Resolves when the security group is deleted.
    */
   async delete(uuid: string): Promise<void> {
-    if (!isValidUuid(uuid)) {
-      throw new AISecSDKException(
-        `Invalid security group uuid: ${uuid}`,
-        ErrorType.USER_REQUEST_PAYLOAD_ERROR,
-      );
-    }
-
-    await managementHttpRequest<void>({
+    assertUuid(uuid, 'security group uuid');
+    await request({
       method: 'DELETE',
       baseUrl: this.baseUrl,
       path: `${MODEL_SEC_SECURITY_GROUPS_PATH}/${uuid}`,
-      oauthClient: this.oauthClient,
+      auth: this.auth,
       numRetries: this.numRetries,
     });
   }
@@ -206,22 +178,16 @@ export class ModelSecurityGroupsClient {
     securityGroupUuid: string,
     opts?: ModelSecurityRuleInstanceListOptions,
   ): Promise<ListModelSecurityRuleInstancesResponse> {
-    if (!isValidUuid(securityGroupUuid)) {
-      throw new AISecSDKException(
-        `Invalid security group uuid: ${securityGroupUuid}`,
-        ErrorType.USER_REQUEST_PAYLOAD_ERROR,
-      );
-    }
-
-    const res = await managementHttpRequest<ListModelSecurityRuleInstancesResponse>({
+    assertUuid(securityGroupUuid, 'security group uuid');
+    return request({
       method: 'GET',
       baseUrl: this.baseUrl,
       path: `${MODEL_SEC_SECURITY_GROUPS_PATH}/${securityGroupUuid}/rule-instances`,
       params: buildRuleInstanceListParams(opts),
-      oauthClient: this.oauthClient,
+      responseSchema: ListModelSecurityRuleInstancesResponseSchema,
+      auth: this.auth,
       numRetries: this.numRetries,
     });
-    return res.data;
   }
 
   /**
@@ -234,62 +200,40 @@ export class ModelSecurityGroupsClient {
     securityGroupUuid: string,
     ruleInstanceUuid: string,
   ): Promise<ModelSecurityRuleInstanceResponse> {
-    if (!isValidUuid(securityGroupUuid)) {
-      throw new AISecSDKException(
-        `Invalid security group uuid: ${securityGroupUuid}`,
-        ErrorType.USER_REQUEST_PAYLOAD_ERROR,
-      );
-    }
-    if (!isValidUuid(ruleInstanceUuid)) {
-      throw new AISecSDKException(
-        `Invalid rule instance uuid: ${ruleInstanceUuid}`,
-        ErrorType.USER_REQUEST_PAYLOAD_ERROR,
-      );
-    }
-
-    const res = await managementHttpRequest<ModelSecurityRuleInstanceResponse>({
+    assertUuid(securityGroupUuid, 'security group uuid');
+    assertUuid(ruleInstanceUuid, 'rule instance uuid');
+    return request({
       method: 'GET',
       baseUrl: this.baseUrl,
       path: `${MODEL_SEC_SECURITY_GROUPS_PATH}/${securityGroupUuid}/rule-instances/${ruleInstanceUuid}`,
-      oauthClient: this.oauthClient,
+      responseSchema: ModelSecurityRuleInstanceResponseSchema,
+      auth: this.auth,
       numRetries: this.numRetries,
     });
-    return res.data;
   }
 
   /**
    * Update a rule instance within a security group.
    * @param securityGroupUuid - Security group UUID.
    * @param ruleInstanceUuid - Rule instance UUID.
-   * @param request - Updated rule instance fields.
+   * @param body - Updated rule instance fields.
    * @returns The updated rule instance.
    */
   async updateRuleInstance(
     securityGroupUuid: string,
     ruleInstanceUuid: string,
-    request: ModelSecurityRuleInstanceUpdateRequest,
+    body: ModelSecurityRuleInstanceUpdateRequest,
   ): Promise<ModelSecurityRuleInstanceResponse> {
-    if (!isValidUuid(securityGroupUuid)) {
-      throw new AISecSDKException(
-        `Invalid security group uuid: ${securityGroupUuid}`,
-        ErrorType.USER_REQUEST_PAYLOAD_ERROR,
-      );
-    }
-    if (!isValidUuid(ruleInstanceUuid)) {
-      throw new AISecSDKException(
-        `Invalid rule instance uuid: ${ruleInstanceUuid}`,
-        ErrorType.USER_REQUEST_PAYLOAD_ERROR,
-      );
-    }
-
-    const res = await managementHttpRequest<ModelSecurityRuleInstanceResponse>({
+    assertUuid(securityGroupUuid, 'security group uuid');
+    assertUuid(ruleInstanceUuid, 'rule instance uuid');
+    return request({
       method: 'PUT',
       baseUrl: this.baseUrl,
       path: `${MODEL_SEC_SECURITY_GROUPS_PATH}/${securityGroupUuid}/rule-instances/${ruleInstanceUuid}`,
-      body: request,
-      oauthClient: this.oauthClient,
+      body,
+      responseSchema: ModelSecurityRuleInstanceResponseSchema,
+      auth: this.auth,
       numRetries: this.numRetries,
     });
-    return res.data;
   }
 }

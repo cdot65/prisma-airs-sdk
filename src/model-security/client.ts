@@ -5,13 +5,14 @@ import {
   MODEL_SEC_MGMT_ENDPOINT,
   MODEL_SEC_PYPI_AUTH_PATH,
 } from '../constants.js';
+import { OAuthAuth } from '../http/auth/oauth.js';
+import { request } from '../http/request.js';
+import type { AuthAdapter } from '../http/types.js';
 import { resolveOAuthConfig } from '../oauth-config.js';
-import { managementHttpRequest } from '../management/management-http-client.js';
 import { ModelSecurityScansClient } from './scans-client.js';
 import { ModelSecurityGroupsClient } from './security-groups-client.js';
 import { ModelSecurityRulesClient } from './security-rules-client.js';
-import type { OAuthClient } from '../management/oauth-client.js';
-import type { PyPIAuthResponse } from '../models/model-security.js';
+import { PyPIAuthResponseSchema, type PyPIAuthResponse } from '../models/model-security.js';
 
 /** Options for constructing a {@link ModelSecurityClient}. */
 export interface ModelSecurityClientOptions {
@@ -45,7 +46,7 @@ export class ModelSecurityClient {
   public readonly securityRules: ModelSecurityRulesClient;
 
   private readonly mgmtEndpoint: string;
-  private readonly oauthClient: OAuthClient;
+  private readonly auth: AuthAdapter;
   private readonly numRetries: number;
 
   constructor(opts: ModelSecurityClientOptions = {}) {
@@ -65,25 +66,20 @@ export class ModelSecurityClient {
       fallbackEnvPrefix: 'PANW_MGMT',
     });
 
-    this.oauthClient = oauthClient;
+    const auth = new OAuthAuth(oauthClient);
+    this.auth = auth;
     this.mgmtEndpoint = mgmtEndpoint;
     this.numRetries = numRetries;
 
-    this.scans = new ModelSecurityScansClient({
-      baseUrl: dataEndpoint,
-      oauthClient,
-      numRetries,
-    });
-
+    this.scans = new ModelSecurityScansClient({ baseUrl: dataEndpoint, auth, numRetries });
     this.securityGroups = new ModelSecurityGroupsClient({
       baseUrl: mgmtEndpoint,
-      oauthClient,
+      auth,
       numRetries,
     });
-
     this.securityRules = new ModelSecurityRulesClient({
       baseUrl: mgmtEndpoint,
-      oauthClient,
+      auth,
       numRetries,
     });
   }
@@ -93,13 +89,13 @@ export class ModelSecurityClient {
    * @returns PyPI auth response with URL and expiration.
    */
   async getPyPIAuth(): Promise<PyPIAuthResponse> {
-    const res = await managementHttpRequest<PyPIAuthResponse>({
+    return request({
       method: 'GET',
       baseUrl: this.mgmtEndpoint,
       path: MODEL_SEC_PYPI_AUTH_PATH,
-      oauthClient: this.oauthClient,
+      responseSchema: PyPIAuthResponseSchema,
+      auth: this.auth,
       numRetries: this.numRetries,
     });
-    return res.data;
   }
 }

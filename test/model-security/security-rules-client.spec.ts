@@ -1,15 +1,12 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { ModelSecurityRulesClient } from '../../src/model-security/security-rules-client.js';
-import { OAuthClient } from '../../src/management/oauth-client.js';
+import type { AuthAdapter } from '../../src/http/types.js';
 import { AISecSDKException } from '../../src/errors.js';
 
 const validUuid = '550e8400-e29b-41d4-a716-446655440000';
 
-function createMockOAuth(): OAuthClient {
-  return {
-    getToken: vi.fn().mockResolvedValue('tok'),
-    clearToken: vi.fn(),
-  } as unknown as OAuthClient;
+function passthroughAuth(): AuthAdapter {
+  return { prepare: async (req) => req };
 }
 
 function mockFetch(data: unknown, status = 200) {
@@ -40,7 +37,7 @@ describe('ModelSecurityRulesClient', () => {
   beforeEach(() => {
     client = new ModelSecurityRulesClient({
       baseUrl: 'https://mgmt.example.com',
-      oauthClient: createMockOAuth(),
+      auth: passthroughAuth(),
       numRetries: 0,
     });
   });

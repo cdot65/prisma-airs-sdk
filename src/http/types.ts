@@ -36,7 +36,11 @@ export interface RequestSpec<TResponse = void> {
   path: string;
   params?: Record<string, string | string[]>;
   body?: unknown;
-  responseSchema?: z.ZodType<TResponse>;
+  // `any` for Zod's def/input generics so schemas where input ≠ output (e.g. those built with
+  // `.default()` or `.passthrough()`) still satisfy the constraint. Only the parsed output shape
+  // is consumed at runtime.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  responseSchema?: z.ZodType<TResponse, any, any>;
   numRetries: number;
   auth: AuthAdapter;
 }
