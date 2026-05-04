@@ -110,10 +110,15 @@ export const TopicObjectSchema = z
 export type TopicObject = z.infer<typeof TopicObjectSchema>;
 
 /** Zod schema for a topic array within model protection. */
+//
+// `topic` accepts `null` to match observed API behavior: when the allow or block
+// bucket has no topics, the API serializes `"topic": null` rather than `[]`.
+// The upstream OpenAPI marks this required and non-nullable; this is a known
+// divergence (verified against a live `/v1/mgmt/profiles/tsg` response).
 export const TopicArraySchema = z
   .object({
     action: z.string(),
-    topic: z.array(TopicObjectSchema),
+    topic: z.array(TopicObjectSchema).nullable(),
   })
   .passthrough();
 

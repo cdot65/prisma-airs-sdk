@@ -231,6 +231,25 @@ describe('TopicArraySchema', () => {
     });
     expect(result.topic).toHaveLength(1);
   });
+
+  // Regression: live API serializes `"topic": null` when an action bucket
+  // (allow or block) has no topics. Without `.nullable()` the whole profile
+  // fails to parse. Verified against /v1/mgmt/profiles/tsg in production.
+  it('accepts topic: null (regression)', () => {
+    const result = TopicArraySchema.parse({
+      action: 'allow',
+      topic: null,
+    });
+    expect(result.topic).toBeNull();
+  });
+
+  it('accepts an empty topic array', () => {
+    const result = TopicArraySchema.parse({
+      action: 'block',
+      topic: [],
+    });
+    expect(result.topic).toEqual([]);
+  });
 });
 
 describe('ModelProtectionItemSchema', () => {
