@@ -40,6 +40,9 @@ describe('ScanResponseSchema', () => {
       scan_id: 's1',
       category: 'benign',
       action: 'allow',
+      timeout: false,
+      error: false,
+      errors: [],
     });
     expect(result.success).toBe(true);
   });
@@ -52,6 +55,9 @@ describe('ScanResponseSchema', () => {
       category: 'malicious',
       action: 'block',
       session_id: 'sess1',
+      timeout: false,
+      error: false,
+      errors: [],
       prompt_detected: { injection: true, toxic_content: false },
       response_detected: { dlp: true, ungrounded: true },
       tool_detected: { verdict: 'malicious' },
@@ -87,6 +93,9 @@ describe('ScanResponseSchema', () => {
       scan_id: 's1',
       category: 'benign',
       action: 'allow',
+      timeout: false,
+      error: false,
+      errors: [],
       prompt_masked_data: {
         data: "SELECT * FROM users WHERE password='***'",
         pattern_detections: [{ pattern: 'password', locations: [[35, 54]] }],
@@ -121,6 +130,9 @@ describe('ScanIdResultSchema', () => {
         scan_id: 's1',
         category: 'benign',
         action: 'allow',
+        timeout: false,
+        error: false,
+        errors: [],
       },
     });
     expect(result.success).toBe(true);
