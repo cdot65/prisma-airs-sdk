@@ -1,12 +1,15 @@
 import { MGMT_DEPLOYMENT_PROFILES_PATH } from '../constants.js';
-import { managementHttpRequest } from './management-http-client.js';
-import type { OAuthClient } from './oauth-client.js';
-import type { DeploymentProfilesResponse } from '../models/mgmt-deployment-profile.js';
+import { request } from '../http/request.js';
+import type { AuthAdapter } from '../http/types.js';
+import {
+  DeploymentProfilesResponseSchema,
+  type DeploymentProfilesResponse,
+} from '../models/mgmt-deployment-profile.js';
 
 /** @internal */
 export interface DeploymentProfilesClientOptions {
   baseUrl: string;
-  oauthClient: OAuthClient;
+  auth: AuthAdapter;
   numRetries: number;
 }
 
@@ -19,12 +22,12 @@ export interface DeploymentProfileListOptions {
 /** Client for listing deployment profiles. */
 export class DeploymentProfilesClient {
   private readonly baseUrl: string;
-  private readonly oauthClient: OAuthClient;
+  private readonly auth: AuthAdapter;
   private readonly numRetries: number;
 
   constructor(opts: DeploymentProfilesClientOptions) {
     this.baseUrl = opts.baseUrl;
-    this.oauthClient = opts.oauthClient;
+    this.auth = opts.auth;
     this.numRetries = opts.numRetries;
   }
 
@@ -37,14 +40,14 @@ export class DeploymentProfilesClient {
     const params: Record<string, string> = {};
     if (opts?.unactivated !== undefined) params.unactivated = String(opts.unactivated);
 
-    const res = await managementHttpRequest<DeploymentProfilesResponse>({
+    return request({
       method: 'GET',
       baseUrl: this.baseUrl,
       path: MGMT_DEPLOYMENT_PROFILES_PATH,
       params: Object.keys(params).length > 0 ? params : undefined,
-      oauthClient: this.oauthClient,
+      responseSchema: DeploymentProfilesResponseSchema,
+      auth: this.auth,
       numRetries: this.numRetries,
     });
-    return res.data;
   }
 }

@@ -1,4 +1,5 @@
 import { DEFAULT_MGMT_ENDPOINT, MGMT_ENDPOINT } from '../constants.js';
+import { OAuthAuth } from '../http/auth/oauth.js';
 import { resolveOAuthConfig } from '../oauth-config.js';
 import { ProfilesClient } from './profiles.js';
 import { TopicsClient } from './topics.js';
@@ -52,56 +53,15 @@ export class ManagementClient {
       primaryEnvPrefix: 'PANW_MGMT',
     });
 
-    this.profiles = new ProfilesClient({
-      baseUrl,
-      oauthClient,
-      tsgId,
-      numRetries,
-    });
+    const auth = new OAuthAuth(oauthClient);
 
-    this.topics = new TopicsClient({
-      baseUrl,
-      oauthClient,
-      tsgId,
-      numRetries,
-    });
-
-    this.apiKeys = new ApiKeysClient({
-      baseUrl,
-      oauthClient,
-      tsgId,
-      numRetries,
-    });
-
-    this.customerApps = new CustomerAppsClient({
-      baseUrl,
-      oauthClient,
-      tsgId,
-      numRetries,
-    });
-
-    this.dlpProfiles = new DlpProfilesClient({
-      baseUrl,
-      oauthClient,
-      numRetries,
-    });
-
-    this.deploymentProfiles = new DeploymentProfilesClient({
-      baseUrl,
-      oauthClient,
-      numRetries,
-    });
-
-    this.scanLogs = new ScanLogsClient({
-      baseUrl,
-      oauthClient,
-      numRetries,
-    });
-
-    this.oauth = new OAuthManagementClient({
-      baseUrl,
-      oauthClient,
-      numRetries,
-    });
+    this.profiles = new ProfilesClient({ baseUrl, auth, tsgId, numRetries });
+    this.topics = new TopicsClient({ baseUrl, auth, tsgId, numRetries });
+    this.apiKeys = new ApiKeysClient({ baseUrl, auth, tsgId, numRetries });
+    this.customerApps = new CustomerAppsClient({ baseUrl, auth, tsgId, numRetries });
+    this.dlpProfiles = new DlpProfilesClient({ baseUrl, auth, numRetries });
+    this.deploymentProfiles = new DeploymentProfilesClient({ baseUrl, auth, numRetries });
+    this.scanLogs = new ScanLogsClient({ baseUrl, auth, numRetries });
+    this.oauth = new OAuthManagementClient({ baseUrl, auth, numRetries });
   }
 }

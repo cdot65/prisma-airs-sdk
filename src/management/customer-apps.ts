@@ -1,13 +1,18 @@
 import { MGMT_CUSTOMER_APP_PATH, MGMT_CUSTOMER_APPS_TSG_PATH } from '../constants.js';
-import { managementHttpRequest } from './management-http-client.js';
-import type { OAuthClient } from './oauth-client.js';
+import { request } from '../http/request.js';
+import type { AuthAdapter } from '../http/types.js';
 import type { PaginationOptions } from './profiles.js';
-import type { CustomerApp, CustomerAppListResponse } from '../models/mgmt-customer-app.js';
+import {
+  CustomerAppSchema,
+  CustomerAppListResponseSchema,
+  type CustomerApp,
+  type CustomerAppListResponse,
+} from '../models/mgmt-customer-app.js';
 
 /** @internal */
 export interface CustomerAppsClientOptions {
   baseUrl: string;
-  oauthClient: OAuthClient;
+  auth: AuthAdapter;
   tsgId: string;
   numRetries: number;
 }
@@ -15,13 +20,13 @@ export interface CustomerAppsClientOptions {
 /** Client for AIRS customer application management operations. */
 export class CustomerAppsClient {
   private readonly baseUrl: string;
-  private readonly oauthClient: OAuthClient;
+  private readonly auth: AuthAdapter;
   private readonly tsgId: string;
   private readonly numRetries: number;
 
   constructor(opts: CustomerAppsClientOptions) {
     this.baseUrl = opts.baseUrl;
-    this.oauthClient = opts.oauthClient;
+    this.auth = opts.auth;
     this.tsgId = opts.tsgId;
     this.numRetries = opts.numRetries;
   }
@@ -32,15 +37,15 @@ export class CustomerAppsClient {
    * @returns The customer app.
    */
   async get(appName: string): Promise<CustomerApp> {
-    const res = await managementHttpRequest<CustomerApp>({
+    return request({
       method: 'GET',
       baseUrl: this.baseUrl,
       path: MGMT_CUSTOMER_APP_PATH,
       params: { app_name: appName },
-      oauthClient: this.oauthClient,
+      responseSchema: CustomerAppSchema,
+      auth: this.auth,
       numRetries: this.numRetries,
     });
-    return res.data;
   }
 
   /**
@@ -54,15 +59,15 @@ export class CustomerAppsClient {
       limit: String(opts?.limit ?? 100),
     };
 
-    const res = await managementHttpRequest<CustomerAppListResponse>({
+    return request({
       method: 'GET',
       baseUrl: this.baseUrl,
       path: `${MGMT_CUSTOMER_APPS_TSG_PATH}/${this.tsgId}`,
       params,
-      oauthClient: this.oauthClient,
+      responseSchema: CustomerAppListResponseSchema,
+      auth: this.auth,
       numRetries: this.numRetries,
     });
-    return res.data;
   }
 
   /**
@@ -71,17 +76,17 @@ export class CustomerAppsClient {
    * @param request - Updated customer app data.
    * @returns The updated customer app.
    */
-  async update(customerAppId: string, request: CustomerApp): Promise<CustomerApp> {
-    const res = await managementHttpRequest<CustomerApp>({
+  async update(customerAppId: string, body: CustomerApp): Promise<CustomerApp> {
+    return request({
       method: 'PUT',
       baseUrl: this.baseUrl,
       path: MGMT_CUSTOMER_APP_PATH,
       params: { customer_app_id: customerAppId },
-      body: request,
-      oauthClient: this.oauthClient,
+      body,
+      responseSchema: CustomerAppSchema,
+      auth: this.auth,
       numRetries: this.numRetries,
     });
-    return res.data;
   }
 
   /**
@@ -91,14 +96,14 @@ export class CustomerAppsClient {
    * @returns The deleted customer app.
    */
   async delete(appName: string, updatedBy: string): Promise<CustomerApp> {
-    const res = await managementHttpRequest<CustomerApp>({
+    return request({
       method: 'DELETE',
       baseUrl: this.baseUrl,
       path: MGMT_CUSTOMER_APP_PATH,
       params: { app_name: appName, updated_by: updatedBy },
-      oauthClient: this.oauthClient,
+      responseSchema: CustomerAppSchema,
+      auth: this.auth,
       numRetries: this.numRetries,
     });
-    return res.data;
   }
 }

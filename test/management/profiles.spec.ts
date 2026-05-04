@@ -1,13 +1,10 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { ProfilesClient } from '../../src/management/profiles.js';
-import { OAuthClient } from '../../src/management/oauth-client.js';
+import type { AuthAdapter } from '../../src/http/types.js';
 import { AISecSDKException } from '../../src/errors.js';
 
-function createMockOAuth(): OAuthClient {
-  return {
-    getToken: vi.fn().mockResolvedValue('tok'),
-    clearToken: vi.fn(),
-  } as unknown as OAuthClient;
+function passthroughAuth(): AuthAdapter {
+  return { prepare: async (req) => req };
 }
 
 function mockFetch(data: unknown, status = 200) {
@@ -32,7 +29,7 @@ describe('ProfilesClient', () => {
   beforeEach(() => {
     client = new ProfilesClient({
       baseUrl: 'https://api.example.com/aisec',
-      oauthClient: createMockOAuth(),
+      auth: passthroughAuth(),
       tsgId: '123',
       numRetries: 0,
     });

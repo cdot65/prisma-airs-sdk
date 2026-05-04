@@ -1,13 +1,16 @@
 import { MGMT_PROFILE_PATH, MGMT_PROFILES_TSG_PATH } from '../constants.js';
 import { AISecSDKException, ErrorType } from '../errors.js';
-import { isValidUuid } from '../utils.js';
-import { managementHttpRequest } from './management-http-client.js';
-import type { OAuthClient } from './oauth-client.js';
-import type {
-  SecurityProfile,
-  CreateSecurityProfileRequest,
-  SecurityProfileListResponse,
-  DeleteProfileResponse,
+import { request } from '../http/request.js';
+import type { AuthAdapter } from '../http/types.js';
+import { assertUuid } from '../validators.js';
+import {
+  SecurityProfileSchema,
+  SecurityProfileListResponseSchema,
+  DeleteProfileResponseSchema,
+  type SecurityProfile,
+  type CreateSecurityProfileRequest,
+  type SecurityProfileListResponse,
+  type DeleteProfileResponse,
 } from '../models/mgmt-security-profile.js';
 
 /** Pagination parameters for list operations. */
@@ -21,7 +24,7 @@ export interface PaginationOptions {
 /** @internal */
 export interface ProfilesClientOptions {
   baseUrl: string;
-  oauthClient: OAuthClient;
+  auth: AuthAdapter;
   tsgId: string;
   numRetries: number;
 }
@@ -29,32 +32,32 @@ export interface ProfilesClientOptions {
 /** Client for AIRS security profile CRUD operations. */
 export class ProfilesClient {
   private readonly baseUrl: string;
-  private readonly oauthClient: OAuthClient;
+  private readonly auth: AuthAdapter;
   private readonly tsgId: string;
   private readonly numRetries: number;
 
   constructor(opts: ProfilesClientOptions) {
     this.baseUrl = opts.baseUrl;
-    this.oauthClient = opts.oauthClient;
+    this.auth = opts.auth;
     this.tsgId = opts.tsgId;
     this.numRetries = opts.numRetries;
   }
 
   /**
    * Create a new security profile.
-   * @param request - Profile configuration.
+   * @param body - Profile configuration.
    * @returns The created security profile.
    */
-  async create(request: CreateSecurityProfileRequest): Promise<SecurityProfile> {
-    const res = await managementHttpRequest<SecurityProfile>({
+  async create(body: CreateSecurityProfileRequest): Promise<SecurityProfile> {
+    return request({
       method: 'POST',
       baseUrl: this.baseUrl,
       path: MGMT_PROFILE_PATH,
-      body: request,
-      oauthClient: this.oauthClient,
+      body,
+      responseSchema: SecurityProfileSchema,
+      auth: this.auth,
       numRetries: this.numRetries,
     });
-    return res.data;
   }
 
   /**
@@ -68,15 +71,15 @@ export class ProfilesClient {
       limit: String(opts?.limit ?? 100),
     };
 
-    const res = await managementHttpRequest<SecurityProfileListResponse>({
+    return request({
       method: 'GET',
       baseUrl: this.baseUrl,
       path: `${MGMT_PROFILES_TSG_PATH}/${this.tsgId}`,
       params,
-      oauthClient: this.oauthClient,
+      responseSchema: SecurityProfileListResponseSchema,
+      auth: this.auth,
       numRetries: this.numRetries,
     });
-    return res.data;
   }
 
   /**
@@ -118,26 +121,20 @@ export class ProfilesClient {
   /**
    * Update an existing security profile.
    * @param profileId - UUID of the profile to update.
-   * @param request - Updated profile configuration.
+   * @param body - Updated profile configuration.
    * @returns The updated security profile.
    */
-  async update(profileId: string, request: CreateSecurityProfileRequest): Promise<SecurityProfile> {
-    if (!isValidUuid(profileId)) {
-      throw new AISecSDKException(
-        `Invalid profile_id: ${profileId}`,
-        ErrorType.USER_REQUEST_PAYLOAD_ERROR,
-      );
-    }
-
-    const res = await managementHttpRequest<SecurityProfile>({
+  async update(profileId: string, body: CreateSecurityProfileRequest): Promise<SecurityProfile> {
+    assertUuid(profileId, 'profile_id');
+    return request({
       method: 'PUT',
       baseUrl: this.baseUrl,
       path: `${MGMT_PROFILE_PATH}/uuid/${profileId}`,
-      body: request,
-      oauthClient: this.oauthClient,
+      body,
+      responseSchema: SecurityProfileSchema,
+      auth: this.auth,
       numRetries: this.numRetries,
     });
-    return res.data;
   }
 
   /**
@@ -146,21 +143,15 @@ export class ProfilesClient {
    * @returns Deletion confirmation message.
    */
   async delete(profileId: string): Promise<DeleteProfileResponse> {
-    if (!isValidUuid(profileId)) {
-      throw new AISecSDKException(
-        `Invalid profile_id: ${profileId}`,
-        ErrorType.USER_REQUEST_PAYLOAD_ERROR,
-      );
-    }
-
-    const res = await managementHttpRequest<DeleteProfileResponse>({
+    assertUuid(profileId, 'profile_id');
+    return request({
       method: 'DELETE',
       baseUrl: this.baseUrl,
       path: `${MGMT_PROFILE_PATH}/${profileId}`,
-      oauthClient: this.oauthClient,
+      responseSchema: DeleteProfileResponseSchema,
+      auth: this.auth,
       numRetries: this.numRetries,
     });
-    return res.data;
   }
 
   /**
@@ -170,21 +161,15 @@ export class ProfilesClient {
    * @returns Deletion confirmation message.
    */
   async forceDelete(profileId: string, updatedBy: string): Promise<DeleteProfileResponse> {
-    if (!isValidUuid(profileId)) {
-      throw new AISecSDKException(
-        `Invalid profile_id: ${profileId}`,
-        ErrorType.USER_REQUEST_PAYLOAD_ERROR,
-      );
-    }
-
-    const res = await managementHttpRequest<DeleteProfileResponse>({
+    assertUuid(profileId, 'profile_id');
+    return request({
       method: 'DELETE',
       baseUrl: this.baseUrl,
       path: `${MGMT_PROFILE_PATH}/${profileId}/force`,
       params: { updated_by: updatedBy },
-      oauthClient: this.oauthClient,
+      responseSchema: DeleteProfileResponseSchema,
+      auth: this.auth,
       numRetries: this.numRetries,
     });
-    return res.data;
   }
 }
