@@ -1,24 +1,27 @@
 import { MGMT_DLP_PROFILES_PATH } from '../constants.js';
-import { managementHttpRequest } from './management-http-client.js';
-import type { OAuthClient } from './oauth-client.js';
-import type { DlpProfileListResponse } from '../models/mgmt-dlp-profile.js';
+import { request } from '../http/request.js';
+import type { AuthAdapter } from '../http/types.js';
+import {
+  DlpProfileListResponseSchema,
+  type DlpProfileListResponse,
+} from '../models/mgmt-dlp-profile.js';
 
 /** @internal */
 export interface DlpProfilesClientOptions {
   baseUrl: string;
-  oauthClient: OAuthClient;
+  auth: AuthAdapter;
   numRetries: number;
 }
 
 /** Client for listing DLP profiles. */
 export class DlpProfilesClient {
   private readonly baseUrl: string;
-  private readonly oauthClient: OAuthClient;
+  private readonly auth: AuthAdapter;
   private readonly numRetries: number;
 
   constructor(opts: DlpProfilesClientOptions) {
     this.baseUrl = opts.baseUrl;
-    this.oauthClient = opts.oauthClient;
+    this.auth = opts.auth;
     this.numRetries = opts.numRetries;
   }
 
@@ -27,13 +30,13 @@ export class DlpProfilesClient {
    * @returns List of DLP profiles.
    */
   async list(): Promise<DlpProfileListResponse> {
-    const res = await managementHttpRequest<DlpProfileListResponse>({
+    return request({
       method: 'GET',
       baseUrl: this.baseUrl,
       path: MGMT_DLP_PROFILES_PATH,
-      oauthClient: this.oauthClient,
+      responseSchema: DlpProfileListResponseSchema,
+      auth: this.auth,
       numRetries: this.numRetries,
     });
-    return res.data;
   }
 }

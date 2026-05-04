@@ -1,12 +1,12 @@
 import { MGMT_SCAN_LOGS_PATH } from '../constants.js';
-import { managementHttpRequest } from './management-http-client.js';
-import type { OAuthClient } from './oauth-client.js';
-import type { PaginatedScanResults } from '../models/mgmt-scan-log.js';
+import { request } from '../http/request.js';
+import type { AuthAdapter } from '../http/types.js';
+import { PaginatedScanResultsSchema, type PaginatedScanResults } from '../models/mgmt-scan-log.js';
 
 /** @internal */
 export interface ScanLogsClientOptions {
   baseUrl: string;
-  oauthClient: OAuthClient;
+  auth: AuthAdapter;
   numRetries: number;
 }
 
@@ -29,12 +29,12 @@ export interface ScanLogQueryOptions {
 /** Client for retrieving scan logs. */
 export class ScanLogsClient {
   private readonly baseUrl: string;
-  private readonly oauthClient: OAuthClient;
+  private readonly auth: AuthAdapter;
   private readonly numRetries: number;
 
   constructor(opts: ScanLogsClientOptions) {
     this.baseUrl = opts.baseUrl;
-    this.oauthClient = opts.oauthClient;
+    this.auth = opts.auth;
     this.numRetries = opts.numRetries;
   }
 
@@ -54,15 +54,15 @@ export class ScanLogsClient {
 
     const body = opts.page_token ? { page_token: opts.page_token } : undefined;
 
-    const res = await managementHttpRequest<PaginatedScanResults>({
+    return request({
       method: 'POST',
       baseUrl: this.baseUrl,
       path: MGMT_SCAN_LOGS_PATH,
       params,
       body,
-      oauthClient: this.oauthClient,
+      responseSchema: PaginatedScanResultsSchema,
+      auth: this.auth,
       numRetries: this.numRetries,
     });
-    return res.data;
   }
 }

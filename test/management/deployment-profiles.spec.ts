@@ -1,12 +1,9 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { DeploymentProfilesClient } from '../../src/management/deployment-profiles.js';
-import { OAuthClient } from '../../src/management/oauth-client.js';
+import type { AuthAdapter } from '../../src/http/types.js';
 
-function createMockOAuth(): OAuthClient {
-  return {
-    getToken: vi.fn().mockResolvedValue('tok'),
-    clearToken: vi.fn(),
-  } as unknown as OAuthClient;
+function passthroughAuth(): AuthAdapter {
+  return { prepare: async (req) => req };
 }
 
 function mockFetch(data: unknown, status = 200) {
@@ -24,7 +21,7 @@ describe('DeploymentProfilesClient', () => {
   beforeEach(() => {
     client = new DeploymentProfilesClient({
       baseUrl: 'https://api.example.com',
-      oauthClient: createMockOAuth(),
+      auth: passthroughAuth(),
       numRetries: 0,
     });
   });

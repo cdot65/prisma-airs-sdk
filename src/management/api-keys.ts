@@ -1,19 +1,22 @@
 import { MGMT_API_KEY_PATH, MGMT_API_KEYS_TSG_PATH } from '../constants.js';
-import { managementHttpRequest } from './management-http-client.js';
-import type { OAuthClient } from './oauth-client.js';
+import { request } from '../http/request.js';
+import type { AuthAdapter } from '../http/types.js';
 import type { PaginationOptions } from './profiles.js';
-import type {
-  ApiKey,
-  ApiKeyCreateRequest,
-  ApiKeyRegenerateRequest,
-  ApiKeyListResponse,
-  ApiKeyDeleteResponse,
+import {
+  ApiKeySchema,
+  ApiKeyListResponseSchema,
+  ApiKeyDeleteResponseSchema,
+  type ApiKey,
+  type ApiKeyCreateRequest,
+  type ApiKeyRegenerateRequest,
+  type ApiKeyListResponse,
+  type ApiKeyDeleteResponse,
 } from '../models/mgmt-api-key.js';
 
 /** @internal */
 export interface ApiKeysClientOptions {
   baseUrl: string;
-  oauthClient: OAuthClient;
+  auth: AuthAdapter;
   tsgId: string;
   numRetries: number;
 }
@@ -21,32 +24,32 @@ export interface ApiKeysClientOptions {
 /** Client for AIRS API key management operations. */
 export class ApiKeysClient {
   private readonly baseUrl: string;
-  private readonly oauthClient: OAuthClient;
+  private readonly auth: AuthAdapter;
   private readonly tsgId: string;
   private readonly numRetries: number;
 
   constructor(opts: ApiKeysClientOptions) {
     this.baseUrl = opts.baseUrl;
-    this.oauthClient = opts.oauthClient;
+    this.auth = opts.auth;
     this.tsgId = opts.tsgId;
     this.numRetries = opts.numRetries;
   }
 
   /**
    * Create a new API key.
-   * @param request - API key creation request.
+   * @param body - API key creation request.
    * @returns The created API key.
    */
-  async create(request: ApiKeyCreateRequest): Promise<ApiKey> {
-    const res = await managementHttpRequest<ApiKey>({
+  async create(body: ApiKeyCreateRequest): Promise<ApiKey> {
+    return request({
       method: 'POST',
       baseUrl: this.baseUrl,
       path: MGMT_API_KEY_PATH,
-      body: request,
-      oauthClient: this.oauthClient,
+      body,
+      responseSchema: ApiKeySchema,
+      auth: this.auth,
       numRetries: this.numRetries,
     });
-    return res.data;
   }
 
   /**
@@ -60,15 +63,15 @@ export class ApiKeysClient {
       limit: String(opts?.limit ?? 100),
     };
 
-    const res = await managementHttpRequest<ApiKeyListResponse>({
+    return request({
       method: 'GET',
       baseUrl: this.baseUrl,
       path: `${MGMT_API_KEYS_TSG_PATH}/${this.tsgId}`,
       params,
-      oauthClient: this.oauthClient,
+      responseSchema: ApiKeyListResponseSchema,
+      auth: this.auth,
       numRetries: this.numRetries,
     });
-    return res.data;
   }
 
   /**
@@ -78,32 +81,32 @@ export class ApiKeysClient {
    * @returns Deletion confirmation.
    */
   async delete(apiKeyName: string, updatedBy: string): Promise<ApiKeyDeleteResponse> {
-    const res = await managementHttpRequest<ApiKeyDeleteResponse>({
+    return request({
       method: 'DELETE',
       baseUrl: this.baseUrl,
       path: `${MGMT_API_KEY_PATH}/delete/${encodeURIComponent(apiKeyName)}`,
       params: { updated_by: updatedBy },
-      oauthClient: this.oauthClient,
+      responseSchema: ApiKeyDeleteResponseSchema,
+      auth: this.auth,
       numRetries: this.numRetries,
     });
-    return res.data;
   }
 
   /**
    * Regenerate an API key.
    * @param apiKeyId - UUID of the API key to regenerate.
-   * @param request - Regeneration request with rotation config.
+   * @param body - Regeneration request with rotation config.
    * @returns The regenerated API key.
    */
-  async regenerate(apiKeyId: string, request: ApiKeyRegenerateRequest): Promise<ApiKey> {
-    const res = await managementHttpRequest<ApiKey>({
+  async regenerate(apiKeyId: string, body: ApiKeyRegenerateRequest): Promise<ApiKey> {
+    return request({
       method: 'POST',
       baseUrl: this.baseUrl,
       path: `${MGMT_API_KEY_PATH}/regenerate/${encodeURIComponent(apiKeyId)}`,
-      body: request,
-      oauthClient: this.oauthClient,
+      body,
+      responseSchema: ApiKeySchema,
+      auth: this.auth,
       numRetries: this.numRetries,
     });
-    return res.data;
   }
 }

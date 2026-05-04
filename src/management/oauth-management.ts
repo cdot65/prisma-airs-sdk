@@ -1,12 +1,17 @@
+import { z } from 'zod';
 import { MGMT_OAUTH_INVALIDATE_PATH, MGMT_OAUTH_TOKEN_PATH } from '../constants.js';
-import { managementHttpRequest } from './management-http-client.js';
-import type { OAuthClient } from './oauth-client.js';
-import type { ClientIdAndCustomerApp, Oauth2Token } from '../models/mgmt-oauth.js';
+import { request } from '../http/request.js';
+import type { AuthAdapter } from '../http/types.js';
+import {
+  Oauth2TokenSchema,
+  type ClientIdAndCustomerApp,
+  type Oauth2Token,
+} from '../models/mgmt-oauth.js';
 
 /** @internal */
 export interface OAuthManagementClientOptions {
   baseUrl: string;
-  oauthClient: OAuthClient;
+  auth: AuthAdapter;
   numRetries: number;
 }
 
@@ -23,12 +28,12 @@ export interface GetTokenOptions {
 /** Client for OAuth token management operations. */
 export class OAuthManagementClient {
   private readonly baseUrl: string;
-  private readonly oauthClient: OAuthClient;
+  private readonly auth: AuthAdapter;
   private readonly numRetries: number;
 
   constructor(opts: OAuthManagementClientOptions) {
     this.baseUrl = opts.baseUrl;
-    this.oauthClient = opts.oauthClient;
+    this.auth = opts.auth;
     this.numRetries = opts.numRetries;
   }
 
@@ -39,16 +44,16 @@ export class OAuthManagementClient {
    * @returns Confirmation string.
    */
   async invalidateToken(token: string, body: ClientIdAndCustomerApp): Promise<string> {
-    const res = await managementHttpRequest<string>({
+    return request({
       method: 'POST',
       baseUrl: this.baseUrl,
       path: MGMT_OAUTH_INVALIDATE_PATH,
       params: { token },
       body,
-      oauthClient: this.oauthClient,
+      responseSchema: z.string(),
+      auth: this.auth,
       numRetries: this.numRetries,
     });
-    return res.data;
   }
 
   /**
@@ -62,15 +67,15 @@ export class OAuthManagementClient {
       params.tokenTtlInterval = String(opts.tokenTtlInterval);
     if (opts.tokenTtlUnit !== undefined) params.tokenTtlUnit = opts.tokenTtlUnit;
 
-    const res = await managementHttpRequest<Oauth2Token>({
+    return request({
       method: 'POST',
       baseUrl: this.baseUrl,
       path: MGMT_OAUTH_TOKEN_PATH,
       params: Object.keys(params).length > 0 ? params : undefined,
       body: opts.body,
-      oauthClient: this.oauthClient,
+      responseSchema: Oauth2TokenSchema,
+      auth: this.auth,
       numRetries: this.numRetries,
     });
-    return res.data;
   }
 }
