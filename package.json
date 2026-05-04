@@ -47,6 +47,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
+    "preflight": "tsx scripts/preflight-schemas.ts",
+    "preflight:warn": "tsx scripts/preflight-schemas.ts --warn-only",
     "prepare": "git config core.hooksPath .githooks && npm run build",
     "prepublishOnly": "npm run lint && npm run test",
     "example:scan": "npx tsx --env-file=.env examples/basic-scan.ts",
@@ -67,6 +69,7 @@
     "zod": "^3.24.0"
   },
   "devDependencies": {
+    "@apidevtools/swagger-parser": "^12.1.0",
     "@types/node": "^25.3.3",
     "@typescript-eslint/eslint-plugin": "^8.18.2",
     "@typescript-eslint/parser": "^8.18.2",
@@ -74,7 +77,9 @@
     "eslint": "^9.17.0",
     "prettier": "^3.8.1",
     "tsup": "^8.3.0",
+    "tsx": "^4.21.0",
     "typescript": "^5.3.3",
-    "vitest": "^3.0.0"
+    "vitest": "^3.0.0",
+    "zod-to-json-schema": "^3.25.2"
   }
 }
