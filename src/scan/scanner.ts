@@ -1,6 +1,4 @@
-// src/scan/scanner.ts — mirrors Python SDK scanner classes
-
-import { httpRequest } from '../http-client.js';
+import { z } from 'zod';
 import {
   SYNC_SCAN_PATH,
   ASYNC_SCAN_PATH,
@@ -13,14 +11,21 @@ import {
   MAX_SESSION_ID_STR_LENGTH,
 } from '../constants.js';
 import { AISecSDKException, ErrorType } from '../errors.js';
+import { globalConfiguration } from '../configuration.js';
+import { ApiKeyAuth } from '../http/auth/api-key.js';
+import { request } from '../http/request.js';
+import type { AuthAdapter } from '../http/types.js';
 import { isValidUuid } from '../utils.js';
-
 import type { AiProfile } from '../models/ai-profile.js';
 import type { Metadata } from '../models/metadata.js';
-import type { ScanResponse } from '../models/scan-response.js';
-import type { AsyncScanObject, AsyncScanResponse } from '../models/async-scan.js';
-import type { ScanIdResult } from '../models/scan-id-result.js';
-import type { ThreatScanReport } from '../models/threat-report.js';
+import { ScanResponseSchema, type ScanResponse } from '../models/scan-response.js';
+import {
+  AsyncScanResponseSchema,
+  type AsyncScanObject,
+  type AsyncScanResponse,
+} from '../models/async-scan.js';
+import { ScanIdResultSchema, type ScanIdResult } from '../models/scan-id-result.js';
+import { ThreatScanReportSchema, type ThreatScanReport } from '../models/threat-report.js';
 import { Content } from './content.js';
 
 /** Optional parameters for {@link Scanner.syncScan}. */
@@ -35,6 +40,22 @@ export interface SyncScanOptions {
 
 /** Client for AIRS scan operations (sync, async, and query). */
 export class Scanner {
+  /**
+   * @internal
+   * Build the per-request auth adapter from `globalConfiguration`. Throws if
+   * `init()` has not been called.
+   */
+  private buildAuth(): AuthAdapter {
+    const cfg = globalConfiguration;
+    if (!cfg.initialized) {
+      throw new AISecSDKException(
+        'SDK not initialized. Call init() before making requests.',
+        ErrorType.MISSING_VARIABLE,
+      );
+    }
+    return new ApiKeyAuth({ apiKey: cfg.apiKey, apiToken: cfg.apiToken });
+  }
+
   /**
    * Perform a synchronous content scan.
    * @param aiProfile - AI security profile to scan against.
@@ -68,12 +89,15 @@ export class Scanner {
     if (opts.sessionId) body.session_id = opts.sessionId;
     if (opts.metadata) body.metadata = opts.metadata;
 
-    const res = await httpRequest<ScanResponse>({
+    return request({
       method: 'POST',
+      baseUrl: globalConfiguration.apiEndpoint,
       path: SYNC_SCAN_PATH,
       body,
+      responseSchema: ScanResponseSchema,
+      auth: this.buildAuth(),
+      numRetries: globalConfiguration.numRetries,
     });
-    return res.data;
   }
 
   /**
@@ -95,12 +119,15 @@ export class Scanner {
       );
     }
 
-    const res = await httpRequest<AsyncScanResponse>({
+    return request({
       method: 'POST',
+      baseUrl: globalConfiguration.apiEndpoint,
       path: ASYNC_SCAN_PATH,
       body: scanObjects,
+      responseSchema: AsyncScanResponseSchema,
+      auth: this.buildAuth(),
+      numRetries: globalConfiguration.numRetries,
     });
-    return res.data;
   }
 
   /**
@@ -127,12 +154,15 @@ export class Scanner {
       }
     }
 
-    const res = await httpRequest<ScanIdResult[]>({
+    return request({
       method: 'GET',
+      baseUrl: globalConfiguration.apiEndpoint,
       path: SCAN_RESULTS_PATH,
       params: { scan_ids: scanIds.join(',') },
+      responseSchema: z.array(ScanIdResultSchema),
+      auth: this.buildAuth(),
+      numRetries: globalConfiguration.numRetries,
     });
-    return res.data;
   }
 
   /**
@@ -154,11 +184,14 @@ export class Scanner {
       );
     }
 
-    const res = await httpRequest<ThreatScanReport[]>({
+    return request({
       method: 'GET',
+      baseUrl: globalConfiguration.apiEndpoint,
       path: SCAN_REPORTS_PATH,
       params: { report_ids: reportIds.join(',') },
+      responseSchema: z.array(ThreatScanReportSchema),
+      auth: this.buildAuth(),
+      numRetries: globalConfiguration.numRetries,
     });
-    return res.data;
   }
 }
