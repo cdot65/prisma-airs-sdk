@@ -20,6 +20,7 @@ import type { OpenAPIV3 } from 'openapi-types';
 import { loadSpec } from './preflight/load-spec.js';
 import { diffSchemas, type DriftFinding, type JsonSchema } from './preflight/diff-schemas.js';
 import { resolveOpenApiName } from './preflight/resolve-name.js';
+import { isAllowlisted } from './preflight/allowlist.js';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const SPECS_DIR = join(ROOT, 'specs');
@@ -79,7 +80,10 @@ async function loadAllModels(): Promise<ModelSchema[]> {
 }
 
 interface PreflightReport {
+  /** Drift findings the allowlist has not acknowledged. */
   findings: DriftFinding[];
+  /** Drift findings explicitly allowlisted as expected divergence. */
+  acknowledged: DriftFinding[];
   unmatchedZodSchemas: { exportName: string; sourceFile: string }[];
   totalZod: number;
   totalSpec: number;
@@ -88,7 +92,7 @@ interface PreflightReport {
 
 async function runPreflight(): Promise<PreflightReport> {
   const [specMap, models] = await Promise.all([loadAllSpecs(), loadAllModels()]);
-  const findings: DriftFinding[] = [];
+  const allFindings: DriftFinding[] = [];
   const unmatched: { exportName: string; sourceFile: string }[] = [];
   let matched = 0;
 
@@ -100,11 +104,19 @@ async function runPreflight(): Promise<PreflightReport> {
     }
     matched++;
     const zodJson = zodToJsonSchema(m.schema, { target: 'openApi3' }) as JsonSchema;
-    findings.push(...diffSchemas(zodJson, resolved.schema as JsonSchema, resolved.matchedName));
+    allFindings.push(...diffSchemas(zodJson, resolved.schema as JsonSchema, resolved.matchedName));
+  }
+
+  const findings: DriftFinding[] = [];
+  const acknowledged: DriftFinding[] = [];
+  for (const f of allFindings) {
+    if (isAllowlisted(f)) acknowledged.push(f);
+    else findings.push(f);
   }
 
   return {
     findings,
+    acknowledged,
     unmatchedZodSchemas: unmatched,
     totalZod: models.length,
     totalSpec: specMap.size,
@@ -126,12 +138,16 @@ function printReport(report: PreflightReport): void {
     }
   }
 
+  console.log(
+    `[preflight] Acknowledged drift (allowlisted): ${report.acknowledged.length} | Unacknowledged: ${report.findings.length}`,
+  );
+
   if (report.findings.length === 0) {
-    console.log('[preflight] No drift detected.');
+    console.log('[preflight] No unacknowledged drift.');
     return;
   }
 
-  console.log(`[preflight] Drift findings: ${report.findings.length}`);
+  console.log(`\n[preflight] Unacknowledged drift findings:`);
   const bySchema = new Map<string, DriftFinding[]>();
   for (const f of report.findings) {
     const arr = bySchema.get(f.schemaName) ?? [];
