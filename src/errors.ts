@@ -14,6 +14,8 @@ export enum ErrorType {
   AISEC_SDK_ERROR = 'AISEC_SDK_ERROR',
   /** OAuth2 token fetch failure. */
   OAUTH_ERROR = 'AISEC_OAUTH_ERROR',
+  /** Server returned a 2xx body that did not match the declared response schema, or invalid JSON. */
+  RESPONSE_VALIDATION = 'AISEC_RESPONSE_VALIDATION',
 }
 
 /**
