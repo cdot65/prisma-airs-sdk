@@ -37,6 +37,13 @@ export const DatabaseSecurityItemSchema = z
 export type DatabaseSecurityItem = z.infer<typeof DatabaseSecurityItemSchema>;
 
 /** Zod schema for the data-protection section of a model configuration. */
+//
+// Two known divergences from the OpenAPI flagged by `npm run preflight`:
+// - `data-leak-detection.member`: spec marks required, but the API returns
+//   `null` on some profiles (see test/models/mgmt-security-profile.spec.ts).
+//   We allow `null`/missing to match observed behavior.
+// - `database-security`: not in the OpenAPI but the API does return it.
+//   Kept until upstream OpenAPI documents it.
 export const DataProtectionSchema = z
   .object({
     'data-leak-detection': z
