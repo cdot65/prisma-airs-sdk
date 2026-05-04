@@ -35,6 +35,9 @@ describe('Scanner', () => {
         scan_id: 's1',
         category: 'benign',
         action: 'allow',
+        timeout: false,
+        error: false,
+        errors: [],
       };
       mockFetch(response);
 
@@ -47,7 +50,15 @@ describe('Scanner', () => {
     });
 
     it('sends trId and sessionId', async () => {
-      mockFetch({ report_id: 'r', scan_id: 's', category: 'benign', action: 'allow' });
+      mockFetch({
+        report_id: 'r',
+        scan_id: 's',
+        category: 'benign',
+        action: 'allow',
+        timeout: false,
+        error: false,
+        errors: [],
+      });
 
       const scanner = new Scanner();
       const content = new Content({ prompt: 'hi' });
@@ -59,7 +70,15 @@ describe('Scanner', () => {
     });
 
     it('sends metadata', async () => {
-      mockFetch({ report_id: 'r', scan_id: 's', category: 'benign', action: 'allow' });
+      mockFetch({
+        report_id: 'r',
+        scan_id: 's',
+        category: 'benign',
+        action: 'allow',
+        timeout: false,
+        error: false,
+        errors: [],
+      });
 
       const scanner = new Scanner();
       const content = new Content({ prompt: 'hi' });
