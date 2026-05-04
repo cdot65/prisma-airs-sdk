@@ -3,31 +3,37 @@ import {
   MODEL_SEC_EVALUATIONS_PATH,
   MODEL_SEC_VIOLATIONS_PATH,
 } from '../constants.js';
-import { AISecSDKException, ErrorType } from '../errors.js';
-import { isValidUuid } from '../utils.js';
-import { managementHttpRequest } from '../management/management-http-client.js';
-import type { OAuthClient } from '../management/oauth-client.js';
-import type {
-  ScanCreateRequest,
-  ScanBaseResponse,
-  ScanList,
-  RuleEvaluationList,
-  RuleEvaluationResponse,
-  FileList,
-  LabelsCreateRequest,
-  LabelsResponse,
-  ViolationList,
-  ViolationResponse,
-  LabelKeyList,
-  LabelValueList,
+import { request } from '../http/request.js';
+import type { AuthAdapter } from '../http/types.js';
+import { serializeListing, type ListingOptions } from '../listing.js';
+import { assertUuid } from '../validators.js';
+import {
+  ScanBaseResponseSchema,
+  ScanListSchema,
+  RuleEvaluationListSchema,
+  RuleEvaluationResponseSchema,
+  FileListSchema,
+  LabelsResponseSchema,
+  ViolationListSchema,
+  ViolationResponseSchema,
+  LabelKeyListSchema,
+  LabelValueListSchema,
+  type ScanCreateRequest,
+  type ScanBaseResponse,
+  type ScanList,
+  type RuleEvaluationList,
+  type RuleEvaluationResponse,
+  type FileList,
+  type LabelsCreateRequest,
+  type LabelsResponse,
+  type ViolationList,
+  type ViolationResponse,
+  type LabelKeyList,
+  type LabelValueList,
 } from '../models/model-security.js';
 
-/** Pagination options for model security scan listing. */
-export interface ModelSecurityScanListOptions {
-  /** Number of items to skip. */
-  skip?: number;
-  /** Maximum number of items to return. */
-  limit?: number;
+/** Pagination + filter options for model security scan listing. */
+export interface ModelSecurityScanListOptions extends ListingOptions {
   /** Sort field: 'created_at' or 'updated_at'. */
   sort_by?: string;
   /** Sort order: 'asc' or 'desc'. */
@@ -49,11 +55,7 @@ export interface ModelSecurityScanListOptions {
 }
 
 /** Options for listing rule evaluations within a scan. */
-export interface ModelSecurityEvaluationListOptions {
-  /** Number of items to skip. */
-  skip?: number;
-  /** Maximum number of items to return. */
-  limit?: number;
+export interface ModelSecurityEvaluationListOptions extends ListingOptions {
   /** Sort field: 'created_at' or 'updated_at'. */
   sort_field?: string;
   /** Sort order: 'asc' or 'desc'. */
@@ -65,11 +67,7 @@ export interface ModelSecurityEvaluationListOptions {
 }
 
 /** Options for listing files within a scan. */
-export interface ModelSecurityFileListOptions {
-  /** Number of items to skip. */
-  skip?: number;
-  /** Maximum number of items to return. */
-  limit?: number;
+export interface ModelSecurityFileListOptions extends ListingOptions {
   /** Sort field: 'path' or 'type'. */
   sort_field?: string;
   /** Sort direction: 'asc' or 'desc'. */
@@ -83,37 +81,22 @@ export interface ModelSecurityFileListOptions {
 }
 
 /** Options for listing label keys or values. */
-export interface ModelSecurityLabelListOptions {
-  /** Number of items to skip. */
-  skip?: number;
-  /** Maximum number of items to return. */
-  limit?: number;
-  /** Search query string. */
-  search?: string;
-}
+export type ModelSecurityLabelListOptions = ListingOptions;
 
 /** Options for listing violations. */
-export interface ModelSecurityViolationListOptions {
-  /** Number of items to skip. */
-  skip?: number;
-  /** Maximum number of items to return. */
-  limit?: number;
-}
+export type ModelSecurityViolationListOptions = ListingOptions;
 
 /** @internal */
 export interface ModelSecurityScansClientOptions {
   baseUrl: string;
-  oauthClient: OAuthClient;
+  auth: AuthAdapter;
   numRetries: number;
 }
 
-/** Build query params for scan list. */
 function buildScanListParams(
   opts?: ModelSecurityScanListOptions,
 ): Record<string, string | string[]> {
-  const params: Record<string, string | string[]> = {};
-  if (opts?.skip !== undefined) params.skip = String(opts.skip);
-  if (opts?.limit !== undefined) params.limit = String(opts.limit);
+  const params: Record<string, string | string[]> = serializeListing(opts);
   if (opts?.sort_by !== undefined) params.sort_by = opts.sort_by;
   if (opts?.sort_order !== undefined) params.sort_order = opts.sort_order;
   if (opts?.search_query !== undefined) params.search_query = opts.search_query;
@@ -127,13 +110,10 @@ function buildScanListParams(
   return params;
 }
 
-/** Build query params for evaluation list. */
 function buildEvaluationListParams(
   opts?: ModelSecurityEvaluationListOptions,
 ): Record<string, string> {
-  const params: Record<string, string> = {};
-  if (opts?.skip !== undefined) params.skip = String(opts.skip);
-  if (opts?.limit !== undefined) params.limit = String(opts.limit);
+  const params = serializeListing(opts);
   if (opts?.sort_field !== undefined) params.sort_field = opts.sort_field;
   if (opts?.sort_order !== undefined) params.sort_order = opts.sort_order;
   if (opts?.result !== undefined) params.result = opts.result;
@@ -141,11 +121,8 @@ function buildEvaluationListParams(
   return params;
 }
 
-/** Build query params for file list. */
 function buildFileListParams(opts?: ModelSecurityFileListOptions): Record<string, string> {
-  const params: Record<string, string> = {};
-  if (opts?.skip !== undefined) params.skip = String(opts.skip);
-  if (opts?.limit !== undefined) params.limit = String(opts.limit);
+  const params = serializeListing(opts);
   if (opts?.sort_field !== undefined) params.sort_field = opts.sort_field;
   if (opts?.sort_dir !== undefined) params.sort_dir = opts.sort_dir;
   if (opts?.type !== undefined) params.type = opts.type;
@@ -154,52 +131,33 @@ function buildFileListParams(opts?: ModelSecurityFileListOptions): Record<string
   return params;
 }
 
-/** Build query params for label key/value list. */
-function buildLabelListParams(opts?: ModelSecurityLabelListOptions): Record<string, string> {
-  const params: Record<string, string> = {};
-  if (opts?.skip !== undefined) params.skip = String(opts.skip);
-  if (opts?.limit !== undefined) params.limit = String(opts.limit);
-  if (opts?.search !== undefined) params.search = opts.search;
-  return params;
-}
-
-/** Build query params for violation list. */
-function buildViolationListParams(
-  opts?: ModelSecurityViolationListOptions,
-): Record<string, string> {
-  const params: Record<string, string> = {};
-  if (opts?.skip !== undefined) params.skip = String(opts.skip);
-  if (opts?.limit !== undefined) params.limit = String(opts.limit);
-  return params;
-}
-
 /** Client for Model Security data plane scan operations. */
 export class ModelSecurityScansClient {
   private readonly baseUrl: string;
-  private readonly oauthClient: OAuthClient;
+  private readonly auth: AuthAdapter;
   private readonly numRetries: number;
 
   constructor(opts: ModelSecurityScansClientOptions) {
     this.baseUrl = opts.baseUrl;
-    this.oauthClient = opts.oauthClient;
+    this.auth = opts.auth;
     this.numRetries = opts.numRetries;
   }
 
   /**
    * Create a new model security scan.
-   * @param request - Scan creation request body.
+   * @param body - Scan creation request body.
    * @returns The created scan response.
    */
-  async create(request: ScanCreateRequest): Promise<ScanBaseResponse> {
-    const res = await managementHttpRequest<ScanBaseResponse>({
+  async create(body: ScanCreateRequest): Promise<ScanBaseResponse> {
+    return request({
       method: 'POST',
       baseUrl: this.baseUrl,
       path: MODEL_SEC_SCANS_PATH,
-      body: request,
-      oauthClient: this.oauthClient,
+      body,
+      responseSchema: ScanBaseResponseSchema,
+      auth: this.auth,
       numRetries: this.numRetries,
     });
-    return res.data;
   }
 
   /**
@@ -208,15 +166,15 @@ export class ModelSecurityScansClient {
    * @returns Paginated list of scans.
    */
   async list(opts?: ModelSecurityScanListOptions): Promise<ScanList> {
-    const res = await managementHttpRequest<ScanList>({
+    return request({
       method: 'GET',
       baseUrl: this.baseUrl,
       path: MODEL_SEC_SCANS_PATH,
       params: buildScanListParams(opts),
-      oauthClient: this.oauthClient,
+      responseSchema: ScanListSchema,
+      auth: this.auth,
       numRetries: this.numRetries,
     });
-    return res.data;
   }
 
   /**
@@ -225,21 +183,15 @@ export class ModelSecurityScansClient {
    * @returns The scan response.
    */
   async get(uuid: string): Promise<ScanBaseResponse> {
-    if (!isValidUuid(uuid)) {
-      throw new AISecSDKException(
-        `Invalid scan uuid: ${uuid}`,
-        ErrorType.USER_REQUEST_PAYLOAD_ERROR,
-      );
-    }
-
-    const res = await managementHttpRequest<ScanBaseResponse>({
+    assertUuid(uuid, 'scan uuid');
+    return request({
       method: 'GET',
       baseUrl: this.baseUrl,
       path: `${MODEL_SEC_SCANS_PATH}/${uuid}`,
-      oauthClient: this.oauthClient,
+      responseSchema: ScanBaseResponseSchema,
+      auth: this.auth,
       numRetries: this.numRetries,
     });
-    return res.data;
   }
 
   /**
@@ -252,22 +204,16 @@ export class ModelSecurityScansClient {
     scanUuid: string,
     opts?: ModelSecurityEvaluationListOptions,
   ): Promise<RuleEvaluationList> {
-    if (!isValidUuid(scanUuid)) {
-      throw new AISecSDKException(
-        `Invalid scan uuid: ${scanUuid}`,
-        ErrorType.USER_REQUEST_PAYLOAD_ERROR,
-      );
-    }
-
-    const res = await managementHttpRequest<RuleEvaluationList>({
+    assertUuid(scanUuid, 'scan uuid');
+    return request({
       method: 'GET',
       baseUrl: this.baseUrl,
       path: `${MODEL_SEC_SCANS_PATH}/${scanUuid}/evaluations`,
       params: buildEvaluationListParams(opts),
-      oauthClient: this.oauthClient,
+      responseSchema: RuleEvaluationListSchema,
+      auth: this.auth,
       numRetries: this.numRetries,
     });
-    return res.data;
   }
 
   /**
@@ -277,72 +223,54 @@ export class ModelSecurityScansClient {
    * @returns Paginated list of files.
    */
   async getFiles(scanUuid: string, opts?: ModelSecurityFileListOptions): Promise<FileList> {
-    if (!isValidUuid(scanUuid)) {
-      throw new AISecSDKException(
-        `Invalid scan uuid: ${scanUuid}`,
-        ErrorType.USER_REQUEST_PAYLOAD_ERROR,
-      );
-    }
-
-    const res = await managementHttpRequest<FileList>({
+    assertUuid(scanUuid, 'scan uuid');
+    return request({
       method: 'GET',
       baseUrl: this.baseUrl,
       path: `${MODEL_SEC_SCANS_PATH}/${scanUuid}/files`,
       params: buildFileListParams(opts),
-      oauthClient: this.oauthClient,
+      responseSchema: FileListSchema,
+      auth: this.auth,
       numRetries: this.numRetries,
     });
-    return res.data;
   }
 
   /**
    * Add labels to a scan (merge with existing).
    * @param scanUuid - Scan UUID.
-   * @param request - Labels to add.
+   * @param body - Labels to add.
    * @returns Labels response.
    */
-  async addLabels(scanUuid: string, request: LabelsCreateRequest): Promise<LabelsResponse> {
-    if (!isValidUuid(scanUuid)) {
-      throw new AISecSDKException(
-        `Invalid scan uuid: ${scanUuid}`,
-        ErrorType.USER_REQUEST_PAYLOAD_ERROR,
-      );
-    }
-
-    const res = await managementHttpRequest<LabelsResponse>({
+  async addLabels(scanUuid: string, body: LabelsCreateRequest): Promise<LabelsResponse> {
+    assertUuid(scanUuid, 'scan uuid');
+    return request({
       method: 'POST',
       baseUrl: this.baseUrl,
       path: `${MODEL_SEC_SCANS_PATH}/${scanUuid}/labels`,
-      body: request,
-      oauthClient: this.oauthClient,
+      body,
+      responseSchema: LabelsResponseSchema,
+      auth: this.auth,
       numRetries: this.numRetries,
     });
-    return res.data;
   }
 
   /**
    * Set labels on a scan (replace all existing).
    * @param scanUuid - Scan UUID.
-   * @param request - Labels to set.
+   * @param body - Labels to set.
    * @returns Labels response.
    */
-  async setLabels(scanUuid: string, request: LabelsCreateRequest): Promise<LabelsResponse> {
-    if (!isValidUuid(scanUuid)) {
-      throw new AISecSDKException(
-        `Invalid scan uuid: ${scanUuid}`,
-        ErrorType.USER_REQUEST_PAYLOAD_ERROR,
-      );
-    }
-
-    const res = await managementHttpRequest<LabelsResponse>({
+  async setLabels(scanUuid: string, body: LabelsCreateRequest): Promise<LabelsResponse> {
+    assertUuid(scanUuid, 'scan uuid');
+    return request({
       method: 'PUT',
       baseUrl: this.baseUrl,
       path: `${MODEL_SEC_SCANS_PATH}/${scanUuid}/labels`,
-      body: request,
-      oauthClient: this.oauthClient,
+      body,
+      responseSchema: LabelsResponseSchema,
+      auth: this.auth,
       numRetries: this.numRetries,
     });
-    return res.data;
   }
 
   /**
@@ -352,29 +280,13 @@ export class ModelSecurityScansClient {
    * @returns Resolves when the labels are deleted.
    */
   async deleteLabels(scanUuid: string, keys: string[]): Promise<void> {
-    if (!isValidUuid(scanUuid)) {
-      throw new AISecSDKException(
-        `Invalid scan uuid: ${scanUuid}`,
-        ErrorType.USER_REQUEST_PAYLOAD_ERROR,
-      );
-    }
-
-    // Build keys as repeated query params: ?keys=key1&keys=key2
-    // managementHttpRequest uses URLSearchParams.set which only supports single values,
-    // so we manually build the query string portion
-    const url = new URL(`https://placeholder${MODEL_SEC_SCANS_PATH}/${scanUuid}/labels`);
-    for (const key of keys) {
-      url.searchParams.append('keys', key);
-    }
-    // Extract just the query string and append to path
-    const queryString = url.searchParams.toString();
-    const pathWithQuery = `${MODEL_SEC_SCANS_PATH}/${scanUuid}/labels${queryString ? `?${queryString}` : ''}`;
-
-    await managementHttpRequest<void>({
+    assertUuid(scanUuid, 'scan uuid');
+    await request({
       method: 'DELETE',
       baseUrl: this.baseUrl,
-      path: pathWithQuery,
-      oauthClient: this.oauthClient,
+      path: `${MODEL_SEC_SCANS_PATH}/${scanUuid}/labels`,
+      params: { keys },
+      auth: this.auth,
       numRetries: this.numRetries,
     });
   }
@@ -389,22 +301,16 @@ export class ModelSecurityScansClient {
     scanUuid: string,
     opts?: ModelSecurityViolationListOptions,
   ): Promise<ViolationList> {
-    if (!isValidUuid(scanUuid)) {
-      throw new AISecSDKException(
-        `Invalid scan uuid: ${scanUuid}`,
-        ErrorType.USER_REQUEST_PAYLOAD_ERROR,
-      );
-    }
-
-    const res = await managementHttpRequest<ViolationList>({
+    assertUuid(scanUuid, 'scan uuid');
+    return request({
       method: 'GET',
       baseUrl: this.baseUrl,
       path: `${MODEL_SEC_SCANS_PATH}/${scanUuid}/rule-violations`,
-      params: buildViolationListParams(opts),
-      oauthClient: this.oauthClient,
+      params: serializeListing(opts),
+      responseSchema: ViolationListSchema,
+      auth: this.auth,
       numRetries: this.numRetries,
     });
-    return res.data;
   }
 
   /**
@@ -413,15 +319,15 @@ export class ModelSecurityScansClient {
    * @returns Paginated list of label keys.
    */
   async getLabelKeys(opts?: ModelSecurityLabelListOptions): Promise<LabelKeyList> {
-    const res = await managementHttpRequest<LabelKeyList>({
+    return request({
       method: 'GET',
       baseUrl: this.baseUrl,
       path: `${MODEL_SEC_SCANS_PATH}/label-keys`,
-      params: buildLabelListParams(opts),
-      oauthClient: this.oauthClient,
+      params: serializeListing(opts),
+      responseSchema: LabelKeyListSchema,
+      auth: this.auth,
       numRetries: this.numRetries,
     });
-    return res.data;
   }
 
   /**
@@ -431,15 +337,15 @@ export class ModelSecurityScansClient {
    * @returns Paginated list of label values.
    */
   async getLabelValues(key: string, opts?: ModelSecurityLabelListOptions): Promise<LabelValueList> {
-    const res = await managementHttpRequest<LabelValueList>({
+    return request({
       method: 'GET',
       baseUrl: this.baseUrl,
       path: `${MODEL_SEC_SCANS_PATH}/label-keys/${encodeURIComponent(key)}/values`,
-      params: buildLabelListParams(opts),
-      oauthClient: this.oauthClient,
+      params: serializeListing(opts),
+      responseSchema: LabelValueListSchema,
+      auth: this.auth,
       numRetries: this.numRetries,
     });
-    return res.data;
   }
 
   /**
@@ -448,21 +354,15 @@ export class ModelSecurityScansClient {
    * @returns The rule evaluation response.
    */
   async getEvaluation(uuid: string): Promise<RuleEvaluationResponse> {
-    if (!isValidUuid(uuid)) {
-      throw new AISecSDKException(
-        `Invalid evaluation uuid: ${uuid}`,
-        ErrorType.USER_REQUEST_PAYLOAD_ERROR,
-      );
-    }
-
-    const res = await managementHttpRequest<RuleEvaluationResponse>({
+    assertUuid(uuid, 'evaluation uuid');
+    return request({
       method: 'GET',
       baseUrl: this.baseUrl,
       path: `${MODEL_SEC_EVALUATIONS_PATH}/${uuid}`,
-      oauthClient: this.oauthClient,
+      responseSchema: RuleEvaluationResponseSchema,
+      auth: this.auth,
       numRetries: this.numRetries,
     });
-    return res.data;
   }
 
   /**
@@ -471,20 +371,14 @@ export class ModelSecurityScansClient {
    * @returns The violation response.
    */
   async getViolation(uuid: string): Promise<ViolationResponse> {
-    if (!isValidUuid(uuid)) {
-      throw new AISecSDKException(
-        `Invalid violation uuid: ${uuid}`,
-        ErrorType.USER_REQUEST_PAYLOAD_ERROR,
-      );
-    }
-
-    const res = await managementHttpRequest<ViolationResponse>({
+    assertUuid(uuid, 'violation uuid');
+    return request({
       method: 'GET',
       baseUrl: this.baseUrl,
       path: `${MODEL_SEC_VIOLATIONS_PATH}/${uuid}`,
-      oauthClient: this.oauthClient,
+      responseSchema: ViolationResponseSchema,
+      auth: this.auth,
       numRetries: this.numRetries,
     });
-    return res.data;
   }
 }

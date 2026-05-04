@@ -1,17 +1,14 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { ModelSecurityGroupsClient } from '../../src/model-security/security-groups-client.js';
-import { OAuthClient } from '../../src/management/oauth-client.js';
+import type { AuthAdapter } from '../../src/http/types.js';
 import { AISecSDKException } from '../../src/errors.js';
 
 const validUuid = '550e8400-e29b-41d4-a716-446655440000';
 const validUuid2 = '660e8400-e29b-41d4-a716-446655440000';
 const now = '2025-01-01T00:00:00Z';
 
-function createMockOAuth(): OAuthClient {
-  return {
-    getToken: vi.fn().mockResolvedValue('tok'),
-    clearToken: vi.fn(),
-  } as unknown as OAuthClient;
+function passthroughAuth(): AuthAdapter {
+  return { prepare: async (req) => req };
 }
 
 function mockFetch(data: unknown, status = 200) {
@@ -65,7 +62,7 @@ describe('ModelSecurityGroupsClient', () => {
   beforeEach(() => {
     client = new ModelSecurityGroupsClient({
       baseUrl: 'https://mgmt.example.com',
-      oauthClient: createMockOAuth(),
+      auth: passthroughAuth(),
       numRetries: 0,
     });
   });
