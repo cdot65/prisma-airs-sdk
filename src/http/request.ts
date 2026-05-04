@@ -69,7 +69,12 @@ export async function request<TResponse = void>(spec: RequestSpec<TResponse>): P
 
   let parsed: unknown;
   try {
-    parsed = text ? JSON.parse(text) : undefined;
+    // Hydrate empty 2xx bodies as `{}` so all-optional-fields schemas parse cleanly
+    // (the AIRS API returns no body when an endpoint has zero results, e.g.
+    // /v1/mgmt/scanlogs with no logs in the requested time range). Schemas with
+    // required fields will still fail validation, but on a specific path rather
+    // than the cryptic root-level `expected object, received undefined`.
+    parsed = text ? JSON.parse(text) : {};
   } catch {
     throw new AISecSDKException('Response body is not valid JSON', ErrorType.RESPONSE_VALIDATION);
   }

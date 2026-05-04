@@ -255,6 +255,53 @@ describe('request — schema parsing', () => {
 
     expect(result).toBeUndefined();
   });
+
+  // Regression for #136: API returns 200 with an empty body when scan-logs has
+  // zero results. Empty body must hydrate as `{}` so all-optional-fields
+  // schemas parse cleanly instead of failing with "expected object, received undefined".
+  it('hydrates empty 2xx body as {} for schemas with all-optional fields', async () => {
+    const AllOptionalSchema = z
+      .object({
+        total_pages: z.number().optional(),
+        page_number: z.number().optional(),
+      })
+      .passthrough();
+
+    globalThis.fetch = vi.fn().mockResolvedValue(mockResponse(undefined, 200));
+
+    const result = await request({
+      method: 'POST',
+      baseUrl: 'https://api.example.com',
+      path: '/v1/mgmt/scanlogs',
+      responseSchema: AllOptionalSchema,
+      auth: passthroughAuth,
+      numRetries: 0,
+    });
+
+    expect(result).toEqual({});
+  });
+
+  it('still fails RESPONSE_VALIDATION on empty 2xx body when schema has required fields', async () => {
+    globalThis.fetch = vi.fn().mockResolvedValue(mockResponse(undefined, 200));
+
+    try {
+      await request<Item>({
+        method: 'GET',
+        baseUrl: 'https://api.example.com',
+        path: '/v1/items/1',
+        responseSchema: ItemSchema, // requires `id` and `name`
+        auth: passthroughAuth,
+        numRetries: 0,
+      });
+      expect.fail('should have thrown');
+    } catch (err) {
+      expect(err).toBeInstanceOf(AISecSDKException);
+      expect((err as AISecSDKException).errorType).toBe(ErrorType.RESPONSE_VALIDATION);
+      // Error now points at the specific missing fields, not the cryptic root-level
+      const msg = (err as Error).message;
+      expect(msg).toContain('id');
+    }
+  });
 });
 
 describe('request — error handling', () => {
