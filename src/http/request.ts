@@ -1,0 +1,85 @@
+import { USER_AGENT } from '../constants.js';
+import { AISecSDKException, ErrorType } from '../errors.js';
+import { executeWithRetry } from '../http-retry.js';
+import type { PreparedRequest, RequestSpec } from './types.js';
+
+/**
+ * @internal
+ * Execute a single AIRS API request: build URL + headers + body, run the auth adapter, retry per
+ * the spec's budget, and (if a response schema is declared) validate the response body.
+ *
+ * Returns the parsed response when `responseSchema` is provided, or `undefined` when omitted.
+ *
+ * Throws {@link AISecSDKException}:
+ * - `RESPONSE_VALIDATION` if a 2xx body is invalid JSON or fails the schema.
+ * - `CLIENT_SIDE_ERROR` for 4xx (or after `onUnauthorized` declines a 401/403).
+ * - `SERVER_SIDE_ERROR` for 5xx after exhausting retries.
+ */
+export async function request<TResponse = void>(spec: RequestSpec<TResponse>): Promise<TResponse> {
+  let hasRetriedAuth = false;
+
+  const response = await executeWithRetry({
+    maxRetries: spec.numRetries,
+    execute: async () => {
+      const baseUrl = spec.baseUrl.replace(/\/+$/, '');
+      const url = new URL(`${baseUrl}${spec.path}`);
+      if (spec.params) {
+        for (const [key, value] of Object.entries(spec.params)) {
+          if (Array.isArray(value)) {
+            for (const v of value) url.searchParams.append(key, v);
+          } else {
+            url.searchParams.set(key, value);
+          }
+        }
+      }
+
+      const headers: Record<string, string> = { 'User-Agent': USER_AGENT };
+      let bodyText: string | undefined;
+      if (spec.body !== undefined) {
+        headers['Content-Type'] = 'application/json';
+        bodyText = JSON.stringify(spec.body);
+      }
+
+      const prepared: PreparedRequest = { method: spec.method, url, headers, bodyText };
+      const final = await spec.auth.prepare(prepared);
+
+      return fetch(final.url.toString(), {
+        method: final.method,
+        headers: final.headers,
+        body: final.bodyText,
+      });
+    },
+    onRetryableFailure: async (res) => {
+      if (hasRetriedAuth) return false;
+      if (!spec.auth.onUnauthorized) return false;
+      const should = await spec.auth.onUnauthorized(res);
+      if (should) {
+        hasRetriedAuth = true;
+        return true;
+      }
+      return false;
+    },
+  });
+
+  const text = await response.text();
+
+  if (!spec.responseSchema) {
+    return undefined as TResponse;
+  }
+
+  let parsed: unknown;
+  try {
+    parsed = text ? JSON.parse(text) : undefined;
+  } catch {
+    throw new AISecSDKException('Response body is not valid JSON', ErrorType.RESPONSE_VALIDATION);
+  }
+
+  const result = spec.responseSchema.safeParse(parsed);
+  if (!result.success) {
+    throw new AISecSDKException(
+      `Response did not match schema: ${result.error.message}`,
+      ErrorType.RESPONSE_VALIDATION,
+    );
+  }
+  return result.data;
+}

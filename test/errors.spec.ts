@@ -33,5 +33,13 @@ describe('ErrorType', () => {
     expect(ErrorType.USER_REQUEST_PAYLOAD_ERROR).toBe('AISEC_USER_REQUEST_PAYLOAD_ERROR');
     expect(ErrorType.MISSING_VARIABLE).toBe('AISEC_MISSING_VARIABLE');
     expect(ErrorType.AISEC_SDK_ERROR).toBe('AISEC_SDK_ERROR');
+    expect(ErrorType.OAUTH_ERROR).toBe('AISEC_OAUTH_ERROR');
+    expect(ErrorType.RESPONSE_VALIDATION).toBe('AISEC_RESPONSE_VALIDATION');
+  });
+
+  it('RESPONSE_VALIDATION can be thrown and round-tripped', () => {
+    const err = new AISecSDKException('schema mismatch', ErrorType.RESPONSE_VALIDATION);
+    expect(err.errorType).toBe(ErrorType.RESPONSE_VALIDATION);
+    expect(err.message).toContain('schema mismatch');
   });
 });
