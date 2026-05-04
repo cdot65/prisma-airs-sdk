@@ -1,14 +1,14 @@
 import { z } from 'zod';
 
-/** Zod schema for an AIRS custom topic. */
+/** Zod schema for an AIRS custom topic (response). */
 export const CustomTopicSchema = z
   .object({
     topic_id: z.string().optional(),
     topic_name: z.string(),
-    revision: z.number().optional(),
+    revision: z.number(),
     active: z.boolean().optional(),
-    description: z.string().optional(),
-    examples: z.array(z.string()).optional(),
+    description: z.string(),
+    examples: z.array(z.string()),
     created_by: z.string().optional(),
     updated_by: z.string().optional(),
     last_modified_ts: z.string().optional(),

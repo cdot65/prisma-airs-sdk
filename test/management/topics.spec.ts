@@ -20,6 +20,8 @@ const sampleTopic = {
   topic_name: 'credit-cards',
   revision: 1,
   active: true,
+  description: 'detect credit card numbers',
+  examples: ['4111-1111-1111-1111'],
 };
 
 describe('TopicsClient', () => {
