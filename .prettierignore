@@ -5,3 +5,5 @@ coverage
 *.lock
 tsup.config.bundled_*
 review-*
+specs
+docs/diagrams

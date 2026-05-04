@@ -21,9 +21,6 @@ coverage/
 .DS_Store
 Thumbs.db
 
-# OpenAPI specs (reference only, not published)
-specs/
-
 # MkDocs build output
 site/
 
