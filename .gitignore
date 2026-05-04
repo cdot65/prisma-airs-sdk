@@ -27,8 +27,16 @@ specs/
 # MkDocs build output
 site/
 
-# Review documents
+# Review run outputs (generated, not source)
 REVIEW-*.md
+REVIEW-*/
+review-*.md
+review-*/
+review-output/
+review-report-*.md
+
+# tsup temp build artifacts
+tsup.config.bundled_*.mjs
 
 # Adobe Illustrator source files
 *.ai
