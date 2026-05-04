@@ -29,3 +29,6 @@ jobs:
 
       - name: Typecheck
         run: npm run typecheck
+
+      - name: OpenAPI schema pre-flight (warn-only)
+        run: npm run preflight:warn
