@@ -18,7 +18,12 @@ npm run typecheck      # tsc --noEmit
 npm run format         # prettier --write
 npm run format:check   # prettier --check
 npm run clean          # rm -rf dist/
+npm run preflight      # diff Zod schemas vs OpenAPI specs (strict; CI gate)
+npm run preflight:warn # same, exit 0 even on drift
+npm run audit:live     # hit read-only endpoints on a real tenant; reports schema drift
 ```
+
+`audit:live` requires `PANW_*` env vars set for the tenants you want to probe. It catches API-vs-Zod runtime divergence (the kind that surfaced #128, #134, #136 only after CLI smoke tests). Run before tagging a release or after API-side changes.
 
 Run a single test file:
 

@@ -49,6 +49,7 @@
     "test:coverage": "vitest run --coverage",
     "preflight": "tsx scripts/preflight-schemas.ts",
     "preflight:warn": "tsx scripts/preflight-schemas.ts --warn-only",
+    "audit:live": "tsx scripts/live-audit.ts",
     "prepare": "git config core.hooksPath .githooks && npm run build",
     "prepublishOnly": "npm run lint && npm run test",
     "example:scan": "npx tsx --env-file=.env examples/basic-scan.ts",
