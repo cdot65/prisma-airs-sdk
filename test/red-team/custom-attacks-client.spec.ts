@@ -197,13 +197,32 @@ describe('RedTeamCustomAttacksClient', () => {
   });
 
   describe('downloadTemplate', () => {
-    it('GETs /v1/custom-attack/download-template/:uuid', async () => {
-      mockFetch('csv-data');
+    it('GETs /v1/custom-attack/download-template/:uuid and returns raw CSV text', async () => {
+      const csv = 'prompt,goal\n"hello","greet"\n"bye","farewell"';
+      globalThis.fetch = vi.fn().mockResolvedValue({
+        ok: true,
+        status: 200,
+        text: () => Promise.resolve(csv),
+      });
+
       const result = await client.downloadTemplate(validUuid);
 
-      expect(result).toBe('csv-data');
-      const [url] = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0];
+      expect(result).toBe(csv);
+      const [url, init] = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0];
       expect(url).toContain(`/v1/custom-attack/download-template/${validUuid}`);
+      expect(init.method).toBe('GET');
+    });
+
+    it('throws AISecSDKException on non-2xx response', async () => {
+      globalThis.fetch = vi.fn().mockResolvedValue({
+        ok: false,
+        status: 404,
+        text: () => Promise.resolve('not found'),
+      });
+
+      await expect(client.downloadTemplate(validUuid)).rejects.toThrow(
+        /Download template failed \(404\)/,
+      );
     });
 
     it('rejects invalid UUID', async () => {
