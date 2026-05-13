@@ -1,4 +1,3 @@
-import { z } from 'zod';
 import { RED_TEAM_CUSTOM_ATTACK_PATH, USER_AGENT } from '../constants.js';
 import { AISecSDKException, ErrorType } from '../errors.js';
 import { request } from '../http/request.js';
@@ -233,19 +232,40 @@ export class RedTeamCustomAttacksClient {
 
   /**
    * Download CSV template for a prompt set.
+   *
+   * Bypasses `request()` because the response is `text/csv`, not JSON, and
+   * `request()` unconditionally `JSON.parse()`s 2xx bodies.
+   *
    * @param uuid - The prompt set UUID.
-   * @returns The CSV template content (untyped — raw response from the API).
+   * @returns The CSV template content as a raw string.
    */
-  async downloadTemplate(uuid: string): Promise<unknown> {
+  async downloadTemplate(uuid: string): Promise<string> {
     assertUuid(uuid, 'prompt set uuid');
-    return request({
+
+    const url = new URL(
+      `${this.baseUrl.replace(/\/+$/, '')}${RED_TEAM_CUSTOM_ATTACK_PATH}/download-template/${uuid}`,
+    );
+
+    const stub: PreparedRequest = {
       method: 'GET',
-      baseUrl: this.baseUrl,
-      path: `${RED_TEAM_CUSTOM_ATTACK_PATH}/download-template/${uuid}`,
-      responseSchema: z.unknown(),
-      auth: this.auth,
-      numRetries: this.numRetries,
+      url,
+      headers: { 'User-Agent': USER_AGENT },
+    };
+    const prepared = await this.auth.prepare(stub);
+
+    const response = await fetch(prepared.url.toString(), {
+      method: 'GET',
+      headers: prepared.headers,
     });
+
+    const text = await response.text();
+    if (!response.ok) {
+      throw new AISecSDKException(
+        `Download template failed (${response.status}): ${text}`,
+        ErrorType.SERVER_SIDE_ERROR,
+      );
+    }
+    return text;
   }
 
   /**
