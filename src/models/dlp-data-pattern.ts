@@ -139,22 +139,27 @@ export const DataPatternPatchRequestSchema = z
   .passthrough();
 export type DataPatternPatchRequest = z.infer<typeof DataPatternPatchRequestSchema>;
 
-/** Response payload returned by GET / POST / PUT / PATCH on a data pattern. */
+/**
+ * Response payload returned by GET / POST / PUT / PATCH on a data pattern.
+ *
+ * Every optional field is `.nullish()` — the live API emits `null` (not `undefined`)
+ * for unset values.
+ */
 export const DataPatternResponseSchema = z
   .object({
-    id: z.string().optional(),
-    name: z.string().optional(),
-    description: z.string().optional(),
-    tenant_id: z.string().optional(),
-    type: DataPatternTypeSchema.optional(),
-    status: DataPatternStatusSchema.optional(),
-    license_type: DataPatternLicenseTypeSchema.optional(),
-    is_parent_managed: z.boolean().optional(),
-    version: z.number().optional(),
-    detection_config: DataPatternDetectionConfigSchema.optional(),
-    matching_rules: DataPatternMatchingRulesSchema.optional(),
-    tags: DataPatternTagsSchema.optional(),
-    audit_metadata: AuditResponseSchema.optional(),
+    id: z.string().nullish(),
+    name: z.string().nullish(),
+    description: z.string().nullish(),
+    tenant_id: z.string().nullish(),
+    type: DataPatternTypeSchema.nullish(),
+    status: DataPatternStatusSchema.nullish(),
+    license_type: DataPatternLicenseTypeSchema.nullish(),
+    is_parent_managed: z.boolean().nullish(),
+    version: z.number().nullish(),
+    detection_config: DataPatternDetectionConfigSchema.nullish(),
+    matching_rules: DataPatternMatchingRulesSchema.nullish(),
+    tags: DataPatternTagsSchema.nullish(),
+    audit_metadata: AuditResponseSchema.nullish(),
   })
   .passthrough();
 export type DataPatternResponse = z.infer<typeof DataPatternResponseSchema>;
