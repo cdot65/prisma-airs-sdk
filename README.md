@@ -67,6 +67,12 @@ client.dlpProfiles; // DLP data profile listing
 client.deploymentProfiles; // Deployment profile listing
 client.scanLogs; // Scan activity log queries
 client.oauth; // OAuth token management (get/invalidate)
+
+// DLP namespace — separate base URL, same OAuth credentials:
+client.dlp.dataFilteringProfiles; // list / get / replace
+client.dlp.dataPatterns; // full CRUD + JSON Merge Patch
+client.dlp.dataProfiles; // CRUD without DELETE + JSON Merge Patch
+client.dlp.dictionaries; // multipart upload + CRUD + JSON Merge Patch
 ```
 
 ### Model Security — ML Model Scanning (OAuth2)

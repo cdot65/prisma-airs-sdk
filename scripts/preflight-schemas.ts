@@ -33,13 +33,38 @@ interface ModelSchema {
   sourceFile: string;
 }
 
+/**
+ * DLP specs the SDK actually models. Other yaml files in `specs/dlp/` describe DLP endpoints
+ * we have not implemented yet — loading them creates name collisions (e.g. their `Policy`
+ * component differs from the mgmt `Policy`) and false drift against unrelated Zod schemas.
+ */
+const DLP_SPEC_WHITELIST = new Set([
+  'DataFilteringProfiles.yaml',
+  'DataPatterns.yaml',
+  'DataProfiles.yaml',
+  'Dictionaries.yaml',
+]);
+
+async function findSpecFiles(dir: string, parentName?: string): Promise<string[]> {
+  const out: string[] = [];
+  const entries = await readdir(dir, { withFileTypes: true });
+  for (const entry of entries) {
+    const full = join(dir, entry.name);
+    if (entry.isDirectory()) {
+      out.push(...(await findSpecFiles(full, entry.name)));
+    } else if (entry.isFile() && (entry.name.endsWith('.yaml') || entry.name.endsWith('.yml'))) {
+      if (parentName === 'dlp' && !DLP_SPEC_WHITELIST.has(entry.name)) continue;
+      out.push(full);
+    }
+  }
+  return out;
+}
+
 async function loadAllSpecs(): Promise<Map<string, OpenAPIV3.SchemaObject>> {
-  const entries = await readdir(SPECS_DIR);
+  const files = await findSpecFiles(SPECS_DIR);
   const merged = new Map<string, OpenAPIV3.SchemaObject>();
   const collisions: string[] = [];
-  for (const file of entries) {
-    if (!file.endsWith('.yaml') && !file.endsWith('.yml')) continue;
-    const path = join(SPECS_DIR, file);
+  for (const path of files) {
     const map = await loadSpec(path);
     for (const [name, schema] of map) {
       if (merged.has(name)) {

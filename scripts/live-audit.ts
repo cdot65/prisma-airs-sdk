@@ -68,6 +68,27 @@ function buildManagementProbes(): void {
             filter: 'all',
           }),
       },
+      // ── DLP list endpoints (separate base URL, same OAuth credentials) ──
+      {
+        domain: 'mgmt',
+        endpoint: 'dlp.dataFilteringProfiles.list',
+        call: () => c.dlp.dataFilteringProfiles.list({ size: 10 }),
+      },
+      {
+        domain: 'mgmt',
+        endpoint: 'dlp.dataPatterns.list',
+        call: () => c.dlp.dataPatterns.list({ size: 10 }),
+      },
+      {
+        domain: 'mgmt',
+        endpoint: 'dlp.dataProfiles.list',
+        call: () => c.dlp.dataProfiles.list({ size: 10 }),
+      },
+      {
+        domain: 'mgmt',
+        endpoint: 'dlp.dictionaries.list',
+        call: () => c.dlp.dictionaries.list({ size: 10 }),
+      },
     );
   });
 }

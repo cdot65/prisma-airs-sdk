@@ -78,6 +78,11 @@ nav:
       - OAuth Lifecycle: services/oauth-lifecycle.md
       - Model Security API: services/model-security-api.md
       - Red Team API: services/red-team-api.md
+      - DLP:
+          - Data Filtering Profiles: services/dlp/data-filtering-profiles.md
+          - Data Patterns: services/dlp/data-patterns.md
+          - Data Profiles: services/dlp/data-profiles.md
+          - Dictionaries: services/dlp/dictionaries.md
   - Examples:
       - API Key Rotation: examples/api-key-rotation.md
   - Reference:
