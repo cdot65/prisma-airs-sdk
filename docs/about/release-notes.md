@@ -1,5 +1,25 @@
 # Release Notes
 
+## v0.9.2
+
+### Bug Fixes — DLP Nested Helper Schemas
+
+Follow-up to v0.9.1. The earlier sweep widened top-level Response fields but missed nested helpers — live `api.dlp.paloaltonetworks.com` still returned `null` on inner fields and failed Zod. Surfaced re-running [prisma-airs-cli PR #78](https://github.com/cdot65/prisma-airs-cli/pull/78) DLP list commands against the live tenant.
+
+**Schema changes (all backward compatible):**
+
+- `DataPatternMatchingRulesSchema` (`src/models/dlp-data-pattern.ts`) — all 5 fields → `.nullish()`. Primary fix for `data-patterns list` Zod failures on nested `matching_rules`.
+- `ExpressionTreeNodeSchema` (`src/models/dlp-data-profile.ts`, recursive via `z.lazy`) — `operator_type`, `rule_item`, `sub_expressions` → `.nullish()`. Primary fix for `data-profiles list` Zod failures inside the expression tree. `ExpressionTreeNode` TS interface widened to allow `null` to match.
+- `DetectionRuleItemSchema` — 23 inner fields → `.nullish()` (`detection_technique` stays required as the discriminator-ish marker).
+- `MultiProfileDataNodeSchema`, `DefaultTreeDetectionRuleSchema.expression_tree`, `MultiProfileDetectionRuleSchema.multi_profile` → `.nullish()`.
+- `MetadataCriterionSchema`, `DataPatternDetectionConfigSchema.supported_confidence_levels`, `DataPatternTagsSchema` — all `.nullish()`.
+- `dlp-data-filtering-profile.ts` — 8 nested helpers (`AppExclusion`, `URLExclusion`, `Exclusions`, `SourceAttributes`, `DestinationAttributes`, `ExceptionRuleDTO`, `DataFilteringRuleDTO`, `DataFilteringDetails`) → `.nullish()`.
+- `dlp-dictionary.ts` — `DictionaryMetaDataDTOSchema`, `DictionaryTagsSchema`, `ResourceModelExtensionSchema` → `.nullish()`.
+
+**Side-effect (acceptable):** these helpers are shared by request schemas, so request payloads now tolerate explicit `null` on the affected inner fields. SDK user code would not intentionally serialize nulls there; top-level `*RequestSchema` files remain strict.
+
+**Test coverage:** 9 new test cases across `dlp-data-pattern.spec.ts`, `dlp-data-profile.spec.ts`, `dlp-data-filtering-profile.spec.ts`, `dlp-dictionary.spec.ts`. All 1255 tests pass.
+
 ## v0.9.1
 
 ### Bug Fixes — DLP Response Schemas

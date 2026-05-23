@@ -5,9 +5,9 @@ import { pageSchema } from './dlp-page.js';
 /** App exclusion entry — application-level bypass for DLP scanning. */
 export const AppExclusionSchema = z
   .object({
-    app_id: z.string().optional(),
-    app_name: z.string().optional(),
-    type: z.string().optional(),
+    app_id: z.string().nullish(),
+    app_name: z.string().nullish(),
+    type: z.string().nullish(),
   })
   .passthrough();
 export type AppExclusion = z.infer<typeof AppExclusionSchema>;
@@ -15,9 +15,9 @@ export type AppExclusion = z.infer<typeof AppExclusionSchema>;
 /** URL exclusion entry — URL-level bypass for DLP scanning. */
 export const URLExclusionSchema = z
   .object({
-    type: z.string().optional(),
-    url_id: z.string().optional(),
-    url_name: z.string().optional(),
+    type: z.string().nullish(),
+    url_id: z.string().nullish(),
+    url_name: z.string().nullish(),
   })
   .passthrough();
 export type URLExclusion = z.infer<typeof URLExclusionSchema>;
@@ -25,13 +25,13 @@ export type URLExclusion = z.infer<typeof URLExclusionSchema>;
 /** Exclusions block — wraps app, URL, and arbitrary keyword exclusion lists. */
 export const ExclusionsSchema = z
   .object({
-    app_exclusion_list: z.array(AppExclusionSchema).optional(),
-    url_exclusion_list: z.array(URLExclusionSchema).optional(),
+    app_exclusion_list: z.array(AppExclusionSchema).nullish(),
+    url_exclusion_list: z.array(URLExclusionSchema).nullish(),
     /**
      * Map of category-name → string-array. `additionalProperties: { type: array of string }`
      * in the OpenAPI spec; modeled here as `z.record(z.array(z.string()))`.
      */
-    exclusion_list: z.record(z.array(z.string())).optional(),
+    exclusion_list: z.record(z.array(z.string())).nullish(),
   })
   .passthrough();
 export type Exclusions = z.infer<typeof ExclusionsSchema>;
@@ -39,9 +39,9 @@ export type Exclusions = z.infer<typeof ExclusionsSchema>;
 /** Source attributes for an exception rule. */
 export const SourceAttributesSchema = z
   .object({
-    match_any: z.boolean().optional(),
-    user_group_ids: z.array(z.string()).optional(),
-    user_ids: z.array(z.string()).optional(),
+    match_any: z.boolean().nullish(),
+    user_group_ids: z.array(z.string()).nullish(),
+    user_ids: z.array(z.string()).nullish(),
   })
   .passthrough();
 export type SourceAttributes = z.infer<typeof SourceAttributesSchema>;
@@ -49,9 +49,9 @@ export type SourceAttributes = z.infer<typeof SourceAttributesSchema>;
 /** Destination attributes for an exception rule. */
 export const DestinationAttributesSchema = z
   .object({
-    match_any: z.boolean().optional(),
-    app_ids: z.array(z.string()).optional(),
-    url_patterns: z.array(z.string()).optional(),
+    match_any: z.boolean().nullish(),
+    app_ids: z.array(z.string()).nullish(),
+    url_patterns: z.array(z.string()).nullish(),
   })
   .passthrough();
 export type DestinationAttributes = z.infer<typeof DestinationAttributesSchema>;
@@ -59,16 +59,16 @@ export type DestinationAttributes = z.infer<typeof DestinationAttributesSchema>;
 /** Exception rule — bypass that fires before the main filter logic. */
 export const ExceptionRuleDTOSchema = z
   .object({
-    id: z.string().optional(),
-    action: z.enum(['ALLOW', 'ALERT', 'BLOCK']).optional(),
-    log_severity: z.enum(['INFORMATIONAL', 'LOW', 'MEDIUM', 'HIGH', 'CRITICAL']).optional(),
+    id: z.string().nullish(),
+    action: z.enum(['ALLOW', 'ALERT', 'BLOCK']).nullish(),
+    log_severity: z.enum(['INFORMATIONAL', 'LOW', 'MEDIUM', 'HIGH', 'CRITICAL']).nullish(),
     /**
      * `int64` per spec; declared as `z.number()` since JS numbers cover any realistic
      * data_profile_id and the SDK never round-trips these unmodified.
      */
-    data_profile_ids: z.array(z.number()).optional(),
-    destination_attributes: DestinationAttributesSchema.optional(),
-    source_attributes: SourceAttributesSchema.optional(),
+    data_profile_ids: z.array(z.number()).nullish(),
+    destination_attributes: DestinationAttributesSchema.nullish(),
+    source_attributes: SourceAttributesSchema.nullish(),
   })
   .passthrough();
 export type ExceptionRuleDTO = z.infer<typeof ExceptionRuleDTOSchema>;
@@ -76,9 +76,9 @@ export type ExceptionRuleDTO = z.infer<typeof ExceptionRuleDTOSchema>;
 /** Secondary filtering rule (rule1 / rule2 slots on a profile). */
 export const DataFilteringRuleDTOSchema = z
   .object({
-    action: z.string().optional(),
-    response_page: z.string().optional(),
-    show_rsp_page: z.string().optional(),
+    action: z.string().nullish(),
+    response_page: z.string().nullish(),
+    show_rsp_page: z.string().nullish(),
   })
   .passthrough();
 export type DataFilteringRuleDTO = z.infer<typeof DataFilteringRuleDTOSchema>;
@@ -90,16 +90,16 @@ export type DataFilteringRuleDTO = z.infer<typeof DataFilteringRuleDTOSchema>;
  */
 export const DataFilteringDetailsSchema = z
   .object({
-    action: z.string().optional(),
-    dataProfileId: z.number().optional(),
-    direction: z.string().optional(),
-    euc_template_id: z.string().optional(),
-    fileBased: z.string().optional(),
-    fileTypes: z.array(z.string()).optional(),
-    is_end_user_coaching_enabled: z.boolean().optional(),
-    logSeverity: z.string().optional(),
-    nonFileBased: z.string().optional(),
-    scanType: z.string().optional(),
+    action: z.string().nullish(),
+    dataProfileId: z.number().nullish(),
+    direction: z.string().nullish(),
+    euc_template_id: z.string().nullish(),
+    fileBased: z.string().nullish(),
+    fileTypes: z.array(z.string()).nullish(),
+    is_end_user_coaching_enabled: z.boolean().nullish(),
+    logSeverity: z.string().nullish(),
+    nonFileBased: z.string().nullish(),
+    scanType: z.string().nullish(),
   })
   .passthrough();
 export type DataFilteringDetails = z.infer<typeof DataFilteringDetailsSchema>;

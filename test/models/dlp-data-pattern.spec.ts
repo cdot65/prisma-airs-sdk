@@ -345,6 +345,43 @@ describe('DataPatternResponseSchema', () => {
     });
     expect(r.success).toBe(true);
   });
+  it('accepts null on every nested matching_rules field per live API (issue #160)', () => {
+    const r = DataPatternResponseSchema.safeParse({
+      ...responseFixture,
+      matching_rules: {
+        delimiter: null,
+        proximity_distance: null,
+        proximity_keywords: null,
+        regexes: null,
+        metadata_criteria: null,
+      },
+    });
+    expect(r.success).toBe(true);
+  });
+  it('accepts null on detection_config.supported_confidence_levels (defensive)', () => {
+    const r = DataPatternResponseSchema.safeParse({
+      ...responseFixture,
+      detection_config: { technique: 'regex', supported_confidence_levels: null },
+    });
+    expect(r.success).toBe(true);
+  });
+  it('accepts null on tags inner array fields (defensive)', () => {
+    const r = DataPatternResponseSchema.safeParse({
+      ...responseFixture,
+      tags: { classification: null, compliance: null, geography: null },
+    });
+    expect(r.success).toBe(true);
+  });
+  it('accepts null on metadata_criteria inner fields (defensive)', () => {
+    const r = DataPatternResponseSchema.safeParse({
+      ...responseFixture,
+      matching_rules: {
+        ...responseFixture.matching_rules,
+        metadata_criteria: [{ comparisonOperatorType: null, name: null, type: null, value: null }],
+      },
+    });
+    expect(r.success).toBe(true);
+  });
 });
 
 describe('PageDataPatternResponseSchema', () => {

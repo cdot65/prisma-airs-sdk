@@ -271,6 +271,19 @@ describe('DictionaryResponseSchema', () => {
     });
     expect(r.success).toBe(true);
   });
+  it('accepts null on every nested helper inner field (defensive sweep, issue #160)', () => {
+    const r = DictionaryResponseSchema.safeParse({
+      ...responseFixture,
+      dictionary_metadata: {
+        number_of_keywords: null,
+        original_file_name: null,
+        original_file_size_in_byte: null,
+      },
+      tags: { classification: null },
+      attributes: [{ key: null, value: null }],
+    });
+    expect(r.success).toBe(true);
+  });
 });
 
 describe('PageDictionaryResponseSchema', () => {
