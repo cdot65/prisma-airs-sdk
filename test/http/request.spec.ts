@@ -169,6 +169,140 @@ describe('request — body handling', () => {
   });
 });
 
+describe('request — content type override', () => {
+  const originalFetch = globalThis.fetch;
+  afterEach(() => {
+    globalThis.fetch = originalFetch;
+  });
+
+  it('sends application/merge-patch+json when contentType is set', async () => {
+    const fetchSpy = vi.fn().mockResolvedValue(mockResponse({}));
+    globalThis.fetch = fetchSpy;
+
+    await request({
+      method: 'PATCH',
+      baseUrl: 'https://api.example.com',
+      path: '/v1/items/1',
+      body: { description: null, name: 'updated' },
+      contentType: 'application/merge-patch+json',
+      auth: passthroughAuth,
+      numRetries: 0,
+    });
+
+    const [, init] = fetchSpy.mock.calls[0];
+    expect((init.headers as Record<string, string>)['Content-Type']).toBe(
+      'application/merge-patch+json',
+    );
+    // Body is still JSON-stringified (merge-patch is a JSON dialect).
+    expect(init.body).toBe(JSON.stringify({ description: null, name: 'updated' }));
+  });
+
+  it('contentType is ignored when no body is set', async () => {
+    const fetchSpy = vi.fn().mockResolvedValue(mockResponse({}));
+    globalThis.fetch = fetchSpy;
+
+    await request({
+      method: 'GET',
+      baseUrl: 'https://api.example.com',
+      path: '/v1/items',
+      contentType: 'application/merge-patch+json',
+      auth: passthroughAuth,
+      numRetries: 0,
+    });
+
+    const [, init] = fetchSpy.mock.calls[0];
+    expect((init.headers as Record<string, string>)['Content-Type']).toBeUndefined();
+    expect(init.body).toBeUndefined();
+  });
+
+  it('defaults to application/json when contentType is omitted', async () => {
+    const fetchSpy = vi.fn().mockResolvedValue(mockResponse({}));
+    globalThis.fetch = fetchSpy;
+
+    await request({
+      method: 'POST',
+      baseUrl: 'https://api.example.com',
+      path: '/v1/items',
+      body: { name: 'foo' },
+      auth: passthroughAuth,
+      numRetries: 0,
+    });
+
+    const [, init] = fetchSpy.mock.calls[0];
+    expect((init.headers as Record<string, string>)['Content-Type']).toBe('application/json');
+  });
+});
+
+describe('request — multipart form-data', () => {
+  const originalFetch = globalThis.fetch;
+  afterEach(() => {
+    globalThis.fetch = originalFetch;
+  });
+
+  it('passes FormData straight through to fetch', async () => {
+    const fetchSpy = vi.fn().mockResolvedValue(mockResponse({}));
+    globalThis.fetch = fetchSpy;
+
+    const fd = new FormData();
+    fd.append('file', new Blob(['hello']), 'hello.txt');
+
+    await request({
+      method: 'POST',
+      baseUrl: 'https://api.example.com',
+      path: '/v1/uploads',
+      formData: fd,
+      auth: passthroughAuth,
+      numRetries: 0,
+    });
+
+    const [, init] = fetchSpy.mock.calls[0];
+    // Same instance — don't serialize or wrap.
+    expect(init.body).toBe(fd);
+  });
+
+  it('does not set Content-Type when sending FormData (runtime sets boundary)', async () => {
+    const fetchSpy = vi.fn().mockResolvedValue(mockResponse({}));
+    globalThis.fetch = fetchSpy;
+
+    const fd = new FormData();
+    fd.append('field', 'value');
+
+    await request({
+      method: 'POST',
+      baseUrl: 'https://api.example.com',
+      path: '/v1/uploads',
+      formData: fd,
+      auth: passthroughAuth,
+      numRetries: 0,
+    });
+
+    const [, init] = fetchSpy.mock.calls[0];
+    expect((init.headers as Record<string, string>)['Content-Type']).toBeUndefined();
+  });
+
+  it('formData takes precedence over body when both are set', async () => {
+    const fetchSpy = vi.fn().mockResolvedValue(mockResponse({}));
+    globalThis.fetch = fetchSpy;
+
+    const fd = new FormData();
+    fd.append('field', 'value');
+
+    await request({
+      method: 'POST',
+      baseUrl: 'https://api.example.com',
+      path: '/v1/uploads',
+      formData: fd,
+      body: { ignored: true },
+      auth: passthroughAuth,
+      numRetries: 0,
+    });
+
+    const [, init] = fetchSpy.mock.calls[0];
+    expect(init.body).toBe(fd);
+    expect((init.headers as Record<string, string>)['Content-Type']).toBeUndefined();
+  });
+});
+
 describe('request — schema parsing', () => {
   const originalFetch = globalThis.fetch;
   afterEach(() => {

@@ -35,9 +35,13 @@ export async function request<TResponse = void>(spec: RequestSpec<TResponse>): P
 
       const headers: Record<string, string> = { 'User-Agent': USER_AGENT };
       let bodyText: string | undefined;
-      if (spec.body !== undefined) {
-        headers['Content-Type'] = 'application/json';
+      let bodyForFetch: FormData | string | undefined;
+      if (spec.formData !== undefined) {
+        bodyForFetch = spec.formData;
+      } else if (spec.body !== undefined) {
+        headers['Content-Type'] = spec.contentType ?? 'application/json';
         bodyText = JSON.stringify(spec.body);
+        bodyForFetch = bodyText;
       }
 
       const prepared: PreparedRequest = { method: spec.method, url, headers, bodyText };
@@ -46,7 +50,7 @@ export async function request<TResponse = void>(spec: RequestSpec<TResponse>): P
       return fetch(final.url.toString(), {
         method: final.method,
         headers: final.headers,
-        body: final.bodyText,
+        body: spec.formData !== undefined ? bodyForFetch : final.bodyText,
       });
     },
     onRetryableFailure: async (res) => {

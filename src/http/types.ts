@@ -36,6 +36,18 @@ export interface RequestSpec<TResponse = void> {
   path: string;
   params?: Record<string, string | string[]>;
   body?: unknown;
+  /**
+   * Override the request Content-Type when a JSON `body` is sent. Defaults to `application/json`.
+   * Used by DLP endpoints that require `application/merge-patch+json` (RFC 7396).
+   * Ignored when `body` is omitted or when `formData` is set.
+   */
+  contentType?: string;
+  /**
+   * Multipart payload. When set, the body is sent as-is and Content-Type is left to the runtime
+   * (so the browser/Node fetch impl writes the correct multipart boundary). Takes precedence
+   * over `body`.
+   */
+  formData?: FormData;
   // `any` for Zod's def/input generics so schemas where input ≠ output (e.g. those built with
   // `.default()` or `.passthrough()`) still satisfy the constraint. Only the parsed output shape
   // is consumed at runtime.
