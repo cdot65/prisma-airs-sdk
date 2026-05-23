@@ -2,7 +2,7 @@
 
 Manage Data Filtering Profiles on the DLP service (`/v2/api/data-filtering-profiles`).
 
-Subclient lives at `client.dlp.dataFilteringProfiles`. Surface is read + full-replace only — the underlying API does not expose create or delete.
+Subclient lives at `client.dlp.dataFilteringProfiles`. Surface is **read + full-replace only** — the underlying API does not expose create or delete. To onboard a brand-new profile, provision it via the Strata Cloud Manager UI first, then manage it through this SDK.
 
 Spec source: [`specs/dlp/DataFilteringProfiles.yaml`](https://github.com/cdot65/prisma-airs-sdk/blob/main/specs/dlp/DataFilteringProfiles.yaml)
 
@@ -16,7 +16,23 @@ import { ManagementClient } from '@cdot65/prisma-airs-sdk';
 const client = new ManagementClient();
 ```
 
-## list
+## Required fields (PUT body)
+
+| Field             | Type                                                           | Required | Notes                                   |
+| ----------------- | -------------------------------------------------------------- | -------- | --------------------------------------- |
+| `file_based`      | `boolean`                                                      | ✅       | Enables file-content scanning           |
+| `non_file_based`  | `boolean`                                                      | ✅       | Enables non-file (chat/prompt) scanning |
+| `direction`       | `'BOTH' \| 'UPLOAD' \| 'DOWNLOAD'`                             | —        | Defaults server-side                    |
+| `log_severity`    | `'CRITICAL' \| 'HIGH' \| 'MEDIUM' \| 'LOW' \| 'INFORMATIONAL'` | —        | Log severity for matched events         |
+| `data_profile_id` | `number` (int64)                                               | —        | Links to the `dataProfiles` resource    |
+| `exception_rules` | `ExceptionRuleDTO[]`                                           | —        | Pre-filter ALLOW/ALERT/BLOCK overrides  |
+| `exclusions`      | `Exclusions`                                                   | —        | App / URL / keyword exclusion lists     |
+
+The full `DataFilteringProfileRequest` shape lives in [`src/models/dlp-data-filtering-profile.ts`](https://github.com/cdot65/prisma-airs-sdk/blob/main/src/models/dlp-data-filtering-profile.ts).
+
+## API reference
+
+### list
 
 Paginated `Page<DataFilteringProfileResponse>`. Optional filters: `status` (`enabled`/`disabled`), `name` (partial match). Sort entries emit one `sort=` query param each.
 
@@ -30,14 +46,14 @@ const page = await client.dlp.dataFilteringProfiles.list({
 console.log(page.totalElements, page.content.length);
 ```
 
-## get
+### get
 
 ```ts
 const profile = await client.dlp.dataFilteringProfiles.get('dfp-123');
 console.log(profile.name, profile.direction);
 ```
 
-## replace
+### replace
 
 Full PUT — body must satisfy `DataFilteringProfileRequest`. `file_based` and `non_file_based` are required. Returns the updated resource.
 
@@ -51,3 +67,212 @@ const updated = await client.dlp.dataFilteringProfiles.replace('dfp-123', {
   data_profile_id: 1001,
 });
 ```
+
+## Use cases
+
+### Use case 1 — Inspect every enabled profile and surface ones missing a data profile binding
+
+**Scenario.** Security ops wants a one-shot audit: list all `enabled` filtering profiles, then flag any that don't have a `data_profile_id` linked (these are misconfigured — they'd allow everything through). The output is a list of profile IDs to fix.
+
+**Input.**
+
+```ts
+import { ManagementClient, AISecSDKException } from '@cdot65/prisma-airs-sdk';
+
+const client = new ManagementClient();
+
+const page = await client.dlp.dataFilteringProfiles.list({
+  page: 0,
+  size: 100,
+  sort: ['name,asc'],
+  status: 'enabled',
+});
+```
+
+**Expected output** — `page` is a Spring `Page<>` envelope. A representative shape:
+
+```json
+{
+  "content": [
+    {
+      "id": "dfp-001",
+      "name": "Outbound-HR",
+      "direction": "UPLOAD",
+      "log_severity": "HIGH",
+      "file_based": true,
+      "non_file_based": true,
+      "data_profile_id": 1001,
+      "audit_metadata": {
+        "created_by": "ops@example.com",
+        "created_at": "2026-04-12T09:15:00Z",
+        "updated_at": "2026-05-01T14:22:00Z"
+      }
+    },
+    {
+      "id": "dfp-002",
+      "name": "Outbound-Eng",
+      "direction": "UPLOAD",
+      "log_severity": "MEDIUM",
+      "file_based": true,
+      "non_file_based": false
+    }
+  ],
+  "totalElements": 2,
+  "totalPages": 1,
+  "first": true,
+  "last": true,
+  "size": 100,
+  "number": 0,
+  "numberOfElements": 2
+}
+```
+
+**Validation.** Self-checking pattern — fails loudly if shape drifts or any enabled profile lacks a data profile binding:
+
+```ts
+const unlinked: string[] = [];
+
+if (!Array.isArray(page.content)) {
+  throw new Error(`list() did not return a Page<> envelope: ${JSON.stringify(page)}`);
+}
+
+for (const p of page.content) {
+  if (!p.id) throw new Error(`profile missing id: ${JSON.stringify(p)}`);
+  if (p.data_profile_id === undefined || p.data_profile_id === null) {
+    unlinked.push(p.id);
+  }
+}
+
+console.log(`enabled profiles: ${page.totalElements}`);
+console.log(`unlinked (need data_profile_id): ${unlinked.length}`, unlinked);
+
+if (unlinked.length > 0) {
+  process.exitCode = 1; // fail the audit job in CI
+}
+```
+
+### Use case 2 — Replace a profile to add a per-group exception rule
+
+**Scenario.** The "Outbound-HR" profile currently blocks all uploads. Legal needs the `legal-review` user group to BLOCK with elevated severity while everyone else stays on the current behavior. Use `replace()` to PUT the new shape — `replace` is a full PUT, so existing fields must be re-sent verbatim.
+
+**Input.**
+
+```ts
+const id = 'dfp-001';
+
+// 1. Fetch current state so we don't drop existing fields on the PUT.
+const current = await client.dlp.dataFilteringProfiles.get(id);
+
+// 2. Merge in the new exception rule.
+const updated = await client.dlp.dataFilteringProfiles.replace(id, {
+  file_based: current.file_based ?? true,
+  non_file_based: current.non_file_based ?? true,
+  description: current.description,
+  direction: current.direction as 'BOTH' | 'UPLOAD' | 'DOWNLOAD' | undefined,
+  log_severity: 'HIGH',
+  data_profile_id: current.data_profile_id,
+  exception_rules: [
+    {
+      action: 'BLOCK',
+      log_severity: 'CRITICAL',
+      data_profile_ids: current.data_profile_id ? [current.data_profile_id] : undefined,
+      source_attributes: {
+        match_any: false,
+        user_group_ids: ['legal-review'],
+      },
+    },
+  ],
+});
+```
+
+**Expected output.** PUT returns the updated `DataFilteringProfileResponse` — same shape as `get()`, with `version` bumped and `audit_metadata.updated_at` refreshed:
+
+```json
+{
+  "id": "dfp-001",
+  "name": "Outbound-HR",
+  "direction": "UPLOAD",
+  "log_severity": "HIGH",
+  "file_based": true,
+  "non_file_based": true,
+  "data_profile_id": 1001,
+  "version": 4,
+  "exception_rules": [
+    {
+      "id": "er-9c1a",
+      "action": "BLOCK",
+      "log_severity": "CRITICAL",
+      "data_profile_ids": [1001],
+      "source_attributes": {
+        "match_any": false,
+        "user_group_ids": ["legal-review"]
+      }
+    }
+  ],
+  "audit_metadata": {
+    "updated_at": "2026-05-23T17:04:11Z",
+    "updated_by": "ops@example.com"
+  }
+}
+```
+
+**Validation.** Confirm the new rule landed and the version advanced:
+
+```ts
+if (updated.id !== id) {
+  throw new Error(`returned id ${updated.id} does not match requested ${id}`);
+}
+if (current.version !== undefined && updated.version !== undefined) {
+  if (updated.version <= current.version) {
+    throw new Error(`version did not advance: ${current.version} → ${updated.version}`);
+  }
+}
+const rules = updated.exception_rules ?? [];
+const added = rules.find((r) => r.source_attributes?.user_group_ids?.includes('legal-review'));
+if (!added) {
+  throw new Error('legal-review exception rule was not persisted');
+}
+if (added.action !== 'BLOCK' || added.log_severity !== 'CRITICAL') {
+  throw new Error(`unexpected exception rule shape: ${JSON.stringify(added)}`);
+}
+console.log(`ok: rule ${added.id} active, version ${updated.version}`);
+```
+
+## Error handling
+
+Every method throws `AISecSDKException` on transport failure, OAuth issues, or response-validation errors. Classify with `errorType`:
+
+```ts
+import { AISecSDKException, ErrorType } from '@cdot65/prisma-airs-sdk';
+
+try {
+  await client.dlp.dataFilteringProfiles.replace('dfp-001', {
+    file_based: true,
+    non_file_based: true,
+  });
+} catch (err) {
+  if (err instanceof AISecSDKException) {
+    switch (err.errorType) {
+      case ErrorType.OAUTH_ERROR:
+        console.error('check PANW_MGMT_* env vars');
+        break;
+      case ErrorType.CLIENT_SIDE_ERROR:
+        console.error('4xx — id likely does not exist or body invalid:', err.message);
+        break;
+      case ErrorType.SERVER_SIDE_ERROR:
+        console.error('5xx — retried with backoff already:', err.message);
+        break;
+      default:
+        console.error('unexpected:', err.errorType, err.message);
+    }
+  } else {
+    throw err;
+  }
+}
+```
+
+## See also
+
+- [DLP — Data Profiles](data-profiles.md) — `data_profile_id` references resolve here
+- [DLP — Data Patterns](data-patterns.md) — patterns referenced inside detection rules on the linked data profile
+- Runnable walkthrough: [`examples/mgmt-dlp-data-filtering-profiles.ts`](https://github.com/cdot65/prisma-airs-sdk/blob/main/examples/mgmt-dlp-data-filtering-profiles.ts)
