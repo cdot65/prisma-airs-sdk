@@ -71,6 +71,13 @@ export async function request<TResponse = void>(spec: RequestSpec<TResponse>): P
     return undefined as TResponse;
   }
 
+  // Endpoints that may return either 200+body or 204+no-body (e.g. DLP dictionaries PUT)
+  // opt into returning `undefined` when the body is empty rather than the usual `{}`
+  // hydration. Skips schema validation entirely on empty body.
+  if (spec.allowEmptyBody && !text) {
+    return undefined as TResponse;
+  }
+
   let parsed: unknown;
   try {
     // Hydrate empty 2xx bodies as `{}` so all-optional-fields schemas parse cleanly

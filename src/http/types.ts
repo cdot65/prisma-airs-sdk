@@ -53,6 +53,12 @@ export interface RequestSpec<TResponse = void> {
   // is consumed at runtime.
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   responseSchema?: z.ZodType<TResponse, any, any>;
+  /**
+   * When true, an empty 2xx body resolves to `undefined` instead of hydrating to `{}` for
+   * schema validation. Used by DLP endpoints that can return either 200 + body or 204 + no
+   * body from the same call (e.g. `PUT /v2/api/dictionaries/{id}`).
+   */
+  allowEmptyBody?: boolean;
   numRetries: number;
   auth: AuthAdapter;
 }
