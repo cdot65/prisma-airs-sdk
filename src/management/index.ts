@@ -11,3 +11,4 @@ export {
 } from './deployment-profiles.js';
 export { ScanLogsClient, type ScanLogQueryOptions } from './scan-logs.js';
 export { OAuthManagementClient, type GetTokenOptions } from './oauth-management.js';
+export { DlpNamespace } from './dlp.js';

@@ -1,4 +1,4 @@
-import { DEFAULT_MGMT_ENDPOINT, MGMT_ENDPOINT } from '../constants.js';
+import { DEFAULT_DLP_ENDPOINT, DEFAULT_MGMT_ENDPOINT, MGMT_ENDPOINT } from '../constants.js';
 import { OAuthAuth } from '../http/auth/oauth.js';
 import { resolveOAuthConfig } from '../oauth-config.js';
 import { ProfilesClient } from './profiles.js';
@@ -9,6 +9,7 @@ import { DlpProfilesClient } from './dlp-profiles.js';
 import { DeploymentProfilesClient } from './deployment-profiles.js';
 import { ScanLogsClient } from './scan-logs.js';
 import { OAuthManagementClient } from './oauth-management.js';
+import { DlpNamespace } from './dlp.js';
 
 /** Options for constructing a {@link ManagementClient}. */
 export interface ManagementClientOptions {
@@ -20,6 +21,12 @@ export interface ManagementClientOptions {
   tsgId?: string;
   /** Management API endpoint URL. Falls back to `PANW_MGMT_ENDPOINT` env var. */
   apiEndpoint?: string;
+  /**
+   * DLP (Data Loss Prevention) API endpoint URL. Used by the `dlp` subclients.
+   * Defaults to `https://api.dlp.paloaltonetworks.com`. Constructor-only — no env var override
+   * (DLP shares OAuth credentials with the management API).
+   */
+  dlpEndpoint?: string;
   /** OAuth2 token endpoint URL. Falls back to `PANW_MGMT_TOKEN_ENDPOINT` env var. */
   tokenEndpoint?: string;
   /** Max retry attempts (0–5). Defaults to 5. */
@@ -39,9 +46,11 @@ export class ManagementClient {
   public readonly deploymentProfiles: DeploymentProfilesClient;
   public readonly scanLogs: ScanLogsClient;
   public readonly oauth: OAuthManagementClient;
+  public readonly dlp: DlpNamespace;
 
   constructor(opts: ManagementClientOptions = {}) {
     const apiEndpoint = opts.apiEndpoint ?? process.env[MGMT_ENDPOINT] ?? DEFAULT_MGMT_ENDPOINT;
+    const dlpEndpoint = opts.dlpEndpoint ?? DEFAULT_DLP_ENDPOINT;
 
     const { baseUrl, oauthClient, numRetries, tsgId } = resolveOAuthConfig({
       clientId: opts.clientId,
@@ -63,5 +72,6 @@ export class ManagementClient {
     this.deploymentProfiles = new DeploymentProfilesClient({ baseUrl, auth, numRetries });
     this.scanLogs = new ScanLogsClient({ baseUrl, auth, numRetries });
     this.oauth = new OAuthManagementClient({ baseUrl, auth, numRetries });
+    this.dlp = new DlpNamespace({ baseUrl: dlpEndpoint, auth, numRetries });
   }
 }

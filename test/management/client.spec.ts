@@ -8,6 +8,7 @@ import { DlpProfilesClient } from '../../src/management/dlp-profiles.js';
 import { DeploymentProfilesClient } from '../../src/management/deployment-profiles.js';
 import { ScanLogsClient } from '../../src/management/scan-logs.js';
 import { OAuthManagementClient } from '../../src/management/oauth-management.js';
+import { DlpNamespace } from '../../src/management/dlp.js';
 import { AISecSDKException } from '../../src/errors.js';
 
 describe('ManagementClient', () => {
@@ -32,6 +33,7 @@ describe('ManagementClient', () => {
     expect(client.deploymentProfiles).toBeInstanceOf(DeploymentProfilesClient);
     expect(client.scanLogs).toBeInstanceOf(ScanLogsClient);
     expect(client.oauth).toBeInstanceOf(OAuthManagementClient);
+    expect(client.dlp).toBeInstanceOf(DlpNamespace);
   });
 
   it('reads credentials from env vars', () => {
@@ -126,5 +128,35 @@ describe('ManagementClient', () => {
       tsgId: '1',
     });
     expect(client.profiles).toBeInstanceOf(ProfilesClient);
+  });
+
+  it('exposes dlp namespace with default DLP endpoint', () => {
+    const client = new ManagementClient({
+      clientId: 'cid',
+      clientSecret: 'sec',
+      tsgId: '1',
+    });
+    expect(client.dlp).toBeInstanceOf(DlpNamespace);
+    expect(client.dlp.baseUrl).toBe('https://api.dlp.paloaltonetworks.com');
+  });
+
+  it('dlpEndpoint option overrides default DLP base URL', () => {
+    const client = new ManagementClient({
+      clientId: 'cid',
+      clientSecret: 'sec',
+      tsgId: '1',
+      dlpEndpoint: 'https://dlp.staging.example.com',
+    });
+    expect(client.dlp.baseUrl).toBe('https://dlp.staging.example.com');
+  });
+
+  it('does NOT read DLP endpoint from a DLP-specific env var', () => {
+    process.env.PANW_DLP_ENDPOINT = 'https://should-be-ignored.example.com';
+    const client = new ManagementClient({
+      clientId: 'cid',
+      clientSecret: 'sec',
+      tsgId: '1',
+    });
+    expect(client.dlp.baseUrl).toBe('https://api.dlp.paloaltonetworks.com');
   });
 });

@@ -83,6 +83,9 @@ export const MGMT_CUSTOMER_APPS_TSG_PATH = '/v1/mgmt/customerapp/tsg';
 export const MGMT_OAUTH_INVALIDATE_PATH = '/v1/mgmt/oauth/invalidateToken';
 export const MGMT_OAUTH_TOKEN_PATH = '/v1/mgmt/oauth/client_credential/accesstoken';
 
+// DLP (Data Loss Prevention) API defaults
+export const DEFAULT_DLP_ENDPOINT = 'https://api.dlp.paloaltonetworks.com';
+
 // Model Security API defaults
 export const DEFAULT_MODEL_SEC_DATA_ENDPOINT = 'https://api.sase.paloaltonetworks.com/aims/data';
 export const DEFAULT_MODEL_SEC_MGMT_ENDPOINT = 'https://api.sase.paloaltonetworks.com/aims/mgmt';
