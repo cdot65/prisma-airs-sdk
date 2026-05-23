@@ -270,6 +270,167 @@ export const PREFLIGHT_ALLOWLIST: AllowlistEntry[] = [
     kind: 'extra-field',
     reason: 'API returns `action` on URL filter entries; not in upstream OpenAPI.',
   },
+
+  // ── DLP Page<T> envelopes ────────────────────────────────────────────────────
+  // The Spring `Page<>` envelope marks `content` optional in the OpenAPI spec, but in practice
+  // every list response includes a (possibly empty) `content` array. Zod requires it so callers
+  // can iterate without first probing for the field.
+  {
+    schema: 'PageDataFilteringProfileResponse',
+    pathSubstring: '$',
+    kind: 'extra-required-field',
+    reason: 'pageSchema() requires `content`; API always returns it (possibly empty).',
+  },
+  {
+    schema: 'PageDataPatternResponse',
+    pathSubstring: '$',
+    kind: 'extra-required-field',
+    reason: 'pageSchema() requires `content`; API always returns it (possibly empty).',
+  },
+  {
+    schema: 'PageDataProfileResponse',
+    pathSubstring: '$',
+    kind: 'extra-required-field',
+    reason: 'pageSchema() requires `content`; API always returns it (possibly empty).',
+  },
+  {
+    schema: 'PageDictionaryResponse',
+    pathSubstring: '$',
+    kind: 'extra-required-field',
+    reason: 'pageSchema() requires `content`; API always returns it (possibly empty).',
+  },
+
+  // ── DLP JSON Merge Patch — jsonNullable() vs spec `nullable: true` ───────────
+  // RFC 7396 Merge Patch needs the explicit-null distinction. The `jsonNullable()` helper
+  // wraps each field in `nullable().optional()`, which zod-to-json-schema renders as a
+  // `{ anyOf | type: object }` shape that doesn't equal the spec's bare nullable string/array.
+  // The wire shape matches; only the JSON Schema rendering differs.
+  {
+    schema: 'DataPatternPatchRequest',
+    pathSubstring: '$.name',
+    kind: 'type-mismatch',
+    reason: 'jsonNullable() renders differently from spec `nullable: true`; wire shape matches.',
+  },
+  {
+    schema: 'DataPatternPatchRequest',
+    pathSubstring: '$.type',
+    kind: 'type-mismatch',
+    reason: 'jsonNullable() rendering; wire shape matches.',
+  },
+  {
+    schema: 'DataPatternPatchRequest',
+    pathSubstring: '$.description',
+    kind: 'type-mismatch',
+    reason: 'jsonNullable() rendering; wire shape matches.',
+  },
+  {
+    schema: 'DataPatternPatchRequest',
+    pathSubstring: '$.detection_config',
+    reason:
+      'Patch reuses create-side DataPatternDetectionConfigSchema with `technique` required; ' +
+      'spec leaves it optional. Sending `null` clears via RFC 7396 — required-ness only ' +
+      'applies when the field is present.',
+  },
+  {
+    schema: 'DataPatternPatchRequest',
+    pathSubstring: '$.matching_rules',
+    kind: 'extra-field',
+    reason: 'Patch reuses create-side DataPatternMatchingRulesSchema; spec uses a slimmer shape.',
+  },
+  {
+    schema: 'DataPatternPatchRequest',
+    pathSubstring: '$.tags',
+    kind: 'extra-field',
+    reason: 'Patch reuses create-side DataPatternTagsSchema; spec uses a slimmer shape.',
+  },
+  {
+    schema: 'DataProfilePatchRequest',
+    pathSubstring: '$.name',
+    kind: 'type-mismatch',
+    reason: 'jsonNullable() rendering; wire shape matches.',
+  },
+  {
+    schema: 'DataProfilePatchRequest',
+    pathSubstring: '$.profile_type',
+    kind: 'type-mismatch',
+    reason: 'jsonNullable() rendering; wire shape matches.',
+  },
+  {
+    schema: 'DataProfilePatchRequest',
+    pathSubstring: '$.description',
+    kind: 'type-mismatch',
+    reason: 'jsonNullable() rendering; wire shape matches.',
+  },
+  {
+    schema: 'DataProfilePatchRequest',
+    pathSubstring: '$.detection_rules',
+    kind: 'type-mismatch',
+    reason: 'jsonNullable(array) rendering; wire shape matches.',
+  },
+  {
+    schema: 'DictionaryPatchRequest',
+    pathSubstring: '$.category',
+    kind: 'type-mismatch',
+    reason: 'jsonNullable() rendering; wire shape matches.',
+  },
+  {
+    schema: 'DictionaryPatchRequest',
+    pathSubstring: '$.name',
+    kind: 'type-mismatch',
+    reason: 'jsonNullable() rendering; wire shape matches.',
+  },
+  {
+    schema: 'DictionaryPatchRequest',
+    pathSubstring: '$.original_file_name',
+    kind: 'type-mismatch',
+    reason: 'jsonNullable() rendering; wire shape matches.',
+  },
+  {
+    schema: 'DictionaryPatchRequest',
+    pathSubstring: '$.description',
+    kind: 'type-mismatch',
+    reason: 'jsonNullable() rendering; wire shape matches.',
+  },
+  {
+    schema: 'DictionaryPatchRequest',
+    pathSubstring: '$.is_case_sensitive',
+    kind: 'type-mismatch',
+    reason: 'jsonNullable() rendering; wire shape matches.',
+  },
+  {
+    schema: 'DictionaryPatchRequest',
+    pathSubstring: '$.region_name',
+    kind: 'type-mismatch',
+    reason: 'jsonNullable() rendering; wire shape matches.',
+  },
+
+  // ── DLP DetectionRule discriminated-union literals ───────────────────────────
+  // The Zod `z.discriminatedUnion('rule_type', ...)` adds a required literal `rule_type` field
+  // to each arm. The OpenAPI spec uses a sibling `discriminator` block without redeclaring
+  // `rule_type` on the subtypes. The wire shape is identical; only the schema modeling differs.
+  {
+    schema: 'DefaultTreeDetectionRule',
+    pathSubstring: '$',
+    reason: 'Discriminator literal + branch field added in Zod for tagged-union narrowing.',
+  },
+  {
+    schema: 'MultiProfileDetectionRule',
+    pathSubstring: '$',
+    reason: 'Discriminator literal + branch field added in Zod for tagged-union narrowing.',
+  },
+
+  // ── DLP DetectionRuleItem — combined-passthrough union ───────────────────────
+  // The OpenAPI spec marks `detection_technique` as a discriminator across 4 subtypes
+  // (DataPattern, Dictionary, DocumentType, EDM) but every subtype's enum lists all 13
+  // technique values — there is no real partition. The Zod schema therefore unions all
+  // subtype fields onto one passthrough object. Field-level discrimination is left to callers
+  // who know which technique they configured.
+  {
+    schema: 'DetectionRuleItem',
+    pathSubstring: '$',
+    kind: 'extra-field',
+    reason: 'Combined passthrough union of all 4 OpenAPI subtypes — see schema JSDoc.',
+  },
 ];
 
 /**

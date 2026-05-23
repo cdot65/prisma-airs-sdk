@@ -64,7 +64,11 @@
     "example:profiles-get": "npx tsx examples/profiles-get-validation.ts",
     "example:profiles-crud": "npx tsx examples/profiles-crud-validation.ts",
     "example:oauth-lifecycle": "npx tsx examples/oauth-lifecycle-validation.ts",
-    "example:red-team-mgmt": "npx tsx examples/red-team-mgmt-validation.ts"
+    "example:red-team-mgmt": "npx tsx examples/red-team-mgmt-validation.ts",
+    "example:dlp-data-filtering-profiles": "npx tsx --env-file=.env examples/mgmt-dlp-data-filtering-profiles.ts",
+    "example:dlp-data-patterns": "npx tsx --env-file=.env examples/mgmt-dlp-data-patterns.ts",
+    "example:dlp-data-profiles": "npx tsx --env-file=.env examples/mgmt-dlp-data-profiles.ts",
+    "example:dlp-dictionaries": "npx tsx --env-file=.env examples/mgmt-dlp-dictionaries.ts"
   },
   "dependencies": {
     "zod": "^3.24.0"
