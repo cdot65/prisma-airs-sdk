@@ -11,6 +11,7 @@ import { OAuthManagementClient } from '../../src/management/oauth-management.js'
 import { DlpNamespace } from '../../src/management/dlp/index.js';
 import { DataFilteringProfilesClient } from '../../src/management/dlp/data-filtering-profiles.js';
 import { DataPatternsClient } from '../../src/management/dlp/data-patterns.js';
+import { DataProfilesClient } from '../../src/management/dlp/data-profiles.js';
 import { DictionariesClient } from '../../src/management/dlp/dictionaries.js';
 import { AISecSDKException } from '../../src/errors.js';
 
@@ -159,6 +160,15 @@ describe('ManagementClient', () => {
       tsgId: '1',
     });
     expect(client.dlp.dataPatterns).toBeInstanceOf(DataPatternsClient);
+  });
+
+  it('exposes dlp.dataProfiles subclient', () => {
+    const client = new ManagementClient({
+      clientId: 'cid',
+      clientSecret: 'sec',
+      tsgId: '1',
+    });
+    expect(client.dlp.dataProfiles).toBeInstanceOf(DataProfilesClient);
   });
 
   it('exposes dlp.dictionaries subclient', () => {

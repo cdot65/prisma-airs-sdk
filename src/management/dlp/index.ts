@@ -1,6 +1,7 @@
 import type { AuthAdapter } from '../../http/types.js';
 import { DataFilteringProfilesClient } from './data-filtering-profiles.js';
 import { DataPatternsClient } from './data-patterns.js';
+import { DataProfilesClient } from './data-profiles.js';
 import { DictionariesClient } from './dictionaries.js';
 
 /** @internal */
@@ -24,6 +25,7 @@ export class DlpNamespace {
 
   public readonly dataFilteringProfiles: DataFilteringProfilesClient;
   public readonly dataPatterns: DataPatternsClient;
+  public readonly dataProfiles: DataProfilesClient;
   public readonly dictionaries: DictionariesClient;
 
   constructor(opts: DlpNamespaceOptions) {
@@ -37,6 +39,11 @@ export class DlpNamespace {
       numRetries: opts.numRetries,
     });
     this.dataPatterns = new DataPatternsClient({
+      baseUrl: opts.baseUrl,
+      auth: opts.auth,
+      numRetries: opts.numRetries,
+    });
+    this.dataProfiles = new DataProfilesClient({
       baseUrl: opts.baseUrl,
       auth: opts.auth,
       numRetries: opts.numRetries,
