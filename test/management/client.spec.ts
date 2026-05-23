@@ -8,7 +8,8 @@ import { DlpProfilesClient } from '../../src/management/dlp-profiles.js';
 import { DeploymentProfilesClient } from '../../src/management/deployment-profiles.js';
 import { ScanLogsClient } from '../../src/management/scan-logs.js';
 import { OAuthManagementClient } from '../../src/management/oauth-management.js';
-import { DlpNamespace } from '../../src/management/dlp.js';
+import { DlpNamespace } from '../../src/management/dlp/index.js';
+import { DataFilteringProfilesClient } from '../../src/management/dlp/data-filtering-profiles.js';
 import { AISecSDKException } from '../../src/errors.js';
 
 describe('ManagementClient', () => {
@@ -138,6 +139,15 @@ describe('ManagementClient', () => {
     });
     expect(client.dlp).toBeInstanceOf(DlpNamespace);
     expect(client.dlp.baseUrl).toBe('https://api.dlp.paloaltonetworks.com');
+  });
+
+  it('exposes dlp.dataFilteringProfiles subclient', () => {
+    const client = new ManagementClient({
+      clientId: 'cid',
+      clientSecret: 'sec',
+      tsgId: '1',
+    });
+    expect(client.dlp.dataFilteringProfiles).toBeInstanceOf(DataFilteringProfilesClient);
   });
 
   it('dlpEndpoint option overrides default DLP base URL', () => {

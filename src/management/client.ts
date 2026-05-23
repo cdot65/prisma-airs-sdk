@@ -9,7 +9,7 @@ import { DlpProfilesClient } from './dlp-profiles.js';
 import { DeploymentProfilesClient } from './deployment-profiles.js';
 import { ScanLogsClient } from './scan-logs.js';
 import { OAuthManagementClient } from './oauth-management.js';
-import { DlpNamespace } from './dlp.js';
+import { DlpNamespace } from './dlp/index.js';
 
 /** Options for constructing a {@link ManagementClient}. */
 export interface ManagementClientOptions {

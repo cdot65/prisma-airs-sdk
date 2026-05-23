@@ -86,6 +86,9 @@ export const MGMT_OAUTH_TOKEN_PATH = '/v1/mgmt/oauth/client_credential/accesstok
 // DLP (Data Loss Prevention) API defaults
 export const DEFAULT_DLP_ENDPOINT = 'https://api.dlp.paloaltonetworks.com';
 
+// DLP API paths
+export const DLP_DATA_FILTERING_PROFILES_PATH = '/v2/api/data-filtering-profiles';
+
 // Model Security API defaults
 export const DEFAULT_MODEL_SEC_DATA_ENDPOINT = 'https://api.sase.paloaltonetworks.com/aims/data';
 export const DEFAULT_MODEL_SEC_MGMT_ENDPOINT = 'https://api.sase.paloaltonetworks.com/aims/mgmt';
