@@ -407,6 +407,73 @@ describe('DataProfileResponseSchema', () => {
     });
     expect(r.success).toBe(true);
   });
+  it('accepts null on expression_tree.rule_item + sub_expressions[].{rule_item,operator_type} per live API (issue #160)', () => {
+    const r = DataProfileResponseSchema.safeParse({
+      ...responseFixture,
+      detection_rules: [
+        {
+          rule_type: 'expression_tree',
+          expression_tree: {
+            operator_type: 'and',
+            rule_item: null,
+            sub_expressions: [{ operator_type: null, rule_item: null, sub_expressions: null }],
+          },
+        },
+      ],
+    });
+    expect(r.success).toBe(true);
+  });
+  it('accepts null on multi_profile node inner fields (defensive)', () => {
+    const r = DataProfileResponseSchema.safeParse({
+      ...responseFixture,
+      detection_rules: [
+        {
+          rule_type: 'multi_profile',
+          multi_profile: { data_profile_ids: null, operator_type: null },
+        },
+      ],
+    });
+    expect(r.success).toBe(true);
+  });
+  it('accepts null on every DetectionRuleItem inner field (defensive)', () => {
+    const r = DataProfileResponseSchema.safeParse({
+      ...responseFixture,
+      detection_rules: [
+        {
+          rule_type: 'expression_tree',
+          expression_tree: {
+            operator_type: 'and',
+            rule_item: {
+              detection_technique: 'regex',
+              id: null,
+              name: null,
+              description: null,
+              version: null,
+              match_type: null,
+              by_unique_count: null,
+              confidence_level: null,
+              supported_confidence_levels: null,
+              occurrence_count: null,
+              occurrence_high: null,
+              occurrence_low: null,
+              occurrence_operator_type: null,
+              score: null,
+              score_high: null,
+              score_low: null,
+              edm_dataset_id: null,
+              primary_fields: null,
+              primary_match_criteria: null,
+              primary_match_any_count: null,
+              secondary_fields: null,
+              secondary_match_criteria: null,
+              secondary_match_any_count: null,
+            },
+          },
+        },
+      ],
+    });
+    expect(r.success).toBe(true);
+  });
 });
 
 describe('PageDataProfileResponseSchema', () => {

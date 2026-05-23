@@ -63,9 +63,9 @@ export type DictionaryDetectionSubTechnique = z.infer<typeof DictionaryDetection
 /** Metadata about the uploaded keyword file. */
 export const DictionaryMetaDataDTOSchema = z
   .object({
-    number_of_keywords: z.number().optional(),
-    original_file_name: z.string().optional(),
-    original_file_size_in_byte: z.number().optional(),
+    number_of_keywords: z.number().nullish(),
+    original_file_name: z.string().nullish(),
+    original_file_size_in_byte: z.number().nullish(),
   })
   .passthrough();
 export type DictionaryMetaDataDTO = z.infer<typeof DictionaryMetaDataDTOSchema>;
@@ -73,7 +73,7 @@ export type DictionaryMetaDataDTO = z.infer<typeof DictionaryMetaDataDTOSchema>;
 /** Tag block attached to a dictionary. */
 export const DictionaryTagsSchema = z
   .object({
-    classification: z.array(DictionaryClassificationSchema).optional(),
+    classification: z.array(DictionaryClassificationSchema).nullish(),
   })
   .passthrough();
 export type DictionaryTags = z.infer<typeof DictionaryTagsSchema>;
@@ -81,8 +81,8 @@ export type DictionaryTags = z.infer<typeof DictionaryTagsSchema>;
 /** Free-form k/v extension entry returned on dictionary responses. */
 export const ResourceModelExtensionSchema = z
   .object({
-    key: z.string().optional(),
-    value: z.string().optional(),
+    key: z.string().nullish(),
+    value: z.string().nullish(),
   })
   .passthrough();
 export type ResourceModelExtension = z.infer<typeof ResourceModelExtensionSchema>;

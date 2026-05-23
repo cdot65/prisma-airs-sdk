@@ -75,30 +75,30 @@ export type DataProfileSubtype = z.infer<typeof DataProfileSubtypeSchema>;
 export const DetectionRuleItemSchema = z
   .object({
     detection_technique: RuleItemDetectionTechniqueSchema,
-    id: z.string().optional(),
-    name: z.string().optional(),
-    description: z.string().optional(),
-    version: z.number().int().optional(),
-    match_type: RuleItemMatchTypeSchema.optional(),
-    by_unique_count: z.boolean().optional(),
-    confidence_level: RuleItemConfidenceLevelSchema.optional(),
-    supported_confidence_levels: z.array(RuleItemConfidenceLevelSchema).optional(),
-    occurrence_count: z.number().int().optional(),
-    occurrence_high: z.number().int().optional(),
-    occurrence_low: z.number().int().optional(),
-    occurrence_operator_type: RuleItemOccurrenceOperatorTypeSchema.optional(),
+    id: z.string().nullish(),
+    name: z.string().nullish(),
+    description: z.string().nullish(),
+    version: z.number().int().nullish(),
+    match_type: RuleItemMatchTypeSchema.nullish(),
+    by_unique_count: z.boolean().nullish(),
+    confidence_level: RuleItemConfidenceLevelSchema.nullish(),
+    supported_confidence_levels: z.array(RuleItemConfidenceLevelSchema).nullish(),
+    occurrence_count: z.number().int().nullish(),
+    occurrence_high: z.number().int().nullish(),
+    occurrence_low: z.number().int().nullish(),
+    occurrence_operator_type: RuleItemOccurrenceOperatorTypeSchema.nullish(),
     // dictionary + document-type fields
-    score: z.number().int().optional(),
-    score_high: z.number().int().optional(),
-    score_low: z.number().int().optional(),
+    score: z.number().int().nullish(),
+    score_high: z.number().int().nullish(),
+    score_low: z.number().int().nullish(),
     // edm fields
-    edm_dataset_id: z.string().optional(),
-    primary_fields: z.array(z.string()).optional(),
-    primary_match_criteria: RuleItemEdmMatchCriteriaSchema.optional(),
-    primary_match_any_count: z.number().int().optional(),
-    secondary_fields: z.array(z.string()).optional(),
-    secondary_match_criteria: RuleItemEdmMatchCriteriaSchema.optional(),
-    secondary_match_any_count: z.number().int().optional(),
+    edm_dataset_id: z.string().nullish(),
+    primary_fields: z.array(z.string()).nullish(),
+    primary_match_criteria: RuleItemEdmMatchCriteriaSchema.nullish(),
+    primary_match_any_count: z.number().int().nullish(),
+    secondary_fields: z.array(z.string()).nullish(),
+    secondary_match_criteria: RuleItemEdmMatchCriteriaSchema.nullish(),
+    secondary_match_any_count: z.number().int().nullish(),
   })
   .passthrough();
 export type DetectionRuleItem = z.infer<typeof DetectionRuleItemSchema>;
@@ -109,18 +109,18 @@ export type DetectionRuleItem = z.infer<typeof DetectionRuleItemSchema>;
  * joining children.
  */
 export interface ExpressionTreeNode {
-  operator_type?: ExpressionOperatorType;
-  rule_item?: DetectionRuleItem;
-  sub_expressions?: ExpressionTreeNode[];
+  operator_type?: ExpressionOperatorType | null;
+  rule_item?: DetectionRuleItem | null;
+  sub_expressions?: ExpressionTreeNode[] | null;
   [key: string]: unknown;
 }
 
 export const ExpressionTreeNodeSchema: z.ZodType<ExpressionTreeNode> = z.lazy(() =>
   z
     .object({
-      operator_type: ExpressionOperatorTypeSchema.optional(),
-      rule_item: DetectionRuleItemSchema.optional(),
-      sub_expressions: z.array(ExpressionTreeNodeSchema).optional(),
+      operator_type: ExpressionOperatorTypeSchema.nullish(),
+      rule_item: DetectionRuleItemSchema.nullish(),
+      sub_expressions: z.array(ExpressionTreeNodeSchema).nullish(),
     })
     .passthrough(),
 );
@@ -132,8 +132,8 @@ export const ExpressionTreeNodeSchema: z.ZodType<ExpressionTreeNode> = z.lazy(()
  */
 export const MultiProfileDataNodeSchema = z
   .object({
-    data_profile_ids: z.array(z.number()).optional(),
-    operator_type: ExpressionOperatorTypeSchema.optional(),
+    data_profile_ids: z.array(z.number()).nullish(),
+    operator_type: ExpressionOperatorTypeSchema.nullish(),
   })
   .passthrough();
 export type MultiProfileDataNode = z.infer<typeof MultiProfileDataNodeSchema>;
@@ -142,7 +142,7 @@ export type MultiProfileDataNode = z.infer<typeof MultiProfileDataNodeSchema>;
 export const DefaultTreeDetectionRuleSchema = z
   .object({
     rule_type: z.literal('expression_tree'),
-    expression_tree: ExpressionTreeNodeSchema.optional(),
+    expression_tree: ExpressionTreeNodeSchema.nullish(),
   })
   .passthrough();
 export type DefaultTreeDetectionRule = z.infer<typeof DefaultTreeDetectionRuleSchema>;
@@ -151,7 +151,7 @@ export type DefaultTreeDetectionRule = z.infer<typeof DefaultTreeDetectionRuleSc
 export const MultiProfileDetectionRuleSchema = z
   .object({
     rule_type: z.literal('multi_profile'),
-    multi_profile: MultiProfileDataNodeSchema.optional(),
+    multi_profile: MultiProfileDataNodeSchema.nullish(),
   })
   .passthrough();
 export type MultiProfileDetectionRule = z.infer<typeof MultiProfileDetectionRuleSchema>;

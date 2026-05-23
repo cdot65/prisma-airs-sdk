@@ -62,13 +62,18 @@ export const WeightedRegexSchema = z
   .passthrough();
 export type WeightedRegex = z.infer<typeof WeightedRegexSchema>;
 
-/** Metadata criterion for granular filtering inside matching_rules. */
+/**
+ * Metadata criterion for granular filtering inside matching_rules.
+ *
+ * Inner fields are `.nullish()` — live API emits `null` for unset values on response;
+ * shared with request paths but writing `null` would be unusual user input.
+ */
 export const MetadataCriterionSchema = z
   .object({
-    comparisonOperatorType: ComparisonOperatorTypeSchema.optional(),
-    name: z.string().optional(),
-    type: z.string().optional(),
-    value: z.string().optional(),
+    comparisonOperatorType: ComparisonOperatorTypeSchema.nullish(),
+    name: z.string().nullish(),
+    type: z.string().nullish(),
+    value: z.string().nullish(),
   })
   .passthrough();
 export type MetadataCriterion = z.infer<typeof MetadataCriterionSchema>;
@@ -80,20 +85,25 @@ export type MetadataCriterion = z.infer<typeof MetadataCriterionSchema>;
 export const DataPatternDetectionConfigSchema = z
   .object({
     technique: DataPatternTechniqueSchema,
-    supported_confidence_levels: z.array(DataPatternConfidenceLevelSchema).optional(),
+    supported_confidence_levels: z.array(DataPatternConfidenceLevelSchema).nullish(),
   })
   .passthrough();
 export type DataPatternDetectionConfig = z.infer<typeof DataPatternDetectionConfigSchema>;
 
-/** Matching rules — controls proximity, delimiters, regex weights, and metadata filters. */
+/**
+ * Matching rules — controls proximity, delimiters, regex weights, and metadata filters.
+ *
+ * Every inner field is `.nullish()` — live API confirmed to emit `null` for unset values
+ * (issue #160). `proximity_distance` keeps the 2..1000 bound only when a number is provided.
+ */
 export const DataPatternMatchingRulesSchema = z
   .object({
-    delimiter: z.string().optional(),
+    delimiter: z.string().nullish(),
     /** Proximity window for keyword matching — spec bounds 2..1000 inclusive. */
-    proximity_distance: z.number().int().min(2).max(1000).optional(),
-    proximity_keywords: z.array(z.string()).optional(),
-    regexes: z.array(WeightedRegexSchema).optional(),
-    metadata_criteria: z.array(MetadataCriterionSchema).optional(),
+    proximity_distance: z.number().int().min(2).max(1000).nullish(),
+    proximity_keywords: z.array(z.string()).nullish(),
+    regexes: z.array(WeightedRegexSchema).nullish(),
+    metadata_criteria: z.array(MetadataCriterionSchema).nullish(),
   })
   .passthrough();
 export type DataPatternMatchingRules = z.infer<typeof DataPatternMatchingRulesSchema>;
@@ -101,9 +111,9 @@ export type DataPatternMatchingRules = z.infer<typeof DataPatternMatchingRulesSc
 /** Metadata tag arrays attached to a pattern. */
 export const DataPatternTagsSchema = z
   .object({
-    classification: z.array(z.string()).optional(),
-    compliance: z.array(z.string()).optional(),
-    geography: z.array(z.string()).optional(),
+    classification: z.array(z.string()).nullish(),
+    compliance: z.array(z.string()).nullish(),
+    geography: z.array(z.string()).nullish(),
   })
   .passthrough();
 export type DataPatternTags = z.infer<typeof DataPatternTagsSchema>;

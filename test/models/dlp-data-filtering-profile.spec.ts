@@ -291,6 +291,51 @@ describe('DataFilteringProfileResponseSchema', () => {
     });
     expect(r.success).toBe(true);
   });
+  it('accepts null on every nested helper inner field (defensive sweep, issue #160)', () => {
+    const r = DataFilteringProfileResponseSchema.safeParse({
+      ...responseFixture,
+      criteria_details: [
+        {
+          action: null,
+          dataProfileId: null,
+          direction: null,
+          euc_template_id: null,
+          fileBased: null,
+          fileTypes: null,
+          is_end_user_coaching_enabled: null,
+          logSeverity: null,
+          nonFileBased: null,
+          scanType: null,
+        },
+      ],
+      exception_rules: [
+        {
+          id: null,
+          action: null,
+          log_severity: null,
+          data_profile_ids: null,
+          destination_attributes: {
+            match_any: null,
+            app_ids: null,
+            url_patterns: null,
+          },
+          source_attributes: {
+            match_any: null,
+            user_group_ids: null,
+            user_ids: null,
+          },
+        },
+      ],
+      exclusions: {
+        app_exclusion_list: [{ app_id: null, app_name: null, type: null }],
+        url_exclusion_list: [{ type: null, url_id: null, url_name: null }],
+        exclusion_list: null,
+      },
+      rule1: { action: null, response_page: null, show_rsp_page: null },
+      rule2: { action: null, response_page: null, show_rsp_page: null },
+    });
+    expect(r.success).toBe(true);
+  });
 });
 
 describe('PageDataFilteringProfileResponseSchema', () => {
