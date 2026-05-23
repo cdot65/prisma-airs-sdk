@@ -10,6 +10,7 @@ import { ScanLogsClient } from '../../src/management/scan-logs.js';
 import { OAuthManagementClient } from '../../src/management/oauth-management.js';
 import { DlpNamespace } from '../../src/management/dlp/index.js';
 import { DataFilteringProfilesClient } from '../../src/management/dlp/data-filtering-profiles.js';
+import { DataPatternsClient } from '../../src/management/dlp/data-patterns.js';
 import { AISecSDKException } from '../../src/errors.js';
 
 describe('ManagementClient', () => {
@@ -148,6 +149,15 @@ describe('ManagementClient', () => {
       tsgId: '1',
     });
     expect(client.dlp.dataFilteringProfiles).toBeInstanceOf(DataFilteringProfilesClient);
+  });
+
+  it('exposes dlp.dataPatterns subclient', () => {
+    const client = new ManagementClient({
+      clientId: 'cid',
+      clientSecret: 'sec',
+      tsgId: '1',
+    });
+    expect(client.dlp.dataPatterns).toBeInstanceOf(DataPatternsClient);
   });
 
   it('dlpEndpoint option overrides default DLP base URL', () => {
