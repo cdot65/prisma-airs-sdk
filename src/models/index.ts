@@ -226,6 +226,32 @@ export {
 } from './dlp-page.js';
 export { jsonNullable, type JsonNullable } from './dlp-json-nullable.js';
 export {
+  DictionaryTypeSchema,
+  type DictionaryType,
+  DictionaryCategorySchema,
+  type DictionaryCategory,
+  DictionaryClassificationSchema,
+  type DictionaryClassification,
+  DictionaryDetectionTechniqueSchema,
+  type DictionaryDetectionTechnique,
+  DictionaryDetectionSubTechniqueSchema,
+  type DictionaryDetectionSubTechnique,
+  DictionaryMetaDataDTOSchema,
+  type DictionaryMetaDataDTO,
+  DictionaryTagsSchema,
+  type DictionaryTags,
+  ResourceModelExtensionSchema,
+  type ResourceModelExtension,
+  DictionaryRequestSchema,
+  type DictionaryRequest,
+  DictionaryPatchRequestSchema,
+  type DictionaryPatchRequest,
+  DictionaryResponseSchema,
+  type DictionaryResponse,
+  PageDictionaryResponseSchema,
+  type PageDictionaryResponse,
+} from './dlp-dictionary.js';
+export {
   DataPatternTypeSchema,
   type DataPatternType,
   DataPatternTechniqueSchema,

@@ -415,6 +415,38 @@ describe('request — schema parsing', () => {
     expect(result).toEqual({});
   });
 
+  it('returns undefined on empty 2xx body when allowEmptyBody=true (skips schema)', async () => {
+    globalThis.fetch = vi.fn().mockResolvedValue(mockResponse(undefined, 204));
+
+    const result = await request<Item | undefined>({
+      method: 'PUT',
+      baseUrl: 'https://api.example.com',
+      path: '/v1/items/1',
+      responseSchema: ItemSchema.optional(),
+      allowEmptyBody: true,
+      auth: passthroughAuth,
+      numRetries: 0,
+    });
+
+    expect(result).toBeUndefined();
+  });
+
+  it('still parses body with schema when allowEmptyBody=true and body is present', async () => {
+    globalThis.fetch = vi.fn().mockResolvedValue(mockResponse({ id: 'i-1', name: 'X' }, 200));
+
+    const result = await request<Item | undefined>({
+      method: 'PUT',
+      baseUrl: 'https://api.example.com',
+      path: '/v1/items/1',
+      responseSchema: ItemSchema.optional(),
+      allowEmptyBody: true,
+      auth: passthroughAuth,
+      numRetries: 0,
+    });
+
+    expect(result).toEqual({ id: 'i-1', name: 'X' });
+  });
+
   it('still fails RESPONSE_VALIDATION on empty 2xx body when schema has required fields', async () => {
     globalThis.fetch = vi.fn().mockResolvedValue(mockResponse(undefined, 200));
 
