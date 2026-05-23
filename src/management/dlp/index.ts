@@ -1,4 +1,5 @@
-import type { AuthAdapter } from '../http/types.js';
+import type { AuthAdapter } from '../../http/types.js';
+import { DataFilteringProfilesClient } from './data-filtering-profiles.js';
 
 /** @internal */
 export interface DlpNamespaceOptions {
@@ -11,9 +12,6 @@ export interface DlpNamespaceOptions {
  * Grouping for the DLP (Data Loss Prevention) management subclients exposed under
  * `ManagementClient.dlp`. The DLP service lives on a separate base URL from the rest of
  * the management API but reuses the same OAuth2 credentials and token endpoint.
- *
- * Subclients (DataFilteringProfiles, DataPatterns, Dictionaries, DataProfiles) attach in
- * follow-up PRs; the namespace itself is the foundation surface that those PRs build on.
  */
 export class DlpNamespace {
   public readonly baseUrl: string;
@@ -22,9 +20,17 @@ export class DlpNamespace {
   /** @internal */
   public readonly numRetries: number;
 
+  public readonly dataFilteringProfiles: DataFilteringProfilesClient;
+
   constructor(opts: DlpNamespaceOptions) {
     this.baseUrl = opts.baseUrl;
     this.auth = opts.auth;
     this.numRetries = opts.numRetries;
+
+    this.dataFilteringProfiles = new DataFilteringProfilesClient({
+      baseUrl: opts.baseUrl,
+      auth: opts.auth,
+      numRetries: opts.numRetries,
+    });
   }
 }

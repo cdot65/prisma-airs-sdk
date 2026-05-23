@@ -215,6 +215,40 @@ export {
   Oauth2TokenSchema,
   type Oauth2Token,
 } from './mgmt-oauth.js';
+export { AuditResponseSchema, type AuditResponse } from './dlp-audit.js';
+export {
+  SortObjectSchema,
+  type SortObject,
+  PageableObjectSchema,
+  type PageableObject,
+  pageSchema,
+  type Page,
+} from './dlp-page.js';
+export { jsonNullable, type JsonNullable } from './dlp-json-nullable.js';
+export {
+  AppExclusionSchema,
+  type AppExclusion,
+  URLExclusionSchema,
+  type URLExclusion,
+  ExclusionsSchema,
+  type Exclusions,
+  SourceAttributesSchema,
+  type SourceAttributes,
+  DestinationAttributesSchema,
+  type DestinationAttributes,
+  ExceptionRuleDTOSchema,
+  type ExceptionRuleDTO,
+  DataFilteringRuleDTOSchema,
+  type DataFilteringRuleDTO,
+  DataFilteringDetailsSchema,
+  type DataFilteringDetails,
+  DataFilteringProfileRequestSchema,
+  type DataFilteringProfileRequest,
+  DataFilteringProfileResponseSchema,
+  type DataFilteringProfileResponse,
+  PageDataFilteringProfileResponseSchema,
+  type PageDataFilteringProfileResponse,
+} from './dlp-data-filtering-profile.js';
 export * from './model-security-enums.js';
 export * from './model-security.js';
 export * from './red-team-enums.js';
