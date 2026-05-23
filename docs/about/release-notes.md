@@ -1,5 +1,50 @@
 # Release Notes
 
+## v0.9.0
+
+### New Features — DLP Service Coverage
+
+Adds a new `client.dlp` namespace under `ManagementClient` covering the four DLP resources. Same OAuth2 credentials as the rest of the Management API; the DLP base URL defaults to `https://api.dlp.paloaltonetworks.com` (override via the `dlpEndpoint` constructor option). No breaking changes.
+
+**New subclients (all on `client.dlp`):**
+
+- **`dataFilteringProfiles`** (`/v2/api/data-filtering-profiles`) — `list`, `get`, `replace`. Read + full-replace surface only (API does not expose create or delete). `replace()` is a full PUT; `file_based` and `non_file_based` are required.
+- **`dataPatterns`** (`/v2/api/data-patterns`) — full CRUD (`list`, `create`, `get`, `replace`, `patch`, `delete`). PATCH uses JSON Merge Patch (RFC 7396) sent with `Content-Type: application/merge-patch+json`. DELETE soft-deletes server-side. Detection techniques: `regex`, `weighted_regex`, `edm`, `document_fingerprint`, `trainable_classifier`, `ml_document`, `ml`, `titus_tag`, `wildfire`, `file_property`, `dictionary`, `pab`, `document_classifier`.
+- **`dataProfiles`** (`/v2/api/data-profiles`) — CRUD without DELETE (`list`, `create`, `get`, `replace`, `patch`). Two `detection_rules[].rule_type` shapes: `expression_tree` (recursive boolean tree of `DetectionRuleItem` leaves) and `multi_profile` (composes other profiles by id).
+- **`dictionaries`** (`/v2/api/dictionaries`) — full CRUD with **multipart upload** on `create`/`replace`. Accepts `Blob | ArrayBuffer | Uint8Array | string` for the keyword file; SDK builds the multipart boundary. PUT can return 200+body or 204+empty — `replace()` returns `DictionaryResponse | undefined`.
+
+**Shared infrastructure:**
+
+- New constants in `src/constants.ts`: `DEFAULT_DLP_ENDPOINT`, `DLP_DATA_FILTERING_PROFILES_PATH`, `DLP_DATA_PATTERNS_PATH`, `DLP_DATA_PROFILES_PATH`, `DLP_DICTIONARIES_PATH`.
+- `ManagementClient.dlpEndpoint` constructor option (defaults to `DEFAULT_DLP_ENDPOINT`).
+- `pageSchema<T>()` helper in `src/models/dlp-page.ts` — Spring `Page<T>` envelope factory used by every DLP list endpoint.
+- `jsonNullable<T>()` helper in `src/models/dlp-json-nullable.ts` — encodes JSON Merge Patch nullable semantics (omit to leave unchanged, send `null` to clear).
+- `AuditResponseSchema` in `src/models/dlp-audit.ts` — shared `created_at/by`/`updated_at/by` metadata block.
+- `request()` pipeline extended with `contentType`, `formData`, and `allowEmptyBody` options to support merge-patch + multipart + 204 responses.
+
+**Zod models added** (in `src/models/dlp-*.ts`):
+
+- `DataFilteringProfileRequest/Response`, `ExceptionRuleDTO`, `Exclusions`, `DataFilteringDetails`, `PageDataFilteringProfileResponse`
+- `DataPatternRequest/PatchRequest/Response`, `DataPatternMatchingRules`, `WeightedRegex`, `MetadataCriterion`, `DataPatternTags`, `DataPatternDetectionConfig`, `PageDataPatternResponse`, plus 6 enum types (`DataPatternType/Technique/ConfidenceLevel/LicenseType/Status`, `ComparisonOperatorType`)
+- `AdvancedDataProfileRequest/PatchRequest/Response`, `DetectionRule` (discriminated union of `DefaultTreeDetectionRule` + `MultiProfileDetectionRule`), `ExpressionTreeNode` (recursive via `z.lazy`), `MultiProfileDataNode`, `DetectionRuleItem`, `PageDataProfileResponse`, plus 8 enum types
+- `DictionaryRequest/PatchRequest/Response`, `DictionaryMetaDataDTO`, `DictionaryTags`, `ResourceModelExtension`, `PageDictionaryResponse`, plus 5 enum types (`DictionaryType/Category/Classification/DetectionTechnique/DetectionSubTechnique`)
+
+**Tooling extensions:**
+
+- `scripts/preflight-schemas.ts` — recursive `specs/` traversal with `DLP_SPEC_WHITELIST` to load only the 4 implemented DLP YAML files (prevents `Policy` name collision with mgmt). Allowlist gained ~24 entries for expected Zod-vs-OpenAPI divergences (pageSchema, jsonNullable rendering, discriminator literals, combined passthrough union).
+- `scripts/live-audit.ts` — 4 DLP list probes added.
+
+**Examples and docs:**
+
+- 4 runnable example scripts under `examples/mgmt-dlp-*.ts` with matching `example:dlp-*` npm scripts.
+- 4 mkdocs pages under `docs/services/dlp/` with required-fields tables, 2 worked use-case walkthroughs per page (scenario → input → expected JSON output → assertion-style validation), error-handling blocks, and cross-links between subclients.
+
+**Test coverage:** 1236 tests / 61 files (up from 970). Quality gates green across Node 18, 20, 22.
+
+Closes #142, #143, #144, #145, #146, #147, #154.
+
+---
+
 ## v0.7.1
 
 ### Bug Fix — Target Create/Update/Probe 422
