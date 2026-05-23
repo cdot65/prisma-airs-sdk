@@ -194,22 +194,27 @@ export const DataProfilePatchRequestSchema = z
   .passthrough();
 export type DataProfilePatchRequest = z.infer<typeof DataProfilePatchRequestSchema>;
 
-/** Response payload returned by GET / POST / PUT / PATCH on a data profile. */
+/**
+ * Response payload returned by GET / POST / PUT / PATCH on a data profile.
+ *
+ * Every optional field is `.nullish()` — the live API emits `null` (not `undefined`)
+ * for unset values.
+ */
 export const DataProfileResponseSchema = z
   .object({
-    id: z.string().optional(),
-    name: z.string().optional(),
-    description: z.string().optional(),
-    tenant_id: z.string().optional(),
-    type: DataProfileSubtypeSchema.optional(),
-    profile_status: DataProfileStatusSchema.optional(),
-    profile_type: DataProfileTypeSchema.optional(),
-    is_granular_data_profile: z.boolean().optional(),
-    is_parent_managed: z.boolean().optional(),
-    version: z.number().int().optional(),
-    advance_data_patterns_rule_request: z.array(z.string()).optional(),
-    detection_rules: z.array(DetectionRuleSchema).optional(),
-    audit_metadata: AuditResponseSchema.optional(),
+    id: z.string().nullish(),
+    name: z.string().nullish(),
+    description: z.string().nullish(),
+    tenant_id: z.string().nullish(),
+    type: DataProfileSubtypeSchema.nullish(),
+    profile_status: DataProfileStatusSchema.nullish(),
+    profile_type: DataProfileTypeSchema.nullish(),
+    is_granular_data_profile: z.boolean().nullish(),
+    is_parent_managed: z.boolean().nullish(),
+    version: z.number().int().nullish(),
+    advance_data_patterns_rule_request: z.array(z.string()).nullish(),
+    detection_rules: z.array(DetectionRuleSchema).nullish(),
+    audit_metadata: AuditResponseSchema.nullish(),
   })
   .passthrough();
 export type DataProfileResponse = z.infer<typeof DataProfileResponseSchema>;

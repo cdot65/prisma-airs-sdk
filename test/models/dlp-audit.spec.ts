@@ -29,4 +29,22 @@ describe('AuditResponseSchema', () => {
     });
     expect(r.success).toBe(true);
   });
+
+  it('accepts null for all four fields (live API emits null on unset)', () => {
+    const r = AuditResponseSchema.safeParse({
+      created_at: null,
+      created_by: null,
+      updated_at: null,
+      updated_by: null,
+    });
+    expect(r.success).toBe(true);
+  });
+
+  it('accepts numeric epoch (ms) for created_at and updated_at', () => {
+    const r = AuditResponseSchema.safeParse({
+      created_at: 1779560642845,
+      updated_at: 1779560642999,
+    });
+    expect(r.success).toBe(true);
+  });
 });

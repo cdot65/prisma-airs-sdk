@@ -1,5 +1,27 @@
 # Release Notes
 
+## v0.9.1
+
+### Bug Fixes — DLP Response Schemas
+
+Hotfix for [issue #158](https://github.com/cdot65/prisma-airs-sdk/issues/158): live `api.dlp.paloaltonetworks.com` responses fail Zod validation because `.optional()` rejects `null` and the API emits `null` (not `undefined`) for unset fields. Surfaced during smoke-testing of [prisma-airs-cli PR #78](https://github.com/cdot65/prisma-airs-cli/pull/78).
+
+**Schema changes (all backward compatible):**
+
+- `AuditResponseSchema` (`src/models/dlp-audit.ts`) — `created_by` / `updated_by` → `.nullish()`. `created_at` / `updated_at` widened to `z.union([z.string(), z.number()]).nullish()` because the API has been observed returning epoch-ms integers, not just ISO strings.
+- `DataFilteringProfileResponseSchema` — every top-level `.optional()` → `.nullish()`. Specifically resolves rejection of `description`, `is_end_user_coaching_enabled`, `euc_template_id`, `rule1`, `rule2` when those fields arrive as `null`.
+- `DataPatternResponseSchema` — every top-level `.optional()` → `.nullish()`.
+- `DataProfileResponseSchema` — every top-level `.optional()` → `.nullish()`.
+- `DictionaryResponseSchema` — every top-level `.optional()` → `.nullish()`.
+- `DlpReportSchema` (`src/models/dlp-report.ts`) — every field `.nullish()` for consistency.
+
+**Out of scope:**
+
+- `*RequestSchema` files stay strict (`.optional()`) — the API tolerates omission on write but the SDK should not emit explicit `null`s on PUT/POST bodies.
+- Patch request schemas (`*PatchRequestSchema`) unchanged — `jsonNullable()` already handles JSON Merge Patch null semantics correctly.
+
+**Test coverage:** added null-acceptance and numeric-timestamp acceptance cases to `test/models/dlp-audit.spec.ts`, `dlp-data-filtering-profile.spec.ts`, `dlp-data-pattern.spec.ts`, `dlp-data-profile.spec.ts`, `dlp-dictionary.spec.ts` (10 new tests). All 1246 tests pass.
+
 ## v0.9.0
 
 ### New Features — DLP Service Coverage

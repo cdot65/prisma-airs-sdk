@@ -268,6 +268,29 @@ describe('DataFilteringProfileResponseSchema', () => {
   it('parses an empty response', () => {
     expect(DataFilteringProfileResponseSchema.safeParse({}).success).toBe(true);
   });
+  it('accepts null for nullable string/boolean/object fields per live API (issue #158)', () => {
+    const r = DataFilteringProfileResponseSchema.safeParse({
+      ...responseFixture,
+      description: null,
+      is_end_user_coaching_enabled: null,
+      euc_template_id: null,
+      rule1: null,
+      rule2: null,
+    });
+    expect(r.success).toBe(true);
+  });
+  it('accepts null audit_metadata fields (live API emits null on unset)', () => {
+    const r = DataFilteringProfileResponseSchema.safeParse({
+      ...responseFixture,
+      audit_metadata: {
+        created_at: null,
+        created_by: null,
+        updated_at: 1779560642845,
+        updated_by: null,
+      },
+    });
+    expect(r.success).toBe(true);
+  });
 });
 
 describe('PageDataFilteringProfileResponseSchema', () => {

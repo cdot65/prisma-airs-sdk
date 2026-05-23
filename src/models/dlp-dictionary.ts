@@ -121,25 +121,30 @@ export const DictionaryPatchRequestSchema = z
   .passthrough();
 export type DictionaryPatchRequest = z.infer<typeof DictionaryPatchRequestSchema>;
 
-/** Response payload returned by GET / POST / PUT / PATCH on a dictionary. */
+/**
+ * Response payload returned by GET / POST / PUT / PATCH on a dictionary.
+ *
+ * Every optional field is `.nullish()` — the live API emits `null` (not `undefined`)
+ * for unset values.
+ */
 export const DictionaryResponseSchema = z
   .object({
-    id: z.string().optional(),
-    name: z.string().optional(),
-    description: z.string().optional(),
-    category: z.string().optional(),
-    region_name: z.string().optional(),
-    type: DictionaryTypeSchema.optional(),
-    is_case_sensitive: z.boolean().optional(),
-    is_parent_managed: z.boolean().optional(),
-    detection_technique: DictionaryDetectionTechniqueSchema.optional(),
-    detection_sub_technique: DictionaryDetectionSubTechniqueSchema.optional(),
-    dictionary_metadata: DictionaryMetaDataDTOSchema.optional(),
+    id: z.string().nullish(),
+    name: z.string().nullish(),
+    description: z.string().nullish(),
+    category: z.string().nullish(),
+    region_name: z.string().nullish(),
+    type: DictionaryTypeSchema.nullish(),
+    is_case_sensitive: z.boolean().nullish(),
+    is_parent_managed: z.boolean().nullish(),
+    detection_technique: DictionaryDetectionTechniqueSchema.nullish(),
+    detection_sub_technique: DictionaryDetectionSubTechniqueSchema.nullish(),
+    dictionary_metadata: DictionaryMetaDataDTOSchema.nullish(),
     /** Keyword list — populated only when `keywords=true` is passed as a query parameter. */
-    keywords: z.array(z.string()).optional(),
-    tags: DictionaryTagsSchema.optional(),
-    attributes: z.array(ResourceModelExtensionSchema).optional(),
-    audit_metadata: AuditResponseSchema.optional(),
+    keywords: z.array(z.string()).nullish(),
+    tags: DictionaryTagsSchema.nullish(),
+    attributes: z.array(ResourceModelExtensionSchema).nullish(),
+    audit_metadata: AuditResponseSchema.nullish(),
   })
   .passthrough();
 export type DictionaryResponse = z.infer<typeof DictionaryResponseSchema>;

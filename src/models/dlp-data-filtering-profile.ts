@@ -131,32 +131,37 @@ export const DataFilteringProfileRequestSchema = z
   .passthrough();
 export type DataFilteringProfileRequest = z.infer<typeof DataFilteringProfileRequestSchema>;
 
-/** Response payload returned by GET / PUT on a Data Filtering Profile. */
+/**
+ * Response payload returned by GET / PUT on a Data Filtering Profile.
+ *
+ * Every optional field is `.nullish()` — the live API emits `null` (not `undefined`)
+ * for unset values across the entire resource family.
+ */
 export const DataFilteringProfileResponseSchema = z
   .object({
-    id: z.string().optional(),
-    name: z.string().optional(),
-    description: z.string().optional(),
-    tenant_id: z.string().optional(),
-    type: z.string().optional(),
-    data_profile_id: z.number().optional(),
-    direction: z.string().optional(),
-    file_based: z.boolean().optional(),
-    non_file_based: z.boolean().optional(),
-    log_severity: z.string().optional(),
-    scan_type: z.enum(['include', 'exclude']).optional(),
-    is_end_user_coaching_enabled: z.boolean().optional(),
-    is_granular_profile: z.boolean().optional(),
-    is_parent_managed: z.boolean().optional(),
-    euc_template_id: z.string().optional(),
-    version: z.number().optional(),
-    file_type: z.array(z.string()).optional(),
-    audit_metadata: AuditResponseSchema.optional(),
-    criteria_details: z.array(DataFilteringDetailsSchema).optional(),
-    exception_rules: z.array(ExceptionRuleDTOSchema).optional(),
-    exclusions: ExclusionsSchema.optional(),
-    rule1: DataFilteringRuleDTOSchema.optional(),
-    rule2: DataFilteringRuleDTOSchema.optional(),
+    id: z.string().nullish(),
+    name: z.string().nullish(),
+    description: z.string().nullish(),
+    tenant_id: z.string().nullish(),
+    type: z.string().nullish(),
+    data_profile_id: z.number().nullish(),
+    direction: z.string().nullish(),
+    file_based: z.boolean().nullish(),
+    non_file_based: z.boolean().nullish(),
+    log_severity: z.string().nullish(),
+    scan_type: z.enum(['include', 'exclude']).nullish(),
+    is_end_user_coaching_enabled: z.boolean().nullish(),
+    is_granular_profile: z.boolean().nullish(),
+    is_parent_managed: z.boolean().nullish(),
+    euc_template_id: z.string().nullish(),
+    version: z.number().nullish(),
+    file_type: z.array(z.string()).nullish(),
+    audit_metadata: AuditResponseSchema.nullish(),
+    criteria_details: z.array(DataFilteringDetailsSchema).nullish(),
+    exception_rules: z.array(ExceptionRuleDTOSchema).nullish(),
+    exclusions: ExclusionsSchema.nullish(),
+    rule1: DataFilteringRuleDTOSchema.nullish(),
+    rule2: DataFilteringRuleDTOSchema.nullish(),
   })
   .passthrough();
 export type DataFilteringProfileResponse = z.infer<typeof DataFilteringProfileResponseSchema>;

@@ -386,6 +386,27 @@ describe('DataProfileResponseSchema', () => {
       DataProfileResponseSchema.safeParse({ ...responseFixture, future_field: 'ok' }).success,
     ).toBe(true);
   });
+  it('accepts null for nullable string/object fields per live API (issue #158)', () => {
+    const r = DataProfileResponseSchema.safeParse({
+      ...responseFixture,
+      description: null,
+      detection_rules: null,
+      advance_data_patterns_rule_request: null,
+    });
+    expect(r.success).toBe(true);
+  });
+  it('accepts null audit_metadata fields (live API emits null on unset)', () => {
+    const r = DataProfileResponseSchema.safeParse({
+      ...responseFixture,
+      audit_metadata: {
+        created_at: null,
+        created_by: null,
+        updated_at: 1779560642845,
+        updated_by: null,
+      },
+    });
+    expect(r.success).toBe(true);
+  });
 });
 
 describe('PageDataProfileResponseSchema', () => {
