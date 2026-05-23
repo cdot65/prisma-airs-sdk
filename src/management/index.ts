@@ -17,6 +17,7 @@ export {
   type DataFilteringProfileListParams,
 } from './dlp/data-filtering-profiles.js';
 export { DataPatternsClient, type DataPatternListParams } from './dlp/data-patterns.js';
+export { DataProfilesClient, type DataProfileListParams } from './dlp/data-profiles.js';
 export {
   DictionariesClient,
   type DictionaryFileInput,
