@@ -63,6 +63,9 @@ markdown_extensions:
   - toc:
       permalink: true
 
+exclude_docs: |
+  superpowers/
+
 plugins:
   - search
   - literate-nav:
@@ -74,24 +77,24 @@ nav:
   - Getting Started:
       - Installation: getting-started/installation.md
       - Configuration: getting-started/configuration.md
+      - Environment Variables: getting-started/environment-variables.md
       - Quick Start: getting-started/quick-start.md
-  - Services:
-      - Scan API: services/scan-api.md
-      - Management API: services/management-api.md
-      - OAuth Lifecycle: services/oauth-lifecycle.md
-      - Model Security API: services/model-security-api.md
-      - Red Team API: services/red-team-api.md
+  - Guides:
+      - Scanning: guides/scan-api.md
+      - Management: guides/management-api.md
+      - OAuth Lifecycle: guides/oauth-lifecycle.md
+      - Model Security: guides/model-security-api.md
+      - Red Teaming: guides/red-team-api.md
       - DLP:
-          - Data Filtering Profiles: services/dlp/data-filtering-profiles.md
-          - Data Patterns: services/dlp/data-patterns.md
-          - Data Profiles: services/dlp/data-profiles.md
-          - Dictionaries: services/dlp/dictionaries.md
-  - Examples:
-      - API Key Rotation: examples/api-key-rotation.md
+          - Data Filtering Profiles: guides/dlp/data-filtering-profiles.md
+          - Data Patterns: guides/dlp/data-patterns.md
+          - Data Profiles: guides/dlp/data-profiles.md
+          - Dictionaries: guides/dlp/dictionaries.md
+      - Cookbook:
+          - API Key Rotation: guides/cookbook/api-key-rotation.md
   - API Reference: reference/api/
-  - Reference:
-      - Environment Variables: reference/environment-variables.md
-      - Error Handling: reference/error-handling.md
+  - Developer:
+      - Error Handling: developer/error-handling.md
   - About:
       - Release Notes: about/release-notes.md
       - License: about/license.md

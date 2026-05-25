@@ -116,6 +116,6 @@ flowchart LR
 
   Complete method signatures, types, enums, and error handling.
 
-  [:octicons-arrow-right-24: API Reference](reference/api-reference.md)
+  [:octicons-arrow-right-24: API Reference](reference/api/index.md)
 
 </div>
