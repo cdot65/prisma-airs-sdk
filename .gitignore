@@ -41,3 +41,6 @@ tsup.config.bundled_*.mjs
 # Optional IDE or Editor settings
 .vscode/
 .idea/
+
+# TypeDoc generated API reference
+docs/reference/api/
