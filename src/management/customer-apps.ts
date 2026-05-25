@@ -73,7 +73,7 @@ export class CustomerAppsClient {
   /**
    * Update a customer app.
    * @param customerAppId - UUID of the customer app to update.
-   * @param request - Updated customer app data.
+   * @param body - Updated customer app data.
    * @returns The updated customer app.
    */
   async update(customerAppId: string, body: CustomerApp): Promise<CustomerApp> {

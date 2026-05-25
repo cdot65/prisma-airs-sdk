@@ -102,7 +102,10 @@ class Configuration {
   }
 }
 
-/** Global singleton holding scan API configuration. */
+/**
+ * Global singleton holding scan API configuration.
+ * @internal Prefer {@link init} to configure the SDK; this singleton is an implementation detail.
+ */
 export const globalConfiguration = new Configuration();
 
 /**
