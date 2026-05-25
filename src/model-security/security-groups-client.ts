@@ -83,6 +83,19 @@ export class ModelSecurityGroupsClient {
    * Create a new security group.
    * @param body - Security group creation request.
    * @returns The created security group.
+   * @example
+   * ```ts
+   * import { ModelSecurityClient } from '@cdot65/prisma-airs-sdk';
+   * const ms = new ModelSecurityClient();
+   *
+   * const group = await ms.securityGroups.create({
+   *   name: 'hf-strict',
+   *   source_type: 'HUGGING_FACE',
+   *   description: 'Block unsafe Hugging Face models',
+   * });
+   * // group =>
+   * // { uuid: '550e8400-...', name: 'hf-strict', source_type: 'HUGGING_FACE', state: 'PENDING', ... }
+   * ```
    */
   async create(body: ModelSecurityGroupCreateRequest): Promise<ModelSecurityGroupResponse> {
     return request({
@@ -100,6 +113,20 @@ export class ModelSecurityGroupsClient {
    * List security groups with optional filters.
    * @param opts - Pagination and filter options.
    * @returns Paginated list of security groups.
+   * @example
+   * ```ts
+   * import { ModelSecurityClient } from '@cdot65/prisma-airs-sdk';
+   * const ms = new ModelSecurityClient();
+   *
+   * const groups = await ms.securityGroups.list({
+   *   limit: 10,
+   *   source_types: ['HUGGING_FACE'],
+   *   sort_field: 'created_at',
+   *   sort_dir: 'desc',
+   * });
+   * // groups.security_groups =>
+   * // [{ uuid: '550e8400-...', name: 'hf-strict', state: 'ACTIVE', ... }]
+   * ```
    */
   async list(opts?: ModelSecurityGroupListOptions): Promise<ListModelSecurityGroupsResponse> {
     return request({
@@ -117,6 +144,15 @@ export class ModelSecurityGroupsClient {
    * Get a single security group by UUID.
    * @param uuid - Security group UUID.
    * @returns The security group.
+   * @example
+   * ```ts
+   * import { ModelSecurityClient } from '@cdot65/prisma-airs-sdk';
+   * const ms = new ModelSecurityClient();
+   *
+   * const group = await ms.securityGroups.get('550e8400-e29b-41d4-a716-446655440000');
+   * // group =>
+   * // { uuid: '550e8400-...', name: 'hf-strict', source_type: 'HUGGING_FACE', state: 'ACTIVE', ... }
+   * ```
    */
   async get(uuid: string): Promise<ModelSecurityGroupResponse> {
     assertUuid(uuid, 'security group uuid');
@@ -135,6 +171,18 @@ export class ModelSecurityGroupsClient {
    * @param uuid - Security group UUID.
    * @param body - Updated security group fields.
    * @returns The updated security group.
+   * @example
+   * ```ts
+   * import { ModelSecurityClient } from '@cdot65/prisma-airs-sdk';
+   * const ms = new ModelSecurityClient();
+   *
+   * const group = await ms.securityGroups.update('550e8400-e29b-41d4-a716-446655440000', {
+   *   name: 'hf-strict-v2',
+   *   description: 'Updated policy',
+   * });
+   * // group =>
+   * // { uuid: '550e8400-...', name: 'hf-strict-v2', state: 'ACTIVE', ... }
+   * ```
    */
   async update(
     uuid: string,
@@ -156,6 +204,14 @@ export class ModelSecurityGroupsClient {
    * Delete a security group.
    * @param uuid - Security group UUID.
    * @returns Resolves when the security group is deleted.
+   * @example
+   * ```ts
+   * import { ModelSecurityClient } from '@cdot65/prisma-airs-sdk';
+   * const ms = new ModelSecurityClient();
+   *
+   * await ms.securityGroups.delete('550e8400-e29b-41d4-a716-446655440000');
+   * // resolves to undefined on success
+   * ```
    */
   async delete(uuid: string): Promise<void> {
     assertUuid(uuid, 'security group uuid');
@@ -173,6 +229,18 @@ export class ModelSecurityGroupsClient {
    * @param securityGroupUuid - Security group UUID.
    * @param opts - Pagination options.
    * @returns Paginated list of rule instances.
+   * @example
+   * ```ts
+   * import { ModelSecurityClient } from '@cdot65/prisma-airs-sdk';
+   * const ms = new ModelSecurityClient();
+   *
+   * const res = await ms.securityGroups.listRuleInstances(
+   *   '550e8400-e29b-41d4-a716-446655440000',
+   *   { state: 'BLOCKING' },
+   * );
+   * // res.rule_instances =>
+   * // [{ uuid: '660e8400-...', state: 'BLOCKING', rule: { name: 'Pickle Scan', ... }, ... }]
+   * ```
    */
   async listRuleInstances(
     securityGroupUuid: string,
@@ -195,6 +263,18 @@ export class ModelSecurityGroupsClient {
    * @param securityGroupUuid - Security group UUID.
    * @param ruleInstanceUuid - Rule instance UUID.
    * @returns The rule instance.
+   * @example
+   * ```ts
+   * import { ModelSecurityClient } from '@cdot65/prisma-airs-sdk';
+   * const ms = new ModelSecurityClient();
+   *
+   * const ri = await ms.securityGroups.getRuleInstance(
+   *   '550e8400-e29b-41d4-a716-446655440000',
+   *   '660e8400-e29b-41d4-a716-446655440000',
+   * );
+   * // ri =>
+   * // { uuid: '660e8400-...', state: 'BLOCKING', rule: { name: 'Pickle Scan', ... }, ... }
+   * ```
    */
   async getRuleInstance(
     securityGroupUuid: string,
@@ -218,6 +298,19 @@ export class ModelSecurityGroupsClient {
    * @param ruleInstanceUuid - Rule instance UUID.
    * @param body - Updated rule instance fields.
    * @returns The updated rule instance.
+   * @example
+   * ```ts
+   * import { ModelSecurityClient } from '@cdot65/prisma-airs-sdk';
+   * const ms = new ModelSecurityClient();
+   *
+   * const ri = await ms.securityGroups.updateRuleInstance(
+   *   '550e8400-e29b-41d4-a716-446655440000',
+   *   '660e8400-e29b-41d4-a716-446655440000',
+   *   { security_group_uuid: '550e8400-e29b-41d4-a716-446655440000', state: 'ALLOWING' },
+   * );
+   * // ri =>
+   * // { uuid: '660e8400-...', state: 'ALLOWING', rule: { name: 'Pickle Scan', ... }, ... }
+   * ```
    */
   async updateRuleInstance(
     securityGroupUuid: string,

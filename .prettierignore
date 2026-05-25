@@ -7,3 +7,5 @@ tsup.config.bundled_*
 review-*
 specs
 docs/diagrams
+docs/reference/api
+site

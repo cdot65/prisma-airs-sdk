@@ -112,6 +112,18 @@ export const globalConfiguration = new Configuration();
  * Initialize the global scan API configuration. Must be called before using {@link Scanner}.
  * @param opts - Configuration options. Reads env vars as fallbacks.
  * @throws {AISecSDKException} If neither apiKey nor apiToken is provided.
+ * @example
+ * ```ts
+ * import { init, Scanner } from '@cdot65/prisma-airs-sdk';
+ *
+ * // Reads PANW_AI_SEC_API_KEY and PANW_AI_SEC_API_ENDPOINT from env
+ * init();
+ *
+ * // Or pass options explicitly
+ * init({ apiKey: 'your-api-key', numRetries: 3 });
+ *
+ * const scanner = new Scanner();
+ * ```
  */
 export function init(opts: InitOptions = {}): void {
   globalConfiguration.init(opts);

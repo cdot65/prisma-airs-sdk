@@ -28,6 +28,15 @@ export class DlpProfilesClient {
   /**
    * List all DLP profiles for the TSG.
    * @returns List of DLP profiles.
+   * @example
+   * ```ts
+   * import { ManagementClient } from '@cdot65/prisma-airs-sdk';
+   * const mgmt = new ManagementClient(); // reads PANW_MGMT_* env vars
+   *
+   * const result = await mgmt.dlpProfiles.list();
+   * // result =>
+   * // { dlp_profiles: [ { name: 'pci-dss', uuid: 'u1' } ] }
+   * ```
    */
   async list(): Promise<DlpProfileListResponse> {
     return request({

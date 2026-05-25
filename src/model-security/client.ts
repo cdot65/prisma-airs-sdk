@@ -36,6 +36,16 @@ export interface ModelSecurityClientOptions {
  * Client for AIRS Model Security API operations.
  * Uses two base URLs: data plane for scans, management plane for security groups/rules.
  * Authenticates via OAuth2 client_credentials flow (shared token for both planes).
+ * @example
+ * ```ts
+ * import { ModelSecurityClient } from '@cdot65/prisma-airs-sdk';
+ *
+ * // Reads PANW_MODEL_SEC_* (falling back to PANW_MGMT_*) env vars.
+ * const ms = new ModelSecurityClient();
+ *
+ * const scans = await ms.scans.list({ limit: 5 });
+ * // scans.scans => [{ uuid: '550e8400-...', eval_outcome: 'ALLOWED', ... }]
+ * ```
  */
 export class ModelSecurityClient {
   /** Data plane scan operations. */
@@ -87,6 +97,15 @@ export class ModelSecurityClient {
   /**
    * Get PyPI authentication credentials for Google Artifact Registry.
    * @returns PyPI auth response with URL and expiration.
+   * @example
+   * ```ts
+   * import { ModelSecurityClient } from '@cdot65/prisma-airs-sdk';
+   * const ms = new ModelSecurityClient();
+   *
+   * const auth = await ms.getPyPIAuth();
+   * // auth =>
+   * // { url: 'https://_token:ya29...@us-python.pkg.dev/...', expires_at: '2025-01-01T01:00:00Z' }
+   * ```
    */
   async getPyPIAuth(): Promise<PyPIAuthResponse> {
     return request({

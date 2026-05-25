@@ -42,6 +42,17 @@ export class OAuthManagementClient {
    * @param token - The OAuth token to invalidate.
    * @param body - Client ID and customer app.
    * @returns Confirmation string.
+   * @example
+   * ```ts
+   * import { ManagementClient } from '@cdot65/prisma-airs-sdk';
+   * const mgmt = new ManagementClient(); // reads PANW_MGMT_* env vars
+   *
+   * const result = await mgmt.oauth.invalidateToken('old-token', {
+   *   client_id: 'cid',
+   *   customer_app: 'app1',
+   * });
+   * // result => 'token invalidated'
+   * ```
    */
   async invalidateToken(token: string, body: ClientIdAndCustomerApp): Promise<string> {
     return request({
@@ -60,6 +71,19 @@ export class OAuthManagementClient {
    * Get an OAuth token for client credentials.
    * @param opts - Token request options.
    * @returns OAuth2 token response.
+   * @example
+   * ```ts
+   * import { ManagementClient } from '@cdot65/prisma-airs-sdk';
+   * const mgmt = new ManagementClient(); // reads PANW_MGMT_* env vars
+   *
+   * const token = await mgmt.oauth.getAccessToken({
+   *   body: { client_id: 'cid', customer_app: 'app1' },
+   *   tokenTtlInterval: 3,
+   *   tokenTtlUnit: 'hours',
+   * });
+   * // token =>
+   * // { access_token: 'new-token', expires_in: '86400', token_type: 'Bearer' }
+   * ```
    */
   async getAccessToken(opts: GetTokenOptions): Promise<Oauth2Token> {
     const params: Record<string, string> = {};

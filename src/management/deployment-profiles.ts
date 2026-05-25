@@ -35,6 +35,16 @@ export class DeploymentProfilesClient {
    * List deployment profiles for the TSG.
    * @param opts - Optional filter options.
    * @returns Deployment profiles response.
+   * @example
+   * ```ts
+   * import { ManagementClient } from '@cdot65/prisma-airs-sdk';
+   * const mgmt = new ManagementClient(); // reads PANW_MGMT_* env vars
+   *
+   * const result = await mgmt.deploymentProfiles.list({ unactivated: true });
+   * // result =>
+   * // { deployment_profiles: [ { dp_name: 'prod-dp', auth_code: 'ac', status: 'active' } ],
+   * //   status: 'ok' }
+   * ```
    */
   async list(opts?: DeploymentProfileListOptions): Promise<DeploymentProfilesResponse> {
     const params: Record<string, string> = {};

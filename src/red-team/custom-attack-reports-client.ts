@@ -55,6 +55,15 @@ export class RedTeamCustomAttackReportsClient {
    * Get custom attack report for a scan.
    * @param jobId - The job UUID.
    * @returns The custom attack report response.
+   * @example
+   * ```ts
+   * import { RedTeamClient } from '@cdot65/prisma-airs-sdk';
+   * const rt = new RedTeamClient();
+   *
+   * const report = await rt.customAttackReports.getReport('550e8400-e29b-41d4-a716-446655440000');
+   * // report =>
+   * // { job_id: '550e8400-...', total_prompts: 100, total_attacks: 80, total_threats: 12, score: 0.85, asr: 0.15 }
+   * ```
    */
   async getReport(jobId: string): Promise<CustomAttackReportResponse> {
     assertUuid(jobId, 'job id');
@@ -72,6 +81,15 @@ export class RedTeamCustomAttackReportsClient {
    * Get prompt sets for a custom attack scan.
    * @param jobId - The job UUID.
    * @returns The prompt sets report response.
+   * @example
+   * ```ts
+   * import { RedTeamClient } from '@cdot65/prisma-airs-sdk';
+   * const rt = new RedTeamClient();
+   *
+   * const sets = await rt.customAttackReports.getPromptSets('550e8400-e29b-41d4-a716-446655440000');
+   * // sets =>
+   * // { total_prompt_sets: 1, prompt_sets: [{ uuid: '550e8400-...', name: 'jailbreaks' }] }
+   * ```
    */
   async getPromptSets(jobId: string): Promise<PromptSetsReportResponse> {
     assertUuid(jobId, 'job id');
@@ -91,6 +109,19 @@ export class RedTeamCustomAttackReportsClient {
    * @param promptSetId - The prompt set UUID.
    * @param opts - Optional pagination, search, and filter options.
    * @returns The list of prompt detail responses.
+   * @example
+   * ```ts
+   * import { RedTeamClient } from '@cdot65/prisma-airs-sdk';
+   * const rt = new RedTeamClient();
+   *
+   * const prompts = await rt.customAttackReports.getPromptsBySet(
+   *   '550e8400-e29b-41d4-a716-446655440000',
+   *   '550e8400-e29b-41d4-a716-446655440000',
+   *   { is_threat: true },
+   * );
+   * // prompts =>
+   * // [{ prompt_id: '550e8400-...', prompt_text: 'Inject system prompt' }]
+   * ```
    */
   async getPromptsBySet(
     jobId: string,
@@ -119,6 +150,18 @@ export class RedTeamCustomAttackReportsClient {
    * @param jobId - The job UUID.
    * @param promptId - The prompt UUID.
    * @returns The prompt detail response.
+   * @example
+   * ```ts
+   * import { RedTeamClient } from '@cdot65/prisma-airs-sdk';
+   * const rt = new RedTeamClient();
+   *
+   * const prompt = await rt.customAttackReports.getPromptDetail(
+   *   '550e8400-e29b-41d4-a716-446655440000',
+   *   '550e8400-e29b-41d4-a716-446655440000',
+   * );
+   * // prompt =>
+   * // { prompt_id: '550e8400-...', prompt_text: 'Inject system prompt' }
+   * ```
    */
   async getPromptDetail(jobId: string, promptId: string): Promise<PromptDetailResponse> {
     assertUuid(jobId, 'job id');
@@ -139,6 +182,18 @@ export class RedTeamCustomAttackReportsClient {
    * @param jobId - The job UUID.
    * @param opts - Optional pagination, search, and filter options.
    * @returns The paginated list of custom attacks.
+   * @example
+   * ```ts
+   * import { RedTeamClient } from '@cdot65/prisma-airs-sdk';
+   * const rt = new RedTeamClient();
+   *
+   * const attacks = await rt.customAttackReports.listCustomAttacks(
+   *   '550e8400-e29b-41d4-a716-446655440000',
+   *   { threat: true, limit: 20 },
+   * );
+   * // attacks =>
+   * // { pagination: { total_items: 3 }, data: [...], total_attacks: 3, total_threats: 1 }
+   * ```
    */
   async listCustomAttacks(
     jobId: string,
@@ -166,6 +221,18 @@ export class RedTeamCustomAttackReportsClient {
    * @param jobId - The job UUID.
    * @param attackId - The attack UUID.
    * @returns The list of attack outputs.
+   * @example
+   * ```ts
+   * import { RedTeamClient } from '@cdot65/prisma-airs-sdk';
+   * const rt = new RedTeamClient();
+   *
+   * const outputs = await rt.customAttackReports.getAttackOutputs(
+   *   '550e8400-e29b-41d4-a716-446655440000',
+   *   '550e8400-e29b-41d4-a716-446655440000',
+   * );
+   * // outputs =>
+   * // [{ uuid: '550e8400-...', custom_attack_id: '550e8400-...', target_id: '550e8400-...', output: '...' }]
+   * ```
    */
   async getAttackOutputs(jobId: string, attackId: string): Promise<CustomAttackOutput[]> {
     assertUuid(jobId, 'job id');
@@ -185,6 +252,15 @@ export class RedTeamCustomAttackReportsClient {
    * Get property statistics for a custom attack scan.
    * @param jobId - The job UUID.
    * @returns The list of property statistics.
+   * @example
+   * ```ts
+   * import { RedTeamClient } from '@cdot65/prisma-airs-sdk';
+   * const rt = new RedTeamClient();
+   *
+   * const stats = await rt.customAttackReports.getPropertyStats('550e8400-e29b-41d4-a716-446655440000');
+   * // stats =>
+   * // [{ property_name: 'category', values: [{ value: 'jailbreak', count: 12 }] }]
+   * ```
    */
   async getPropertyStats(jobId: string): Promise<PropertyStatistic[]> {
     assertUuid(jobId, 'job id');

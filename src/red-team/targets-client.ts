@@ -65,6 +65,25 @@ export class RedTeamTargetsClient {
    * @param body - Target creation request body.
    * @param opts - Optional operation options (e.g. validate connection).
    * @returns The created target response.
+   * @example
+   * ```ts
+   * import { RedTeamClient } from '@cdot65/prisma-airs-sdk';
+   * const rt = new RedTeamClient();
+   *
+   * const target = await rt.targets.create(
+   *   {
+   *     name: 'prod-chatbot',
+   *     target_type: 'API',
+   *     connection_params: {
+   *       api_endpoint: 'https://api.openai.com/v1/responses',
+   *       response_key: 'output[0].content[0].text',
+   *     },
+   *   },
+   *   { validate: true },
+   * );
+   * // target =>
+   * // { uuid: '550e8400-...', name: 'prod-chatbot', status: 'VALIDATED', active: true, validated: true }
+   * ```
    */
   async create(body: TargetCreateRequest, opts?: TargetOperationOptions): Promise<TargetResponse> {
     const params: Record<string, string> = {};
@@ -86,6 +105,15 @@ export class RedTeamTargetsClient {
    * List targets with optional filters.
    * @param opts - Optional pagination, search, and filter options.
    * @returns The paginated list of targets.
+   * @example
+   * ```ts
+   * import { RedTeamClient } from '@cdot65/prisma-airs-sdk';
+   * const rt = new RedTeamClient();
+   *
+   * const targets = await rt.targets.list({ limit: 10, target_type: 'API' });
+   * // targets =>
+   * // { pagination: { total_items: 4 }, data: [{ uuid: '550e8400-...', name: 'prod-chatbot', status: 'READY' }] }
+   * ```
    */
   async list(opts?: TargetListOptions): Promise<TargetList> {
     const params = serializeListing(opts);
@@ -107,6 +135,15 @@ export class RedTeamTargetsClient {
    * Get a target by UUID.
    * @param uuid - The target UUID.
    * @returns The target response.
+   * @example
+   * ```ts
+   * import { RedTeamClient } from '@cdot65/prisma-airs-sdk';
+   * const rt = new RedTeamClient();
+   *
+   * const target = await rt.targets.get('550e8400-e29b-41d4-a716-446655440000');
+   * // target =>
+   * // { uuid: '550e8400-...', name: 'prod-chatbot', status: 'READY', active: true, validated: true }
+   * ```
    */
   async get(uuid: string): Promise<TargetResponse> {
     assertUuid(uuid, 'target uuid');
@@ -126,6 +163,19 @@ export class RedTeamTargetsClient {
    * @param body - Target update request body.
    * @param opts - Optional operation options (e.g. validate connection).
    * @returns The updated target response.
+   * @example
+   * ```ts
+   * import { RedTeamClient } from '@cdot65/prisma-airs-sdk';
+   * const rt = new RedTeamClient();
+   *
+   * const target = await rt.targets.update(
+   *   '550e8400-e29b-41d4-a716-446655440000',
+   *   { name: 'prod-chatbot-v2' },
+   *   { validate: false },
+   * );
+   * // target =>
+   * // { uuid: '550e8400-...', name: 'prod-chatbot-v2', status: 'READY', updated_at: '2026-03-08T10:00:00Z' }
+   * ```
    */
   async update(
     uuid: string,
@@ -152,6 +202,15 @@ export class RedTeamTargetsClient {
    * Delete a target.
    * @param uuid - The target UUID.
    * @returns The delete response.
+   * @example
+   * ```ts
+   * import { RedTeamClient } from '@cdot65/prisma-airs-sdk';
+   * const rt = new RedTeamClient();
+   *
+   * const result = await rt.targets.delete('550e8400-e29b-41d4-a716-446655440000');
+   * // result =>
+   * // { message: 'ok', status: 200 }
+   * ```
    */
   async delete(uuid: string): Promise<BaseResponse> {
     assertUuid(uuid, 'target uuid');
@@ -169,6 +228,19 @@ export class RedTeamTargetsClient {
    * Run profiling probes on a target.
    * @param body - The probe request body.
    * @returns The target response after probing.
+   * @example
+   * ```ts
+   * import { RedTeamClient } from '@cdot65/prisma-airs-sdk';
+   * const rt = new RedTeamClient();
+   *
+   * const target = await rt.targets.probe({
+   *   name: 'prod-chatbot',
+   *   uuid: '550e8400-e29b-41d4-a716-446655440000',
+   *   probe_fields: ['multi_turn', 'rate_limit'],
+   * });
+   * // target =>
+   * // { uuid: '550e8400-...', name: 'prod-chatbot', status: 'READY', validated: true }
+   * ```
    */
   async probe(body: TargetProbeRequest): Promise<TargetResponse> {
     return request({
@@ -186,6 +258,15 @@ export class RedTeamTargetsClient {
    * Get profiling results for a target.
    * @param uuid - The target UUID.
    * @returns The target profile response.
+   * @example
+   * ```ts
+   * import { RedTeamClient } from '@cdot65/prisma-airs-sdk';
+   * const rt = new RedTeamClient();
+   *
+   * const profile = await rt.targets.getProfile('550e8400-e29b-41d4-a716-446655440000');
+   * // profile =>
+   * // { target_id: '550e8400-...', target_version: 1, status: 'READY' }
+   * ```
    */
   async getProfile(uuid: string): Promise<TargetProfileResponse> {
     assertUuid(uuid, 'target uuid');
@@ -204,6 +285,18 @@ export class RedTeamTargetsClient {
    * @param uuid - The target UUID.
    * @param body - The context update request body.
    * @returns The updated target response.
+   * @example
+   * ```ts
+   * import { RedTeamClient } from '@cdot65/prisma-airs-sdk';
+   * const rt = new RedTeamClient();
+   *
+   * const target = await rt.targets.updateProfile('550e8400-e29b-41d4-a716-446655440000', {
+   *   target_background: { industry: 'Healthcare', use_case: 'Patient Support Chatbot' },
+   *   additional_context: { base_model: 'GPT-4', languages_supported: ['en', 'es'] },
+   * });
+   * // target =>
+   * // { uuid: '550e8400-...', name: 'prod-chatbot', status: 'READY' }
+   * ```
    */
   async updateProfile(uuid: string, body: TargetContextUpdate): Promise<TargetResponse> {
     assertUuid(uuid, 'target uuid');
@@ -222,6 +315,18 @@ export class RedTeamTargetsClient {
    * Validate target authentication credentials.
    * @param body - The auth validation request body.
    * @returns The auth validation response.
+   * @example
+   * ```ts
+   * import { RedTeamClient } from '@cdot65/prisma-airs-sdk';
+   * const rt = new RedTeamClient();
+   *
+   * const result = await rt.targets.validateAuth({
+   *   auth_type: 'HEADERS',
+   *   auth_config: { Authorization: 'Bearer sk-xxx' },
+   * });
+   * // result =>
+   * // { validated: true }
+   * ```
    */
   async validateAuth(body: TargetAuthValidationRequest): Promise<TargetAuthValidationResponse> {
     return request({
@@ -238,6 +343,15 @@ export class RedTeamTargetsClient {
   /**
    * Get target metadata (field definitions for target configuration).
    * @returns The target metadata object.
+   * @example
+   * ```ts
+   * import { RedTeamClient } from '@cdot65/prisma-airs-sdk';
+   * const rt = new RedTeamClient();
+   *
+   * const metadata = await rt.targets.getTargetMetadata();
+   * // metadata =>
+   * // { rate_limit: { type: 'number', required: false }, multi_turn: { type: 'boolean' } }
+   * ```
    */
   async getTargetMetadata(): Promise<Record<string, unknown>> {
     return request({
@@ -253,6 +367,15 @@ export class RedTeamTargetsClient {
   /**
    * Get target templates for all supported provider types.
    * @returns The collection of target templates keyed by provider.
+   * @example
+   * ```ts
+   * import { RedTeamClient } from '@cdot65/prisma-airs-sdk';
+   * const rt = new RedTeamClient();
+   *
+   * const templates = await rt.targets.getTargetTemplates();
+   * // templates =>
+   * // { OPENAI: {...}, HUGGING_FACE: {...}, DATABRICKS: {...}, BEDROCK: {...}, REST: {...}, STREAMING: {...} }
+   * ```
    */
   async getTargetTemplates(): Promise<TargetTemplateCollection> {
     return request({

@@ -50,6 +50,18 @@ export class DataPatternsClient {
   /**
    * List data patterns. Returns the Spring `Page<>` envelope verbatim so callers can inspect
    * `totalElements`, `pageable`, etc.
+   * @example
+   * ```ts
+   * import { ManagementClient } from '@cdot65/prisma-airs-sdk';
+   * const mgmt = new ManagementClient();
+   *
+   * const page = await mgmt.dlp.dataPatterns.list({ size: 5, sort: ['name,asc'] });
+   * // page =>
+   * // {
+   * //   content: [{ id: 'dp-1', name: 'SSN', type: 'custom', status: 'active' }],
+   * //   totalElements: 1, totalPages: 1, number: 0, size: 20, first: true, last: true
+   * // }
+   * ```
    */
   async list(params: DataPatternListParams = {}): Promise<PageDataPatternResponse> {
     const queryParams: Record<string, string | string[]> = {};
@@ -68,7 +80,23 @@ export class DataPatternsClient {
     });
   }
 
-  /** Create a new custom data pattern. */
+  /**
+   * Create a new custom data pattern.
+   * @example
+   * ```ts
+   * import { ManagementClient } from '@cdot65/prisma-airs-sdk';
+   * const mgmt = new ManagementClient();
+   *
+   * const created = await mgmt.dlp.dataPatterns.create({
+   *   name: 'example-pattern',
+   *   type: 'custom',
+   *   detection_config: { technique: 'regex' },
+   *   matching_rules: { regexes: [{ regex: '\\bexample\\b', weight: 1.0 }] },
+   * });
+   * // created =>
+   * // { id: 'dp-1', name: 'example-pattern', type: 'custom', status: 'active' }
+   * ```
+   */
   async create(body: DataPatternRequest): Promise<DataPatternResponse> {
     return request({
       method: 'POST',
@@ -81,7 +109,18 @@ export class DataPatternsClient {
     });
   }
 
-  /** Get a single data pattern by resource ID. */
+  /**
+   * Get a single data pattern by resource ID.
+   * @example
+   * ```ts
+   * import { ManagementClient } from '@cdot65/prisma-airs-sdk';
+   * const mgmt = new ManagementClient();
+   *
+   * const pattern = await mgmt.dlp.dataPatterns.get('dp-1');
+   * // pattern =>
+   * // { id: 'dp-1', name: 'SSN', type: 'custom', status: 'active', detection_config: { technique: 'regex' } }
+   * ```
+   */
   async get(resourceId: string): Promise<DataPatternResponse> {
     return request({
       method: 'GET',
@@ -96,6 +135,20 @@ export class DataPatternsClient {
   /**
    * Full-replace (PUT) the pattern at `resourceId`. Returns the updated resource as the API
    * echoes it back.
+   * @example
+   * ```ts
+   * import { ManagementClient } from '@cdot65/prisma-airs-sdk';
+   * const mgmt = new ManagementClient();
+   *
+   * const updated = await mgmt.dlp.dataPatterns.replace('dp-1', {
+   *   name: 'SSN',
+   *   type: 'custom',
+   *   detection_config: { technique: 'regex' },
+   *   matching_rules: { regexes: [{ regex: '\\d{3}-\\d{2}-\\d{4}', weight: 1.0 }] },
+   * });
+   * // updated =>
+   * // { id: 'dp-1', name: 'SSN', type: 'custom', status: 'active' }
+   * ```
    */
   async replace(resourceId: string, body: DataPatternRequest): Promise<DataPatternResponse> {
     return request({
@@ -113,6 +166,20 @@ export class DataPatternsClient {
    * Partial update via JSON Merge Patch (RFC 7396). Sent with
    * `Content-Type: application/merge-patch+json`. Fields set to `null` clear server-side;
    * omitted fields are left unchanged.
+   * @example
+   * ```ts
+   * import { ManagementClient } from '@cdot65/prisma-airs-sdk';
+   * const mgmt = new ManagementClient();
+   *
+   * const patched = await mgmt.dlp.dataPatterns.patch('dp-1', {
+   *   name: 'SSN',
+   *   type: 'custom',
+   *   detection_config: { technique: 'regex' },
+   *   description: 'Updated by SDK',
+   * });
+   * // patched =>
+   * // { id: 'dp-1', name: 'SSN', type: 'custom', description: 'Updated by SDK' }
+   * ```
    */
   async patch(resourceId: string, body: DataPatternPatchRequest): Promise<DataPatternResponse> {
     return request({
@@ -127,7 +194,17 @@ export class DataPatternsClient {
     });
   }
 
-  /** Soft-delete (archive) a data pattern. Resolves on the 204 No Content response. */
+  /**
+   * Soft-delete (archive) a data pattern. Resolves on the 204 No Content response.
+   * @example
+   * ```ts
+   * import { ManagementClient } from '@cdot65/prisma-airs-sdk';
+   * const mgmt = new ManagementClient();
+   *
+   * await mgmt.dlp.dataPatterns.delete('dp-1');
+   * // resolves to undefined (204 No Content) — the pattern is archived server-side
+   * ```
+   */
   async delete(resourceId: string): Promise<void> {
     await request<void>({
       method: 'DELETE',

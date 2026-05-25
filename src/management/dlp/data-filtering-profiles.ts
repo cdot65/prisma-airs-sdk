@@ -52,6 +52,18 @@ export class DataFilteringProfilesClient {
   /**
    * List data filtering profiles. Returns the Spring `Page<>` envelope verbatim so callers can
    * inspect `totalElements`, `pageable`, etc. without a second round-trip.
+   * @example
+   * ```ts
+   * import { ManagementClient } from '@cdot65/prisma-airs-sdk';
+   * const mgmt = new ManagementClient();
+   *
+   * const page = await mgmt.dlp.dataFilteringProfiles.list({ size: 5, status: 'enabled' });
+   * // page =>
+   * // {
+   * //   content: [{ id: 'dfp-1', name: 'Finance', file_based: true, non_file_based: false }],
+   * //   totalElements: 1, totalPages: 1, number: 0, size: 20, first: true, last: true
+   * // }
+   * ```
    */
   async list(
     params: DataFilteringProfileListParams = {},
@@ -74,7 +86,18 @@ export class DataFilteringProfilesClient {
     });
   }
 
-  /** Get a single data filtering profile by resource ID. */
+  /**
+   * Get a single data filtering profile by resource ID.
+   * @example
+   * ```ts
+   * import { ManagementClient } from '@cdot65/prisma-airs-sdk';
+   * const mgmt = new ManagementClient();
+   *
+   * const profile = await mgmt.dlp.dataFilteringProfiles.get('dfp-1');
+   * // profile =>
+   * // { id: 'dfp-1', name: 'Finance', file_based: true, non_file_based: false }
+   * ```
+   */
   async get(resourceId: string): Promise<DataFilteringProfileResponse> {
     return request({
       method: 'GET',
@@ -89,6 +112,19 @@ export class DataFilteringProfilesClient {
   /**
    * Full-replace (PUT) the profile at `resourceId`. Returns the updated resource as the API
    * echoes it back.
+   * @example
+   * ```ts
+   * import { ManagementClient } from '@cdot65/prisma-airs-sdk';
+   * const mgmt = new ManagementClient();
+   *
+   * const updated = await mgmt.dlp.dataFilteringProfiles.replace('dfp-1', {
+   *   file_based: true,
+   *   non_file_based: false,
+   *   description: 'Finance — updated',
+   * });
+   * // updated =>
+   * // { id: 'dfp-1', name: 'Finance', file_based: true, non_file_based: false }
+   * ```
    */
   async replace(
     resourceId: string,

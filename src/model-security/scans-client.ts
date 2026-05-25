@@ -147,6 +147,19 @@ export class ModelSecurityScansClient {
    * Create a new model security scan.
    * @param body - Scan creation request body.
    * @returns The created scan response.
+   * @example
+   * ```ts
+   * import { ModelSecurityClient } from '@cdot65/prisma-airs-sdk';
+   * const ms = new ModelSecurityClient();
+   *
+   * const scan = await ms.scans.create({
+   *   model_uri: 'hf://org/model',
+   *   security_group_uuid: '550e8400-e29b-41d4-a716-446655440000',
+   *   scan_origin: 'MODEL_SECURITY_SDK',
+   * });
+   * // scan =>
+   * // { uuid: '550e8400-...', eval_outcome: 'PENDING', source_type: 'HUGGING_FACE', ... }
+   * ```
    */
   async create(body: ScanCreateRequest): Promise<ScanBaseResponse> {
     return request({
@@ -164,6 +177,15 @@ export class ModelSecurityScansClient {
    * List model security scans with optional filters.
    * @param opts - Pagination and filter options.
    * @returns Paginated list of scans.
+   * @example
+   * ```ts
+   * import { ModelSecurityClient } from '@cdot65/prisma-airs-sdk';
+   * const ms = new ModelSecurityClient();
+   *
+   * const scans = await ms.scans.list({ limit: 5, source_types: ['HUGGING_FACE'] });
+   * // scans =>
+   * // { pagination: { total_items: 42 }, scans: [{ uuid: '550e8400-...', eval_outcome: 'ALLOWED', ... }] }
+   * ```
    */
   async list(opts?: ModelSecurityScanListOptions): Promise<ScanList> {
     return request({
@@ -181,6 +203,15 @@ export class ModelSecurityScansClient {
    * Get a single scan by UUID.
    * @param uuid - Scan UUID.
    * @returns The scan response.
+   * @example
+   * ```ts
+   * import { ModelSecurityClient } from '@cdot65/prisma-airs-sdk';
+   * const ms = new ModelSecurityClient();
+   *
+   * const scan = await ms.scans.get('550e8400-e29b-41d4-a716-446655440000');
+   * // scan =>
+   * // { uuid: '550e8400-...', eval_outcome: 'ALLOWED', model_uri: 'hf://org/model', ... }
+   * ```
    */
   async get(uuid: string): Promise<ScanBaseResponse> {
     assertUuid(uuid, 'scan uuid');
@@ -199,6 +230,17 @@ export class ModelSecurityScansClient {
    * @param scanUuid - Scan UUID.
    * @param opts - Pagination and filter options.
    * @returns Paginated list of rule evaluations.
+   * @example
+   * ```ts
+   * import { ModelSecurityClient } from '@cdot65/prisma-airs-sdk';
+   * const ms = new ModelSecurityClient();
+   *
+   * const evals = await ms.scans.getEvaluations('550e8400-e29b-41d4-a716-446655440000', {
+   *   result: 'FAILED',
+   * });
+   * // evals.evaluations =>
+   * // [{ uuid: '660e8400-...', rule_name: 'Pickle Scan', result: 'FAILED', violation_count: 2, ... }]
+   * ```
    */
   async getEvaluations(
     scanUuid: string,
@@ -221,6 +263,17 @@ export class ModelSecurityScansClient {
    * @param scanUuid - Scan UUID.
    * @param opts - Pagination and file filter options.
    * @returns Paginated list of files.
+   * @example
+   * ```ts
+   * import { ModelSecurityClient } from '@cdot65/prisma-airs-sdk';
+   * const ms = new ModelSecurityClient();
+   *
+   * const files = await ms.scans.getFiles('550e8400-e29b-41d4-a716-446655440000', {
+   *   query_path: '/',
+   * });
+   * // files.files =>
+   * // [{ uuid: '660e8400-...', path: '/model.bin', type: 'FILE', result: 'SUCCESS', ... }]
+   * ```
    */
   async getFiles(scanUuid: string, opts?: ModelSecurityFileListOptions): Promise<FileList> {
     assertUuid(scanUuid, 'scan uuid');
@@ -240,6 +293,16 @@ export class ModelSecurityScansClient {
    * @param scanUuid - Scan UUID.
    * @param body - Labels to add.
    * @returns Labels response.
+   * @example
+   * ```ts
+   * import { ModelSecurityClient } from '@cdot65/prisma-airs-sdk';
+   * const ms = new ModelSecurityClient();
+   *
+   * const res = await ms.scans.addLabels('550e8400-e29b-41d4-a716-446655440000', {
+   *   labels: [{ key: 'env', value: 'prod' }],
+   * });
+   * // res => {} (empty object on success)
+   * ```
    */
   async addLabels(scanUuid: string, body: LabelsCreateRequest): Promise<LabelsResponse> {
     assertUuid(scanUuid, 'scan uuid');
@@ -259,6 +322,16 @@ export class ModelSecurityScansClient {
    * @param scanUuid - Scan UUID.
    * @param body - Labels to set.
    * @returns Labels response.
+   * @example
+   * ```ts
+   * import { ModelSecurityClient } from '@cdot65/prisma-airs-sdk';
+   * const ms = new ModelSecurityClient();
+   *
+   * const res = await ms.scans.setLabels('550e8400-e29b-41d4-a716-446655440000', {
+   *   labels: [{ key: 'env', value: 'staging' }],
+   * });
+   * // res => {} (empty object on success)
+   * ```
    */
   async setLabels(scanUuid: string, body: LabelsCreateRequest): Promise<LabelsResponse> {
     assertUuid(scanUuid, 'scan uuid');
@@ -278,6 +351,14 @@ export class ModelSecurityScansClient {
    * @param scanUuid - Scan UUID.
    * @param keys - Label keys to delete.
    * @returns Resolves when the labels are deleted.
+   * @example
+   * ```ts
+   * import { ModelSecurityClient } from '@cdot65/prisma-airs-sdk';
+   * const ms = new ModelSecurityClient();
+   *
+   * await ms.scans.deleteLabels('550e8400-e29b-41d4-a716-446655440000', ['env', 'team']);
+   * // resolves to undefined on success
+   * ```
    */
   async deleteLabels(scanUuid: string, keys: string[]): Promise<void> {
     assertUuid(scanUuid, 'scan uuid');
@@ -296,6 +377,15 @@ export class ModelSecurityScansClient {
    * @param scanUuid - Scan UUID.
    * @param opts - Pagination options.
    * @returns Paginated list of violations.
+   * @example
+   * ```ts
+   * import { ModelSecurityClient } from '@cdot65/prisma-airs-sdk';
+   * const ms = new ModelSecurityClient();
+   *
+   * const v = await ms.scans.getViolations('550e8400-e29b-41d4-a716-446655440000', { limit: 10 });
+   * // v.violations =>
+   * // [{ uuid: '660e8400-...', rule_name: 'Pickle Scan', description: 'Unsafe pickle opcode', ... }]
+   * ```
    */
   async getViolations(
     scanUuid: string,
@@ -317,6 +407,15 @@ export class ModelSecurityScansClient {
    * Get distinct label keys across all scans.
    * @param opts - Pagination options.
    * @returns Paginated list of label keys.
+   * @example
+   * ```ts
+   * import { ModelSecurityClient } from '@cdot65/prisma-airs-sdk';
+   * const ms = new ModelSecurityClient();
+   *
+   * const keys = await ms.scans.getLabelKeys({ limit: 50 });
+   * // keys =>
+   * // { pagination: { total_items: 3 }, keys: ['env', 'team', 'owner'] }
+   * ```
    */
   async getLabelKeys(opts?: ModelSecurityLabelListOptions): Promise<LabelKeyList> {
     return request({
@@ -335,6 +434,15 @@ export class ModelSecurityScansClient {
    * @param key - Label key to get values for.
    * @param opts - Pagination options.
    * @returns Paginated list of label values.
+   * @example
+   * ```ts
+   * import { ModelSecurityClient } from '@cdot65/prisma-airs-sdk';
+   * const ms = new ModelSecurityClient();
+   *
+   * const values = await ms.scans.getLabelValues('env', { limit: 50 });
+   * // values =>
+   * // { pagination: { total_items: 2 }, values: ['prod', 'staging'] }
+   * ```
    */
   async getLabelValues(key: string, opts?: ModelSecurityLabelListOptions): Promise<LabelValueList> {
     return request({
@@ -352,6 +460,15 @@ export class ModelSecurityScansClient {
    * Get a single rule evaluation by UUID.
    * @param uuid - Evaluation UUID.
    * @returns The rule evaluation response.
+   * @example
+   * ```ts
+   * import { ModelSecurityClient } from '@cdot65/prisma-airs-sdk';
+   * const ms = new ModelSecurityClient();
+   *
+   * const ev = await ms.scans.getEvaluation('660e8400-e29b-41d4-a716-446655440000');
+   * // ev =>
+   * // { uuid: '660e8400-...', rule_name: 'Pickle Scan', result: 'FAILED', violation_count: 2, ... }
+   * ```
    */
   async getEvaluation(uuid: string): Promise<RuleEvaluationResponse> {
     assertUuid(uuid, 'evaluation uuid');
@@ -369,6 +486,15 @@ export class ModelSecurityScansClient {
    * Get a single violation by UUID.
    * @param uuid - Violation UUID.
    * @returns The violation response.
+   * @example
+   * ```ts
+   * import { ModelSecurityClient } from '@cdot65/prisma-airs-sdk';
+   * const ms = new ModelSecurityClient();
+   *
+   * const violation = await ms.scans.getViolation('660e8400-e29b-41d4-a716-446655440000');
+   * // violation =>
+   * // { uuid: '660e8400-...', rule_name: 'Pickle Scan', description: 'Unsafe pickle opcode', ... }
+   * ```
    */
   async getViolation(uuid: string): Promise<ViolationResponse> {
     assertUuid(uuid, 'violation uuid');

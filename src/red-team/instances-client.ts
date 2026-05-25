@@ -37,6 +37,20 @@ export class RedTeamInstancesClient {
    * Create a new tenant instance.
    * @param body - The instance creation request.
    * @returns The instance response.
+   * @example
+   * ```ts
+   * import { RedTeamClient } from '@cdot65/prisma-airs-sdk';
+   * const rt = new RedTeamClient();
+   *
+   * const instance = await rt.instances.createInstance({
+   *   tsg_id: 'tsg-1',
+   *   tenant_id: 'tenant-1',
+   *   app_id: 'airs-redteam',
+   *   region: 'us-east-1',
+   * });
+   * // instance =>
+   * // { tsg_id: 'tsg-1', tenant_id: 'tenant-1', app_id: 'airs-redteam', is_success: true }
+   * ```
    */
   async createInstance(body: InstanceRequest): Promise<InstanceResponse> {
     return request({
@@ -54,6 +68,15 @@ export class RedTeamInstancesClient {
    * Get an existing tenant instance.
    * @param tenantId - The tenant ID.
    * @returns The instance details.
+   * @example
+   * ```ts
+   * import { RedTeamClient } from '@cdot65/prisma-airs-sdk';
+   * const rt = new RedTeamClient();
+   *
+   * const instance = await rt.instances.getInstance('tenant-1');
+   * // instance =>
+   * // { tsg_id: 'tsg-1', tenant_id: 'tenant-1', app_id: 'airs-redteam', region: 'us-east-1' }
+   * ```
    */
   async getInstance(tenantId: string): Promise<InstanceGetResponse> {
     return request({
@@ -71,6 +94,20 @@ export class RedTeamInstancesClient {
    * @param tenantId - The tenant ID.
    * @param body - The instance update request.
    * @returns The instance response.
+   * @example
+   * ```ts
+   * import { RedTeamClient } from '@cdot65/prisma-airs-sdk';
+   * const rt = new RedTeamClient();
+   *
+   * const instance = await rt.instances.updateInstance('tenant-1', {
+   *   tsg_id: 'tsg-1',
+   *   tenant_id: 'tenant-1',
+   *   app_id: 'airs-redteam',
+   *   region: 'us-west-2',
+   * });
+   * // instance =>
+   * // { tsg_id: 'tsg-1', tenant_id: 'tenant-1', is_success: true }
+   * ```
    */
   async updateInstance(tenantId: string, body: InstanceRequest): Promise<InstanceResponse> {
     return request({
@@ -88,6 +125,15 @@ export class RedTeamInstancesClient {
    * Delete a tenant instance.
    * @param tenantId - The tenant ID.
    * @returns The instance response.
+   * @example
+   * ```ts
+   * import { RedTeamClient } from '@cdot65/prisma-airs-sdk';
+   * const rt = new RedTeamClient();
+   *
+   * const result = await rt.instances.deleteInstance('tenant-1');
+   * // result =>
+   * // { tsg_id: 'tsg-1', tenant_id: 'tenant-1', is_success: true }
+   * ```
    */
   async deleteInstance(tenantId: string): Promise<InstanceResponse> {
     return request({
@@ -105,6 +151,18 @@ export class RedTeamInstancesClient {
    * @param tenantId - The tenant ID.
    * @param body - The device creation request.
    * @returns The device response with statuses.
+   * @example
+   * ```ts
+   * import { RedTeamClient } from '@cdot65/prisma-airs-sdk';
+   * const rt = new RedTeamClient();
+   *
+   * const result = await rt.instances.createDevices('tenant-1', {
+   *   instance: { app_id: 'airs-redteam', region: 'us-east-1', tenant_id: 'tenant-1', tsg_id: 'tsg-1' },
+   *   devices: [{ serial_number: 'SN-0001' }],
+   * });
+   * // result =>
+   * // { devices: [{ serial_number: 'SN-0001', status: 'CREATED' }] }
+   * ```
    */
   async createDevices(tenantId: string, body: DeviceRequest): Promise<DeviceResponse> {
     return request({
@@ -123,6 +181,18 @@ export class RedTeamInstancesClient {
    * @param tenantId - The tenant ID.
    * @param body - The device update request.
    * @returns The device response with statuses.
+   * @example
+   * ```ts
+   * import { RedTeamClient } from '@cdot65/prisma-airs-sdk';
+   * const rt = new RedTeamClient();
+   *
+   * const result = await rt.instances.updateDevices('tenant-1', {
+   *   instance: { app_id: 'airs-redteam', region: 'us-east-1', tenant_id: 'tenant-1', tsg_id: 'tsg-1' },
+   *   devices: [{ serial_number: 'SN-0001', device_name: 'renamed' }],
+   * });
+   * // result =>
+   * // { devices: [{ serial_number: 'SN-0001', status: 'UPDATED' }] }
+   * ```
    */
   async updateDevices(tenantId: string, body: DeviceRequest): Promise<DeviceResponse> {
     return request({
@@ -141,6 +211,15 @@ export class RedTeamInstancesClient {
    * @param tenantId - The tenant ID.
    * @param serialNumbers - Comma-separated serial numbers to delete.
    * @returns The device response with statuses.
+   * @example
+   * ```ts
+   * import { RedTeamClient } from '@cdot65/prisma-airs-sdk';
+   * const rt = new RedTeamClient();
+   *
+   * const result = await rt.instances.deleteDevices('tenant-1', 'SN-0001,SN-0002');
+   * // result =>
+   * // { devices: [{ serial_number: 'SN-0001', status: 'DELETED' }] }
+   * ```
    */
   async deleteDevices(tenantId: string, serialNumbers: string): Promise<DeviceResponse> {
     return request({
@@ -157,6 +236,15 @@ export class RedTeamInstancesClient {
   /**
    * Get or create registry credentials.
    * @returns The registry credentials with token and expiry.
+   * @example
+   * ```ts
+   * import { RedTeamClient } from '@cdot65/prisma-airs-sdk';
+   * const rt = new RedTeamClient();
+   *
+   * const creds = await rt.instances.getRegistryCredentials();
+   * // creds =>
+   * // { token: 'eyJ...', expiry: '2025-01-01T00:00:00Z' }
+   * ```
    */
   async getRegistryCredentials(): Promise<RegistryCredentials> {
     return request({
