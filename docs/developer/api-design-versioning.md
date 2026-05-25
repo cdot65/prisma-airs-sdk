@@ -1,0 +1,187 @@
+# API Design & Versioning
+
+This page describes the design and versioning philosophy of the Prisma AIRS TypeScript SDK: how it
+relates to the upstream OpenAPI specs and the Python `pan-aisecurity` SDK, what counts as a breaking
+change, how `.passthrough()` keeps responses forward-compatible, and the two-stage automated tooling
+(`preflight` + `audit:live`) plus the changeset-driven release flow that keep schemas honest.
+
+!!! tip "Looking for the symbol-level docs?"
+    The TypeDoc-generated [Full API reference](../reference/api/index.md) is the authoritative
+    listing of every exported type and schema. This page is about the _policy_ around those exports.
+
+## Semantic versioning (pre-1.0)
+
+The SDK is published as `@cdot65/prisma-airs-sdk`. At the time of writing the version in
+`package.json` is **`0.9.2`** — i.e. **pre-1.0**.
+
+Under pre-1.0 semver, the usual guarantees shift down one level:
+
+- **Minor** (`0.x.0`) releases may contain **breaking changes**. Type reshapes that change a public
+  response shape land as minor bumps.
+- **Patch** (`0.x.y`) releases are bug fixes, internal changes, schema-drift corrections, and
+  additive-only changes that don't alter existing public types.
+
+Once the SDK reaches `1.0.0`, normal semver applies and breaking changes move to major bumps. Until
+then, pin a version and read the release notes / changesets before upgrading.
+
+### What counts as a breaking change
+
+For this SDK, the surface that matters is the **TypeScript types** consumers compile against, not
+just runtime behavior. A change is breaking if existing, correct caller code stops compiling or
+silently changes meaning. Examples drawn from real changesets:
+
+- Reshaping a response type — e.g. the `ScanResponse.tool_detected` `IODetected` / `ScanSummary`
+  remodel, where flag fields moved from `input_detected.<flag>` into a `detection_entries[]` walk.
+- Making a previously-optional field **required** (or vice versa) on a response type.
+- Removing or renaming an exported symbol, enum member, or method.
+
+By contrast, these are **non-breaking**: adding a new optional field to a request, adding a new
+exported schema/type, the server adding a field your `.passthrough()` schema now carries through,
+and correcting a schema so it matches what the API already returned.
+
+## Forward compatibility via `.passthrough()`
+
+Every response model in `src/models/*.ts` is a Zod schema whose object validators end in
+`.passthrough()`:
+
+```ts
+export const ApiKeySchema = z
+  .object({
+    api_key_id: z.string(),
+    api_key_name: z.string().optional(),
+    // ...
+  })
+  .passthrough();
+```
+
+The philosophy: **responses tolerate unknown fields.** Without `.passthrough()`, Zod's default
+behavior strips unknown keys (and `.strict()` would reject them outright). With it, when the AIRS
+API ships a new response field, an already-installed SDK version:
+
+1. still validates the response (no `RESPONSE_VALIDATION` error), and
+2. preserves the new field on the returned object, so advanced callers can read it via an index
+   even before the SDK adds a typed accessor.
+
+This decouples the API's release cadence from the SDK's. The SDK models known fields strictly
+(required vs optional, types) while staying robust to additive server changes. The risk it accepts
+is the inverse: if the API _changes the shape_ of a known field, `.passthrough()` won't catch it —
+that's what `audit:live` is for.
+
+## Relationship to the OpenAPI specs and the Python SDK
+
+The SDK is modeled directly from Palo Alto Networks' OpenAPI specifications, checked into `specs/`:
+
+```text
+specs/
+  ScanService_Oct2025.yaml                       # scan API
+  mgmt_service_docs.yaml                          # management API
+  AIRS-Model-Security-DataPlane.yaml             # model security (data)
+  AIRS-Model-Security-Management.yaml            # model security (mgmt)
+  PaloAltoNetworks-AIRS-RedTeam-DataPlane.yaml   # red team (data)
+  PaloAltoNetworks-AIRS-RedTeam-management.yaml  # red team (mgmt)
+  dlp/                                            # DLP specs (one yaml per resource)
+    DataFilteringProfiles.yaml  DataPatterns.yaml
+    DataProfiles.yaml           Dictionaries.yaml
+    ...                                           # plus not-yet-modeled DLP endpoints
+```
+
+These specs are the **source of truth for shapes**. The Zod schemas in `src/models/` are the
+hand-written, runtime-validating counterpart, and the preflight gate (below) continuously checks
+that the two agree.
+
+The SDK also tracks the official Python `pan-aisecurity` SDK conceptually — files like
+`src/errors.ts` and `src/constants.ts` carry `mirrors Python SDK` comments — but it deliberately
+**extends beyond** it: the Python SDK covers scanning, whereas this SDK covers all three service
+domains (AI Runtime Security, Model Security, AI Red Teaming) plus configuration/DLP management.
+
+!!! note "Why some DLP specs are excluded"
+    `specs/dlp/` contains more yaml than the SDK models. The preflight script whitelists only the
+    four DLP specs that are actually implemented (`DataFilteringProfiles`, `DataPatterns`,
+    `DataProfiles`, `Dictionaries`). Loading the rest would create component-name collisions (e.g.
+    two different `Policy` definitions) and produce false drift against unrelated schemas.
+
+## Preflight: catching Zod-vs-OpenAPI drift in CI
+
+`npm run preflight` (`scripts/preflight-schemas.ts`) is the static drift gate. It:
+
+1. Loads and dereferences every OpenAPI spec in `specs/` into a map of component schemas.
+2. Loads every `*Schema` Zod export from `src/models/` and converts each to JSON Schema via
+   `zod-to-json-schema`.
+3. Matches each Zod schema to its OpenAPI counterpart by name and diffs them.
+
+The diff is intentionally **asymmetric** (see `scripts/preflight/diff-schemas.ts`): Zod is allowed
+to omit _optional_ OpenAPI fields (passthrough handles those at runtime), but **required fields and
+shared field types are checked strictly**. It reports four drift kinds: `missing-required-field`,
+`extra-required-field`, `type-mismatch`, and `extra-field`.
+
+```bash
+npm run preflight        # strict — exit 1 on unacknowledged drift (CI gate)
+npm run preflight:warn   # report drift, exit 0
+```
+
+Known, intentional divergences are recorded in an **allowlist** (`scripts/preflight/allowlist.ts`).
+The report separates _acknowledged_ (allowlisted) drift from _unacknowledged_ drift, and only the
+latter fails the build. The gate started life as `preflight:warn` in CI while drift was paid down
+(81 → 39 findings across a series of PRs) and then flipped to strict. Run `preflight` before tagging
+a release.
+
+## audit:live: catching API-vs-Zod runtime drift
+
+Preflight compares Zod to the _spec_. But specs drift from reality, and `.passthrough()` hides
+additive changes. `npm run audit:live` (`scripts/live-audit.ts`) closes that gap by hitting a
+representative set of **read-only** endpoints on a real tenant and checking actual responses against
+the live Zod schemas:
+
+```bash
+# requires PANW_* env vars for the tenants you want to probe
+npm run audit:live
+```
+
+It probes list/get endpoints across all three OAuth domains (e.g. `profiles.list`, `scanLogs.query`,
+the DLP lists, model-security `securityRules.list`, red-team `targets.list`, `eula.getStatus`,
+`getQuota`), classifies each result, and **exits non-zero on any `RESPONSE_VALIDATION`**. Results
+are bucketed into `ok`, `schema-drift` (the API returned a shape Zod rejected — fix the schema),
+`auth` (never reached the API — missing creds), and `other-error` (usually an empty tenant or
+permissions, not a bug).
+
+This is the check that surfaced the runtime divergences (#128, #134, #136) that only appeared after
+real CLI smoke tests. The two checks are complementary:
+
+| Check        | Compares           | Catches                                  | Needs a live tenant? |
+| ------------ | ------------------ | ---------------------------------------- | -------------------- |
+| `preflight`  | Zod ↔ OpenAPI spec | schema drift from the documented spec    | No                   |
+| `audit:live` | live API ↔ Zod     | runtime divergence the spec doesn't show | Yes (`PANW_*`)       |
+
+Run `audit:live` before tagging a release or after any API-side change.
+
+## Changeset-driven releases
+
+Every user-facing change ships with a changeset: a small markdown file in `.changeset/`. The format
+is a YAML front-matter block declaring the bump level, followed by a user-facing description:
+
+```md
+---
+'@cdot65/prisma-airs-sdk': minor
+---
+
+**Breaking type changes** to `ScanResponse.tool_detected` to match the actual AIRS API shape
+(verified against a live response).
+
+### Migration
+
+If you read tool flags from `tool_detected.input_detected.<flag>`, walk `detection_entries` instead.
+```
+
+Conventions in this repo:
+
+- **Bump level** is the one word after the package name: `patch`, `minor`, or `major`. Pick it per
+  the pre-1.0 rules above — breaking type reshapes are `minor`, fixes/internal/additive are `patch`.
+- **Description** is _user-facing_: state what was added or fixed, and include a **Migration**
+  section for any breaking change (existing changesets like `0017-tool-detected-reshape.md` are the
+  template).
+- **Internal-only** work (e.g. the preflight gate, `0011-preflight-schema-check.md`) is still
+  recorded as a `patch` with an explicit "no public API change" note.
+
+These accumulated changesets are what drive the version bump and the release notes when a release is
+cut. `prepublishOnly` runs `lint` + `test` as a final guard, and the package publishes via OIDC
+trusted publishing on a GitHub release — no npm tokens.

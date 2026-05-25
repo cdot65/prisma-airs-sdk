@@ -94,6 +94,8 @@ nav:
           - API Key Rotation: guides/cookbook/api-key-rotation.md
   - API Reference: reference/api/
   - Developer:
+      - Architecture & Internals: developer/architecture.md
+      - API Design & Versioning: developer/api-design-versioning.md
       - Error Handling: developer/error-handling.md
   - About:
       - Release Notes: about/release-notes.md

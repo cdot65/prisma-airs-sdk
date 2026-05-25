@@ -2,9 +2,34 @@
 
 Manage Data Filtering Profiles on the DLP service (`/v2/api/data-filtering-profiles`).
 
-Subclient lives at `client.dlp.dataFilteringProfiles`. Surface is **read + full-replace only** — the underlying API does not expose create or delete. To onboard a brand-new profile, provision it via the Strata Cloud Manager UI first, then manage it through this SDK.
+Subclient lives at `client.dlp.dataFilteringProfiles` (a `DataFilteringProfilesClient`). Surface is **read + full-replace only** — the underlying API does not expose create or delete. To onboard a brand-new profile, provision it via the Strata Cloud Manager UI first, then manage it through this SDK.
 
 Spec source: [`specs/dlp/DataFilteringProfiles.yaml`](https://github.com/cdot65/prisma-airs-sdk/blob/main/specs/dlp/DataFilteringProfiles.yaml)
+
+## How it works
+
+A **data filtering profile** is the enforcement layer — the resource that actually _acts_. It points at a data profile through `data_profile_id` and decides what to do when that profile matches: which directions to inspect (`direction`), whether to scan files (`file_based`) and/or chat/prompt content (`non_file_based`), at what `log_severity`, and any per-group `exception_rules` or `exclusions`. The detection logic lives in the data profile; the _policy_ (where, when, how loud) lives here.
+
+Where it sits among the four DLP resources:
+
+| Resource                               | Role                                                       |
+| -------------------------------------- | ---------------------------------------------------------- |
+| **Data Patterns**                      | Shape-based detectors                                      |
+| **Dictionaries**                       | Keyword-list detectors                                     |
+| **Data Profiles**                      | Compose detectors into a detection policy (the "what")     |
+| **Data Filtering Profiles** (this one) | Apply a data profile to filter content (the "where / how") |
+
+Flow: **patterns + dictionaries → data profile → data filtering profile → enforced on traffic.** This is the top of the stack: it's the only DLP resource that affects live content, and it does so entirely by reference to a data profile.
+
+## Get the most out of it
+
+- **An unlinked profile is a silent hole.** A filtering profile with no `data_profile_id` has nothing to match on, so it lets everything through. Audit for this regularly (Use case 1 does exactly that and fails CI if any enabled profile is unbound).
+- **`replace()` is a full PUT — read before you write.** Omitted fields are dropped, not preserved. Always `get()` the current state, merge your change in, then `replace()` so you don't accidentally disable `file_based` or wipe existing exception rules (Use case 2).
+- **Match `file_based` / `non_file_based` to the threat.** For LLM prompt/response inspection you want `non_file_based: true`; for upload scanning you want `file_based: true`. Leaving one off skips that whole content class.
+- **Use `direction` to scope cost and intent.** `UPLOAD` catches exfiltration to a model; `DOWNLOAD` catches sensitive data coming back; `BOTH` is thorough but inspects twice the traffic.
+- **Layer with `exception_rules` instead of forking profiles.** A per-group BLOCK/ALERT/ALLOW override keeps one profile authoritative rather than maintaining near-duplicate profiles per team.
+- **Gotcha — no create/delete here.** New profiles are born in the Strata Cloud Manager UI; this SDK only reads and replaces existing ones.
+- **Gotcha — confirm the `version` advanced** after a replace to be sure the write landed (Use case 2 asserts this).
 
 ## Setup
 
@@ -273,6 +298,7 @@ try {
 
 ## See also
 
+- [Full API reference](../../reference/api/index.md) — every `DataFilteringProfilesClient` method with input/output examples
 - [DLP — Data Profiles](data-profiles.md) — `data_profile_id` references resolve here
 - [DLP — Data Patterns](data-patterns.md) — patterns referenced inside detection rules on the linked data profile
 - Runnable walkthrough: [`examples/mgmt-dlp-data-filtering-profiles.ts`](https://github.com/cdot65/prisma-airs-sdk/blob/main/examples/mgmt-dlp-data-filtering-profiles.ts)
