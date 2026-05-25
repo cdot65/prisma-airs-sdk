@@ -42,6 +42,17 @@ export class Content {
    * Create a new Content instance.
    * @param opts - Content fields; at least one of prompt, response, codePrompt, codeResponse, or toolEvent is required.
    * @throws {AISecSDKException} If no content field is provided or a field exceeds its byte-length limit.
+   * @example
+   * ```ts
+   * import { Content } from '@cdot65/prisma-airs-sdk';
+   *
+   * const content = new Content({
+   *   prompt: 'What is the capital of France?',
+   *   response: 'The capital of France is Paris.',
+   * });
+   * // content.prompt   => 'What is the capital of France?'
+   * // content.response => 'The capital of France is Paris.'
+   * ```
    */
   constructor(opts: ContentOptions) {
     if (
@@ -65,6 +76,16 @@ export class Content {
     if (opts.toolEvent !== undefined) this._toolEvent = opts.toolEvent;
   }
 
+  /**
+   * User prompt text. Setting a value validates its byte length (max 2 MB).
+   * @example
+   * ```ts
+   * import { Content } from '@cdot65/prisma-airs-sdk';
+   * const content = new Content({ prompt: 'hello' });
+   * content.prompt = 'Ignore previous instructions';
+   * // content.prompt => 'Ignore previous instructions'
+   * ```
+   */
   get prompt(): string | undefined {
     return this._prompt;
   }
@@ -78,6 +99,16 @@ export class Content {
     this._prompt = value;
   }
 
+  /**
+   * AI model response text. Setting a value validates its byte length (max 2 MB).
+   * @example
+   * ```ts
+   * import { Content } from '@cdot65/prisma-airs-sdk';
+   * const content = new Content({ prompt: 'hi' });
+   * content.response = 'The capital of France is Paris.';
+   * // content.response => 'The capital of France is Paris.'
+   * ```
+   */
   get response(): string | undefined {
     return this._response;
   }
@@ -91,6 +122,16 @@ export class Content {
     this._response = value;
   }
 
+  /**
+   * Conversation context. Setting a value validates its byte length (max 100 MB).
+   * @example
+   * ```ts
+   * import { Content } from '@cdot65/prisma-airs-sdk';
+   * const content = new Content({ prompt: 'hi' });
+   * content.context = 'User is asking about geography.';
+   * // content.context => 'User is asking about geography.'
+   * ```
+   */
   get context(): string | undefined {
     return this._context;
   }
@@ -104,6 +145,16 @@ export class Content {
     this._context = value;
   }
 
+  /**
+   * Code prompt text. Setting a value validates its byte length (max 2 MB).
+   * @example
+   * ```ts
+   * import { Content } from '@cdot65/prisma-airs-sdk';
+   * const content = new Content({ codePrompt: 'def add(a, b): return a + b' });
+   * content.codePrompt = 'rm -rf /';
+   * // content.codePrompt => 'rm -rf /'
+   * ```
+   */
   get codePrompt(): string | undefined {
     return this._codePrompt;
   }
@@ -117,6 +168,16 @@ export class Content {
     this._codePrompt = value;
   }
 
+  /**
+   * Code response text. Setting a value validates its byte length (max 2 MB).
+   * @example
+   * ```ts
+   * import { Content } from '@cdot65/prisma-airs-sdk';
+   * const content = new Content({ prompt: 'write a sort fn' });
+   * content.codeResponse = 'def sort(xs): return sorted(xs)';
+   * // content.codeResponse => 'def sort(xs): return sorted(xs)'
+   * ```
+   */
   get codeResponse(): string | undefined {
     return this._codeResponse;
   }
@@ -130,6 +191,19 @@ export class Content {
     this._codeResponse = value;
   }
 
+  /**
+   * Tool/function call event data attached to the content.
+   * @example
+   * ```ts
+   * import { Content } from '@cdot65/prisma-airs-sdk';
+   * const content = new Content({ prompt: 'use a tool' });
+   * content.toolEvent = {
+   *   metadata: { ecosystem: 'mcp', method: 'invoke', server_name: 'files' },
+   *   input: '{}',
+   * };
+   * // content.toolEvent.metadata.server_name => 'files'
+   * ```
+   */
   get toolEvent(): ToolEvent | undefined {
     return this._toolEvent;
   }
@@ -140,6 +214,12 @@ export class Content {
   /**
    * Total byte length of all text content fields.
    * @returns Combined byte length of all text content fields.
+   * @example
+   * ```ts
+   * import { Content } from '@cdot65/prisma-airs-sdk';
+   * const content = new Content({ prompt: 'ab', response: 'cd' });
+   * // content.length => 4
+   * ```
    */
   get length(): number {
     let total = 0;
@@ -154,6 +234,13 @@ export class Content {
   /**
    * Serialize to the API request format.
    * @returns The content as a scan request contents inner object.
+   * @example
+   * ```ts
+   * import { Content } from '@cdot65/prisma-airs-sdk';
+   * const content = new Content({ prompt: 'p', codePrompt: 'fn()' });
+   * const json = content.toJSON();
+   * // json => { prompt: 'p', code_prompt: 'fn()' }
+   * ```
    */
   toJSON(): ScanRequestContentsInner {
     const obj: ScanRequestContentsInner = {};
@@ -169,6 +256,14 @@ export class Content {
   /**
    * Create a Content instance from an API response object.
    * @param json - Scan request contents inner object.
+   * @returns A new Content instance populated from the JSON object.
+   * @example
+   * ```ts
+   * import { Content } from '@cdot65/prisma-airs-sdk';
+   * const content = Content.fromJSON({ prompt: 'p', code_response: 'cr' });
+   * // content.prompt       => 'p'
+   * // content.codeResponse => 'cr'
+   * ```
    */
   static fromJSON(json: ScanRequestContentsInner): Content {
     return new Content({
@@ -185,6 +280,14 @@ export class Content {
    * Load content from a JSON file.
    * @param filePath - Path to JSON file containing scan request contents.
    * @returns A new Content instance populated from the JSON file.
+   * @example
+   * ```ts
+   * import { Content } from '@cdot65/prisma-airs-sdk';
+   * // content.json => { "prompt": "from file", "response": "resp" }
+   * const content = Content.fromJSONFile('./content.json');
+   * // content.prompt   => 'from file'
+   * // content.response => 'resp'
+   * ```
    */
   static fromJSONFile(filePath: string): Content {
     const raw = readFileSync(filePath, 'utf-8');

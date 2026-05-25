@@ -36,6 +36,23 @@ export interface ManagementClientOptions {
 /**
  * Client for AIRS management API operations.
  * Authenticates via OAuth2 client_credentials flow.
+ * @example
+ * ```ts
+ * import { ManagementClient } from '@cdot65/prisma-airs-sdk';
+ *
+ * // Reads PANW_MGMT_CLIENT_ID / PANW_MGMT_CLIENT_SECRET / PANW_MGMT_TSG_ID env vars
+ * const mgmt = new ManagementClient();
+ *
+ * // Or pass credentials explicitly
+ * const explicit = new ManagementClient({
+ *   clientId: 'your-client-id',
+ *   clientSecret: 'your-client-secret',
+ *   tsgId: '1234567890',
+ * });
+ *
+ * const profiles = await mgmt.profiles.list();
+ * // profiles.ai_profiles => [ { profile_id: '550e8400-...', profile_name: 'prod', active: true } ]
+ * ```
  */
 export class ManagementClient {
   public readonly profiles: ProfilesClient;

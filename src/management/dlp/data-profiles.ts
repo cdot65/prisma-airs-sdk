@@ -51,6 +51,18 @@ export class DataProfilesClient {
   /**
    * List data profiles. Returns the Spring `Page<>` envelope verbatim so callers can inspect
    * `totalElements`, `pageable`, etc.
+   * @example
+   * ```ts
+   * import { ManagementClient } from '@cdot65/prisma-airs-sdk';
+   * const mgmt = new ManagementClient();
+   *
+   * const page = await mgmt.dlp.dataProfiles.list({ size: 5, sort: ['name,asc'] });
+   * // page =>
+   * // {
+   * //   content: [{ id: 'prof-1', name: 'Confidential', profile_type: 'advanced', profile_status: 'active' }],
+   * //   totalElements: 1, totalPages: 1, number: 0, size: 20, first: true, last: true
+   * // }
+   * ```
    */
   async list(params: DataProfileListParams = {}): Promise<PageDataProfileResponse> {
     const queryParams: Record<string, string | string[]> = {};
@@ -69,7 +81,29 @@ export class DataProfilesClient {
     });
   }
 
-  /** Create a new data profile. */
+  /**
+   * Create a new data profile.
+   * @example
+   * ```ts
+   * import { ManagementClient } from '@cdot65/prisma-airs-sdk';
+   * const mgmt = new ManagementClient();
+   *
+   * const created = await mgmt.dlp.dataProfiles.create({
+   *   name: 'example-profile',
+   *   detection_rules: [
+   *     {
+   *       rule_type: 'expression_tree',
+   *       expression_tree: {
+   *         operator_type: 'and',
+   *         rule_item: { detection_technique: 'regex', match_type: 'include' },
+   *       },
+   *     },
+   *   ],
+   * });
+   * // created =>
+   * // { id: 'prof-1', name: 'example-profile', profile_type: 'advanced', profile_status: 'active' }
+   * ```
+   */
   async create(body: AdvancedDataProfileRequest): Promise<DataProfileResponse> {
     return request({
       method: 'POST',
@@ -82,7 +116,18 @@ export class DataProfilesClient {
     });
   }
 
-  /** Get a single data profile by resource ID. */
+  /**
+   * Get a single data profile by resource ID.
+   * @example
+   * ```ts
+   * import { ManagementClient } from '@cdot65/prisma-airs-sdk';
+   * const mgmt = new ManagementClient();
+   *
+   * const profile = await mgmt.dlp.dataProfiles.get('prof-1');
+   * // profile =>
+   * // { id: 'prof-1', name: 'Confidential', profile_type: 'advanced', profile_status: 'active' }
+   * ```
+   */
   async get(resourceId: string): Promise<DataProfileResponse> {
     return request({
       method: 'GET',
@@ -97,6 +142,26 @@ export class DataProfilesClient {
   /**
    * Full-replace (PUT) the profile at `resourceId`. Returns the updated resource as the API
    * echoes it back.
+   * @example
+   * ```ts
+   * import { ManagementClient } from '@cdot65/prisma-airs-sdk';
+   * const mgmt = new ManagementClient();
+   *
+   * const updated = await mgmt.dlp.dataProfiles.replace('prof-1', {
+   *   name: 'Confidential',
+   *   detection_rules: [
+   *     {
+   *       rule_type: 'expression_tree',
+   *       expression_tree: {
+   *         operator_type: 'and',
+   *         rule_item: { detection_technique: 'regex', match_type: 'include' },
+   *       },
+   *     },
+   *   ],
+   * });
+   * // updated =>
+   * // { id: 'prof-1', name: 'Confidential', profile_type: 'advanced', profile_status: 'active' }
+   * ```
    */
   async replace(
     resourceId: string,
@@ -117,6 +182,19 @@ export class DataProfilesClient {
    * Partial update via JSON Merge Patch (RFC 7396). Sent with
    * `Content-Type: application/merge-patch+json`. Fields set to `null` clear server-side;
    * omitted fields are left unchanged.
+   * @example
+   * ```ts
+   * import { ManagementClient } from '@cdot65/prisma-airs-sdk';
+   * const mgmt = new ManagementClient();
+   *
+   * const patched = await mgmt.dlp.dataProfiles.patch('prof-1', {
+   *   name: 'Confidential',
+   *   profile_type: 'advanced',
+   *   description: 'Updated by SDK',
+   * });
+   * // patched =>
+   * // { id: 'prof-1', name: 'Confidential', profile_type: 'advanced', description: 'Updated by SDK' }
+   * ```
    */
   async patch(resourceId: string, body: DataProfilePatchRequest): Promise<DataProfileResponse> {
     return request({

@@ -39,6 +39,21 @@ export class TopicsClient {
    * Create a new custom topic.
    * @param body - Topic definition with name, description, and examples.
    * @returns The created custom topic.
+   * @example
+   * ```ts
+   * import { ManagementClient } from '@cdot65/prisma-airs-sdk';
+   * const mgmt = new ManagementClient(); // reads PANW_MGMT_* env vars
+   *
+   * const topic = await mgmt.topics.create({
+   *   topic_name: 'credit-card-numbers',
+   *   active: true,
+   *   description: 'Detects credit card numbers in prompts and responses',
+   *   examples: ['4111-1111-1111-1111', '5500 0000 0000 0004'],
+   * });
+   * // topic =>
+   * // { topic_id: '550e8400-...', topic_name: 'credit-card-numbers',
+   * //   revision: 1, active: true, examples: ['4111-1111-1111-1111', ...] }
+   * ```
    */
   async create(body: CreateCustomTopicRequest): Promise<CustomTopic> {
     return request({
@@ -56,6 +71,16 @@ export class TopicsClient {
    * List custom topics for the TSG.
    * @param opts - Pagination options.
    * @returns Paginated list of custom topics.
+   * @example
+   * ```ts
+   * import { ManagementClient } from '@cdot65/prisma-airs-sdk';
+   * const mgmt = new ManagementClient(); // reads PANW_MGMT_* env vars
+   *
+   * const page = await mgmt.topics.list({ offset: 0, limit: 5 });
+   * // page =>
+   * // { custom_topics: [ { topic_id: '550e8400-...', topic_name: 'credit-cards',
+   * //     revision: 1, active: true } ], next_offset: 20 }
+   * ```
    */
   async list(opts?: PaginationOptions): Promise<CustomTopicListResponse> {
     const params: Record<string, string> = {
@@ -79,6 +104,19 @@ export class TopicsClient {
    * @param topicId - UUID of the topic to update.
    * @param body - Updated topic definition.
    * @returns The updated custom topic.
+   * @example
+   * ```ts
+   * import { ManagementClient } from '@cdot65/prisma-airs-sdk';
+   * const mgmt = new ManagementClient(); // reads PANW_MGMT_* env vars
+   *
+   * const updated = await mgmt.topics.update('550e8400-e29b-41d4-a716-446655440000', {
+   *   topic_name: 'credit-card-numbers',
+   *   description: 'Updated: detects credit card numbers and CVVs',
+   *   examples: ['4111-1111-1111-1111', 'CVV: 123'],
+   * });
+   * // updated =>
+   * // { topic_id: '550e8400-...', topic_name: 'credit-card-numbers', revision: 2, active: true }
+   * ```
    */
   async update(topicId: string, body: CreateCustomTopicRequest): Promise<CustomTopic> {
     assertUuid(topicId, 'topic_id');
@@ -97,6 +135,14 @@ export class TopicsClient {
    * Delete a custom topic. Fails if topic is referenced by a profile.
    * @param topicId - UUID of the topic to delete.
    * @returns Deletion confirmation message.
+   * @example
+   * ```ts
+   * import { ManagementClient } from '@cdot65/prisma-airs-sdk';
+   * const mgmt = new ManagementClient(); // reads PANW_MGMT_* env vars
+   *
+   * const result = await mgmt.topics.delete('550e8400-e29b-41d4-a716-446655440000');
+   * // result => { message: 'deleted' }
+   * ```
    */
   async delete(topicId: string): Promise<DeleteTopicResponse> {
     assertUuid(topicId, 'topic_id');
@@ -115,6 +161,17 @@ export class TopicsClient {
    * @param topicId - UUID of the topic to force-delete.
    * @param updatedBy - Optional. Email of the user performing the deletion.
    * @returns Deletion confirmation message.
+   * @example
+   * ```ts
+   * import { ManagementClient } from '@cdot65/prisma-airs-sdk';
+   * const mgmt = new ManagementClient(); // reads PANW_MGMT_* env vars
+   *
+   * const result = await mgmt.topics.forceDelete(
+   *   '550e8400-e29b-41d4-a716-446655440000',
+   *   'admin@example.com',
+   * );
+   * // result => { message: 'force deleted' }
+   * ```
    */
   async forceDelete(topicId: string, updatedBy?: string): Promise<DeleteTopicResponse> {
     assertUuid(topicId, 'topic_id');

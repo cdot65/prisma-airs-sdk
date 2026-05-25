@@ -6,4 +6,7 @@ coverage
 tsup.config.bundled_*
 review-*
 specs
-docs/diagrams
+# Prose docs use mkdocs-material syntax (admonitions, content tabs) that
+# conflicts with prettier's CommonMark formatting; mkdocs owns this dir.
+docs/
+site

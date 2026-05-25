@@ -2,6 +2,20 @@
 
 The SDK manages OAuth2 `client_credentials` tokens automatically — fetching, caching, proactive refresh before expiry, and retry on 401/403 responses. This page documents the token lifecycle states and how the SDK handles each transition.
 
+## How it works
+
+The Management, Model Security, and Red Team APIs all authenticate with **OAuth2 client credentials**: you present a client ID + secret, the auth server hands back a short-lived bearer token (Strata Cloud Manager issues ~900s tokens), and every API call carries that token. Tokens expire, so something has to fetch, cache, and refresh them.
+
+That "something" is `OAuthClient`, and **for normal use you never touch it** — `ManagementClient` (and the other OAuth clients) embed one and handle the whole cycle for you. This page exists for the cases where you _do_ want visibility or control: health checks, monitoring dashboards, custom auth flows, or just understanding what happens under load.
+
+The model is a small state machine with one knob — the **buffer window**:
+
+- A token is **Valid** right after it's fetched and stays cached (zero network calls) until it nears expiry.
+- The **buffer** (default 30s) marks a token **Expiring Soon** _before_ it actually expires, so the next call refreshes proactively rather than failing.
+- If a token somehow expires anyway — or gets revoked server-side — a `401`/`403` triggers a one-time refresh-and-retry.
+
+Two guarantees worth knowing: concurrent calls that need a refresh are **deduplicated** into a single token fetch (no thundering herd), and `getTokenInfo()` lets you inspect state **without ever exposing the raw token**.
+
 ## Token States
 
 ```mermaid
@@ -276,3 +290,26 @@ npm run example:oauth-lifecycle
 | 8     | `clearToken()` — invalidates cache, next `getToken()` forces fresh fetch                                               | Yes                      |
 | 9     | Custom buffer — `isTokenExpiringSoon(ms)` respects override                                                            | Yes                      |
 | 10    | Callback audit — `onTokenRefresh` fires exactly once per fetch                                                         | Yes                      |
+
+## Get the most out of it
+
+!!! tip "Let the SDK do the work"
+    For 99% of use cases you don't need `OAuthClient` at all — just construct a `ManagementClient` and make calls. Fetch, cache, refresh, and 401/403 retry all happen automatically. Reach for `OAuthClient` only when you want to _observe_ or _override_ the cycle.
+
+!!! warning "Size the buffer to your token TTL"
+    The default 30s buffer suits SCM's ~900s tokens. If you point the SDK at an auth server with **very short** tokens, raise `tokenBufferMs` so refresh fires comfortably before expiry. If you set the buffer _larger than the token TTL_, the token is "expiring soon" the instant it's issued — and you'll refetch on every call. Keep `tokenBufferMs` well under the TTL.
+
+!!! note "The 401/403 retry happens once"
+    On `401`/`403` the SDK clears the token, fetches a fresh one, and retries the request a **single** time. If the retry also fails, the error propagates — a persistent `403` means a real permissions or credentials problem, not an expiry hiccup. Don't wrap calls in your own refresh loop; you'd just duplicate this.
+
+**Inspect state cheaply.** `getTokenInfo()`, `isTokenExpired()`, and `isTokenExpiringSoon()` are pure reads — they never trigger a network fetch. Poll them freely for health endpoints or dashboards without burning token requests.
+
+**Use `onTokenRefresh` for observability, not control flow.** It's the right hook to emit a metric or log line on each refresh. Keep it fast and side-effect-only: if the callback throws, the error is swallowed so it can never block token delivery — meaning you also can't rely on it to gate anything.
+
+**Concurrency is handled.** Fire many requests at once after a cold start (or right at expiry) and they collapse into one token fetch, not N. You don't need to serialize or pre-warm.
+
+**`clearToken()` is your reset.** Rotated the client secret, or want to force a clean fetch in a test? Call `clearToken()` — the next `getToken()` (or API call) fetches fresh.
+
+## Full reference
+
+`OAuthClient`, `TokenInfo`, and the OAuth-backed clients — with full signatures and examples — are in the [Full API reference](../reference/api/index.md).

@@ -2,6 +2,31 @@
 
 CRUD operations for AIRS configuration via OAuth2 client credentials. Covers security profiles, custom topics, API keys, customer apps, DLP profiles, deployment profiles, scan logs, and OAuth token management.
 
+## How it works
+
+If the [Scan API](scan-api.md) is the _data plane_ that inspects traffic, the Management API is the _control plane_ that decides **what** gets inspected and **how**. It's the programmatic equivalent of the AIRS configuration screens in Strata Cloud Manager — everything you'd otherwise click through, exposed as typed CRUD calls.
+
+The thing you'll touch most is the **security profile**: a named ruleset that turns detectors on or off and maps each hit to _allow_ or _block_. The Scan API references these profiles by name; this API is where you create, tune, and version them. Around profiles sit the supporting objects:
+
+| Resource                    | What it's for                                                           |
+| --------------------------- | ----------------------------------------------------------------------- |
+| `client.profiles`           | Security profiles — the rulesets scans run against. The core resource.  |
+| `client.topics`             | Custom detection topics (your own patterns) referenced inside profiles. |
+| `client.apiKeys`            | AIRS scan API keys for your tenant — create, rotate, revoke.            |
+| `client.customerApps`       | Customer application registrations.                                     |
+| `client.dlpProfiles`        | Data-loss-prevention data profiles (list).                              |
+| `client.deploymentProfiles` | Deployment profiles for the tenant (list).                              |
+| `client.scanLogs`           | Query historical scan activity by time range.                           |
+| `client.oauth`              | Mint / invalidate OAuth tokens for client-credential flows.             |
+
+Two ideas to keep in mind:
+
+- **One client, many sub-clients.** You construct a single `ManagementClient`; each resource hangs off it as a property (`client.profiles`, `client.topics`, …). Auth is shared and managed for you.
+- **Everything is tenant-scoped.** All operations run against the Tenant Service Group (TSG) you authenticate with — there's no cross-tenant access.
+
+!!! tip "Typical workflow"
+    Create a profile (and any custom topics it needs) here → reference that profile by name from a [scan](scan-api.md) → later, query `scanLogs` to see what it caught and refine the profile.
+
 ## Authentication
 
 The Management API uses OAuth2 `client_credentials` flow, separate from the scan API's API key auth. Three values are required:
@@ -434,6 +459,34 @@ try {
   }
 }
 ```
+
+## Get the most out of it
+
+!!! tip "Reuse one client"
+    Build a single `ManagementClient` and share it across your app. It owns the OAuth token cache — every sub-client (`profiles`, `topics`, …) shares the same token, so you authenticate once and reuse it everywhere. Constructing a fresh client per call throws that cache away.
+
+!!! warning "Delete is referential — expect 409s"
+    A standard `delete` on a profile or topic that's still referenced by a policy fails with a **409 conflict** (the response lists the referencing policies). That's a safety net, not a bug. Either detach the references first, or call `forceDelete` to remove it anyway. Note the asymmetry:
+
+    - `profiles.forceDelete(id, updatedBy)` — `updatedBy` is **required**.
+    - `topics.forceDelete(id, updatedBy?)` — `updatedBy` is **optional**.
+
+!!! note "List endpoints paginate"
+    `list()` returns up to 100 items by default. Pass `{ offset, limit }` and follow `next_offset` (or `page_token` for scan logs) until it comes back `undefined` to walk the full set. Don't assume the first page is everything.
+
+**Look profiles up by name when you can.** `profiles.getByName('my-profile')` saves you a list-then-filter, and returns the highest revision if several exist. Both `get` and `getByName` throw `AISecSDKException` when nothing matches — handle that rather than expecting `null`.
+
+**Rotate keys, don't recreate them.** `apiKeys.regenerate(id, …)` issues a new secret while preserving the key's identity and rotation policy — cleaner than deleting and re-adding.
+
+**Tune profiles from real traffic.** Use `scanLogs.query({ time_interval, time_unit, filter: 'threat' })` to see what a profile actually caught (or missed), then adjust detectors and custom topics. Close the loop instead of guessing.
+
+**Set the right region.** All control-plane calls share one OAuth identity but must target the matching regional endpoint — override `PANW_MGMT_ENDPOINT` (see [Regional Endpoints](#regional-endpoints)) for EU/UK/FedRAMP tenants.
+
+**Retries are automatic.** Like the scan client, management requests retry on transient `5xx` errors with backoff, and refresh-and-retry once on `401`/`403`. Tune attempts with `numRetries` (0–5). See the [OAuth lifecycle](oauth-lifecycle.md) for the token side of this.
+
+## Full reference
+
+Every sub-client method on `ManagementClient` — with input and output examples — is in the [Full API reference](../reference/api/index.md).
 
 ## Running the Examples
 

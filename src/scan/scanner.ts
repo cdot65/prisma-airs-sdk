@@ -62,6 +62,21 @@ export class Scanner {
    * @param content - Content to scan.
    * @param opts - Optional transaction/session IDs and metadata.
    * @returns Scan response with verdict, action, and detection details.
+   * @example
+   * ```ts
+   * import { init, Scanner, Content } from '@cdot65/prisma-airs-sdk';
+   * init(); // reads PANW_AI_SEC_API_KEY from env
+   * const scanner = new Scanner();
+   *
+   * const result = await scanner.syncScan(
+   *   { profile_name: 'my-profile' },
+   *   new Content({ prompt: 'What is the capital of France?' }),
+   *   { metadata: { app_name: 'my-app', app_user: 'user123', ai_model: 'gpt-4' } },
+   * );
+   * // result =>
+   * // { report_id: 'R000...', scan_id: '550e...', category: 'benign',
+   * //   action: 'allow', timeout: false, error: false, errors: [] }
+   * ```
    */
   async syncScan(
     aiProfile: AiProfile,
@@ -104,6 +119,24 @@ export class Scanner {
    * Submit content for asynchronous scanning.
    * @param scanObjects - Array of scan objects (1–5 items).
    * @returns Response containing scan IDs for later querying.
+   * @example
+   * ```ts
+   * import { init, Scanner } from '@cdot65/prisma-airs-sdk';
+   * init();
+   * const scanner = new Scanner();
+   *
+   * const result = await scanner.asyncScan([
+   *   {
+   *     req_id: 1,
+   *     scan_req: {
+   *       ai_profile: { profile_name: 'my-profile' },
+   *       contents: [{ prompt: 'Tell me about machine learning.' }],
+   *     },
+   *   },
+   * ]);
+   * // result =>
+   * // { received: '2024-01-01T00:00:00Z', scan_id: '550e...' }
+   * ```
    */
   async asyncScan(scanObjects: AsyncScanObject[]): Promise<AsyncScanResponse> {
     if (scanObjects.length < 1) {
@@ -134,6 +167,19 @@ export class Scanner {
    * Query scan results by scan IDs.
    * @param scanIds - Array of scan UUIDs (1–5 items).
    * @returns Array of scan results with status and response data.
+   * @example
+   * ```ts
+   * import { init, Scanner } from '@cdot65/prisma-airs-sdk';
+   * init();
+   * const scanner = new Scanner();
+   *
+   * const results = await scanner.queryByScanIds([
+   *   '550e8400-e29b-41d4-a716-446655440000',
+   * ]);
+   * // results =>
+   * // [{ scan_id: '550e8400-e29b-41d4-a716-446655440000', status: 'complete',
+   * //    result: { category: 'benign', action: 'allow', ... } }]
+   * ```
    */
   async queryByScanIds(scanIds: string[]): Promise<ScanIdResult[]> {
     if (scanIds.length < 1) {
@@ -169,6 +215,17 @@ export class Scanner {
    * Query detailed threat reports by report IDs.
    * @param reportIds - Array of report IDs (1–5 items).
    * @returns Array of threat scan reports with detection details.
+   * @example
+   * ```ts
+   * import { init, Scanner } from '@cdot65/prisma-airs-sdk';
+   * init();
+   * const scanner = new Scanner();
+   *
+   * const reports = await scanner.queryByReportIds(['R000...']);
+   * // reports =>
+   * // [{ report_id: 'R000...', scan_id: '550e...',
+   * //    detection_results: [{ detection_service: 'pi', verdict: 'benign', action: 'allow' }] }]
+   * ```
    */
   async queryByReportIds(reportIds: string[]): Promise<ThreatScanReport[]> {
     if (reportIds.length < 1) {

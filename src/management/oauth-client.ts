@@ -39,6 +39,21 @@ const DEFAULT_TOKEN_BUFFER_MS = 30_000; // refresh 30s before expiry
 /**
  * OAuth2 client_credentials token manager.
  * Caches tokens, refreshes before expiry, and deduplicates concurrent requests.
+ * Backs {@link ManagementClient} auth; can also be constructed standalone.
+ * @example
+ * ```ts
+ * import { OAuthClient } from '@cdot65/prisma-airs-sdk';
+ *
+ * const oauth = new OAuthClient({
+ *   clientId: 'your-client-id',
+ *   clientSecret: 'your-client-secret',
+ *   tsgId: '1234567890',
+ *   onTokenRefresh: (info) => console.log('refreshed, expiresInMs=', info.expiresInMs),
+ * });
+ *
+ * const token = await oauth.getToken();
+ * // token => 'eyJhbGciOi...'  (bearer access token)
+ * ```
  */
 export class OAuthClient {
   public readonly tokenEndpoint: string;
@@ -64,6 +79,14 @@ export class OAuthClient {
   /**
    * Get a valid access token, refreshing if needed.
    * @returns Bearer access token string.
+   * @example
+   * ```ts
+   * import { OAuthClient } from '@cdot65/prisma-airs-sdk';
+   * const oauth = new OAuthClient({ clientId: 'cid', clientSecret: 'secret', tsgId: '1234567890' });
+   *
+   * const token = await oauth.getToken();
+   * // token => 'eyJhbGciOi...'  (cached until ~30s before expiry, then auto-refreshed)
+   * ```
    */
   async getToken(): Promise<string> {
     if (this.accessToken && Date.now() < this.expiresAt - this.tokenBufferMs) {
@@ -83,6 +106,14 @@ export class OAuthClient {
 
   /**
    * Clear the cached token, forcing a fresh fetch on next call.
+   * @example
+   * ```ts
+   * import { OAuthClient } from '@cdot65/prisma-airs-sdk';
+   * const oauth = new OAuthClient({ clientId: 'cid', clientSecret: 'secret', tsgId: '1234567890' });
+   *
+   * oauth.clearToken();
+   * oauth.getTokenInfo().hasToken; // => false; next getToken() triggers a fresh fetch
+   * ```
    */
   clearToken(): void {
     this.accessToken = null;
@@ -92,6 +123,15 @@ export class OAuthClient {
   /**
    * Check if the current token has passed its expiry time. Returns true if no token exists.
    * @returns Whether the token is expired.
+   * @example
+   * ```ts
+   * import { OAuthClient } from '@cdot65/prisma-airs-sdk';
+   * const oauth = new OAuthClient({ clientId: 'cid', clientSecret: 'secret', tsgId: '1234567890' });
+   *
+   * oauth.isTokenExpired(); // => true (no token fetched yet)
+   * await oauth.getToken();
+   * oauth.isTokenExpired(); // => false
+   * ```
    */
   isTokenExpired(): boolean {
     if (!this.accessToken) return true;
@@ -103,6 +143,15 @@ export class OAuthClient {
    * Returns true if no token exists.
    * @param bufferMs - Custom buffer in ms. Defaults to the configured `tokenBufferMs`.
    * @returns Whether the token is expiring soon.
+   * @example
+   * ```ts
+   * import { OAuthClient } from '@cdot65/prisma-airs-sdk';
+   * const oauth = new OAuthClient({ clientId: 'cid', clientSecret: 'secret', tsgId: '1234567890' });
+   * await oauth.getToken();
+   *
+   * oauth.isTokenExpiringSoon();        // => false (just fetched)
+   * oauth.isTokenExpiringSoon(3_600_000); // => true (1h buffer larger than remaining TTL)
+   * ```
    */
   isTokenExpiringSoon(bufferMs?: number): boolean {
     if (!this.accessToken) return true;
@@ -113,6 +162,17 @@ export class OAuthClient {
   /**
    * Get a snapshot of the current token state without exposing the actual token value.
    * @returns Current {@link TokenInfo}.
+   * @example
+   * ```ts
+   * import { OAuthClient } from '@cdot65/prisma-airs-sdk';
+   * const oauth = new OAuthClient({ clientId: 'cid', clientSecret: 'secret', tsgId: '1234567890' });
+   * await oauth.getToken();
+   *
+   * const info = oauth.getTokenInfo();
+   * // info =>
+   * // { hasToken: true, isValid: true, isExpired: false, isExpiringSoon: false,
+   * //   expiresInMs: 86370000, expiresAt: 1717000000000 }
+   * ```
    */
   getTokenInfo(): TokenInfo {
     const now = Date.now();

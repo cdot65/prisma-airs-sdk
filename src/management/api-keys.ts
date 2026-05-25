@@ -39,6 +39,24 @@ export class ApiKeysClient {
    * Create a new API key.
    * @param body - API key creation request.
    * @returns The created API key.
+   * @example
+   * ```ts
+   * import { ManagementClient } from '@cdot65/prisma-airs-sdk';
+   * const mgmt = new ManagementClient(); // reads PANW_MGMT_* env vars
+   *
+   * const key = await mgmt.apiKeys.create({
+   *   auth_code: 'ac',
+   *   cust_app: 'app1',
+   *   revoked: false,
+   *   created_by: 'user@example.com',
+   *   api_key_name: 'key1',
+   *   rotation_time_interval: 90,
+   *   rotation_time_unit: 'days',
+   * });
+   * // key =>
+   * // { api_key_id: 'k1', api_key_last8: '12345678', auth_code: 'ac',
+   * //   expiration: '2025-12-31', revoked: false }
+   * ```
    */
   async create(body: ApiKeyCreateRequest): Promise<ApiKey> {
     return request({
@@ -56,6 +74,16 @@ export class ApiKeysClient {
    * List API keys for the TSG.
    * @param opts - Pagination options.
    * @returns Paginated list of API keys.
+   * @example
+   * ```ts
+   * import { ManagementClient } from '@cdot65/prisma-airs-sdk';
+   * const mgmt = new ManagementClient(); // reads PANW_MGMT_* env vars
+   *
+   * const page = await mgmt.apiKeys.list({ offset: 0, limit: 5 });
+   * // page =>
+   * // { api_keys: [ { api_key_id: 'k1', api_key_last8: '12345678',
+   * //     auth_code: 'ac', expiration: '2025-12-31', revoked: false } ], next_offset: 10 }
+   * ```
    */
   async list(opts?: PaginationOptions): Promise<ApiKeyListResponse> {
     const params: Record<string, string> = {
@@ -79,6 +107,14 @@ export class ApiKeysClient {
    * @param apiKeyName - Name of the API key to delete.
    * @param updatedBy - Email of user performing the deletion.
    * @returns Deletion confirmation.
+   * @example
+   * ```ts
+   * import { ManagementClient } from '@cdot65/prisma-airs-sdk';
+   * const mgmt = new ManagementClient(); // reads PANW_MGMT_* env vars
+   *
+   * const result = await mgmt.apiKeys.delete('key1', 'user@example.com');
+   * // result => { message: 'deleted' }
+   * ```
    */
   async delete(apiKeyName: string, updatedBy: string): Promise<ApiKeyDeleteResponse> {
     return request({
@@ -97,6 +133,19 @@ export class ApiKeysClient {
    * @param apiKeyId - UUID of the API key to regenerate.
    * @param body - Regeneration request with rotation config.
    * @returns The regenerated API key.
+   * @example
+   * ```ts
+   * import { ManagementClient } from '@cdot65/prisma-airs-sdk';
+   * const mgmt = new ManagementClient(); // reads PANW_MGMT_* env vars
+   *
+   * const key = await mgmt.apiKeys.regenerate('k1', {
+   *   rotation_time_interval: 30,
+   *   rotation_time_unit: 'days',
+   * });
+   * // key =>
+   * // { api_key_id: 'k1', api_key_last8: '87654321', auth_code: 'ac',
+   * //   expiration: '2026-06-30', revoked: false }
+   * ```
    */
   async regenerate(apiKeyId: string, body: ApiKeyRegenerateRequest): Promise<ApiKey> {
     return request({

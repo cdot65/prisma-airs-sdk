@@ -36,6 +36,17 @@ export type PageableObject = z.infer<typeof PageableObjectSchema>;
  * wraps its results in this shape (`content[]` + pagination metadata).
  *
  * Returns a Zod schema parametrized on the inner item shape.
+ * @example
+ * ```ts
+ * import { z } from 'zod';
+ * import { pageSchema } from '@cdot65/prisma-airs-sdk';
+ *
+ * const DataProfilePage = pageSchema(z.object({ id: z.string(), name: z.string() }));
+ * const page = DataProfilePage.parse(apiResponse);
+ * // page =>
+ * // { content: [{ id: 'dp-1', name: 'SSN' }],
+ * //   number: 0, size: 20, totalElements: 1, totalPages: 1, first: true, last: true }
+ * ```
  */
 export function pageSchema<T extends z.ZodTypeAny>(itemSchema: T) {
   return z

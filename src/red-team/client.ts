@@ -59,6 +59,16 @@ export interface RedTeamClientOptions {
 /**
  * Client for AIRS Red Teaming API operations.
  * Uses two base URLs: data plane for scans/reports, management plane for targets/custom attacks.
+ * @example
+ * ```ts
+ * import { RedTeamClient } from '@cdot65/prisma-airs-sdk';
+ * // Reads PANW_RED_TEAM_* env vars (falls back to PANW_MGMT_*).
+ * const rt = new RedTeamClient();
+ *
+ * const scans = await rt.scans.list({ limit: 5 });
+ * // scans =>
+ * // { pagination: { total_items: 12 }, data: [{ uuid: '550e8400-...', status: 'COMPLETED', job_type: 'STATIC' }] }
+ * ```
  */
 export class RedTeamClient {
   /** Data plane scan operations. */
@@ -129,6 +139,15 @@ export class RedTeamClient {
    * Get scan statistics and risk profile (data plane dashboard).
    * @param params - Optional date range and target ID filters.
    * @returns The scan statistics response.
+   * @example
+   * ```ts
+   * import { RedTeamClient } from '@cdot65/prisma-airs-sdk';
+   * const rt = new RedTeamClient();
+   *
+   * const stats = await rt.getScanStatistics({ date_range: '30d' });
+   * // stats =>
+   * // { total_scans: 10, targets_scanned: 5 }
+   * ```
    */
   async getScanStatistics(params?: {
     date_range?: string;
@@ -153,6 +172,15 @@ export class RedTeamClient {
    * Get score trend for a target (data plane dashboard).
    * @param targetId - The target UUID.
    * @returns The score trend response.
+   * @example
+   * ```ts
+   * import { RedTeamClient } from '@cdot65/prisma-airs-sdk';
+   * const rt = new RedTeamClient();
+   *
+   * const trend = await rt.getScoreTrend('550e8400-e29b-41d4-a716-446655440000');
+   * // trend =>
+   * // { labels: ['2026-04', '2026-05'], series: [{ name: 'risk', data: [42, 38] }] }
+   * ```
    */
   async getScoreTrend(targetId: string): Promise<ScoreTrendResponse> {
     assertUuid(targetId, 'target id');
@@ -170,6 +198,15 @@ export class RedTeamClient {
   /**
    * Get quota summary.
    * @returns The quota summary.
+   * @example
+   * ```ts
+   * import { RedTeamClient } from '@cdot65/prisma-airs-sdk';
+   * const rt = new RedTeamClient();
+   *
+   * const quota = await rt.getQuota();
+   * // quota =>
+   * // { static: { allocated: 100, unlimited: false, consumed: 5 }, dynamic: {...}, custom: {...} }
+   * ```
    */
   async getQuota(): Promise<QuotaSummary> {
     return request({
@@ -187,6 +224,15 @@ export class RedTeamClient {
    * @param jobId - The job UUID.
    * @param opts - Optional pagination and search options.
    * @returns The paginated list of error logs.
+   * @example
+   * ```ts
+   * import { RedTeamClient } from '@cdot65/prisma-airs-sdk';
+   * const rt = new RedTeamClient();
+   *
+   * const logs = await rt.getErrorLogs('550e8400-e29b-41d4-a716-446655440000', { limit: 10 });
+   * // logs =>
+   * // { pagination: { total_items: 1 }, data: [{ error_type: 'TIMEOUT', error_message: '...', created_at: '2025-01-01T00:00:00Z' }] }
+   * ```
    */
   async getErrorLogs(jobId: string, opts?: RedTeamListOptions): Promise<ErrorLogListResponse> {
     assertUuid(jobId, 'job id');
@@ -205,6 +251,18 @@ export class RedTeamClient {
    * Update sentiment for a scan report.
    * @param body - The sentiment request body.
    * @returns The sentiment response.
+   * @example
+   * ```ts
+   * import { RedTeamClient } from '@cdot65/prisma-airs-sdk';
+   * const rt = new RedTeamClient();
+   *
+   * const result = await rt.updateSentiment({
+   *   job_id: '550e8400-e29b-41d4-a716-446655440000',
+   *   up_vote: true,
+   * });
+   * // result =>
+   * // { job_id: '550e8400-...', up_vote: true }
+   * ```
    */
   async updateSentiment(body: SentimentRequest): Promise<SentimentResponse> {
     return request({
@@ -222,6 +280,15 @@ export class RedTeamClient {
    * Get sentiment for a scan report.
    * @param jobId - The job UUID.
    * @returns The sentiment response.
+   * @example
+   * ```ts
+   * import { RedTeamClient } from '@cdot65/prisma-airs-sdk';
+   * const rt = new RedTeamClient();
+   *
+   * const sentiment = await rt.getSentiment('550e8400-e29b-41d4-a716-446655440000');
+   * // sentiment =>
+   * // { job_id: '550e8400-...', up_vote: true }
+   * ```
    */
   async getSentiment(jobId: string): Promise<SentimentResponse> {
     assertUuid(jobId, 'job id');
@@ -242,6 +309,15 @@ export class RedTeamClient {
   /**
    * Get management dashboard overview.
    * @returns The dashboard overview response.
+   * @example
+   * ```ts
+   * import { RedTeamClient } from '@cdot65/prisma-airs-sdk';
+   * const rt = new RedTeamClient();
+   *
+   * const overview = await rt.getDashboardOverview();
+   * // overview =>
+   * // { total_targets: 7, targets_by_type: [{ type: 'API', count: 4 }] }
+   * ```
    */
   async getDashboardOverview(): Promise<DashboardOverviewResponse> {
     return request({

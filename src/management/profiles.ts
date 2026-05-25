@@ -47,6 +47,20 @@ export class ProfilesClient {
    * Create a new security profile.
    * @param body - Profile configuration.
    * @returns The created security profile.
+   * @example
+   * ```ts
+   * import { ManagementClient } from '@cdot65/prisma-airs-sdk';
+   * const mgmt = new ManagementClient(); // reads PANW_MGMT_* env vars
+   *
+   * const profile = await mgmt.profiles.create({
+   *   profile_name: 'sdk-example-profile',
+   *   active: true,
+   *   policy: { 'ai-security-profiles': [], 'dlp-data-profiles': [] },
+   * });
+   * // profile =>
+   * // { profile_id: '550e8400-e29b-41d4-a716-446655440000',
+   * //   profile_name: 'sdk-example-profile', revision: 1, active: true }
+   * ```
    */
   async create(body: CreateSecurityProfileRequest): Promise<SecurityProfile> {
     return request({
@@ -64,6 +78,16 @@ export class ProfilesClient {
    * List security profiles for the TSG.
    * @param opts - Pagination options.
    * @returns Paginated list of security profiles.
+   * @example
+   * ```ts
+   * import { ManagementClient } from '@cdot65/prisma-airs-sdk';
+   * const mgmt = new ManagementClient(); // reads PANW_MGMT_* env vars
+   *
+   * const page = await mgmt.profiles.list({ offset: 0, limit: 5 });
+   * // page =>
+   * // { ai_profiles: [ { profile_id: '550e8400-...', profile_name: 'prod', revision: 1, active: true } ],
+   * //   next_offset: 20 }
+   * ```
    */
   async list(opts?: PaginationOptions): Promise<SecurityProfileListResponse> {
     const params: Record<string, string> = {
@@ -87,6 +111,16 @@ export class ProfilesClient {
    * Fetches all profiles and filters — no dedicated API endpoint exists.
    * @param profileId - UUID of the profile to retrieve.
    * @returns The matching security profile.
+   * @example
+   * ```ts
+   * import { ManagementClient } from '@cdot65/prisma-airs-sdk';
+   * const mgmt = new ManagementClient(); // reads PANW_MGMT_* env vars
+   *
+   * const profile = await mgmt.profiles.get('550e8400-e29b-41d4-a716-446655440000');
+   * // profile =>
+   * // { profile_id: '550e8400-e29b-41d4-a716-446655440000',
+   * //   profile_name: 'prod', revision: 1, active: true }
+   * ```
    */
   async get(profileId: string): Promise<SecurityProfile> {
     const { ai_profiles } = await this.list();
@@ -105,6 +139,15 @@ export class ProfilesClient {
    * Returns the highest-revision match (latest version).
    * @param profileName - Name of the profile to retrieve.
    * @returns The matching security profile with the highest revision.
+   * @example
+   * ```ts
+   * import { ManagementClient } from '@cdot65/prisma-airs-sdk';
+   * const mgmt = new ManagementClient(); // reads PANW_MGMT_* env vars
+   *
+   * const profile = await mgmt.profiles.getByName('prod');
+   * // profile =>
+   * // { profile_id: '550e8400-...', profile_name: 'prod', revision: 3, active: true }
+   * ```
    */
   async getByName(profileName: string): Promise<SecurityProfile> {
     const { ai_profiles } = await this.list();
@@ -123,6 +166,19 @@ export class ProfilesClient {
    * @param profileId - UUID of the profile to update.
    * @param body - Updated profile configuration.
    * @returns The updated security profile.
+   * @example
+   * ```ts
+   * import { ManagementClient } from '@cdot65/prisma-airs-sdk';
+   * const mgmt = new ManagementClient(); // reads PANW_MGMT_* env vars
+   *
+   * const updated = await mgmt.profiles.update('550e8400-e29b-41d4-a716-446655440000', {
+   *   profile_name: 'prod',
+   *   active: false,
+   *   policy: { 'ai-security-profiles': [], 'dlp-data-profiles': [] },
+   * });
+   * // updated =>
+   * // { profile_id: '550e8400-...', profile_name: 'prod', revision: 2, active: false }
+   * ```
    */
   async update(profileId: string, body: CreateSecurityProfileRequest): Promise<SecurityProfile> {
     assertUuid(profileId, 'profile_id');
@@ -141,6 +197,14 @@ export class ProfilesClient {
    * Delete a security profile.
    * @param profileId - UUID of the profile to delete.
    * @returns Deletion confirmation message.
+   * @example
+   * ```ts
+   * import { ManagementClient } from '@cdot65/prisma-airs-sdk';
+   * const mgmt = new ManagementClient(); // reads PANW_MGMT_* env vars
+   *
+   * const result = await mgmt.profiles.delete('550e8400-e29b-41d4-a716-446655440000');
+   * // result => { message: 'deleted' }
+   * ```
    */
   async delete(profileId: string): Promise<DeleteProfileResponse> {
     assertUuid(profileId, 'profile_id');
@@ -159,6 +223,17 @@ export class ProfilesClient {
    * @param profileId - UUID of the profile to force-delete.
    * @param updatedBy - Email of the user performing the deletion.
    * @returns Deletion confirmation message.
+   * @example
+   * ```ts
+   * import { ManagementClient } from '@cdot65/prisma-airs-sdk';
+   * const mgmt = new ManagementClient(); // reads PANW_MGMT_* env vars
+   *
+   * const result = await mgmt.profiles.forceDelete(
+   *   '550e8400-e29b-41d4-a716-446655440000',
+   *   'admin@example.com',
+   * );
+   * // result => { message: 'force deleted' }
+   * ```
    */
   async forceDelete(profileId: string, updatedBy: string): Promise<DeleteProfileResponse> {
     assertUuid(profileId, 'profile_id');

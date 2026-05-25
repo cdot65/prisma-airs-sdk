@@ -1,7 +1,7 @@
 /**
  * Pagination + search options shared by every list endpoint across the OAuth domains.
  * Sub-clients extend this with endpoint-specific filter fields and merge their additions
- * into the params record returned by {@link serializeListing}.
+ * into the params record returned by the internal `serializeListing` helper.
  */
 export interface ListingOptions {
   /** Number of records to skip from the start. */

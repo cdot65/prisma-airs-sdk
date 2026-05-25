@@ -2,9 +2,34 @@
 
 Manage Data Patterns on the DLP service (`/v2/api/data-patterns`).
 
-Subclient lives at `client.dlp.dataPatterns`. **Full CRUD**: list, create, get, replace (PUT), patch (RFC 7396 JSON Merge Patch), delete. DELETE soft-deletes (archives) server-side — the pattern becomes invisible to list but its `id` still resolves on `get()` with `status: 'deleted'`.
+Subclient lives at `client.dlp.dataPatterns` (a `DataPatternsClient`). **Full CRUD**: list, create, get, replace (PUT), patch (RFC 7396 JSON Merge Patch), delete. DELETE soft-deletes (archives) server-side — the pattern becomes invisible to list but its `id` still resolves on `get()` with `status: 'deleted'`.
 
 Spec source: [`specs/dlp/DataPatterns.yaml`](https://github.com/cdot65/prisma-airs-sdk/blob/main/specs/dlp/DataPatterns.yaml)
+
+## How it works
+
+A **data pattern** is the lowest-level building block in DLP: a single, reusable **detector**. It says "here is what sensitive data looks like" — a set of regexes, proximity keywords, or another detection technique (`regex`, `weighted_regex`, `dictionary`, `edm`, `ml`, fingerprinting, etc.). A pattern on its own does nothing; it has to be referenced by a data profile to take effect.
+
+Where it sits among the four DLP resources:
+
+| Resource                     | Role                                                                         |
+| ---------------------------- | ---------------------------------------------------------------------------- |
+| **Data Patterns** (this one) | The detectors — regex / keyword / technique that recognize data              |
+| **Dictionaries**             | Keyword lists a pattern can reference via the `dictionary` technique         |
+| **Data Profiles**            | Bundle patterns (and dictionaries) into a detection policy with AND/OR logic |
+| **Data Filtering Profiles**  | Apply a data profile to actually filter/block matching content               |
+
+Flow: **pattern → referenced by a data profile → bound to a data filtering profile → enforced on traffic.** Patterns are the leaves; everything else composes them upward. Palo Alto ships dozens of `predefined` patterns (SSN, credit cards, AWS keys, …) you can reference without authoring anything — create `custom` patterns only when the built-ins miss your data.
+
+## Get the most out of it
+
+- **Prefer `weighted_regex` with proximity keywords over bare `regex`** for anything that looks like a common number sequence. A raw 16-digit run matches phone systems, order IDs, and SKUs; the same run within `proximity_distance` of "card" / "visa" scores high and stays quiet otherwise. Weighting is how you trade false positives for confidence levels.
+- **Set `supported_confidence_levels` deliberately.** Data profiles select a `confidence_level` per rule item; a pattern only offers the levels you list here. If you forget `high`, profiles can't require high-confidence hits from this pattern.
+- **Check for a `predefined` pattern first.** Authoring a custom credit-card regex when a maintained predefined one exists means you now own its accuracy forever.
+- **Tag for auditability.** `tags.classification` / `compliance` / `geography` are free-text aids for filtering and reporting later — fill them in (`PCI`, `PCI-DSS-3.2.1`, `EU`) so compliance audits can slice by them.
+- **Gotcha — escape regexes for JSON.** `\b\d{16}\b` becomes `'\\b\\d{16}\\b'` in a TS/JSON string. A lost backslash silently changes what matches.
+- **Gotcha — Merge Patch replaces arrays wholesale.** Patching `matching_rules` does not merge into the existing regex list; re-send the full set (see Use case 2).
+- **Gotcha — DELETE is a soft-delete.** The pattern disappears from `list()` but its `id` still resolves on `get()` as `status: 'deleted'`; reusing the name later may collide.
 
 ## Setup
 
@@ -318,6 +343,7 @@ try {
 
 ## See also
 
-- [DLP — Data Profiles](data-profiles.md) — data profiles compose patterns via the `dictionary` technique on rule items (use the pattern's `id`)
+- [Full API reference](../../reference/api/index.md) — every `DataPatternsClient` method with input/output examples
+- [DLP — Data Profiles](data-profiles.md) — data profiles compose patterns via detection rule items (use the pattern's `id`)
 - [DLP — Dictionaries](dictionaries.md) — keyword-list-driven detection technique
 - Runnable walkthrough: [`examples/mgmt-dlp-data-patterns.ts`](https://github.com/cdot65/prisma-airs-sdk/blob/main/examples/mgmt-dlp-data-patterns.ts)

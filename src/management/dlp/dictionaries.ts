@@ -80,7 +80,21 @@ export class DictionariesClient {
     this.numRetries = opts.numRetries;
   }
 
-  /** List dictionaries. Returns the Spring `Page<>` envelope verbatim. */
+  /**
+   * List dictionaries. Returns the Spring `Page<>` envelope verbatim.
+   * @example
+   * ```ts
+   * import { ManagementClient } from '@cdot65/prisma-airs-sdk';
+   * const mgmt = new ManagementClient();
+   *
+   * const page = await mgmt.dlp.dictionaries.list({ size: 5 });
+   * // page =>
+   * // {
+   * //   content: [{ id: 'dict-1', name: 'PII', category: 'Confidential', region_name: 'us', type: 'custom' }],
+   * //   totalElements: 1, totalPages: 1, number: 0, size: 20, first: true, last: true
+   * // }
+   * ```
+   */
   async list(params: DictionaryListParams = {}): Promise<PageDictionaryResponse> {
     const queryParams: Record<string, string | string[]> = {};
     if (params.page !== undefined) queryParams.page = String(params.page);
@@ -102,6 +116,25 @@ export class DictionariesClient {
   /**
    * Create a dictionary by uploading a keyword file. Sends a multipart body — the SDK does
    * not set Content-Type so the runtime can write the correct boundary.
+   * @example
+   * ```ts
+   * import { ManagementClient } from '@cdot65/prisma-airs-sdk';
+   * const mgmt = new ManagementClient();
+   *
+   * const created = await mgmt.dlp.dictionaries.create({
+   *   metadata: {
+   *     category: 'Confidential',
+   *     name: 'PII',
+   *     original_file_name: 'keywords.txt',
+   *     region_name: 'us-west-2',
+   *     type: 'custom',
+   *   },
+   *   file: 'alpha\nbravo\ncharlie\n',
+   *   includeKeywords: true,
+   * });
+   * // created =>
+   * // { id: 'dict-1', name: 'PII', category: 'Confidential', region_name: 'us-west-2', type: 'custom' }
+   * ```
    */
   async create({
     metadata,
@@ -123,7 +156,18 @@ export class DictionariesClient {
     });
   }
 
-  /** Get a single dictionary by resource ID, optionally including its keyword list. */
+  /**
+   * Get a single dictionary by resource ID, optionally including its keyword list.
+   * @example
+   * ```ts
+   * import { ManagementClient } from '@cdot65/prisma-airs-sdk';
+   * const mgmt = new ManagementClient();
+   *
+   * const dict = await mgmt.dlp.dictionaries.get('dict-1', { includeKeywords: true });
+   * // dict =>
+   * // { id: 'dict-1', name: 'PII', category: 'Confidential', type: 'custom', keywords: ['alpha', 'bravo'] }
+   * ```
+   */
   async get(resourceId: string, params: DictionaryGetParams = {}): Promise<DictionaryResponse> {
     const queryParams: Record<string, string> = {};
     if (params.includeKeywords !== undefined) queryParams.keywords = String(params.includeKeywords);
@@ -144,6 +188,23 @@ export class DictionariesClient {
    *
    * The API may respond with either 200 + body or 204 + no body — both are normal. Returns
    * the parsed body on 200 and `undefined` on 204.
+   * @example
+   * ```ts
+   * import { ManagementClient } from '@cdot65/prisma-airs-sdk';
+   * const mgmt = new ManagementClient();
+   *
+   * const replaced = await mgmt.dlp.dictionaries.replace('dict-1', {
+   *   metadata: {
+   *     category: 'Confidential',
+   *     name: 'PII',
+   *     original_file_name: 'keywords.txt',
+   *     region_name: 'us-west-2',
+   *     type: 'custom',
+   *   },
+   *   file: 'alpha\nbravo\ncharlie\ndelta\n',
+   * });
+   * // replaced => { id: 'dict-1', name: 'PII', ... } on 200, or undefined on 204
+   * ```
    */
   async replace(
     resourceId: string,
@@ -168,6 +229,20 @@ export class DictionariesClient {
   /**
    * Partial update via JSON Merge Patch (RFC 7396). Sent with
    * `Content-Type: application/merge-patch+json`.
+   * @example
+   * ```ts
+   * import { ManagementClient } from '@cdot65/prisma-airs-sdk';
+   * const mgmt = new ManagementClient();
+   *
+   * const patched = await mgmt.dlp.dictionaries.patch('dict-1', {
+   *   category: 'Confidential',
+   *   name: 'PII',
+   *   original_file_name: 'keywords.txt',
+   *   description: 'Updated by SDK',
+   * });
+   * // patched =>
+   * // { id: 'dict-1', name: 'PII', category: 'Confidential', description: 'Updated by SDK' }
+   * ```
    */
   async patch(resourceId: string, body: DictionaryPatchRequest): Promise<DictionaryResponse> {
     return request({
@@ -182,7 +257,17 @@ export class DictionariesClient {
     });
   }
 
-  /** Delete a dictionary. Resolves to `undefined` on the 204 No Content response. */
+  /**
+   * Delete a dictionary. Resolves to `undefined` on the 204 No Content response.
+   * @example
+   * ```ts
+   * import { ManagementClient } from '@cdot65/prisma-airs-sdk';
+   * const mgmt = new ManagementClient();
+   *
+   * await mgmt.dlp.dictionaries.delete('dict-1');
+   * // resolves to undefined (204 No Content)
+   * ```
+   */
   async delete(resourceId: string): Promise<void> {
     await request<void>({
       method: 'DELETE',

@@ -41,6 +41,19 @@ export class ModelSecurityRulesClient {
    * List available security rules.
    * @param opts - Pagination + filter options.
    * @returns Paginated list of security rules.
+   * @example
+   * ```ts
+   * import { ModelSecurityClient } from '@cdot65/prisma-airs-sdk';
+   * const ms = new ModelSecurityClient();
+   *
+   * const rules = await ms.securityRules.list({
+   *   limit: 20,
+   *   source_type: 'HUGGING_FACE',
+   *   search_query: 'pickle',
+   * });
+   * // rules.rules =>
+   * // [{ uuid: '550e8400-...', name: 'Pickle Scan', rule_type: 'ARTIFACT', default_state: 'BLOCKING', ... }]
+   * ```
    */
   async list(opts?: ModelSecurityRuleListOptions): Promise<ListModelSecurityRulesResponse> {
     const params = serializeListing(opts);
@@ -62,6 +75,15 @@ export class ModelSecurityRulesClient {
    * Get a single security rule by UUID.
    * @param uuid - Security rule UUID.
    * @returns The security rule.
+   * @example
+   * ```ts
+   * import { ModelSecurityClient } from '@cdot65/prisma-airs-sdk';
+   * const ms = new ModelSecurityClient();
+   *
+   * const rule = await ms.securityRules.get('550e8400-e29b-41d4-a716-446655440000');
+   * // rule =>
+   * // { uuid: '550e8400-...', name: 'Pickle Scan', rule_type: 'ARTIFACT', default_state: 'BLOCKING', ... }
+   * ```
    */
   async get(uuid: string): Promise<ModelSecurityRuleResponse> {
     assertUuid(uuid, 'security rule uuid');

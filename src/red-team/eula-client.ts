@@ -31,6 +31,15 @@ export class RedTeamEulaClient {
   /**
    * Get the current EULA content.
    * @returns The EULA content response.
+   * @example
+   * ```ts
+   * import { RedTeamClient } from '@cdot65/prisma-airs-sdk';
+   * const rt = new RedTeamClient();
+   *
+   * const eula = await rt.eula.getContent();
+   * // eula =>
+   * // { content: 'END USER LICENSE AGREEMENT...' }
+   * ```
    */
   async getContent(): Promise<EulaContentResponse> {
     return request({
@@ -46,6 +55,15 @@ export class RedTeamEulaClient {
   /**
    * Get the current EULA acceptance status.
    * @returns The EULA status response.
+   * @example
+   * ```ts
+   * import { RedTeamClient } from '@cdot65/prisma-airs-sdk';
+   * const rt = new RedTeamClient();
+   *
+   * const status = await rt.eula.getStatus();
+   * // status =>
+   * // { is_accepted: true, accepted_at: '2025-01-01T00:00:00Z' }
+   * ```
    */
   async getStatus(): Promise<EulaResponse> {
     return request({
@@ -62,6 +80,16 @@ export class RedTeamEulaClient {
    * Accept the EULA.
    * @param body - The acceptance request body.
    * @returns The EULA response with acceptance status.
+   * @example
+   * ```ts
+   * import { RedTeamClient } from '@cdot65/prisma-airs-sdk';
+   * const rt = new RedTeamClient();
+   *
+   * const content = await rt.eula.getContent();
+   * const result = await rt.eula.accept({ eula_content: content.content });
+   * // result =>
+   * // { is_accepted: true, accepted_at: '2025-01-01T00:00:00Z' }
+   * ```
    */
   async accept(body: EulaAcceptRequest): Promise<EulaResponse> {
     return request({

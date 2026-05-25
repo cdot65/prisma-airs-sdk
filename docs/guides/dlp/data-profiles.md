@@ -2,7 +2,7 @@
 
 Manage Data Profiles on the DLP service (`/v2/api/data-profiles`).
 
-Subclient lives at `client.dlp.dataProfiles`. **CRUD without DELETE** — the spec does not expose a DELETE for data profiles. To remove a profile, patch its lifecycle state via the underlying API (typically `profile_status: 'deleted'`).
+Subclient lives at `client.dlp.dataProfiles` (a `DataProfilesClient`). **CRUD without DELETE** — the spec does not expose a DELETE for data profiles. To remove a profile, patch its lifecycle state via the underlying API (typically `profile_status: 'deleted'`).
 
 Two distinct rule shapes live under `detection_rules[].rule_type`:
 
@@ -10,6 +10,33 @@ Two distinct rule shapes live under `detection_rules[].rule_type`:
 - `multi_profile` — composes other data profiles by id, joined by an operator (build "this OR that OR the other")
 
 Spec source: [`specs/dlp/DataProfiles.yaml`](https://github.com/cdot65/prisma-airs-sdk/blob/main/specs/dlp/DataProfiles.yaml)
+
+## How it works
+
+A **data profile** is the detection policy: it bundles individual detectors into one decision unit by composing them with boolean logic. Each leaf (`DetectionRuleItem`) picks a `detection_technique` — `regex`, `weighted_regex`, `dictionary`, `edm`, etc. — and its thresholds (confidence level, occurrence count); the `expression_tree` joins leaves with AND/OR so a profile can say "fire only when SSN **and** credit-card both appear." A `multi_profile` rule goes one level higher, OR-ing whole profiles together into an umbrella.
+
+This is the resource that turns raw detectors into a meaningful "does this content contain regulated data?" answer. But it still doesn't act on traffic — a data filtering profile binds a data profile by `id` to do that.
+
+Where it sits among the four DLP resources:
+
+| Resource                     | Role                                                           |
+| ---------------------------- | -------------------------------------------------------------- |
+| **Data Patterns**            | Shape-based detectors referenced by rule-item leaves           |
+| **Dictionaries**             | Keyword lists referenced by `dictionary`-technique leaves      |
+| **Data Profiles** (this one) | Compose detectors with AND/OR into a detection policy          |
+| **Data Filtering Profiles**  | Bind a data profile (by `id`) to actually filter/block content |
+
+Flow: **patterns + dictionaries → composed in a data profile → bound to a data filtering profile → enforced.** The profile is the join point: build it once, reference it from many filtering profiles.
+
+## Get the most out of it
+
+- **Match the operator to intent.** `operator_type: 'and'` cuts false positives (require multiple signals); `'or'` widens coverage. High-risk policies usually AND two strong signals; broad "any PII" policies OR many leaves.
+- **Tune `occurrence_count` / `occurrence_operator_type`.** One stray match is noise; "≥ 5 SSNs in a document" is a leak. Use occurrence thresholds to separate the two instead of blocking on a single hit.
+- **Set `confidence_level` to the pattern's strengths.** A leaf can only ask for a confidence level the underlying pattern advertises in `supported_confidence_levels` — keep the two in sync, or the leaf never reaches its threshold.
+- **Compose, don't duplicate.** When several filtering profiles need the same "EU-regulated" definition, build one `multi_profile` umbrella and reference it everywhere; editing the umbrella updates all consumers at once (see Use case 2).
+- **Gotcha — `multi_profile` auto-promotes to `advanced`.** Composing other profiles upgrades `profile_type` to `'advanced'` server-side even if you didn't ask; don't assert it stayed `basic`.
+- **Gotcha — no DELETE.** Removal is a lifecycle patch (`profile_status: 'deleted'`), and `patch()` requires `name` + `profile_type` re-sent every time.
+- **Gotcha — a profile bound by a filtering profile is in use.** Deleting/mutating it can change enforcement behavior downstream; check `dataFilteringProfiles` references first.
 
 ## Setup
 
@@ -345,6 +372,7 @@ try {
 
 ## See also
 
+- [Full API reference](../../reference/api/index.md) — every `DataProfilesClient` method with input/output examples
 - [DLP — Data Filtering Profiles](data-filtering-profiles.md) — binds a data profile via `data_profile_id`
 - [DLP — Data Patterns](data-patterns.md) — pattern ids referenced inside `DetectionRuleItem` leaves
 - [DLP — Dictionaries](dictionaries.md) — `detection_technique: 'dictionary'` references dictionary ids

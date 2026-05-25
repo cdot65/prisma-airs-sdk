@@ -42,6 +42,21 @@ export class ScanLogsClient {
    * Retrieve scan logs by time interval.
    * @param opts - Query options including time range, pagination, and filter.
    * @returns Paginated scan results.
+   * @example
+   * ```ts
+   * import { ManagementClient } from '@cdot65/prisma-airs-sdk';
+   * const mgmt = new ManagementClient(); // reads PANW_MGMT_* env vars
+   *
+   * const logs = await mgmt.scanLogs.query({
+   *   time_interval: 24,
+   *   time_unit: 'hour',
+   *   pageNumber: 1,
+   *   pageSize: 10,
+   *   filter: 'threat',
+   * });
+   * // logs =>
+   * // { total_pages: 1, page_number: 1, page_size: 10, scan_result_for_dashboard: { ... } }
+   * ```
    */
   async query(opts: ScanLogQueryOptions): Promise<PaginatedScanResults> {
     const params: Record<string, string> = {

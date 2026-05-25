@@ -15,6 +15,19 @@ export interface DlpNamespaceOptions {
  * Grouping for the DLP (Data Loss Prevention) management subclients exposed under
  * `ManagementClient.dlp`. The DLP service lives on a separate base URL from the rest of
  * the management API but reuses the same OAuth2 credentials and token endpoint.
+ *
+ * @example
+ * ```ts
+ * import { ManagementClient } from '@cdot65/prisma-airs-sdk';
+ * const mgmt = new ManagementClient();
+ *
+ * // The four DLP subclients are reached through mgmt.dlp:
+ * const patterns = await mgmt.dlp.dataPatterns.list();
+ * const profiles = await mgmt.dlp.dataProfiles.list();
+ * const dicts = await mgmt.dlp.dictionaries.list();
+ * const filters = await mgmt.dlp.dataFilteringProfiles.list();
+ * // each call resolves to a Spring Page<> envelope: { content: [...], totalElements, ... }
+ * ```
  */
 export class DlpNamespace {
   public readonly baseUrl: string;

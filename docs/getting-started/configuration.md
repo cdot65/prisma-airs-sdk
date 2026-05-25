@@ -66,4 +66,4 @@ export PANW_MGMT_ENDPOINT=https://api.gov.sase.paloaltonetworks.com/aisec
 ```
 
 !!! info "Shared Credentials"
-If you use the same OAuth2 client for all services, you only need to set `PANW_MGMT_CLIENT_ID`, `PANW_MGMT_CLIENT_SECRET`, and `PANW_MGMT_TSG_ID`. The Model Security and Red Team clients will use these automatically.
+    If you use the same OAuth2 client for all services, you only need to set `PANW_MGMT_CLIENT_ID`, `PANW_MGMT_CLIENT_SECRET`, and `PANW_MGMT_TSG_ID`. The Model Security and Red Team clients will use these automatically.
