@@ -73,8 +73,10 @@ export type DashboardApplication = z.infer<typeof DashboardApplicationSchema>;
 /**
  * One entry in `detection_type_violation_breakdown[]` - severity counts for a single detector.
  *
- * `detection_type` values observed live: `agent_security`, `dlp`, `malicious_code`, `pi`
- * (prompt injection), `tc` (toxic content), `topic_guardrails`, `uf` (URL filtering).
+ * `detection_type` values observed live (2026-05-28): `agent_security`, `contextual_grounding`,
+ * `dbs` (database security), `dlp`, `malicious_code`, `pi` (prompt injection), `source_code`,
+ * `tc` (toxic content), `topic_guardrails`, `uf` (URL filtering). Detector set may evolve;
+ * the field uses a plain `z.string()` so additions parse without changes.
  */
 export const DetectorViolationBreakdownEntrySchema = z
   .object({

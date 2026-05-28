@@ -21,8 +21,10 @@ export interface DashboardClientOptions {
 /**
  * Query parameters shared by both dashboard application endpoints.
  *
- * Both `appId` AND `appName` are REQUIRED by the API; omitting `appname` returns an all-null
- * response rather than 4xx, which is the most common gotcha when integrating these endpoints.
+ * Both `appId` and a non-empty `appName` are required by the API. Sending an empty `appname`
+ * returns HTTP 400; omitting the parameter entirely (different code path) returns an all-null
+ * body. The SDK signature requires a non-empty `appName` to keep both failure modes off the
+ * happy path.
  */
 export interface DashboardAppQuery {
   /**
@@ -30,12 +32,20 @@ export interface DashboardAppQuery {
    * {@link import('./customer-apps.js').CustomerAppsClient.list}'s `customer_appId` field.
    */
   appId: string;
-  /** Application display name. Required. URL encoding is handled internally. */
+  /** Application display name. Required, non-empty. URL encoding is handled internally. */
   appName: string;
-  /** Look-back window length. Defaults to 30. */
-  timeInterval?: number;
-  /** Look-back window unit. Defaults to 'days'. History max is 30 days. */
-  timeUnit?: 'days' | 'hours' | 'minutes';
+  /**
+   * Look-back window length, in days. Defaults to 30 (matches the SCM UI's "30 days" claim).
+   * The API accepts an enum-like set rather than an arbitrary integer; values verified
+   * accepted on 2026-05-28 are `7`, `30`, and `60`. Other values (1, 3, 14, 21, 28, 90) all
+   * returned HTTP 400. Widen this union if the API later accepts more.
+   */
+  timeInterval?: 7 | 30 | 60;
+  /**
+   * Look-back window unit. Only `'days'` is supported by the API as of verification
+   * (2026-05-28); `'hours'` / `'minutes'` return HTTP 400.
+   */
+  timeUnit?: 'days';
 }
 
 /**
@@ -123,8 +133,11 @@ export class DashboardClient {
    * Get per-detector violation severity counts for the application over the requested window.
    *
    * @param query - App identity and time window. `appId` and `appName` are both required.
-   * @returns The detection-type breakdown (one entry per detector: agent_security, dlp,
-   *   malicious_code, pi, tc, topic_guardrails, uf) plus `total_violating`.
+   * @returns The detection-type breakdown (one entry per detector observed live:
+   *   `agent_security`, `contextual_grounding`, `dbs` (database security), `dlp`,
+   *   `malicious_code`, `pi` (prompt injection), `source_code`, `tc` (toxic content),
+   *   `topic_guardrails`, `uf` (URL filtering)) plus `total_violating`. Detector set may
+   *   evolve; `.passthrough()` schemas accept additions.
    * @example
    * ```ts
    * import { ManagementClient } from '@cdot65/prisma-airs-sdk';
