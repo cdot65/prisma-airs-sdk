@@ -297,12 +297,15 @@ export const SecurityProfileListResponseSchema: z.ZodType<SecurityProfileListRes
   })
   .passthrough();
 
+// AIRS management returns a JSON-encoded plain string (e.g.
+// `"successfully deleted profileId: <id>"`) on a successful DELETE despite
+// Content-Type: application/json. Accept both shapes and normalize the string
+// form to { message } so consumers see a stable object. See issue #164.
 /** Zod schema for a profile deletion response. */
-export const DeleteProfileResponseSchema = z
-  .object({
-    message: z.string(),
-  })
-  .passthrough();
+export const DeleteProfileResponseSchema = z.union([
+  z.string().transform((message) => ({ message })),
+  z.object({ message: z.string() }).passthrough(),
+]);
 
 /** Response from deleting a security profile. */
 export type DeleteProfileResponse = z.infer<typeof DeleteProfileResponseSchema>;

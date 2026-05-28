@@ -89,6 +89,13 @@ describe('ApiKeysClient', () => {
       expect(url).toContain('updated_by=user');
       expect(init.method).toBe('DELETE');
     });
+
+    // Regression for #166 — see profiles.spec.ts for shared context.
+    it('tolerates plain-string body and normalizes to { message }', async () => {
+      mockFetch('successfully deleted apiKeyName: my-key');
+      const result = await client.delete('my-key', 'user@test.com');
+      expect(result.message).toBe('successfully deleted apiKeyName: my-key');
+    });
   });
 
   describe('regenerate', () => {

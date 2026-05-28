@@ -91,6 +91,24 @@ describe('TopicsClient', () => {
     });
   });
 
+  // Regression for #165 — see profiles.spec.ts for shared context.
+  describe('delete — plain-string response body (regression #165)', () => {
+    it('normalizes a JSON-encoded string body to { message }', async () => {
+      mockFetch('successfully deleted topicId: 550e8400');
+      const result = await client.delete('550e8400-e29b-41d4-a716-446655440000');
+      expect(result.message).toBe('successfully deleted topicId: 550e8400');
+    });
+
+    it('forceDelete also tolerates plain-string body', async () => {
+      mockFetch('successfully force deleted topicId: 550e8400');
+      const result = await client.forceDelete(
+        '550e8400-e29b-41d4-a716-446655440000',
+        'admin@test.com',
+      );
+      expect(result.message).toBe('successfully force deleted topicId: 550e8400');
+    });
+  });
+
   describe('delete', () => {
     it('DELETEs topic by id', async () => {
       mockFetch({ message: 'deleted' });

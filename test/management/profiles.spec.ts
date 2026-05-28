@@ -91,6 +91,27 @@ describe('ProfilesClient', () => {
     });
   });
 
+  // Regression for #164: AIRS management API returns a JSON-encoded plain
+  // string (e.g. `"successfully deleted profileId: <id>"`) on DELETE — the
+  // SDK schema previously expected an object and threw RESPONSE_VALIDATION
+  // even though the resource was gone server-side.
+  describe('delete — plain-string response body (regression #164)', () => {
+    it('normalizes a JSON-encoded string body to { message }', async () => {
+      mockFetch('successfully deleted profileId: 550e8400');
+      const result = await client.delete('550e8400-e29b-41d4-a716-446655440000');
+      expect(result.message).toBe('successfully deleted profileId: 550e8400');
+    });
+
+    it('forceDelete also tolerates plain-string body', async () => {
+      mockFetch('successfully force deleted profileId: 550e8400');
+      const result = await client.forceDelete(
+        '550e8400-e29b-41d4-a716-446655440000',
+        'admin@test.com',
+      );
+      expect(result.message).toBe('successfully force deleted profileId: 550e8400');
+    });
+  });
+
   describe('delete', () => {
     it('DELETEs profile by id', async () => {
       mockFetch({ message: 'deleted' });
