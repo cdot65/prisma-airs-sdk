@@ -83,6 +83,11 @@ export const MGMT_CUSTOMER_APPS_TSG_PATH = '/v1/mgmt/customerapp/tsg';
 export const MGMT_OAUTH_INVALIDATE_PATH = '/v1/mgmt/oauth/invalidateToken';
 export const MGMT_OAUTH_TOKEN_PATH = '/v1/mgmt/oauth/client_credential/accesstoken';
 
+// API paths — management dashboard (SCM AI Security > Runtime > API Applications panel)
+export const MGMT_DASHBOARD_APPLICATION_PATH = '/v1/mgmt/dashboard/v2/apps/application';
+export const MGMT_DASHBOARD_APPLICATION_VIOLATION_BREAKDOWN_PATH =
+  '/v1/mgmt/dashboard/v2/apps/applicationviolationbreakdown';
+
 // DLP (Data Loss Prevention) API defaults
 export const DEFAULT_DLP_ENDPOINT = 'https://api.dlp.paloaltonetworks.com';
 

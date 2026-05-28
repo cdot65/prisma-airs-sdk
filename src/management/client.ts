@@ -9,6 +9,7 @@ import { DlpProfilesClient } from './dlp-profiles.js';
 import { DeploymentProfilesClient } from './deployment-profiles.js';
 import { ScanLogsClient } from './scan-logs.js';
 import { OAuthManagementClient } from './oauth-management.js';
+import { DashboardClient } from './dashboard.js';
 import { DlpNamespace } from './dlp/index.js';
 
 /** Options for constructing a {@link ManagementClient}. */
@@ -63,6 +64,7 @@ export class ManagementClient {
   public readonly deploymentProfiles: DeploymentProfilesClient;
   public readonly scanLogs: ScanLogsClient;
   public readonly oauth: OAuthManagementClient;
+  public readonly dashboard: DashboardClient;
   public readonly dlp: DlpNamespace;
 
   constructor(opts: ManagementClientOptions = {}) {
@@ -89,6 +91,7 @@ export class ManagementClient {
     this.deploymentProfiles = new DeploymentProfilesClient({ baseUrl, auth, numRetries });
     this.scanLogs = new ScanLogsClient({ baseUrl, auth, numRetries });
     this.oauth = new OAuthManagementClient({ baseUrl, auth, numRetries });
+    this.dashboard = new DashboardClient({ baseUrl, auth, numRetries });
     this.dlp = new DlpNamespace({ baseUrl: dlpEndpoint, auth, numRetries });
   }
 }

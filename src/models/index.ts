@@ -190,6 +190,20 @@ export {
   type CustomerAppListResponse,
 } from './mgmt-customer-app.js';
 export {
+  TokenStatsSchema,
+  type TokenStats,
+  ViolationSeverityCountsSchema,
+  type ViolationSeverityCounts,
+  DashboardSessionStatsSchema,
+  type DashboardSessionStats,
+  DashboardApplicationSchema,
+  type DashboardApplication,
+  DetectorViolationBreakdownEntrySchema,
+  type DetectorViolationBreakdownEntry,
+  DashboardApplicationViolationBreakdownSchema,
+  type DashboardApplicationViolationBreakdown,
+} from './mgmt-dashboard.js';
+export {
   DeploymentProfileEntrySchema,
   type DeploymentProfileEntry,
   DeploymentProfilesResponseSchema,
