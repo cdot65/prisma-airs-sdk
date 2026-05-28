@@ -14,6 +14,7 @@ The thing you'll touch most is the **security profile**: a named ruleset that tu
 | `client.topics`             | Custom detection topics (your own patterns) referenced inside profiles. |
 | `client.apiKeys`            | AIRS scan API keys for your tenant — create, rotate, revoke.            |
 | `client.customerApps`       | Customer application registrations.                                     |
+| `client.dashboard`          | Per-app token consumption + violation breakdown (SCM detail panel).     |
 | `client.dlpProfiles`        | Data-loss-prevention data profiles (list).                              |
 | `client.deploymentProfiles` | Deployment profiles for the tenant (list).                              |
 | `client.scanLogs`           | Query historical scan activity by time range.                           |
@@ -360,6 +361,83 @@ const updated = await client.customerApps.update('customer-app-uuid', {
 ```ts
 const result = await client.customerApps.delete('my-app', 'user@example.com');
 ```
+
+## Dashboard
+
+Per-application token consumption and per-detector violation counts — the same data SCM renders in the **AI Security > Runtime > API Applications** detail panel. Pair with `customerApps.list()` to iterate every app in the tenant for chargeback or risk reporting.
+
+Both methods require `appId` and a non-empty `appName`. Sending an empty `appname` returns HTTP 400; omitting it entirely returns an all-null body — the SDK requires both to keep those failure modes off the happy path. `timeInterval` is `7 | 30 | 60` (default `30`), `timeUnit` is `'days'` only (default `'days'`); other values return HTTP 400.
+
+### Application overview
+
+`dashboard.application()` returns token stats, session stats, attached profiles, and cloud/source metadata for one app.
+
+```ts
+const overview = await client.dashboard.application({
+  appId: 'd8dc4033-593b-45e7-9633-e0dfc130cc82',
+  appName: 'chatbot',
+});
+
+const { average_daily_tokens, average_daily_tokens_scale, monthly_total_tokens, monthly_total_tokens_scale } =
+  overview.token_stats ?? {};
+// each numeric value is paired with a scale qualifier — 'K' (thousands) or 'M' (millions) —
+// both are needed to reconstruct the SCM panel's display value
+```
+
+Narrow the window:
+
+```ts
+const lastWeek = await client.dashboard.application({
+  appId: 'd8dc4033-593b-45e7-9633-e0dfc130cc82',
+  appName: 'chatbot',
+  timeInterval: 7,
+  timeUnit: 'days',
+});
+```
+
+### Violation breakdown
+
+`dashboard.applicationViolationBreakdown()` returns one entry per detector in `detection_type_violation_breakdown[]`, each with critical/high/medium/low/total severity counts, plus the rolled-up `total_violating`.
+
+```ts
+const breakdown = await client.dashboard.applicationViolationBreakdown({
+  appId: 'd8dc4033-593b-45e7-9633-e0dfc130cc82',
+  appName: 'chatbot',
+});
+
+for (const entry of breakdown.detection_type_violation_breakdown ?? []) {
+  if ((entry.violation_breakdown?.total ?? 0) === 0) continue;
+  console.log(entry.detection_type, entry.violation_breakdown);
+}
+// breakdown.total_violating // rolled-up count across all detectors
+```
+
+Detector codes observed live (10 as of 2026-05-28): `agent_security`, `contextual_grounding`, `dbs` (database security), `dlp`, `malicious_code`, `pi` (prompt injection), `source_code`, `tc` (toxic content), `topic_guardrails`, `uf` (URL filtering). Schemas use `.passthrough()`, so new detectors parse cleanly without an SDK bump.
+
+### Per-app chargeback pattern
+
+Combine `customerApps.list()` with `dashboard.application()` to attribute token spend across every app in the tenant:
+
+```ts
+const { customer_apps = [] } = await client.customerApps.list({ offset: 0, limit: 100 });
+const scale = (n?: number | null, s?: string | null) =>
+  (n ?? 0) * (s === 'M' ? 1_000_000 : s === 'K' ? 1_000 : 1);
+
+for (const app of customer_apps) {
+  if (!app.customer_appId) continue;
+  const overview = await client.dashboard.application({
+    appId: app.customer_appId,
+    appName: app.app_name,
+  });
+  const tokens = scale(
+    overview.token_stats?.monthly_total_tokens,
+    overview.token_stats?.monthly_total_tokens_scale,
+  );
+  console.log(`${app.app_name}: ${tokens.toLocaleString()} tokens this month`);
+}
+```
+
+See `examples/mgmt-dashboard.ts` for a runnable version that also surfaces firing detectors per app.
 
 ## DLP Profiles
 

@@ -1,5 +1,26 @@
 # Release Notes
 
+## v0.11.0 (unreleased)
+
+### New Features — Dashboard Client (per-app token consumption + violations)
+
+Adds `ManagementClient.dashboard` (new `DashboardClient`) covering the SCM **AI Security > Runtime > API Applications** detail panel — and unlocks per-app token chargeback reporting that previously required the SCM UI.
+
+**New methods (both on `client.dashboard`):**
+
+- **`application({ appId, appName, timeInterval?, timeUnit? })`** — per-app overview. Returns `token_stats` (average daily + monthly total, each paired with a `K`/`M` scale qualifier), `session_stats`, attached `profiles[]`, `cloud`, `source`, `created_at`.
+- **`applicationViolationBreakdown({ appId, appName, timeInterval?, timeUnit? })`** — per-detector severity counts. Returns one entry per `detection_type` in `detection_type_violation_breakdown[]` plus the rolled-up `total_violating`. 10 detectors observed live as of 2026-05-28: `agent_security`, `contextual_grounding`, `dbs` (database security), `dlp`, `malicious_code`, `pi` (prompt injection), `source_code`, `tc` (toxic content), `topic_guardrails`, `uf` (URL filtering).
+
+**Type signature reflects verified live behavior (2026-05-28):**
+
+- `appId` and a non-empty `appName` are both required. Empty `appname` → HTTP 400; omitting it (different code path) returns an all-null body. The SDK keeps both failure modes off the happy path.
+- `timeInterval?: 7 | 30 | 60` (default `30`). Values `1, 3, 14, 21, 28, 90` all returned HTTP 400.
+- `timeUnit?: 'days'` only (default `'days'`). `'hours'` / `'minutes'` return HTTP 400.
+
+Response schemas use `.passthrough()` + `.nullable().optional()` for forward compatibility — new detectors and new response fields parse cleanly without an SDK bump.
+
+**Files:** `src/management/dashboard.ts`, `src/models/mgmt-dashboard.ts`, `examples/mgmt-dashboard.ts`. New `MGMT_DASHBOARD_APPLICATION_PATH` / `_VIOLATION_BREAKDOWN_PATH` constants. Guide section added under [Management API → Dashboard](../guides/management-api.md#dashboard) including the per-app chargeback pattern.
+
 ## v0.10.0
 
 ### New Default — `service-name: api` Header on Every Request
