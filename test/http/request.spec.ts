@@ -167,6 +167,26 @@ describe('request — body handling', () => {
     const [, init] = fetchSpy.mock.calls[0];
     expect((init.headers as Record<string, string>)['User-Agent']).toMatch(/PAN-AIRS/);
   });
+
+  // Regression for #162: AIRS DLP GET-by-id endpoints return 400 on tenants
+  // whose downstream services require the `service-name: api` header. The
+  // header is optional in the spec but defensive on the client per the AIRS
+  // API team's guidance.
+  it('sets service-name: api on every request', async () => {
+    const fetchSpy = vi.fn().mockResolvedValue(mockResponse({}));
+    globalThis.fetch = fetchSpy;
+
+    await request({
+      method: 'GET',
+      baseUrl: 'https://api.example.com',
+      path: '/v1/items',
+      auth: passthroughAuth,
+      numRetries: 0,
+    });
+
+    const [, init] = fetchSpy.mock.calls[0];
+    expect((init.headers as Record<string, string>)['service-name']).toBe('api');
+  });
 });
 
 describe('request — content type override', () => {

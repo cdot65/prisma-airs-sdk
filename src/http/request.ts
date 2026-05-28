@@ -33,7 +33,10 @@ export async function request<TResponse = void>(spec: RequestSpec<TResponse>): P
         }
       }
 
-      const headers: Record<string, string> = { 'User-Agent': USER_AGENT };
+      const headers: Record<string, string> = {
+        'User-Agent': USER_AGENT,
+        'service-name': 'api',
+      };
       let bodyText: string | undefined;
       let bodyForFetch: FormData | string | undefined;
       if (spec.formData !== undefined) {

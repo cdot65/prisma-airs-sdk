@@ -134,6 +134,17 @@ describe('DataPatternsClient', () => {
       const [url] = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0];
       expect(url).toContain('weird%20id%2Fslash');
     });
+
+    // Regression for #162: tenants whose downstream services require the
+    // `service-name: api` header returned 400 for every valid id. The fix
+    // sets the header globally in src/http/request.ts; this asserts it
+    // reaches the DLP get-by-id call path.
+    it('sends service-name: api header', async () => {
+      mockFetch(patternFixture);
+      await client.get('dp-1');
+      const [, init] = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0];
+      expect((init.headers as Record<string, string>)['service-name']).toBe('api');
+    });
   });
 
   describe('replace', () => {
