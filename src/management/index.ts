@@ -20,6 +20,11 @@ export {
   type OAuthManagementClientOptions,
   type GetTokenOptions,
 } from './oauth-management.js';
+export {
+  DashboardClient,
+  type DashboardClientOptions,
+  type DashboardAppQuery,
+} from './dashboard.js';
 export { DlpNamespace, type DlpNamespaceOptions } from './dlp/index.js';
 export {
   DataFilteringProfilesClient,
