@@ -90,10 +90,13 @@ Walking it explicitly:
 
 1. **Build URL.** The base URL is right-trimmed of trailing slashes, then joined with `path`. Query
    `params` are appended; array values append once per element (`?id=a&id=b`).
-2. **Build headers + body.** A `User-Agent` of `PAN-AIRS/<version>-typescript-sdk` is always set.
-   If `formData` is present it is sent as-is (the runtime writes the multipart boundary). Otherwise
-   a `body` is JSON-stringified with `Content-Type: application/json` — overridable via
-   `contentType` (DLP endpoints use `application/merge-patch+json`).
+2. **Build headers + body.** A `User-Agent` of `PAN-AIRS/<version>-typescript-sdk` is always set,
+   along with `service-name: api` on every outgoing request — the header is optional in the AIRS
+   spec but required by some tenants' downstream services (notably DLP `GET /v2/api/data-patterns/{id}`
+   and `/v2/api/data-profiles/{id}`, which 400 without it). Sending it unconditionally avoids a
+   per-endpoint workaround. If `formData` is present it is sent as-is (the runtime writes the
+   multipart boundary). Otherwise a `body` is JSON-stringified with `Content-Type: application/json`
+   — overridable via `contentType` (DLP endpoints use `application/merge-patch+json`).
 3. **Auth.** The `auth.prepare()` adapter mutates the prepared headers (see below).
 4. **Fetch with retry.** The whole attempt runs inside `executeWithRetry` (`src/http-retry.ts`).
 5. **Validate.** On success, the body text is read once. If no `responseSchema` was declared,
