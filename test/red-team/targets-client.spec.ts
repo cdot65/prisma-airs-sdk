@@ -210,10 +210,20 @@ describe('RedTeamTargetsClient', () => {
       mockFetch(baseResponseMock());
       const result = await client.delete(validUuid);
 
-      expect(result.message).toBe('ok');
+      expect(result?.message).toBe('ok');
       const [url, init] = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0];
       expect(url).toContain(`/v1/target/${validUuid}`);
       expect(init.method).toBe('DELETE');
+    });
+
+    it('tolerates empty 2xx body without throwing (issue #168)', async () => {
+      globalThis.fetch = vi.fn().mockResolvedValue({
+        ok: true,
+        status: 200,
+        text: () => Promise.resolve(''),
+      });
+      const result = await client.delete(validUuid);
+      expect(result).toBeUndefined();
     });
 
     it('rejects invalid UUID', async () => {

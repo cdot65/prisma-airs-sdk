@@ -565,14 +565,15 @@ export class RedTeamCustomAttacksClient {
    * // { message: 'ok', status: 200 }
    * ```
    */
-  async deletePrompt(promptSetUuid: string, promptUuid: string): Promise<BaseResponse> {
+  async deletePrompt(promptSetUuid: string, promptUuid: string): Promise<BaseResponse | undefined> {
     assertUuid(promptSetUuid, 'prompt set uuid');
     assertUuid(promptUuid, 'prompt uuid');
-    return request({
+    return request<BaseResponse | undefined>({
       method: 'DELETE',
       baseUrl: this.baseUrl,
       path: `${RED_TEAM_CUSTOM_ATTACK_PATH}/custom-prompt-set/${promptSetUuid}/custom-prompt/${promptUuid}`,
-      responseSchema: BaseResponseSchema,
+      responseSchema: BaseResponseSchema.optional(),
+      allowEmptyBody: true,
       auth: this.auth,
       numRetries: this.numRetries,
     });
@@ -620,13 +621,14 @@ export class RedTeamCustomAttacksClient {
    * // { message: 'ok', status: 200 }
    * ```
    */
-  async createPropertyName(body: PropertyNameCreateRequest): Promise<BaseResponse> {
-    return request({
+  async createPropertyName(body: PropertyNameCreateRequest): Promise<BaseResponse | undefined> {
+    return request<BaseResponse | undefined>({
       method: 'POST',
       baseUrl: this.baseUrl,
       path: `${RED_TEAM_CUSTOM_ATTACK_PATH}/property-names`,
       body,
-      responseSchema: BaseResponseSchema,
+      responseSchema: BaseResponseSchema.optional(),
+      allowEmptyBody: true,
       auth: this.auth,
       numRetries: this.numRetries,
     });
