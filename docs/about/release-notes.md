@@ -1,6 +1,6 @@
 # Release Notes
 
-## v0.11.0 (unreleased)
+## v0.11.0
 
 ### New Features — Dashboard Client (per-app token consumption + violations)
 
@@ -20,6 +20,18 @@ Adds `ManagementClient.dashboard` (new `DashboardClient`) covering the SCM **AI 
 Response schemas use `.passthrough()` + `.nullable().optional()` for forward compatibility — new detectors and new response fields parse cleanly without an SDK bump.
 
 **Files:** `src/management/dashboard.ts`, `src/models/mgmt-dashboard.ts`, `examples/mgmt-dashboard.ts`. New `MGMT_DASHBOARD_APPLICATION_PATH` / `_VIOLATION_BREAKDOWN_PATH` constants. Guide section added under [Management API → Dashboard](../guides/management-api.md#dashboard) including the per-app chargeback pattern.
+
+### Bug Fixes — Management `.delete()` Plain-String Bodies
+
+Accept plain-string response bodies on management `.delete()` methods. AIRS API returns `Content-Type: application/json` with a JSON-encoded plain-string body (e.g. `"successfully deleted ..."`) for DELETE on profiles, topics, api-keys, customer-apps; SDK now normalizes that to `{ message: <string> }` instead of throwing `AISEC_RESPONSE_VALIDATION`. `customerApps.delete` return type changes from `CustomerApp` to a new `CustomerAppDeleteResponse` (`{ message: string }`) — the prior signature was a fiction since the server never returned a `CustomerApp` on delete. Closes [#164](https://github.com/cdot65/prisma-airs-sdk/issues/164), [#165](https://github.com/cdot65/prisma-airs-sdk/issues/165), [#166](https://github.com/cdot65/prisma-airs-sdk/issues/166), [#167](https://github.com/cdot65/prisma-airs-sdk/issues/167). PR [#172](https://github.com/cdot65/prisma-airs-sdk/pull/172).
+
+### Bug Fixes — Red-Team Empty 2xx Bodies
+
+Accept empty response bodies on red-team `targets.delete`, `customAttacks.deletePrompt`, and `customAttacks.createPropertyName`. AIRS red-team API returns 2xx with an empty body on these mutations; SDK now tolerates that via `allowEmptyBody: true` (same precedent as DLP `dictionaries.replace`) instead of throwing `AISEC_RESPONSE_VALIDATION`. Return types widened to `BaseResponse | undefined` to reflect the empty-body case. Closes [#168](https://github.com/cdot65/prisma-airs-sdk/issues/168). PR [#173](https://github.com/cdot65/prisma-airs-sdk/pull/173).
+
+### Tests — Lock `getPropertyNames` Data Shape
+
+Regression test in `test/red-team/custom-attacks-client.spec.ts` locks `PropertyNamesListResponseSchema.data` as `string[]` (per documented server contract). Issue [#169](https://github.com/cdot65/prisma-airs-sdk/issues/169) reported `• undefined` in CLI render output; root cause is CLI-side `.name` dereferencing on a plain string, not an SDK schema bug. SDK contract now pinned. PR [#174](https://github.com/cdot65/prisma-airs-sdk/pull/174).
 
 ## v0.10.0
 
