@@ -212,13 +212,14 @@ export class RedTeamTargetsClient {
    * // { message: 'ok', status: 200 }
    * ```
    */
-  async delete(uuid: string): Promise<BaseResponse> {
+  async delete(uuid: string): Promise<BaseResponse | undefined> {
     assertUuid(uuid, 'target uuid');
-    return request({
+    return request<BaseResponse | undefined>({
       method: 'DELETE',
       baseUrl: this.baseUrl,
       path: `${RED_TEAM_TARGET_PATH}/${uuid}`,
-      responseSchema: BaseResponseSchema,
+      responseSchema: BaseResponseSchema.optional(),
+      allowEmptyBody: true,
       auth: this.auth,
       numRetries: this.numRetries,
     });
