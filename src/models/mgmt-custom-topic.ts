@@ -49,12 +49,15 @@ export const CustomTopicListResponseSchema = z
 /** Paginated list of custom topics. */
 export type CustomTopicListResponse = z.infer<typeof CustomTopicListResponseSchema>;
 
+// AIRS management returns a JSON-encoded plain string (e.g.
+// `"successfully deleted topicId: <id>"`) on a successful DELETE despite
+// Content-Type: application/json. Accept both shapes and normalize the string
+// form to { message } so consumers see a stable object. See issue #165.
 /** Zod schema for a topic deletion response. */
-export const DeleteTopicResponseSchema = z
-  .object({
-    message: z.string(),
-  })
-  .passthrough();
+export const DeleteTopicResponseSchema = z.union([
+  z.string().transform((message) => ({ message })),
+  z.object({ message: z.string() }).passthrough(),
+]);
 
 /** Response from deleting a custom topic. */
 export type DeleteTopicResponse = z.infer<typeof DeleteTopicResponseSchema>;

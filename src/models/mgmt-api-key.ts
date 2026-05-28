@@ -77,12 +77,15 @@ export const ApiKeyListResponseSchema = z
 /** Paginated API key list response. */
 export type ApiKeyListResponse = z.infer<typeof ApiKeyListResponseSchema>;
 
+// AIRS management returns a JSON-encoded plain string (e.g.
+// `"successfully deleted apiKeyName: <name>"`) on a successful DELETE despite
+// Content-Type: application/json. Accept both shapes and normalize the string
+// form to { message } so consumers see a stable object. See issue #166.
 /** Zod schema for API key delete response. */
-export const ApiKeyDeleteResponseSchema = z
-  .object({
-    message: z.string().optional(),
-  })
-  .passthrough();
+export const ApiKeyDeleteResponseSchema = z.union([
+  z.string().transform((message) => ({ message })),
+  z.object({ message: z.string().optional() }).passthrough(),
+]);
 
 /** API key delete response. */
 export type ApiKeyDeleteResponse = z.infer<typeof ApiKeyDeleteResponseSchema>;

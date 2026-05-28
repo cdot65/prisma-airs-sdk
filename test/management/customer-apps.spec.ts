@@ -70,14 +70,23 @@ describe('CustomerAppsClient', () => {
 
   describe('delete', () => {
     it('DELETEs /v1/mgmt/customerapp with app_name and updated_by', async () => {
-      const app = { tsg_id: '123', app_name: 'myapp', cloud_provider: 'aws', environment: 'prod' };
-      mockFetch(app);
+      mockFetch({ message: 'deleted' });
       await client.delete('myapp', 'user@test.com');
 
       const [url, init] = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0];
       expect(url).toContain('app_name=myapp');
       expect(url).toContain('updated_by=user');
       expect(init.method).toBe('DELETE');
+    });
+
+    // Regression for #167 — see profiles.spec.ts for shared context.
+    // Server returns a JSON-encoded plain string ("customer app and associated
+    // keys successfully deleted") on a successful DELETE; SDK must normalize
+    // it to { message } instead of throwing RESPONSE_VALIDATION.
+    it('tolerates plain-string body and normalizes to { message }', async () => {
+      mockFetch('customer app and associated keys successfully deleted');
+      const result = await client.delete('myapp', 'user@test.com');
+      expect(result.message).toBe('customer app and associated keys successfully deleted');
     });
   });
 });

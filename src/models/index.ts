@@ -188,6 +188,8 @@ export {
   type CustomerAppWithKeys,
   CustomerAppListResponseSchema,
   type CustomerAppListResponse,
+  CustomerAppDeleteResponseSchema,
+  type CustomerAppDeleteResponse,
 } from './mgmt-customer-app.js';
 export {
   DeploymentProfileEntrySchema,

@@ -4,8 +4,10 @@ import type { AuthAdapter } from '../http/types.js';
 import type { PaginationOptions } from './profiles.js';
 import {
   CustomerAppSchema,
+  CustomerAppDeleteResponseSchema,
   CustomerAppListResponseSchema,
   type CustomerApp,
+  type CustomerAppDeleteResponse,
   type CustomerAppListResponse,
 } from '../models/mgmt-customer-app.js';
 
@@ -126,24 +128,23 @@ export class CustomerAppsClient {
    * Delete a customer app.
    * @param appName - Name of the customer app to delete.
    * @param updatedBy - Email of user performing the deletion.
-   * @returns The deleted customer app.
+   * @returns Deletion confirmation message.
    * @example
    * ```ts
    * import { ManagementClient } from '@cdot65/prisma-airs-sdk';
    * const mgmt = new ManagementClient(); // reads PANW_MGMT_* env vars
    *
-   * const app = await mgmt.customerApps.delete('myapp', 'user@example.com');
-   * // app =>
-   * // { tsg_id: '1234567890', app_name: 'myapp', cloud_provider: 'aws', environment: 'prod' }
+   * const result = await mgmt.customerApps.delete('myapp', 'user@example.com');
+   * // result => { message: 'customer app and associated keys successfully deleted' }
    * ```
    */
-  async delete(appName: string, updatedBy: string): Promise<CustomerApp> {
+  async delete(appName: string, updatedBy: string): Promise<CustomerAppDeleteResponse> {
     return request({
       method: 'DELETE',
       baseUrl: this.baseUrl,
       path: MGMT_CUSTOMER_APP_PATH,
       params: { app_name: appName, updated_by: updatedBy },
-      responseSchema: CustomerAppSchema,
+      responseSchema: CustomerAppDeleteResponseSchema,
       auth: this.auth,
       numRetries: this.numRetries,
     });

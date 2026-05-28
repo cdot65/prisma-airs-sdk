@@ -58,3 +58,17 @@ export const CustomerAppListResponseSchema = z
 
 /** Paginated customer app list response. */
 export type CustomerAppListResponse = z.infer<typeof CustomerAppListResponseSchema>;
+
+// AIRS management returns a JSON-encoded plain string (e.g.
+// `"customer app and associated keys successfully deleted"`) on a successful
+// DELETE despite Content-Type: application/json. The previous schema reused
+// CustomerAppSchema, which never matched the real wire body, so every delete
+// threw RESPONSE_VALIDATION even though the resource was gone. See issue #167.
+/** Zod schema for a customer app deletion response. */
+export const CustomerAppDeleteResponseSchema = z.union([
+  z.string().transform((message) => ({ message })),
+  z.object({ message: z.string() }).passthrough(),
+]);
+
+/** Response from deleting a customer app. */
+export type CustomerAppDeleteResponse = z.infer<typeof CustomerAppDeleteResponseSchema>;
