@@ -129,6 +129,14 @@ describe('DataProfilesClient', () => {
       const [url] = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0];
       expect(url).toContain('weird%20id%2Fslash');
     });
+
+    // Regression for #162 — see data-patterns.spec.ts for context.
+    it('sends service-name: api header', async () => {
+      mockFetch(profileFixture);
+      await client.get('prof-1');
+      const [, init] = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0];
+      expect((init.headers as Record<string, string>)['service-name']).toBe('api');
+    });
   });
 
   describe('replace', () => {
