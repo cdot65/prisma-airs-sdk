@@ -364,6 +364,17 @@ describe('RedTeamCustomAttacksClient', () => {
       const [url] = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0];
       expect(url).toContain('/v1/custom-attack/property-names');
     });
+
+    it('decodes data as string[] per documented server contract (issue #169)', async () => {
+      mockFetch({ data: ['property-docs-test'] });
+      const result = await client.getPropertyNames();
+
+      expect(Array.isArray(result.data)).toBe(true);
+      expect(result.data).toEqual(['property-docs-test']);
+      for (const item of result.data ?? []) {
+        expect(typeof item).toBe('string');
+      }
+    });
   });
 
   describe('createPropertyName', () => {
