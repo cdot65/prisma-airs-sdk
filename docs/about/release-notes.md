@@ -1,5 +1,21 @@
 # Release Notes
 
+## v0.10.0
+
+### New Default — `service-name: api` Header on Every Request
+
+The SDK now sends `service-name: api` on every outbound HTTP request. Fixes [issue #162](https://github.com/cdot65/prisma-airs-sdk/issues/162): on tenants whose downstream services require the header, DLP `GET /v2/api/data-patterns/{id}` and `GET /v2/api/data-profiles/{id}` returned HTTP 400 for every id. Verified live (tenant 6198141467535401984, 2026-05-27): adding `service-name: api` alone flips both endpoints from 400 → 200. The header is optional in the spec but defensive on the client per AIRS API team guidance.
+
+**Surface:**
+
+- `src/http/request.ts` — header added to the default headers map, so every request through `request()` (Runtime, Management, DLP, Red-Team, Model Security) carries it.
+- `test/http/request.spec.ts` — regression test asserts the header is present on every fetch.
+- `test/management/dlp/data-patterns.spec.ts`, `test/management/dlp/data-profiles.spec.ts` — `get(id)` call-path regressions.
+
+**Not in this release (deferred):** `POST /v2/api/data-profiles` and `PUT/PATCH` on DLP profiles/patterns continue to return 400 with `"Invalid Request Body"` — a separate server-side validation surface, independent of the `service-name` header. Tracking separately.
+
+Minor bump (not patch) to flag the new default request header as behavior-affecting for proxies/log scrapers parsing SDK traffic.
+
 ## v0.9.2
 
 ### Bug Fixes — DLP Nested Helper Schemas
