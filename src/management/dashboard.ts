@@ -1,13 +1,16 @@
 import {
   MGMT_DASHBOARD_APPLICATION_PATH,
+  MGMT_DASHBOARD_APPLICATIONS_OVERVIEW_PATH,
   MGMT_DASHBOARD_APPLICATION_VIOLATION_BREAKDOWN_PATH,
 } from '../constants.js';
 import { request } from '../http/request.js';
 import type { AuthAdapter } from '../http/types.js';
 import {
   DashboardApplicationSchema,
+  DashboardApplicationsOverviewSchema,
   DashboardApplicationViolationBreakdownSchema,
   type DashboardApplication,
+  type DashboardApplicationsOverview,
   type DashboardApplicationViolationBreakdown,
 } from '../models/mgmt-dashboard.js';
 
@@ -32,7 +35,15 @@ export interface DashboardAppQuery {
    * {@link import('./customer-apps.js').CustomerAppsClient.list}'s `customer_appId` field.
    */
   appId: string;
-  /** Application display name. Required, non-empty. URL encoding is handled internally. */
+  /**
+   * Application display name as the dashboard tracks it - the literal `metadata.app_name`
+   * value scan payloads sent. This may differ from the `customer_apps.app_name` field when
+   * the integration overrides it (LiteLLM's `panw_prisma_airs` guardrail does this by default,
+   * for example). Required, non-empty. URL encoding is handled internally.
+   *
+   * To enumerate all valid `(appId, appName)` pairs the dashboard tracks, use
+   * {@link DashboardClient.applicationsOverview} - one item per dashboard bucket.
+   */
   appName: string;
   /**
    * Look-back window length, in days. Defaults to 30 (matches the SCM UI's "30 days" claim).
@@ -49,12 +60,42 @@ export interface DashboardAppQuery {
 }
 
 /**
- * Client for AIRS SCM dashboard endpoints that power the
- * "AI Security > Runtime > API Applications" detail panel.
+ * Query parameters for {@link DashboardClient.applicationsOverview}.
  *
- * Together, {@link application} (overview + token consumption + session activity) and
- * {@link applicationViolationBreakdown} (per-detector violations) reproduce the full panel and
- * unlock per-app token chargeback reporting.
+ * Distinct from {@link DashboardAppQuery} - this endpoint takes no `appId`/`appName` (it is the
+ * enumeration source for those) and accepts a wider set of time windows.
+ */
+export interface DashboardApplicationsOverviewQuery {
+  /**
+   * Look-back window length. Accepted values vary by `timeUnit`:
+   * - `timeUnit: 'days'` accepts `7`, `30`, or `60`.
+   * - `timeUnit: 'day'` accepts `1`.
+   * - `timeUnit: 'hour'` accepts `1`.
+   *
+   * Defaults to `30`. Other combinations return HTTP 400.
+   */
+  timeInterval?: 1 | 7 | 30 | 60;
+  /**
+   * Look-back window unit. The dashboard apps-overview endpoint accepts `'days'`, `'day'`,
+   * and `'hour'` (note the singular forms - unlike the per-app `application` endpoint, which
+   * only accepts `'days'`). Defaults to `'days'`.
+   */
+  timeUnit?: 'days' | 'day' | 'hour';
+  /** Maximum items to return. Defaults to 25 (matches the SCM UI). */
+  limit?: number;
+  /** Number of items to skip (offset-based pagination). Defaults to 0. */
+  offset?: number;
+}
+
+/**
+ * Client for AIRS SCM dashboard endpoints that power the
+ * "AI Security > Runtime > API Applications" panel.
+ *
+ * The dashboard buckets traffic by the **literal `metadata.app_name` value scan payloads
+ * actually sent**. A single registered customer-app (`customer_apps.customer_appId`) can therefore
+ * map to multiple dashboard buckets, one per distinct scan-payload name. Use
+ * {@link applicationsOverview} to enumerate all dashboard buckets, then {@link application} and
+ * {@link applicationViolationBreakdown} to drill into any specific `(id, name)` pair.
  *
  * @example
  * ```ts
@@ -171,6 +212,56 @@ export class DashboardClient {
         time_unit: query.timeUnit ?? 'days',
       },
       responseSchema: DashboardApplicationViolationBreakdownSchema,
+      auth: this.auth,
+      numRetries: this.numRetries,
+    });
+  }
+
+  /**
+   * Enumerate all dashboard application buckets the tenant has data for.
+   *
+   * This is the canonical apps-list source for the dashboard. The customer-apps endpoint
+   * (`mgmt.customerApps.list`) lists registered customer applications, but each registered
+   * customer-app can have **multiple dashboard buckets** when its API key is used to send scan
+   * requests carrying different `metadata.app_name` values - one bucket per distinct
+   * scan-payload name. This endpoint returns every bucket, so it is what you want for
+   * per-app token-consumption reporting and dashboard inventory.
+   *
+   * The `id` field on each item is the registered `customer_appId` UUID; the `name` field is
+   * the scan-payload value. Pass that `(id, name)` pair to {@link application} or
+   * {@link applicationViolationBreakdown} to retrieve drill-down data for a specific bucket.
+   *
+   * @param query - Time window and pagination.
+   * @returns Paginated bucket list plus pagination metadata.
+   * @example
+   * ```ts
+   * import { ManagementClient } from '@cdot65/prisma-airs-sdk';
+   * const mgmt = new ManagementClient();
+   *
+   * const { items } = await mgmt.dashboard.applicationsOverview();
+   * for (const item of items ?? []) {
+   *   const overview = await mgmt.dashboard.application({
+   *     appId: item.id ?? '',
+   *     appName: item.name ?? '',
+   *   });
+   *   console.log(item.name, overview.token_stats?.monthly_total_tokens);
+   * }
+   * ```
+   */
+  async applicationsOverview(
+    query?: DashboardApplicationsOverviewQuery,
+  ): Promise<DashboardApplicationsOverview> {
+    return request({
+      method: 'GET',
+      baseUrl: this.baseUrl,
+      path: MGMT_DASHBOARD_APPLICATIONS_OVERVIEW_PATH,
+      params: {
+        time_interval: String(query?.timeInterval ?? 30),
+        time_unit: query?.timeUnit ?? 'days',
+        limit: String(query?.limit ?? 25),
+        offset: String(query?.offset ?? 0),
+      },
+      responseSchema: DashboardApplicationsOverviewSchema,
       auth: this.auth,
       numRetries: this.numRetries,
     });

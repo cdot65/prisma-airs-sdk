@@ -147,4 +147,96 @@ describe('DashboardClient', () => {
       expect(url).toContain('appname=chatbot');
     });
   });
+
+  describe('applicationsOverview', () => {
+    const OVERVIEW_RESPONSE = {
+      items: [
+        {
+          id: '5e16929a-1234-4567-89ab-cdef01234567',
+          name: 'chatbot',
+          cloud: 'other',
+          source: 'api',
+          created_at: '2026-04-29T19:00:56.098009282Z',
+          sessions: [
+            { bucket_number: 0, date: '2026-04-29T19:00:56Z', total: 0, violated: 0 },
+            { bucket_number: 1, date: '2026-04-30T19:00:56Z', total: 13104, violated: 504 },
+          ],
+          sessions_total: 13104,
+          sessions_violated: 504,
+        },
+        {
+          id: '5e16929a-1234-4567-89ab-cdef01234567',
+          name: 'Claude Code',
+          cloud: 'other',
+          source: 'api',
+          created_at: '2026-04-29T19:00:56.098009282Z',
+          sessions: [],
+          sessions_total: 234,
+          sessions_violated: 12,
+        },
+      ],
+      pagination: { limit: 25, skip: 0, total_items: 2 },
+    };
+
+    it('GETs /v1/mgmt/dashboard/v2/apps/applicationsoverview with defaults', async () => {
+      mockFetch(OVERVIEW_RESPONSE);
+      const result = await client.applicationsOverview();
+
+      expect(result.items).toHaveLength(2);
+      expect(result.items?.[0].name).toBe('chatbot');
+      expect(result.items?.[1].name).toBe('Claude Code');
+      expect(result.pagination?.total_items).toBe(2);
+
+      const [url] = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0];
+      expect(url).toContain('/v1/mgmt/dashboard/v2/apps/applicationsoverview');
+      expect(url).toContain('time_interval=30');
+      expect(url).toContain('time_unit=days');
+      expect(url).toContain('limit=25');
+      expect(url).toContain('offset=0');
+    });
+
+    it('exposes the (id, name) pair the application endpoint needs', async () => {
+      mockFetch(OVERVIEW_RESPONSE);
+      const result = await client.applicationsOverview();
+
+      // Both items share the same id (same registered customer_app) but have distinct names
+      // (each is a separate dashboard bucket driven by scan-payload metadata.app_name).
+      const ids = (result.items ?? []).map((i) => i.id);
+      const names = (result.items ?? []).map((i) => i.name);
+      expect(new Set(ids).size).toBe(1);
+      expect(new Set(names).size).toBe(2);
+    });
+
+    it('uses caller-supplied timeInterval / timeUnit / limit / offset', async () => {
+      mockFetch({ items: [], pagination: { limit: 100, skip: 50, total_items: 0 } });
+      await client.applicationsOverview({
+        timeInterval: 60,
+        timeUnit: 'days',
+        limit: 100,
+        offset: 50,
+      });
+
+      const [url] = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0];
+      expect(url).toContain('time_interval=60');
+      expect(url).toContain('time_unit=days');
+      expect(url).toContain('limit=100');
+      expect(url).toContain('offset=50');
+    });
+
+    it('supports the singular time_unit values the API accepts (day, hour)', async () => {
+      mockFetch({ items: [], pagination: { limit: 25, skip: 0, total_items: 0 } });
+      await client.applicationsOverview({ timeInterval: 1, timeUnit: 'hour' });
+
+      const [url] = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0];
+      expect(url).toContain('time_interval=1');
+      expect(url).toContain('time_unit=hour');
+    });
+
+    it('tolerates empty items[] without throwing', async () => {
+      mockFetch({ items: [], pagination: { limit: 25, skip: 0, total_items: 0 } });
+      const result = await client.applicationsOverview();
+      expect(result.items).toEqual([]);
+      expect(result.pagination?.total_items).toBe(0);
+    });
+  });
 });

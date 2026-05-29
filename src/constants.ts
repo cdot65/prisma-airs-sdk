@@ -87,6 +87,8 @@ export const MGMT_OAUTH_TOKEN_PATH = '/v1/mgmt/oauth/client_credential/accesstok
 export const MGMT_DASHBOARD_APPLICATION_PATH = '/v1/mgmt/dashboard/v2/apps/application';
 export const MGMT_DASHBOARD_APPLICATION_VIOLATION_BREAKDOWN_PATH =
   '/v1/mgmt/dashboard/v2/apps/applicationviolationbreakdown';
+export const MGMT_DASHBOARD_APPLICATIONS_OVERVIEW_PATH =
+  '/v1/mgmt/dashboard/v2/apps/applicationsoverview';
 
 // DLP (Data Loss Prevention) API defaults
 export const DEFAULT_DLP_ENDPOINT = 'https://api.dlp.paloaltonetworks.com';

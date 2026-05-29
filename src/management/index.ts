@@ -24,6 +24,7 @@ export {
   DashboardClient,
   type DashboardClientOptions,
   type DashboardAppQuery,
+  type DashboardApplicationsOverviewQuery,
 } from './dashboard.js';
 export { DlpNamespace, type DlpNamespaceOptions } from './dlp/index.js';
 export {
