@@ -204,6 +204,14 @@ export {
   type DetectorViolationBreakdownEntry,
   DashboardApplicationViolationBreakdownSchema,
   type DashboardApplicationViolationBreakdown,
+  DashboardApplicationSessionsBucketSchema,
+  type DashboardApplicationSessionsBucket,
+  DashboardApplicationsOverviewItemSchema,
+  type DashboardApplicationsOverviewItem,
+  DashboardPaginationSchema,
+  type DashboardPagination,
+  DashboardApplicationsOverviewSchema,
+  type DashboardApplicationsOverview,
 } from './mgmt-dashboard.js';
 export {
   DeploymentProfileEntrySchema,
