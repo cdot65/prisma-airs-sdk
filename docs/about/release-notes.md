@@ -1,5 +1,21 @@
 # Release Notes
 
+## v0.12.0
+
+### New Features — Dashboard Apps Enumeration
+
+Adds `mgmt.dashboard.applicationsOverview(opts?)` — the canonical apps-list source backing the SCM **AI Security > Runtime > API Applications** view (endpoint `/v1/mgmt/dashboard/v2/apps/applicationsoverview`).
+
+The dashboard buckets traffic by the literal `metadata.app_name` value scan payloads send, so a single registered `customer_appId` can surface here as multiple items — one per distinct scan-payload name (e.g. LiteLLM's `panw_prisma_airs` guardrail overrides `app_name` by default). Enumerate from `applicationsOverview` rather than `customerApps.list` to see every dashboard bucket: the `id` field is the registered `customer_appId` UUID and `name` is the scan-payload value. Pair with `dashboard.application(...)` and `dashboard.applicationViolationBreakdown(...)` to drill into a bucket.
+
+**Verified live behavior (2026-05-29), reflected in the types:**
+
+- `timeInterval?: 1 | 7 | 30 | 60` — other values return HTTP 400.
+- `timeUnit?: 'days' | 'day' | 'hour'` — wider than the per-app `application` endpoint (which accepts only `'days'`). Live-tested combinations: `(7, days)`, `(30, days)`, `(60, days)`, `(1, day)`, `(1, hour)`. Defaults to `(30, days)` to match existing dashboard methods.
+- `limit` / `offset` provide offset-based pagination (SCM UI uses `limit=25`).
+
+Response shapes use `z.passthrough()` + `nullable().optional()` for forward compatibility. **New exports:** `DashboardApplicationsOverviewQuery`, `DashboardApplicationsOverview`, `DashboardApplicationsOverviewItem`, `DashboardApplicationSessionsBucket`, `DashboardPagination`, and their schemas. Also clarifies `DashboardAppQuery.appName` JSDoc to point at `applicationsOverview` as the canonical source of valid `(appId, appName)` pairs.
+
 ## v0.11.0
 
 ### New Features — Dashboard Client (per-app token consumption + violations)
