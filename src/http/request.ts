@@ -1,6 +1,7 @@
 import { USER_AGENT } from '../constants.js';
 import { AISecSDKException, ErrorType } from '../errors.js';
 import { executeWithRetry } from '../http-retry.js';
+import { isDebugEnabled, logRequest, logResponse } from './debug.js';
 import type { PreparedRequest, RequestSpec } from './types.js';
 
 /**
@@ -17,6 +18,7 @@ import type { PreparedRequest, RequestSpec } from './types.js';
  */
 export async function request<TResponse = void>(spec: RequestSpec<TResponse>): Promise<TResponse> {
   let hasRetriedAuth = false;
+  const debug = isDebugEnabled();
 
   const response = await executeWithRetry({
     maxRetries: spec.numRetries,
@@ -50,11 +52,29 @@ export async function request<TResponse = void>(spec: RequestSpec<TResponse>): P
       const prepared: PreparedRequest = { method: spec.method, url, headers, bodyText };
       const final = await spec.auth.prepare(prepared);
 
-      return fetch(final.url.toString(), {
+      const startedAt = debug ? Date.now() : 0;
+      if (debug) {
+        const logBody = spec.formData !== undefined ? '[multipart/form-data]' : final.bodyText;
+        logRequest(final.method, final.url.toString(), final.headers, logBody);
+      }
+
+      const res = await fetch(final.url.toString(), {
         method: final.method,
         headers: final.headers,
         body: spec.formData !== undefined ? bodyForFetch : final.bodyText,
       });
+
+      if (debug) {
+        let respBody: string | undefined;
+        try {
+          respBody = await res.clone().text();
+        } catch {
+          // Response not cloneable (e.g. a test stub) — log status/timing without the body.
+        }
+        logResponse(res.status, Date.now() - startedAt, respBody);
+      }
+
+      return res;
     },
     onRetryableFailure: async (res) => {
       if (hasRetriedAuth) return false;

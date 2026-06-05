@@ -46,6 +46,35 @@ All fall back to the corresponding `PANW_MGMT_*` variable if not set.
 | `PANW_RED_TEAM_MGMT_ENDPOINT`  | —                          | `https://api.sase.paloaltonetworks.com/ai-red-teaming/mgmt-plane` | Management plane base URL |
 | `PANW_RED_TEAM_TOKEN_ENDPOINT` | `PANW_MGMT_TOKEN_ENDPOINT` | —                                                                 | OAuth2 token endpoint     |
 
+## Debugging
+
+| Variable             | Required | Default | Description                                                     |
+| -------------------- | -------- | ------- | --------------------------------------------------------------- |
+| `PANW_AI_SEC_DEBUG`  | No       | —       | Set to `1`/`true`/`yes`/`on` to log every API call to `stderr`. |
+
+When enabled, the SDK logs each HTTP request (method, full URL, headers, body) and response
+(status, duration, body) to **stderr** for every domain — scan, management, model security, and
+red teaming. It logs once per attempt, so retries and 401-driven token refreshes are visible.
+
+Access-token header values (`Authorization`, `x-pan-token`) are replaced with a non-reversible
+`sha256:<prefix>` hash, so debug logs are safe to share and you can still tell when a token
+rotates. The raw token is never written.
+
+```text
+[airs-sdk] → GET https://api.sase.paloaltonetworks.com/ai-red-teaming/mgmt-plane/v1/custom-attack/list-custom-prompt-sets?limit=1
+[airs-sdk]   headers {"User-Agent":"PAN-AIRS/0.12.0-typescript-sdk","service-name":"api","Authorization":"sha256:6ba877dddebe"}
+[airs-sdk] ← 200 (1397ms) {"pagination":{"total_items":1},"data":[...]}
+```
+
+Enable it inline for a single run:
+
+```bash
+PANW_AI_SEC_DEBUG=1 npx tsx your-script.ts
+```
+
+> Request and response bodies are logged verbatim. They may contain prompt content — keep debug
+> logging off in production and scrub captured output before sharing.
+
 ## Example Scripts
 
 The following variables are **not** consumed by the SDK itself. They are used only by the example scripts in `examples/`.
