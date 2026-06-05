@@ -662,3 +662,101 @@ describe('request — auth integration', () => {
     expect(fetchSpy).toHaveBeenCalledTimes(1);
   });
 });
+
+describe('request — debug logging (PANW_AI_SEC_DEBUG)', () => {
+  const originalFetch = globalThis.fetch;
+  const originalDebug = process.env.PANW_AI_SEC_DEBUG;
+
+  // A mock Response that supports clone() so the debug hook can read the body.
+  function cloneableResponse(body: unknown, status = 200): Response {
+    const text = typeof body === 'string' ? body : JSON.stringify(body);
+    const make = (): Response =>
+      ({
+        ok: status >= 200 && status < 300,
+        status,
+        text: () => Promise.resolve(text),
+        clone: () => make(),
+      }) as unknown as Response;
+    return make();
+  }
+
+  // Auth adapter that injects a real bearer token, like the OAuth adapter.
+  const bearerAuth: AuthAdapter = {
+    prepare: async (req: PreparedRequest) => ({
+      ...req,
+      headers: { ...req.headers, Authorization: 'Bearer super-secret-token-value' },
+    }),
+  };
+
+  afterEach(() => {
+    globalThis.fetch = originalFetch;
+    if (originalDebug === undefined) delete process.env.PANW_AI_SEC_DEBUG;
+    else process.env.PANW_AI_SEC_DEBUG = originalDebug;
+    vi.restoreAllMocks();
+  });
+
+  it('logs sanitized request + response to stderr when enabled, never the raw token', async () => {
+    process.env.PANW_AI_SEC_DEBUG = '1';
+    globalThis.fetch = vi.fn().mockResolvedValue(cloneableResponse({ id: '1', name: 'a' }));
+    const errSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+    await request({
+      method: 'POST',
+      baseUrl: 'https://api.example.com',
+      path: '/v1/items',
+      body: { hello: 'world' },
+      auth: bearerAuth,
+      responseSchema: ItemSchema,
+      numRetries: 0,
+    });
+
+    const out = errSpy.mock.calls.flat().join('\n');
+    expect(out).toContain('[airs-sdk]');
+    expect(out).toContain('POST https://api.example.com/v1/items');
+    expect(out).not.toContain('super-secret-token-value');
+    expect(out).toMatch(/sha256:[0-9a-f]{12}/);
+    expect(out).toContain('200');
+  });
+
+  it('produces no debug output when disabled', async () => {
+    delete process.env.PANW_AI_SEC_DEBUG;
+    globalThis.fetch = vi.fn().mockResolvedValue(cloneableResponse({ id: '1', name: 'a' }));
+    const errSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+    await request({
+      method: 'GET',
+      baseUrl: 'https://api.example.com',
+      path: '/v1/items',
+      auth: bearerAuth,
+      responseSchema: ItemSchema,
+      numRetries: 0,
+    });
+
+    const airsLines = errSpy.mock.calls.flat().filter((a) => String(a).includes('[airs-sdk]'));
+    expect(airsLines).toHaveLength(0);
+  });
+
+  it('logs once per attempt across an auth retry', async () => {
+    process.env.PANW_AI_SEC_DEBUG = '1';
+    let call = 0;
+    globalThis.fetch = vi.fn().mockImplementation(() => {
+      call++;
+      return Promise.resolve(
+        cloneableResponse(call === 1 ? {} : { id: '1', name: 'a' }, call === 1 ? 401 : 200),
+      );
+    });
+    const errSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+    await request({
+      method: 'GET',
+      baseUrl: 'https://api.example.com',
+      path: '/v1/items',
+      auth: refreshAuth({ unauthorizedReturns: true }),
+      responseSchema: ItemSchema,
+      numRetries: 2,
+    });
+
+    const reqLines = errSpy.mock.calls.flat().filter((a) => String(a).includes('→ GET'));
+    expect(reqLines).toHaveLength(2);
+  });
+});
