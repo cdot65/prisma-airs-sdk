@@ -4,10 +4,10 @@ This page explains **how** the Prisma AIRS TypeScript SDK works under the hood: 
 domains it covers, the two authentication strategies, the single request pipeline every client
 shares, and the validation and error models that hold it all together.
 
-!!! tip "Looking for the symbol-level docs?"
-    The TypeDoc-generated [Full API reference](../reference/api/index.md) documents every exported
-    class, function, type, and Zod schema. This page covers the design _behind_ those symbols.
-
+:::tip[Looking for the symbol-level docs?]
+The TypeDoc-generated [Full API reference](../reference/api/index.md) documents every exported
+class, function, type, and Zod schema. This page covers the design _behind_ those symbols.
+:::
 The SDK has **zero external HTTP dependencies** — it is built on the runtime's native `fetch` and
 `crypto`, with `zod` as the only production dependency.
 
@@ -102,14 +102,14 @@ Walking it explicitly:
 5. **Validate.** On success, the body text is read once. If no `responseSchema` was declared,
    `request()` returns `undefined`. Otherwise the body is parsed and validated (next section).
 
-!!! note "Empty bodies are hydrated to `{}`"
-    The AIRS API sometimes returns an empty 2xx body when an endpoint has zero results (e.g.
-    `/v1/mgmt/scanlogs` with no logs in range). `request()` hydrates an empty body to `{}` before
-    validation, so all-optional schemas parse cleanly and required-field failures surface on a
-    specific path rather than a cryptic root error. Endpoints that legitimately return 200+body or
-    204+no-body (e.g. DLP dictionaries `PUT`) set `allowEmptyBody`, which resolves an empty body to
-    `undefined` and skips validation entirely.
-
+:::note[Empty bodies are hydrated to `{}`]
+The AIRS API sometimes returns an empty 2xx body when an endpoint has zero results (e.g.
+`/v1/mgmt/scanlogs` with no logs in range). `request()` hydrates an empty body to `{}` before
+validation, so all-optional schemas parse cleanly and required-field failures surface on a
+specific path rather than a cryptic root error. Endpoints that legitimately return 200+body or
+204+no-body (e.g. DLP dictionaries `PUT`) set `allowEmptyBody`, which resolves an empty body to
+`undefined` and skips validation entirely.
+:::
 ## The AuthAdapter abstraction
 
 Authentication is a single plug-point. Both strategies implement the `AuthAdapter` interface from

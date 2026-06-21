@@ -4,12 +4,11 @@ on:
   push:
     branches: [main]
     paths:
-      - 'docs/**'
+      - 'docs-site/**'
       - 'src/**'
-      - 'mkdocs.yml'
       - 'typedoc.json'
       - 'package.json'
-      - '.github/workflows/mkdocs-deploy.yml'
+      - '.github/workflows/docs-deploy.yml'
   workflow_dispatch:
 
 permissions:
@@ -20,9 +19,6 @@ permissions:
 concurrency:
   group: pages
   cancel-in-progress: false
-
-env:
-  DISABLE_MKDOCS_2_WARNING: 'true'
 
 jobs:
   build:
@@ -35,28 +31,26 @@ jobs:
           node-version: '20'
           cache: npm
 
-      - name: Install dependencies
+      - name: Install SDK dependencies
         run: npm ci
 
       - name: Enforce @example coverage
         run: npm run docs:check
 
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
-
-      - name: Install MkDocs
-        run: pip install mkdocs mkdocs-material mkdocs-literate-nav
-
       - name: Generate API reference (TypeDoc)
         run: npm run docs:api
 
-      - name: Build docs
-        run: mkdocs build --strict
+      - name: Install docs-site dependencies
+        working-directory: docs-site
+        run: npm ci
+
+      - name: Build docs site
+        working-directory: docs-site
+        run: npm run build
 
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: site
+          path: docs-site/build
 
   deploy:
     runs-on: ubuntu-latest

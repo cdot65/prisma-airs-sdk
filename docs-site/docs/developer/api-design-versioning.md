@@ -5,10 +5,10 @@ relates to the upstream OpenAPI specs and the Python `pan-aisecurity` SDK, what 
 change, how `.passthrough()` keeps responses forward-compatible, and the two-stage automated tooling
 (`preflight` + `audit:live`) plus the changeset-driven release flow that keep schemas honest.
 
-!!! tip "Looking for the symbol-level docs?"
-    The TypeDoc-generated [Full API reference](../reference/api/index.md) is the authoritative
-    listing of every exported type and schema. This page is about the _policy_ around those exports.
-
+:::tip[Looking for the symbol-level docs?]
+The TypeDoc-generated [Full API reference](../reference/api/index.md) is the authoritative
+listing of every exported type and schema. This page is about the _policy_ around those exports.
+:::
 ## Semantic versioning (pre-1.0)
 
 The SDK is published as `@cdot65/prisma-airs-sdk`. At the time of writing the version in
@@ -94,12 +94,12 @@ The SDK also tracks the official Python `pan-aisecurity` SDK conceptually — fi
 **extends beyond** it: the Python SDK covers scanning, whereas this SDK covers all three service
 domains (AI Runtime Security, Model Security, AI Red Teaming) plus configuration/DLP management.
 
-!!! note "Why some DLP specs are excluded"
-    `specs/dlp/` contains more yaml than the SDK models. The preflight script whitelists only the
-    four DLP specs that are actually implemented (`DataFilteringProfiles`, `DataPatterns`,
-    `DataProfiles`, `Dictionaries`). Loading the rest would create component-name collisions (e.g.
-    two different `Policy` definitions) and produce false drift against unrelated schemas.
-
+:::note[Why some DLP specs are excluded]
+`specs/dlp/` contains more yaml than the SDK models. The preflight script whitelists only the
+four DLP specs that are actually implemented (`DataFilteringProfiles`, `DataPatterns`,
+`DataProfiles`, `Dictionaries`). Loading the rest would create component-name collisions (e.g.
+two different `Policy` definitions) and produce false drift against unrelated schemas.
+:::
 ## Preflight: catching Zod-vs-OpenAPI drift in CI
 
 `npm run preflight` (`scripts/preflight-schemas.ts`) is the static drift gate. It:

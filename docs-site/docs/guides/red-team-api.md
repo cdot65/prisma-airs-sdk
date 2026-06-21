@@ -18,9 +18,9 @@ Key concepts in plain language:
 
 The flow: create a target → run a scan → fetch the report and remediation → iterate. A **data plane** (`scans`, `reports`, `customAttackReports`, dashboards) handles running scans and reading results; a **management plane** (`targets`, `customAttacks`, `eula`, `instances`) handles configuration. One OAuth2 token covers both.
 
-!!! note "Accept the EULA first"
-    The Red Team service requires accepting an End User License Agreement before scans will run. Check `client.eula.getStatus()` and accept once per tenant — see [EULA Management](#eula-management).
-
+:::note[Accept the EULA first]
+The Red Team service requires accepting an End User License Agreement before scans will run. Check `client.eula.getStatus()` and accept once per tenant — see [EULA Management](#eula-management).
+:::
 ## Authentication
 
 The Red Team API uses OAuth2 `client_credentials` flow. Each env var falls back to the corresponding `PANW_MGMT_*` equivalent if the `PANW_RED_TEAM_*` variant is not set.
@@ -292,9 +292,9 @@ const stats = await client.customAttackReports.getPropertyStats('job-uuid');
 
 CRUD for scan targets, profiling probes, auth validation, and template retrieval (management plane). A target describes how the service calls your AI and how to read its reply.
 
-!!! tip "Start from a template"
-    Rather than hand-writing `connection_params`, call `client.targets.getTargetTemplates()` to get a working skeleton for each provider type (`OPENAI`, `HUGGING_FACE`, `DATABRICKS`, `BEDROCK`, `REST`, `STREAMING`) and fill in your endpoint and credentials.
-
+:::tip[Start from a template]
+Rather than hand-writing `connection_params`, call `client.targets.getTargetTemplates()` to get a working skeleton for each provider type (`OPENAI`, `HUGGING_FACE`, `DATABRICKS`, `BEDROCK`, `REST`, `STREAMING`) and fill in your endpoint and credentials.
+:::
 ### Create
 
 Pass `{ validate: true }` to have the service probe the connection before saving — the returned target reports `validated: true` only if the probe succeeded.
@@ -468,9 +468,9 @@ console.log(creds.expiry); // expiration timestamp
 
 Author your own attack content when the built-in libraries don't cover a domain-specific risk. The hierarchy is: a **prompt set** holds many **prompts**; **properties** are optional tags (e.g. `severity`, `category`) you can attach for organization. Reference an active prompt set's UUID in a scan's `job_metadata.custom_prompt_sets` to run it.
 
-!!! tip "Bulk-load from CSV"
-    For more than a handful of prompts, upload a CSV instead of creating prompts one at a time: `client.customAttacks.uploadPromptsCsv(promptSetUuid, csvBlob)`. Get a starter template with `downloadTemplate(promptSetUuid)`.
-
+:::tip[Bulk-load from CSV]
+For more than a handful of prompts, upload a CSV instead of creating prompts one at a time: `client.customAttacks.uploadPromptsCsv(promptSetUuid, csvBlob)`. Get a starter template with `downloadTemplate(promptSetUuid)`.
+:::
 ### Prompt Sets
 
 ```ts
@@ -600,9 +600,9 @@ const overview = await client.getDashboardOverview();
 
 ## Get the most out of it
 
-!!! tip "Pick the right scan type for the job"
-    Run **static** scans on every release for fast, repeatable regression coverage. Reserve **dynamic** scans for periodic deep dives — they're slower and burn more quota, but find adaptive, multi-turn weaknesses a fixed corpus misses. Use **custom** scans to cover domain-specific risks neither library knows about.
-
+:::tip[Pick the right scan type for the job]
+Run **static** scans on every release for fast, repeatable regression coverage. Reserve **dynamic** scans for periodic deep dives — they're slower and burn more quota, but find adaptive, multi-turn weaknesses a fixed corpus misses. Use **custom** scans to cover domain-specific risks neither library knows about.
+:::
 - **Validate and profile targets before scanning.** Create with `{ validate: true }` so a broken endpoint fails fast, then `probe()` and enrich the profile with business context (`updateProfile`). A well-profiled target yields sharper, more relevant attacks — especially for dynamic scans.
 - **Don't hand-write `connection_params`.** Start from `getTargetTemplates()` for your provider, then fill in endpoint and credentials. Remember the placeholders: `{INPUT}` is where the attack prompt goes, `response_key` is the JSON path to the reply.
 - **Scans are asynchronous and quota-metered.** Create returns `QUEUED`; poll `get()` until `COMPLETED`/`FAILED`. Check `getQuota()` before launching a batch — each scan type (static/dynamic/custom) has its own allocation, and a long-running scan can be stopped with `scans.abort()`.

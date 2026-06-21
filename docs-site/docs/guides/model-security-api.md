@@ -363,9 +363,9 @@ console.log(auth.expires_at);
 
 ## Get the most out of it
 
-!!! tip "Define groups once, scan many times"
-    Treat security groups as reusable policy. Create one per source type (Hugging Face, S3, etc.), tune its rule states, and point every scan at it. Editing a single group is far easier than re-specifying rules per scan, and it gives you one place to audit your posture.
-
+:::tip[Define groups once, scan many times]
+Treat security groups as reusable policy. Create one per source type (Hugging Face, S3, etc.), tune its rule states, and point every scan at it. Editing a single group is far easier than re-specifying rules per scan, and it gives you one place to audit your posture.
+:::
 - **Start in `ALLOWING`, then escalate.** When rolling out a new rule, set it to `ALLOWING` first so scans still pass while you observe what it flags. Flip it to `BLOCKING` once you trust the signal. This avoids surprise CI failures.
 - **Always inspect violations, not just the outcome.** A `BLOCKED` outcome tells you _that_ something failed; `getViolations()` and `getEvaluations()` tell you _what_ and _why_. `getEvaluations()` groups results by rule; `getViolations()` lists individual findings with descriptions.
 - **Scans are asynchronous.** A fresh scan returns `PENDING`. Poll `get()` (with a sensible delay) until the outcome settles — don't assume the create response is the final verdict.
