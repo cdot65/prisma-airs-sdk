@@ -25,9 +25,9 @@ Two ideas to keep in mind:
 - **One client, many sub-clients.** You construct a single `ManagementClient`; each resource hangs off it as a property (`client.profiles`, `client.topics`, …). Auth is shared and managed for you.
 - **Everything is tenant-scoped.** All operations run against the Tenant Service Group (TSG) you authenticate with — there's no cross-tenant access.
 
-!!! tip "Typical workflow"
-    Create a profile (and any custom topics it needs) here → reference that profile by name from a [scan](scan-api.md) → later, query `scanLogs` to see what it caught and refine the profile.
-
+:::tip[Typical workflow]
+Create a profile (and any custom topics it needs) here → reference that profile by name from a [scan](scan-api.md) → later, query `scanLogs` to see what it caught and refine the profile.
+:::
 ## Authentication
 
 The Management API uses OAuth2 `client_credentials` flow, separate from the scan API's API key auth. Three values are required:
@@ -540,18 +540,18 @@ try {
 
 ## Get the most out of it
 
-!!! tip "Reuse one client"
-    Build a single `ManagementClient` and share it across your app. It owns the OAuth token cache — every sub-client (`profiles`, `topics`, …) shares the same token, so you authenticate once and reuse it everywhere. Constructing a fresh client per call throws that cache away.
+:::tip[Reuse one client]
+Build a single `ManagementClient` and share it across your app. It owns the OAuth token cache — every sub-client (`profiles`, `topics`, …) shares the same token, so you authenticate once and reuse it everywhere. Constructing a fresh client per call throws that cache away.
+:::
+:::warning[Delete is referential — expect 409s]
+A standard `delete` on a profile or topic that's still referenced by a policy fails with a **409 conflict** (the response lists the referencing policies). That's a safety net, not a bug. Either detach the references first, or call `forceDelete` to remove it anyway. Note the asymmetry:
 
-!!! warning "Delete is referential — expect 409s"
-    A standard `delete` on a profile or topic that's still referenced by a policy fails with a **409 conflict** (the response lists the referencing policies). That's a safety net, not a bug. Either detach the references first, or call `forceDelete` to remove it anyway. Note the asymmetry:
-
-    - `profiles.forceDelete(id, updatedBy)` — `updatedBy` is **required**.
-    - `topics.forceDelete(id, updatedBy?)` — `updatedBy` is **optional**.
-
-!!! note "List endpoints paginate"
-    `list()` returns up to 100 items by default. Pass `{ offset, limit }` and follow `next_offset` (or `page_token` for scan logs) until it comes back `undefined` to walk the full set. Don't assume the first page is everything.
-
+- `profiles.forceDelete(id, updatedBy)` — `updatedBy` is **required**.
+- `topics.forceDelete(id, updatedBy?)` — `updatedBy` is **optional**.
+:::
+:::note[List endpoints paginate]
+`list()` returns up to 100 items by default. Pass `{ offset, limit }` and follow `next_offset` (or `page_token` for scan logs) until it comes back `undefined` to walk the full set. Don't assume the first page is everything.
+:::
 **Look profiles up by name when you can.** `profiles.getByName('my-profile')` saves you a list-then-filter, and returns the highest revision if several exist. Both `get` and `getByName` throw `AISecSDKException` when nothing matches — handle that rather than expecting `null`.
 
 **Rotate keys, don't recreate them.** `apiKeys.regenerate(id, …)` issues a new secret while preserving the key's identity and rotation policy — cleaner than deleting and re-adding.

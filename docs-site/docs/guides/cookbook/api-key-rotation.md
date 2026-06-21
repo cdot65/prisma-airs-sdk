@@ -70,9 +70,9 @@ console.log(`API Key: ${newKey.api_key}`); // only returned on create
 console.log(`Expires: ${newKey.expiration}`);
 ```
 
-!!! warning "Save the API key value"
-    The full `api_key` value is only returned on creation and regeneration. Store it securely (e.g. a secrets manager) immediately — it cannot be retrieved later.
-
+:::warning[Save the API key value]
+The full `api_key` value is only returned on creation and regeneration. Store it securely (e.g. a secrets manager) immediately — it cannot be retrieved later.
+:::
 ---
 
 ## Identify Keys Needing Rotation
@@ -126,9 +126,9 @@ for (const key of expiring) {
 }
 ```
 
-!!! tip "Zero-downtime rotation"
-    To avoid downtime, update your application's secrets store with the new key value **before** the old key expires. The old key remains valid until its original expiration time.
-
+:::tip[Zero-downtime rotation]
+To avoid downtime, update your application's secrets store with the new key value **before** the old key expires. The old key remains valid until its original expiration time.
+:::
 ---
 
 ## Delete an Old Key

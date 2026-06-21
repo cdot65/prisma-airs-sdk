@@ -21,9 +21,9 @@ Key concepts:
 | **Verdict**          | The result: `category` (`benign`/`malicious`) and `action` (`allow`/`block`).                                                                         |
 | **Sync vs async**    | Sync gives an inline verdict in one call. Async accepts a batch, returns receipts, and you poll for results later.                                    |
 
-!!! tip "Profiles live in the Management API"
-    The Scan API only _references_ a profile by name or ID — it never creates one. Define and tune profiles with the [Management API](management-api.md), then point scans at them.
-
+:::tip[Profiles live in the Management API]
+The Scan API only _references_ a profile by name or ID — it never creates one. Define and tune profiles with the [Management API](management-api.md), then point scans at them.
+:::
 ## Authentication
 
 Two auth methods (mutually exclusive):
@@ -152,22 +152,22 @@ for (const report of reports) {
 
 ## Get the most out of it
 
-!!! tip "Scan both directions"
-    A profile is only as good as where you put it. Scan the **prompt inbound** and the **response outbound** — many threats (data exfiltration, unsafe generations) only appear in the model's output.
+:::tip[Scan both directions]
+A profile is only as good as where you put it. Scan the **prompt inbound** and the **response outbound** — many threats (data exfiltration, unsafe generations) only appear in the model's output.
+:::
+:::warning[Mind the content limits]
+`Content` validates byte length the moment you set a field, so you fail fast rather than getting a 413 mid-flight:
 
-!!! warning "Mind the content limits"
-    `Content` validates byte length the moment you set a field, so you fail fast rather than getting a 413 mid-flight:
+| Field | Limit |
+| --- | --- |
+| `prompt`, `response`, `codePrompt`, `codeResponse` | 2 MB each |
+| `context` | 100 MB |
 
-    | Field | Limit |
-    | --- | --- |
-    | `prompt`, `response`, `codePrompt`, `codeResponse` | 2 MB each |
-    | `context` | 100 MB |
-
-    These are **byte** limits (multibyte characters count for more than one). For very long documents, trim or chunk before scanning. Use `content.length` to check the combined size before sending.
-
-!!! note "Batch and query caps are 5"
-    `asyncScan`, `queryByScanIds`, and `queryByReportIds` each accept **at most 5 items**. The SDK throws a client-side error before any network call if you exceed it — loop in batches of 5 for larger workloads.
-
+These are **byte** limits (multibyte characters count for more than one). For very long documents, trim or chunk before scanning. Use `content.length` to check the combined size before sending.
+:::
+:::note[Batch and query caps are 5]
+`asyncScan`, `queryByScanIds`, and `queryByReportIds` each accept **at most 5 items**. The SDK throws a client-side error before any network call if you exceed it — loop in batches of 5 for larger workloads.
+:::
 **Retry behavior** — every scan call retries automatically on transient server errors (`500`, `502`, `503`, `504`) with exponential backoff plus jitter. Tune the attempt count with `init({ numRetries })` (0–5, default 5). Set it to `0` only if you have your own retry layer; client-side `4xx` errors are never retried.
 
 **Sync vs async — pick deliberately:**
