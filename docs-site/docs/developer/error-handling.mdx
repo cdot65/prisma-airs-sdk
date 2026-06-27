@@ -1,0 +1,91 @@
+---
+id: error-handling
+title: Error Handling
+description: SDK exception types, retry behavior, OAuth refresh handling, and response validation failures.
+---
+
+# Error Handling
+
+All authored SDK errors use `AISecSDKException` from `src/errors.ts`. The optional `errorType` property classifies where the failure came from.
+
+## Error types
+
+| ErrorType | Value | When it is raised |
+| --- | --- | --- |
+| `SERVER_SIDE_ERROR` | `AISEC_SERVER_SIDE_ERROR` | Retryable server responses (`500`, `502`, `503`, `504`) after retries are exhausted. |
+| `CLIENT_SIDE_ERROR` | `AISEC_CLIENT_SIDE_ERROR` | Non-retryable `4xx` responses or a network failure after retries. |
+| `USER_REQUEST_PAYLOAD_ERROR` | `AISEC_USER_REQUEST_PAYLOAD_ERROR` | Invalid caller input, such as a bad UUID, oversized content, or invalid `numRetries`. |
+| `MISSING_VARIABLE` | `AISEC_MISSING_VARIABLE` | A required configuration value is absent. |
+| `AISEC_SDK_ERROR` | `AISEC_SDK_ERROR` | Internal SDK error. |
+| `OAUTH_ERROR` | `AISEC_OAUTH_ERROR` | OAuth2 token fetch failed. |
+| `RESPONSE_VALIDATION` | `AISEC_RESPONSE_VALIDATION` | A successful `2xx` response had invalid JSON or did not match the declared Zod response schema. |
+
+## Handling SDK errors
+
+```ts
+import { AISecSDKException, ErrorType } from '@cdot65/prisma-airs-sdk';
+
+try {
+  await scanner.syncScan(profile, content);
+} catch (err) {
+  if (err instanceof AISecSDKException) {
+    switch (err.errorType) {
+      case ErrorType.SERVER_SIDE_ERROR:
+        console.error('Server error after retries:', err.message);
+        break;
+      case ErrorType.CLIENT_SIDE_ERROR:
+        console.error('Request rejected or network failed:', err.message);
+        break;
+      case ErrorType.USER_REQUEST_PAYLOAD_ERROR:
+        console.error('Invalid input:', err.message);
+        break;
+      case ErrorType.MISSING_VARIABLE:
+        console.error('Missing configuration:', err.message);
+        break;
+      case ErrorType.OAUTH_ERROR:
+        console.error('OAuth token request failed:', err.message);
+        break;
+      case ErrorType.RESPONSE_VALIDATION:
+        console.error('API response did not match SDK schema:', err.message);
+        break;
+      default:
+        console.error('SDK error:', err.message);
+    }
+  } else {
+    throw err;
+  }
+}
+```
+
+## Retry behavior
+
+The shared request layer retries transient failures:
+
+| Behavior | Implementation |
+| --- | --- |
+| Retryable HTTP statuses | `500`, `502`, `503`, `504` |
+| Network errors | Retried by the shared retry helper |
+| Backoff | Exponential backoff with full jitter |
+| Retry budget | Configurable `0` through `5`, default `5` |
+| Non-retryable `4xx` | Throws `CLIENT_SIDE_ERROR` immediately, except OAuth refresh handling below |
+
+OAuth-backed clients (`ManagementClient`, `ModelSecurityClient`, and `RedTeamClient`) clear the cached token and retry once when a request receives `401` or `403`. That auth retry does not consume the normal retry budget and is guarded so it cannot loop forever.
+
+## Response validation
+
+When a request declares a Zod `responseSchema`, successful response bodies are parsed and validated before data is returned. If parsing fails, the SDK throws `RESPONSE_VALIDATION`.
+
+That error usually means one of these conditions is true:
+
+- The live API returned a shape that differs from the SDK schema.
+- The API returned invalid JSON for an endpoint that should return JSON.
+- The endpoint needs an SDK schema update or an `allowEmptyBody` behavior adjustment.
+
+Use `npm run preflight` for static OpenAPI-vs-Zod drift and `npm run audit:live` to check representative live tenant responses.
+
+## Related Pages
+
+- [Configuration](../getting-started/configuration)
+- [OAuth Token Lifecycle](../guides/oauth-lifecycle)
+- [API Design & Versioning](./api-design-versioning)
+- [Architecture & Internals](./architecture)

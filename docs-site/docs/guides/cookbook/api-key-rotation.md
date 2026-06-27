@@ -122,7 +122,7 @@ for (const key of expiring) {
   console.log(`New key: ${regenerated.api_key}`);
   console.log(`New expiration: ${regenerated.expiration}`);
 
-  // TODO: update your secrets manager with regenerated.api_key
+  // Store regenerated.api_key in your secrets manager before the old key expires.
 }
 ```
 

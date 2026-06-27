@@ -203,7 +203,7 @@ response still validates and the new field is preserved on the returned object r
 stripped or rejected. The SDK can model the fields it knows about strictly while tolerating server
 additions — so an API-side feature rollout does not break installed SDK versions. The trade-offs and
 the tooling that keeps these schemas honest (the preflight gate and `audit:live`) are covered in
-[API Design & Versioning](api-design-versioning.md).
+[API Design & Versioning](api-design-versioning).
 
 ## Retry and backoff
 
@@ -239,7 +239,7 @@ from the `ErrorType` enum:
 
 `RESPONSE_VALIDATION` is the signal that the live API diverged from the SDK's schema — exactly the
 class of drift the `audit:live` script is built to catch. See
-[Error Handling](error-handling.md) for usage patterns.
+[Error Handling](error-handling) for usage patterns.
 
 ## The scan singleton
 

@@ -1,0 +1,184 @@
+---
+id: quick-start
+title: Quick Start
+description: First working examples for scanning content, managing AIRS resources, model security, red teaming, and running repository examples.
+---
+
+# Quick Start
+
+Prisma AIRS uses two authentication flows:
+
+| Auth method | Used by |
+| --- | --- |
+| API key or pre-obtained bearer token | AI Runtime Security Scan API (`init()` + `Scanner`) |
+| OAuth2 `client_credentials` | Management, DLP, Model Security, and Red Team clients |
+
+If you set `PANW_MGMT_CLIENT_ID`, `PANW_MGMT_CLIENT_SECRET`, and `PANW_MGMT_TSG_ID`, the Model Security and Red Team clients can reuse those OAuth credentials automatically.
+
+## 1. Install
+
+```bash
+npm install @cdot65/prisma-airs-sdk
+```
+
+The SDK requires Node.js 18 or later.
+
+## 2. Configure credentials
+
+For local repository examples, copy the sample env file:
+
+```bash
+cp .env.example .env
+```
+
+At minimum:
+
+```bash
+# Scan API
+export PANW_AI_SEC_API_KEY=your-scan-api-key
+export PANW_AI_SEC_PROFILE_NAME=my-profile
+
+# OAuth-backed APIs
+export PANW_MGMT_CLIENT_ID=your-client-id
+export PANW_MGMT_CLIENT_SECRET=your-client-secret
+export PANW_MGMT_TSG_ID=1234567890
+```
+
+See [Configuration](./configuration) for all endpoint and fallback options.
+
+## 3. Scan AI content
+
+The Scan API is the only domain that uses `init()`.
+
+```ts
+import { init, Scanner, Content } from '@cdot65/prisma-airs-sdk';
+
+init(); // reads PANW_AI_SEC_API_KEY or PANW_AI_SEC_API_TOKEN
+
+const scanner = new Scanner();
+const content = new Content({
+  prompt: 'What is the capital of France?',
+  response: 'The capital of France is Paris.',
+});
+
+const result = await scanner.syncScan({ profile_name: 'my-profile' }, content);
+
+console.log(result.category); // 'benign' | 'malicious'
+console.log(result.action); // 'allow' | 'block'
+```
+
+For batch/offline use, `asyncScan()` accepts up to 5 scan objects and `queryByScanIds()` polls the results.
+
+## 4. Manage AIRS configuration
+
+`ManagementClient` owns OAuth token fetch, caching, refresh, and retry behavior. It exposes sub-clients for profiles, topics, API keys, customer apps, dashboard data, DLP, deployment profiles, scan logs, and token management.
+
+```ts
+import { ManagementClient } from '@cdot65/prisma-airs-sdk';
+
+const client = new ManagementClient(); // reads PANW_MGMT_* env vars
+
+const { ai_profiles } = await client.profiles.list();
+for (const profile of ai_profiles ?? []) {
+  console.log(profile.profile_name, profile.profile_id);
+}
+
+const topic = await client.topics.create({
+  topic_name: 'credit-card-numbers',
+  active: true,
+  description: 'Detects credit card numbers',
+  examples: ['4111-1111-1111-1111'],
+});
+
+console.log(topic.topic_id);
+```
+
+## 5. Use Model Security
+
+`ModelSecurityClient` exposes `scans`, `securityGroups`, and `securityRules`. Its credentials fall back to `PANW_MGMT_*` variables.
+
+```ts
+import { ModelSecurityClient } from '@cdot65/prisma-airs-sdk';
+
+const client = new ModelSecurityClient();
+
+const scans = await client.scans.list({ limit: 10 });
+const groups = await client.securityGroups.list();
+const rules = await client.securityRules.list();
+const pypiAuth = await client.getPyPIAuth();
+
+console.log(scans.scans.length, groups.security_groups.length, rules.security_rules.length);
+console.log(pypiAuth.expires_at);
+```
+
+## 6. Use Red Team
+
+`RedTeamClient` exposes seven sub-clients: `scans`, `reports`, `customAttackReports`, `targets`, `customAttacks`, `eula`, and `instances`.
+
+```ts
+import { RedTeamClient } from '@cdot65/prisma-airs-sdk';
+
+const client = new RedTeamClient();
+
+const targets = await client.targets.list({ limit: 10 });
+const categories = await client.scans.getCategories();
+const quota = await client.getQuota();
+
+console.log(targets.data?.length ?? 0);
+console.log(categories.length);
+console.log(quota);
+```
+
+Check `client.eula.getStatus()` before launching Red Team scans on a tenant for the first time.
+
+## Run repository examples
+
+The root `package.json` defines runnable examples for the main services.
+
+```bash
+# Scan API
+npm run example:scan
+npm run example:async-scan
+npm run example:query
+
+# Management API
+npm run example:mgmt-auth
+npm run example:mgmt-profiles
+npm run example:mgmt-topics
+
+# DLP via ManagementClient
+npm run example:dlp-data-filtering-profiles
+npm run example:dlp-data-patterns
+npm run example:dlp-data-profiles
+npm run example:dlp-dictionaries
+
+# Model Security
+npm run example:model-sec-scans
+
+# Red Team
+npm run example:red-team-scans
+npm run example:red-team-targets
+```
+
+The repository also includes self-contained validation examples that use local mock servers or direct source imports:
+
+```bash
+npm run example:profiles-get
+npm run example:profiles-crud
+npm run example:oauth-lifecycle
+npm run example:red-team-mgmt
+```
+
+`examples/mgmt-dashboard.ts` is present but is not wired to an npm script; run it directly when needed:
+
+```bash
+npx tsx --env-file=.env examples/mgmt-dashboard.ts
+```
+
+## Related Pages
+
+- [Scan API](../guides/scan-api)
+- [Management API](../guides/management-api)
+- [Model Security API](../guides/model-security-api)
+- [Red Team API](../guides/red-team-api)
+- [API Reference](../reference/api/)

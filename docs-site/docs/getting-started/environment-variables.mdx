@@ -1,0 +1,87 @@
+---
+id: environment-variables
+title: Environment Variables
+description: Complete environment variable reference for SDK authentication, endpoints, debug logging, and example scripts.
+---
+
+# Environment Variables
+
+This page lists the environment variables read by the SDK and by the repository examples. Constructor options always take precedence over environment variables.
+
+## Scan API
+
+| Variable | Required | Default | Description |
+| --- | --- | --- | --- |
+| `PANW_AI_SEC_API_KEY` | One of key/token | None | API key for Scan API HMAC-SHA256 auth. Sent as `x-pan-token`. |
+| `PANW_AI_SEC_API_TOKEN` | One of key/token | None | Pre-obtained bearer token. Sent as `Authorization: Bearer ...`. |
+| `PANW_AI_SEC_API_ENDPOINT` | No | `https://service.api.aisecurity.paloaltonetworks.com` | Scan API base URL. |
+
+`init()` throws `AISecSDKException` with `ErrorType.MISSING_VARIABLE` if neither `PANW_AI_SEC_API_KEY` nor `PANW_AI_SEC_API_TOKEN` is provided.
+
+## Management API
+
+| Variable | Required | Default | Description |
+| --- | --- | --- | --- |
+| `PANW_MGMT_CLIENT_ID` | Yes | None | OAuth2 client ID. |
+| `PANW_MGMT_CLIENT_SECRET` | Yes | None | OAuth2 client secret. |
+| `PANW_MGMT_TSG_ID` | Yes | None | Tenant Service Group ID used in the OAuth scope. |
+| `PANW_MGMT_ENDPOINT` | No | `https://api.sase.paloaltonetworks.com/aisec` | Management API base URL. |
+| `PANW_MGMT_TOKEN_ENDPOINT` | No | `https://auth.apps.paloaltonetworks.com/oauth2/access_token` | OAuth2 token endpoint. |
+
+The DLP namespace under `ManagementClient` does not read a DLP endpoint environment variable. Use the `dlpEndpoint` constructor option when you need to override `https://api.dlp.paloaltonetworks.com`.
+
+## Model Security API
+
+All credential variables fall back to the corresponding `PANW_MGMT_*` variable if not set.
+
+| Variable | Fallback | Default | Description |
+| --- | --- | --- | --- |
+| `PANW_MODEL_SEC_CLIENT_ID` | `PANW_MGMT_CLIENT_ID` | None | OAuth2 client ID. |
+| `PANW_MODEL_SEC_CLIENT_SECRET` | `PANW_MGMT_CLIENT_SECRET` | None | OAuth2 client secret. |
+| `PANW_MODEL_SEC_TSG_ID` | `PANW_MGMT_TSG_ID` | None | Tenant Service Group ID. |
+| `PANW_MODEL_SEC_DATA_ENDPOINT` | None | `https://api.sase.paloaltonetworks.com/aims/data` | Data-plane base URL. |
+| `PANW_MODEL_SEC_MGMT_ENDPOINT` | None | `https://api.sase.paloaltonetworks.com/aims/mgmt` | Management-plane base URL. |
+| `PANW_MODEL_SEC_TOKEN_ENDPOINT` | `PANW_MGMT_TOKEN_ENDPOINT` | OAuth default | OAuth2 token endpoint. |
+
+## Red Team API
+
+All credential variables fall back to the corresponding `PANW_MGMT_*` variable if not set.
+
+| Variable | Fallback | Default | Description |
+| --- | --- | --- | --- |
+| `PANW_RED_TEAM_CLIENT_ID` | `PANW_MGMT_CLIENT_ID` | None | OAuth2 client ID. |
+| `PANW_RED_TEAM_CLIENT_SECRET` | `PANW_MGMT_CLIENT_SECRET` | None | OAuth2 client secret. |
+| `PANW_RED_TEAM_TSG_ID` | `PANW_MGMT_TSG_ID` | None | Tenant Service Group ID. |
+| `PANW_RED_TEAM_DATA_ENDPOINT` | None | `https://api.sase.paloaltonetworks.com/ai-red-teaming/data-plane` | Data-plane base URL. |
+| `PANW_RED_TEAM_MGMT_ENDPOINT` | None | `https://api.sase.paloaltonetworks.com/ai-red-teaming/mgmt-plane` | Management-plane base URL. |
+| `PANW_RED_TEAM_TOKEN_ENDPOINT` | `PANW_MGMT_TOKEN_ENDPOINT` | OAuth default | OAuth2 token endpoint. |
+
+## Debug logging
+
+| Variable | Required | Default | Description |
+| --- | --- | --- | --- |
+| `PANW_AI_SEC_DEBUG` | No | Off | Set to `1`, `true`, `yes`, or `on` to log SDK HTTP requests and responses to `stderr`. |
+
+When enabled, the SDK logs each request attempt and response across scan, management, model security, DLP, and red team clients. Sensitive auth header values are hashed:
+
+```text
+[airs-sdk] -> GET https://api.sase.paloaltonetworks.com/ai-red-teaming/mgmt-plane/v1/custom-attack/list-custom-prompt-sets?limit=1
+[airs-sdk]   headers {"User-Agent":"PAN-AIRS/0.12.0-typescript-sdk","service-name":"api","Authorization":"sha256:6ba877dddebe"}
+[airs-sdk] <- 200 (1397ms) {"pagination":{"total_items":1},"data":[...]}
+```
+
+Request and response bodies are logged verbatim. They may contain prompt content or target configuration, so do not enable debug logging in production unless logs are protected and scrubbed.
+
+## Example script variables
+
+The following variable is used by repository examples, not by the SDK runtime itself.
+
+| Variable | Used by | Description |
+| --- | --- | --- |
+| `PANW_AI_SEC_PROFILE_NAME` | `examples/*.ts` | Security profile name passed to scan examples. |
+
+## Related Pages
+
+- [Configuration](./configuration)
+- [Quick Start](./quick-start)
+- [Development](../developer/development)

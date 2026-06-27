@@ -1,0 +1,72 @@
+---
+id: installation
+title: Installation
+description: Install the Prisma AIRS TypeScript SDK and verify ESM, CommonJS, and TypeScript usage.
+---
+
+# Installation
+
+## Requirements
+
+- Node.js 18 or later for the published SDK
+- npm, yarn, or pnpm
+
+The Docusaurus documentation site in this repository requires Node.js 20 or later, but SDK consumers only need Node.js 18 or later.
+
+## Install from npm
+
+```bash
+npm install @cdot65/prisma-airs-sdk
+```
+
+The package ships dual ESM/CommonJS exports and TypeScript declaration files in `dist/`.
+
+## Import the SDK
+
+```ts
+// ESM
+import {
+  init,
+  Scanner,
+  Content,
+  ManagementClient,
+  ModelSecurityClient,
+  RedTeamClient,
+} from '@cdot65/prisma-airs-sdk';
+```
+
+```js
+// CommonJS
+const {
+  init,
+  Scanner,
+  Content,
+  ManagementClient,
+  ModelSecurityClient,
+  RedTeamClient,
+} = require('@cdot65/prisma-airs-sdk');
+```
+
+## Runtime dependency
+
+| Dependency | Purpose |
+| --- | --- |
+| `zod` | Runtime validation for API responses and exported schemas. |
+
+HTTP calls use native `fetch`, and API-key signing/debug hashing use Node's built-in `crypto` module. No external HTTP client is required.
+
+## Verify installation
+
+`SDK_VERSION` is exported from the package constants.
+
+```ts
+import { SDK_VERSION } from '@cdot65/prisma-airs-sdk';
+
+console.log(`Prisma AIRS SDK v${SDK_VERSION}`);
+```
+
+## Related Pages
+
+- [Quick Start](./quick-start)
+- [Configuration](./configuration)
+- [API Reference](../reference/api/)

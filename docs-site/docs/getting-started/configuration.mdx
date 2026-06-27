@@ -1,0 +1,148 @@
+---
+id: configuration
+title: Configuration
+description: Environment variables, constructor options, endpoint defaults, and authentication setup for the Prisma AIRS SDK.
+---
+
+# Configuration
+
+The SDK has two configuration models:
+
+- `init()` configures the global Scan API client (`Scanner`) for API-key or bearer-token auth.
+- OAuth-backed clients (`ManagementClient`, `ModelSecurityClient`, and `RedTeamClient`) read constructor options first, then environment variables.
+
+Copy `.env.example` when running the repository examples:
+
+```bash
+cp .env.example .env
+```
+
+## Authentication by service
+
+| Service | Entry point | Auth method | Required credentials |
+| --- | --- | --- | --- |
+| Scan API | `init()` + `Scanner` | API key HMAC or pre-obtained bearer token | `PANW_AI_SEC_API_KEY` or `PANW_AI_SEC_API_TOKEN` |
+| Management API | `ManagementClient` | OAuth2 `client_credentials` | `PANW_MGMT_CLIENT_ID`, `PANW_MGMT_CLIENT_SECRET`, `PANW_MGMT_TSG_ID` |
+| Model Security API | `ModelSecurityClient` | OAuth2 `client_credentials` | `PANW_MODEL_SEC_*`, falling back to `PANW_MGMT_*` |
+| Red Team API | `RedTeamClient` | OAuth2 `client_credentials` | `PANW_RED_TEAM_*`, falling back to `PANW_MGMT_*` |
+
+## Scan API
+
+`init()` resolves values from explicit options, then environment variables, then defaults where one exists.
+
+| Name | Required | Default | Description |
+| --- | --- | --- | --- |
+| `PANW_AI_SEC_API_KEY` | One of key/token | None | Scan API key. When a request has a body, the SDK signs it with HMAC-SHA256 and sends `x-payload-hash`. |
+| `PANW_AI_SEC_API_TOKEN` | One of key/token | None | Pre-obtained bearer token sent as `Authorization: Bearer ...`. |
+| `PANW_AI_SEC_API_ENDPOINT` | No | `https://service.api.aisecurity.paloaltonetworks.com` | Scan API base URL. |
+| `numRetries` option | No | `5` | Retry attempts for transient `500`, `502`, `503`, and `504` responses. Must be `0` through `5`. |
+
+```ts
+import { init, Scanner } from '@cdot65/prisma-airs-sdk';
+
+init({
+  apiKey: 'your-api-key',
+  apiEndpoint: 'https://service.api.aisecurity.paloaltonetworks.com',
+  numRetries: 3,
+});
+
+const scanner = new Scanner();
+```
+
+Regional scan endpoints are exported as `AIRS_ENDPOINTS` from `src/constants.ts` and include `US`, `EU`, `INDIA`, and `SINGAPORE`.
+
+## Management API
+
+| Name | Required | Default | Description |
+| --- | --- | --- | --- |
+| `PANW_MGMT_CLIENT_ID` | Yes | None | OAuth2 client ID. |
+| `PANW_MGMT_CLIENT_SECRET` | Yes | None | OAuth2 client secret. |
+| `PANW_MGMT_TSG_ID` | Yes | None | Tenant Service Group ID used as the OAuth scope. |
+| `PANW_MGMT_ENDPOINT` | No | `https://api.sase.paloaltonetworks.com/aisec` | Management API base URL. |
+| `PANW_MGMT_TOKEN_ENDPOINT` | No | `https://auth.apps.paloaltonetworks.com/oauth2/access_token` | OAuth2 token endpoint. |
+
+```ts
+import { ManagementClient } from '@cdot65/prisma-airs-sdk';
+
+const client = new ManagementClient({
+  clientId: 'your-client-id',
+  clientSecret: 'your-client-secret',
+  tsgId: '1234567890',
+  apiEndpoint: 'https://api.sase.paloaltonetworks.com/aisec',
+  numRetries: 5,
+});
+```
+
+The DLP namespace (`client.dlp.*`) uses the same OAuth credentials as `ManagementClient`, but a separate base URL. Override it with the constructor-only `dlpEndpoint` option:
+
+```ts
+const client = new ManagementClient({
+  clientId: 'your-client-id',
+  clientSecret: 'your-client-secret',
+  tsgId: '1234567890',
+  dlpEndpoint: 'https://api.dlp.paloaltonetworks.com',
+});
+```
+
+There is no `PANW_DLP_ENDPOINT` environment variable in the implementation.
+
+## Model Security API
+
+Model Security has separate data-plane and management-plane base URLs. Credentials fall back to the corresponding `PANW_MGMT_*` variables when the service-specific variables are not set.
+
+| Name | Required | Default | Description |
+| --- | --- | --- | --- |
+| `PANW_MODEL_SEC_CLIENT_ID` | Falls back to `PANW_MGMT_CLIENT_ID` | None | OAuth2 client ID. |
+| `PANW_MODEL_SEC_CLIENT_SECRET` | Falls back to `PANW_MGMT_CLIENT_SECRET` | None | OAuth2 client secret. |
+| `PANW_MODEL_SEC_TSG_ID` | Falls back to `PANW_MGMT_TSG_ID` | None | Tenant Service Group ID. |
+| `PANW_MODEL_SEC_DATA_ENDPOINT` | No | `https://api.sase.paloaltonetworks.com/aims/data` | Data-plane base URL for scans, files, labels, and violations. |
+| `PANW_MODEL_SEC_MGMT_ENDPOINT` | No | `https://api.sase.paloaltonetworks.com/aims/mgmt` | Management-plane base URL for security groups and rules. |
+| `PANW_MODEL_SEC_TOKEN_ENDPOINT` | No | `PANW_MGMT_TOKEN_ENDPOINT`, then OAuth default | OAuth2 token endpoint. |
+
+```ts
+import { ModelSecurityClient } from '@cdot65/prisma-airs-sdk';
+
+const client = new ModelSecurityClient({
+  dataEndpoint: 'https://api.sase.paloaltonetworks.com/aims/data',
+  mgmtEndpoint: 'https://api.sase.paloaltonetworks.com/aims/mgmt',
+});
+```
+
+## Red Team API
+
+Red Team also has separate data-plane and management-plane base URLs. Credentials fall back to the corresponding `PANW_MGMT_*` variables when the service-specific variables are not set.
+
+| Name | Required | Default | Description |
+| --- | --- | --- | --- |
+| `PANW_RED_TEAM_CLIENT_ID` | Falls back to `PANW_MGMT_CLIENT_ID` | None | OAuth2 client ID. |
+| `PANW_RED_TEAM_CLIENT_SECRET` | Falls back to `PANW_MGMT_CLIENT_SECRET` | None | OAuth2 client secret. |
+| `PANW_RED_TEAM_TSG_ID` | Falls back to `PANW_MGMT_TSG_ID` | None | Tenant Service Group ID. |
+| `PANW_RED_TEAM_DATA_ENDPOINT` | No | `https://api.sase.paloaltonetworks.com/ai-red-teaming/data-plane` | Data-plane base URL for scans, reports, quota, sentiment, and dashboard calls. |
+| `PANW_RED_TEAM_MGMT_ENDPOINT` | No | `https://api.sase.paloaltonetworks.com/ai-red-teaming/mgmt-plane` | Management-plane base URL for targets, custom attacks, EULA, and instances. |
+| `PANW_RED_TEAM_TOKEN_ENDPOINT` | No | `PANW_MGMT_TOKEN_ENDPOINT`, then OAuth default | OAuth2 token endpoint. |
+
+```ts
+import { RedTeamClient } from '@cdot65/prisma-airs-sdk';
+
+const client = new RedTeamClient({
+  dataEndpoint: 'https://api.sase.paloaltonetworks.com/ai-red-teaming/data-plane',
+  mgmtEndpoint: 'https://api.sase.paloaltonetworks.com/ai-red-teaming/mgmt-plane',
+});
+```
+
+## Debug logging
+
+Set `PANW_AI_SEC_DEBUG` to `1`, `true`, `yes`, or `on` to log request and response details to `stderr` for all SDK domains.
+
+```bash
+PANW_AI_SEC_DEBUG=1 npx tsx examples/red-team-scans.ts
+```
+
+Auth headers (`Authorization` and `x-pan-token`) are replaced with a stable `sha256:<prefix>` hash. Request and response bodies are logged verbatim, so keep debug logging off in production and scrub prompt content before sharing logs.
+
+## Related Pages
+
+- [Environment Variables](./environment-variables)
+- [Quick Start](./quick-start)
+- [OAuth Token Lifecycle](../guides/oauth-lifecycle)
+- [Architecture & Internals](../developer/architecture)

@@ -1,0 +1,117 @@
+---
+id: development
+title: Development Workflow
+description: Local setup, scripts, tests, docs generation, schema checks, and CI workflows for SDK contributors.
+---
+
+# Development Workflow
+
+This page documents the contributor workflow visible in `package.json`, the test suite, scripts, and GitHub Actions workflows.
+
+## Local setup
+
+```bash
+npm install
+npm run build
+```
+
+The SDK package requires Node.js 18 or later. The Docusaurus site in `docs-site/` requires Node.js 20 or later.
+
+## Core scripts
+
+| Command | What it does |
+| --- | --- |
+| `npm run build` | Builds CJS, ESM, and declaration output with `tsup`. |
+| `npm run clean` | Removes `dist/`. |
+| `npm run lint` | Runs ESLint. |
+| `npm run typecheck` | Runs `tsc --noEmit`. |
+| `npm run format` | Formats the repository with Prettier. |
+| `npm run format:check` | Checks formatting without writing changes. |
+| `npm run test` | Runs Vitest once. |
+| `npm run test:watch` | Runs Vitest in watch mode. |
+| `npm run test:coverage` | Runs Vitest with V8 coverage. |
+
+Run a single test file:
+
+```bash
+npx vitest run test/scan/scanner.spec.ts
+```
+
+Run tests by name:
+
+```bash
+npx vitest run -t "OAuth"
+```
+
+## Documentation scripts
+
+| Command | What it does |
+| --- | --- |
+| `npm run docs:api` | Generates TypeDoc Markdown from `src/index.ts` into `docs-site/docs/reference/api`. |
+| `npm run docs:serve` | Generates API docs, then starts the Docusaurus dev server. |
+| `npm run docs:build` | Generates API docs, then builds the Docusaurus site. |
+| `npm run docs:check` | Fails if any public method or exported function lacks an `@example` JSDoc tag. |
+| `npm run docs:check:warn` | Reports missing examples but exits zero. |
+
+The generated API reference is not hand-authored. Update JSDoc in `src/`, then run `npm run docs:api`.
+
+## Schema checks
+
+| Command | What it does |
+| --- | --- |
+| `npm run preflight` | Strict OpenAPI-vs-Zod schema drift check. Fails on unacknowledged drift. |
+| `npm run preflight:warn` | Same drift report, but exits zero. |
+| `npm run audit:live` | Hits read-only live tenant endpoints and validates responses against SDK schemas. |
+
+`audit:live` requires `PANW_*` credentials for the tenant being probed. Use it before releases or after API-side changes when you need runtime evidence beyond the checked-in specs.
+
+## Example scripts
+
+Examples are in `examples/` and most have npm scripts:
+
+```bash
+npm run example:scan
+npm run example:async-scan
+npm run example:query
+npm run example:mgmt-auth
+npm run example:mgmt-profiles
+npm run example:mgmt-topics
+npm run example:model-sec-scans
+npm run example:red-team-scans
+npm run example:red-team-targets
+npm run example:dlp-data-filtering-profiles
+npm run example:dlp-data-patterns
+npm run example:dlp-data-profiles
+npm run example:dlp-dictionaries
+```
+
+Validation examples that use local mocks or direct source imports:
+
+```bash
+npm run example:profiles-get
+npm run example:profiles-crud
+npm run example:oauth-lifecycle
+npm run example:red-team-mgmt
+```
+
+`examples/mgmt-dashboard.ts` exists without a root npm script. Run it directly:
+
+```bash
+npx tsx --env-file=.env examples/mgmt-dashboard.ts
+```
+
+## CI workflows
+
+| Workflow | Trigger | Checks |
+| --- | --- | --- |
+| `.github/workflows/ci.yml` | Push/PR to `main` | `npm ci`, format check, ESLint, typecheck, strict preflight. |
+| `.github/workflows/test.yml` | Push/PR to `main` | Test and build on Node 18, 20, and 22. |
+| `.github/workflows/docs-deploy.yml` | Push to `main` paths or manual dispatch | Docs example coverage, TypeDoc generation, Docusaurus build, GitHub Pages artifact upload/deploy. |
+| `.github/workflows/publish.yml` | Published GitHub release | Format check, lint, typecheck, test, build, then `npm publish --access public` with OIDC trusted publishing. |
+
+## Related Pages
+
+- [Architecture & Internals](./architecture)
+- [API Design & Versioning](./api-design-versioning)
+- [Configuration](../getting-started/configuration)
+- [API Reference](../reference/api/)
