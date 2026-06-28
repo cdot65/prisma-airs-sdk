@@ -35,7 +35,7 @@ Adds `ManagementClient.dashboard` (new `DashboardClient`) covering the SCM **AI 
 
 Response schemas use `.passthrough()` + `.nullable().optional()` for forward compatibility — new detectors and new response fields parse cleanly without an SDK bump.
 
-**Files:** `src/management/dashboard.ts`, `src/models/mgmt-dashboard.ts`, `examples/mgmt-dashboard.ts`. New `MGMT_DASHBOARD_APPLICATION_PATH` / `_VIOLATION_BREAKDOWN_PATH` constants. Guide section added under [Management API → Dashboard](../guides/management-api.md#dashboard) including the per-app chargeback pattern.
+**Files:** `src/management/dashboard.ts`, `src/models/mgmt-dashboard.ts`, `examples/mgmt-dashboard.ts`. New `MGMT_DASHBOARD_APPLICATION_PATH` / `_VIOLATION_BREAKDOWN_PATH` constants. Guide section added under [Management API → Dashboard](../guides/management-api#dashboard) including the per-app chargeback pattern.
 
 ### Bug Fixes — Management `.delete()` Plain-String Bodies
 

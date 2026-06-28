@@ -1,3 +1,8 @@
+---
+title: API Design & Versioning
+description: How the Prisma AIRS SDK tracks OpenAPI specs, validates schemas, documents examples, and handles pre-1.0 versioning.
+---
+
 # API Design & Versioning
 
 This page describes the design and versioning philosophy of the Prisma AIRS TypeScript SDK: how it
@@ -12,7 +17,7 @@ listing of every exported type and schema. This page is about the _policy_ aroun
 ## Semantic versioning (pre-1.0)
 
 The SDK is published as `@cdot65/prisma-airs-sdk`. At the time of writing the version in
-`package.json` is **`0.9.2`** — i.e. **pre-1.0**.
+`package.json` is **`0.12.0`** — i.e. **pre-1.0**.
 
 Under pre-1.0 semver, the usual guarantees shift down one level:
 
@@ -153,6 +158,25 @@ real CLI smoke tests. The two checks are complementary:
 | `audit:live` | live API ↔ Zod     | runtime divergence the spec doesn't show | Yes (`PANW_*`)       |
 
 Run `audit:live` before tagging a release or after any API-side change.
+
+## Documentation checks
+
+The Docusaurus site lives in `docs-site/`. The API reference is generated from the public barrel export (`src/index.ts`) with TypeDoc before docs are served or built:
+
+```bash
+npm run docs:api      # generate docs-site/docs/reference/api
+npm run docs:serve    # generate API docs, then start Docusaurus
+npm run docs:build    # generate API docs, then build the static site
+```
+
+The project also enforces JSDoc examples on public methods and exported functions:
+
+```bash
+npm run docs:check       # strict example-coverage gate
+npm run docs:check:warn  # report missing examples without failing
+```
+
+The docs deploy workflow runs the example-coverage check, regenerates TypeDoc output, and builds Docusaurus for GitHub Pages.
 
 ## Changeset-driven releases
 

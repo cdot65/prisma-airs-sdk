@@ -1,6 +1,11 @@
+---
+title: Management API
+description: Configure Prisma AIRS security profiles, custom topics, API keys, dashboard data, DLP resources, and OAuth management.
+---
+
 # Management API
 
-CRUD operations for AIRS configuration via OAuth2 client credentials. Covers security profiles, custom topics, API keys, customer apps, DLP profiles, deployment profiles, scan logs, and OAuth token management.
+CRUD operations for AIRS configuration via OAuth2 client credentials. Covers security profiles, custom topics, API keys, customer apps, dashboard telemetry, DLP resources, deployment profiles, scan logs, and OAuth token management.
 
 ## How it works
 
@@ -8,17 +13,18 @@ If the [Scan API](scan-api.md) is the _data plane_ that inspects traffic, the Ma
 
 The thing you'll touch most is the **security profile**: a named ruleset that turns detectors on or off and maps each hit to _allow_ or _block_. The Scan API references these profiles by name; this API is where you create, tune, and version them. Around profiles sit the supporting objects:
 
-| Resource                    | What it's for                                                           |
-| --------------------------- | ----------------------------------------------------------------------- |
-| `client.profiles`           | Security profiles — the rulesets scans run against. The core resource.  |
-| `client.topics`             | Custom detection topics (your own patterns) referenced inside profiles. |
-| `client.apiKeys`            | AIRS scan API keys for your tenant — create, rotate, revoke.            |
-| `client.customerApps`       | Customer application registrations.                                     |
-| `client.dashboard`          | Per-app token consumption + violation breakdown (SCM detail panel).     |
-| `client.dlpProfiles`        | Data-loss-prevention data profiles (list).                              |
-| `client.deploymentProfiles` | Deployment profiles for the tenant (list).                              |
-| `client.scanLogs`           | Query historical scan activity by time range.                           |
-| `client.oauth`              | Mint / invalidate OAuth tokens for client-credential flows.             |
+| Resource                    | What it's for                                                                 |
+| --------------------------- | ----------------------------------------------------------------------------- |
+| `client.profiles`           | Security profiles — the rulesets scans run against. The core resource.        |
+| `client.topics`             | Custom detection topics (your own patterns) referenced inside profiles.       |
+| `client.apiKeys`            | AIRS scan API keys for your tenant — create, rotate, revoke.                  |
+| `client.customerApps`       | Customer application registrations.                                           |
+| `client.dashboard`          | Dashboard app buckets, token consumption, and violation breakdown.            |
+| `client.dlpProfiles`        | Management-plane DLP profile references (list only).                          |
+| `client.dlp`                | DLP API namespace for filtering profiles, data patterns, profiles, and dictionaries. |
+| `client.deploymentProfiles` | Deployment profiles for the tenant (list).                                    |
+| `client.scanLogs`           | Query historical scan activity by time range.                                 |
+| `client.oauth`              | Mint / invalidate OAuth tokens for client-credential flows.                   |
 
 Two ideas to keep in mind:
 
@@ -91,6 +97,14 @@ const client = new ManagementClient({
   clientSecret: 'your-client-secret',
   tsgId: '1234567890',
   apiEndpoint: 'https://api.eu.sase.paloaltonetworks.com/aisec',
+});
+
+// DLP endpoints use the same OAuth credentials but a separate base URL.
+const dlpClient = new ManagementClient({
+  clientId: 'your-client-id',
+  clientSecret: 'your-client-secret',
+  tsgId: '1234567890',
+  dlpEndpoint: 'https://api.dlp.paloaltonetworks.com',
 });
 ```
 
@@ -364,9 +378,31 @@ const result = await client.customerApps.delete('my-app', 'user@example.com');
 
 ## Dashboard
 
-Per-application token consumption and per-detector violation counts — the same data SCM renders in the **AI Security > Runtime > API Applications** detail panel. Pair with `customerApps.list()` to iterate every app in the tenant for chargeback or risk reporting.
+Per-application token consumption and per-detector violation counts — the same data SCM renders in the **AI Security > Runtime > API Applications** panel.
 
-Both methods require `appId` and a non-empty `appName`. Sending an empty `appname` returns HTTP 400; omitting it entirely returns an all-null body — the SDK requires both to keep those failure modes off the happy path. `timeInterval` is `7 | 30 | 60` (default `30`), `timeUnit` is `'days'` only (default `'days'`); other values return HTTP 400.
+Use `dashboard.applicationsOverview()` to enumerate dashboard buckets. This is the canonical source for reporting because AIRS dashboard data is bucketed by the literal `metadata.app_name` value sent in scan payloads. A registered customer app can therefore appear as multiple dashboard buckets when the same app ID sends different scan metadata names.
+
+The drill-down methods, `application()` and `applicationViolationBreakdown()`, require `appId` and a non-empty `appName`. Sending an empty `appname` returns HTTP 400; omitting it entirely returns an all-null body — the SDK requires both to keep those failure modes off the happy path. For drill-down calls, `timeInterval` is `7 | 30 | 60` (default `30`), `timeUnit` is `'days'` only (default `'days'`); other values return HTTP 400.
+
+### Applications overview
+
+`dashboard.applicationsOverview()` returns the dashboard bucket inventory plus pagination metadata. Each item's `id` is the registered customer app UUID, and `name` is the scan-payload app name to pass into drill-down calls.
+
+```ts
+const apps = await client.dashboard.applicationsOverview({
+  timeInterval: 30,
+  timeUnit: 'days',
+  limit: 25,
+  offset: 0,
+});
+
+for (const app of apps.items ?? []) {
+  if (!app.id || !app.name) continue;
+  console.log(app.name, app.id);
+}
+```
+
+This endpoint accepts `timeUnit: 'days'` with `timeInterval: 7 | 30 | 60`, plus the singular windows `timeUnit: 'day'` / `timeInterval: 1` and `timeUnit: 'hour'` / `timeInterval: 1`.
 
 ### Application overview
 
@@ -416,36 +452,47 @@ Detector codes observed live (10 as of 2026-05-28): `agent_security`, `contextua
 
 ### Per-app chargeback pattern
 
-Combine `customerApps.list()` with `dashboard.application()` to attribute token spend across every app in the tenant:
+Combine `dashboard.applicationsOverview()` with `dashboard.application()` to attribute token spend across every dashboard bucket in the tenant:
 
 ```ts
-const { customer_apps = [] } = await client.customerApps.list({ offset: 0, limit: 100 });
+const apps = await client.dashboard.applicationsOverview({ limit: 100 });
 const scale = (n?: number | null, s?: string | null) =>
   (n ?? 0) * (s === 'M' ? 1_000_000 : s === 'K' ? 1_000 : 1);
 
-for (const app of customer_apps) {
-  if (!app.customer_appId) continue;
+for (const app of apps.items ?? []) {
+  if (!app.id || !app.name) continue;
   const overview = await client.dashboard.application({
-    appId: app.customer_appId,
-    appName: app.app_name,
+    appId: app.id,
+    appName: app.name,
   });
   const tokens = scale(
     overview.token_stats?.monthly_total_tokens,
     overview.token_stats?.monthly_total_tokens_scale,
   );
-  console.log(`${app.app_name}: ${tokens.toLocaleString()} tokens this month`);
+  console.log(`${app.name}: ${tokens.toLocaleString()} tokens this month`);
 }
 ```
 
-See `examples/mgmt-dashboard.ts` for a runnable version that also surfaces firing detectors per app.
+See `examples/mgmt-dashboard.ts` for a runnable dashboard walkthrough. It can be run directly with `npx tsx --env-file=.env examples/mgmt-dashboard.ts`.
 
 ## DLP Profiles
 
-List DLP data profiles configured for the TSG.
+List management-plane DLP data profile references configured for the TSG. For CRUD over the DLP service itself, use `client.dlp`.
 
 ```ts
 const { dlp_profiles } = await client.dlpProfiles.list();
 ```
+
+## DLP API Namespace
+
+`client.dlp` uses the DLP API base URL (`https://api.dlp.paloaltonetworks.com` by default) with the same OAuth credentials as the Management API. Override the DLP host with the constructor-only `dlpEndpoint` option.
+
+| Subclient | Operations | Guide |
+| --- | --- | --- |
+| `client.dlp.dataFilteringProfiles` | list, get, full replace | [Data Filtering Profiles](dlp/data-filtering-profiles.md) |
+| `client.dlp.dataPatterns` | list, create, get, replace, patch, delete | [Data Patterns](dlp/data-patterns.md) |
+| `client.dlp.dataProfiles` | list, create, get, replace, patch | [Data Profiles](dlp/data-profiles.md) |
+| `client.dlp.dictionaries` | list, multipart create, get, multipart replace, patch, delete | [Dictionaries](dlp/dictionaries.md) |
 
 ## Deployment Profiles
 
@@ -576,6 +623,11 @@ cp .env.example .env
 npm run example:mgmt-auth
 npm run example:mgmt-profiles
 npm run example:mgmt-topics
+npx tsx --env-file=.env examples/mgmt-dashboard.ts
+npm run example:dlp-data-filtering-profiles
+npm run example:dlp-data-patterns
+npm run example:dlp-data-profiles
+npm run example:dlp-dictionaries
 
 # Self-contained validation (no credentials needed — uses mock servers)
 npm run example:profiles-get       # get() and getByName() methods

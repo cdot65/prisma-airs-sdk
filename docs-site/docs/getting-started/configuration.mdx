@@ -1,3 +1,8 @@
+---
+title: Configuration
+description: Configure authentication, endpoints, retries, regional scan hosts, DLP, and debug logging for the Prisma AIRS SDK.
+---
+
 # Configuration
 
 All SDK clients can be configured via constructor options or environment variables. Copy `.env.example` to `.env` to get started.
@@ -8,11 +13,25 @@ cp .env.example .env
 
 ## Scan API
 
+The Scan API is configured globally with `init()`. It requires either an API key or a pre-obtained bearer token.
+
 | Env Var                    | Required         | Default                                               |
 | -------------------------- | ---------------- | ----------------------------------------------------- |
 | `PANW_AI_SEC_API_KEY`      | One of key/token | —                                                     |
 | `PANW_AI_SEC_API_TOKEN`    | One of key/token | —                                                     |
 | `PANW_AI_SEC_API_ENDPOINT` | No               | `https://service.api.aisecurity.paloaltonetworks.com` |
+
+```ts
+import { AIRS_ENDPOINTS, init } from '@cdot65/prisma-airs-sdk';
+
+init({
+  apiKey: process.env.PANW_AI_SEC_API_KEY,
+  apiEndpoint: AIRS_ENDPOINTS.EU,
+  numRetries: 3,
+});
+```
+
+`numRetries` is supported by all SDK clients, accepts values from `0` to `5`, and defaults to `5`.
 
 ## Management API
 
@@ -23,6 +42,16 @@ cp .env.example .env
 | `PANW_MGMT_TSG_ID`         | Yes      | —                                                            |
 | `PANW_MGMT_ENDPOINT`       | No       | `https://api.sase.paloaltonetworks.com/aisec`                |
 | `PANW_MGMT_TOKEN_ENDPOINT` | No       | `https://auth.apps.paloaltonetworks.com/oauth2/access_token` |
+
+The DLP namespace (`client.dlp`) reuses these OAuth credentials. Its base URL defaults to `https://api.dlp.paloaltonetworks.com` and is overridden with the `ManagementClient` constructor, not an environment variable:
+
+```ts
+import { ManagementClient } from '@cdot65/prisma-airs-sdk';
+
+const client = new ManagementClient({
+  dlpEndpoint: 'https://api.dlp.paloaltonetworks.com',
+});
+```
 
 ## Model Security API
 
@@ -52,9 +81,14 @@ Falls back to `PANW_MGMT_*` variables if service-specific ones are not set.
 
 ## Regional Endpoints
 
-Override endpoint variables for non-US deployments:
+Override endpoint variables for non-US deployments. The scan client also exports `AIRS_ENDPOINTS` with the verified scan hosts:
 
 ```bash
+# Scan API regional hosts
+export PANW_AI_SEC_API_ENDPOINT=https://service-de.api.aisecurity.paloaltonetworks.com  # EU
+export PANW_AI_SEC_API_ENDPOINT=https://service-in.api.aisecurity.paloaltonetworks.com  # India
+export PANW_AI_SEC_API_ENDPOINT=https://service-sg.api.aisecurity.paloaltonetworks.com  # Singapore
+
 # EU
 export PANW_MGMT_ENDPOINT=https://api.eu.sase.paloaltonetworks.com/aisec
 
@@ -68,3 +102,13 @@ export PANW_MGMT_ENDPOINT=https://api.gov.sase.paloaltonetworks.com/aisec
 :::info[Shared Credentials]
 If you use the same OAuth2 client for all services, you only need to set `PANW_MGMT_CLIENT_ID`, `PANW_MGMT_CLIENT_SECRET`, and `PANW_MGMT_TSG_ID`. The Model Security and Red Team clients will use these automatically.
 :::
+
+## Debug Logging
+
+Set `PANW_AI_SEC_DEBUG` to `1`, `true`, `yes`, or `on` to log each HTTP request and response to `stderr`. The SDK hashes `Authorization` and `x-pan-token` values before logging, but request and response bodies are logged verbatim, so keep this disabled in production.
+
+```bash
+PANW_AI_SEC_DEBUG=1 npm run example:red-team-scans
+```
+
+See [Environment Variables](environment-variables) for the complete reference.

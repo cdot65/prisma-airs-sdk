@@ -1,3 +1,8 @@
+---
+title: Error Handling
+description: Understand AISecSDKException, ErrorType values, response validation failures, and retry behavior in the Prisma AIRS SDK.
+---
+
 # Error Handling
 
 All SDK errors throw `AISecSDKException` with a typed `errorType` property.
@@ -12,6 +17,7 @@ All SDK errors throw `AISecSDKException` with a typed `errorType` property.
 | `MISSING_VARIABLE`           | `AISEC_MISSING_VARIABLE`           | Missing required config (API key, client ID) |
 | `AISEC_SDK_ERROR`            | `AISEC_SDK_ERROR`                  | Internal SDK errors                          |
 | `OAUTH_ERROR`                | `AISEC_OAUTH_ERROR`                | OAuth2 token fetch failures                  |
+| `RESPONSE_VALIDATION`        | `AISEC_RESPONSE_VALIDATION`        | 2xx response body failed Zod validation or JSON parsing |
 
 ## Usage
 
@@ -37,6 +43,9 @@ try {
         break;
       case ErrorType.OAUTH_ERROR:
         console.error('Auth failed:', err.message);
+        break;
+      case ErrorType.RESPONSE_VALIDATION:
+        console.error('API response shape changed:', err.message);
         break;
     }
   }
