@@ -1,3 +1,8 @@
+---
+title: Quick Start
+description: Start using the Prisma AIRS SDK across management, scan, model security, red team, and DLP workflows.
+---
+
 # Quick Start
 
 ## Authentication Overview
@@ -48,6 +53,24 @@ const topic = await client.topics.create({
   description: 'Detects credit card numbers',
   examples: ['4111-1111-1111-1111', '5500 0000 0000 0004'],
 });
+```
+
+### DLP Resources
+
+The DLP namespace uses the same `ManagementClient` OAuth credentials and a separate DLP API base URL.
+
+```ts
+import { ManagementClient } from '@cdot65/prisma-airs-sdk';
+
+const client = new ManagementClient();
+
+const filteringProfiles = await client.dlp.dataFilteringProfiles.list({
+  page: 0,
+  size: 20,
+  status: 'enabled',
+});
+
+console.log(filteringProfiles.totalElements);
 ```
 
 ### Red Team Targets (Red Team config)
@@ -163,6 +186,13 @@ npm run example:query
 npm run example:mgmt-auth
 npm run example:mgmt-profiles
 npm run example:mgmt-topics
+npx tsx --env-file=.env examples/mgmt-dashboard.ts
+
+# DLP namespace (OAuth2 through ManagementClient)
+npm run example:dlp-data-filtering-profiles
+npm run example:dlp-data-patterns
+npm run example:dlp-data-profiles
+npm run example:dlp-dictionaries
 
 # Model Security (OAuth2)
 npm run example:model-sec-scans
@@ -170,9 +200,6 @@ npm run example:model-sec-scans
 # Red Team (OAuth2)
 npm run example:red-team-scans
 npm run example:red-team-targets
-
-# OAuth lifecycle validation
-npm run example:oauth-lifecycle
 
 # Self-contained validation (no credentials needed — uses mock servers)
 npm run example:profiles-get       # get() and getByName() methods

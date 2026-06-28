@@ -1,6 +1,6 @@
 ---
 title: Prisma AIRS SDK
-description: TypeScript SDK for Palo Alto Networks Prisma AIRS (AI Runtime Security)
+description: TypeScript SDK for Palo Alto Networks Prisma AIRS across scanning, management, model security, and red teaming.
 slug: /
 hide_title: true
 ---
@@ -26,10 +26,10 @@ Type-safe clients for all four AIRS service domains — real-time content scanni
 ## Features
 
 - **Real-Time Content Scanning** — Synchronous and asynchronous scanning of AI prompts and responses. Detect prompt injection, toxic content, data leaks, and malicious URLs inline.
-- **Security Management** — Full CRUD for security profiles and custom topics. Programmatically manage your AIRS configuration at scale.
+- **Security Management** — Manage security profiles, custom topics, API keys, dashboard data, and DLP resources through OAuth2 clients.
 - **Model Security** — Scan ML models for supply chain threats: malicious code execution, backdoors, unapproved file formats. Manage security groups and rules.
 - **AI Red Teaming** — Run automated red team scans against AI targets. Static attack libraries, dynamic agent-based testing, custom prompt sets, and comprehensive reporting.
-- **Type-Safe Everything** — 50 typed enum const objects, 250 Zod schemas with `.passthrough()` for forward compatibility, and JSDoc on every exported symbol.
+- **Type-Safe Everything** — Exported TypeScript types, enum const objects, Zod schemas with `.passthrough()` for forward compatibility, and JSDoc examples on public symbols.
 - **Zero Dependencies** — Native `fetch` + `crypto` only. No external HTTP libraries. Exponential backoff retry built in. ES2022 target, Node 18+.
 
 ## Four Independent APIs
@@ -43,14 +43,15 @@ flowchart LR
     SDK --> RTAM["Red Team API"]
 
     SCAN --> S1["syncScan / asyncScan"]
-    MGMT --> M1["Profiles / Topics CRUD"]
-    MSEC --> MS1["Model Scans / Security Groups"]
+    MGMT --> M1["Profiles / Topics / API Keys"]
+    MGMT --> M2["DLP / Dashboard / Logs"]
+    MSEC --> MS1["Model Scans / Groups / Rules"]
     RTAM --> RT1["Scans / Reports / Targets"]
 ```
 
 ## Get Started
 
 - **[Install](getting-started/installation.md)** — Install the SDK, configure credentials, and connect to AIRS.
-- **[Quick Start](getting-started/quick-start.md)** — Scanning, management, and more in under 5 minutes.
-- **[Configure](getting-started/configuration.md)** — Environment variables, auth methods, and endpoint setup.
+- **[Quick Start](getting-started/quick-start)** — Scanning, management, and more in under 5 minutes.
+- **[Configure](getting-started/configuration)** — Environment variables, auth methods, and endpoint setup.
 - **[API Reference](reference/api/index.md)** — Complete method signatures, types, enums, and error handling.

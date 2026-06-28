@@ -1,3 +1,8 @@
+---
+title: Environment Variables
+description: Complete environment-variable reference for scan, management, model security, red team, debug logging, and example scripts.
+---
+
 # Environment Variables
 
 Complete reference for all environment variables used by the SDK.
@@ -19,6 +24,8 @@ Complete reference for all environment variables used by the SDK.
 | `PANW_MGMT_TSG_ID`         | Yes      | —                                                            | Tenant Service Group ID |
 | `PANW_MGMT_ENDPOINT`       | No       | `https://api.sase.paloaltonetworks.com/aisec`                | Management API base URL |
 | `PANW_MGMT_TOKEN_ENDPOINT` | No       | `https://auth.apps.paloaltonetworks.com/oauth2/access_token` | OAuth2 token endpoint   |
+
+`client.dlp` does not have a separate environment variable for its endpoint. It reuses `PANW_MGMT_*` OAuth credentials and accepts a constructor-only `dlpEndpoint` override on `ManagementClient`.
 
 ## Model Security API
 
@@ -81,4 +88,4 @@ The following variables are **not** consumed by the SDK itself. They are used on
 
 | Variable                   | Used By         | Description                                   |
 | -------------------------- | --------------- | --------------------------------------------- |
-| `PANW_AI_SEC_PROFILE_NAME` | `examples/*.py` | Security profile name passed to scan requests |
+| `PANW_AI_SEC_PROFILE_NAME` | `examples/*.ts` | Security profile name passed to scan requests |

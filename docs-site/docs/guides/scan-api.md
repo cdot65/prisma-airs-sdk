@@ -17,12 +17,12 @@ Key concepts:
 | -------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `Scanner`            | The client you call. One per process; reads global config set by `init()`.                                                                            |
 | `Content`            | A wrapper holding the text to scan (`prompt`, `response`, `context`, code, tool events). Validates size as you set it.                                |
-| **Security profile** | The named ruleset (managed via the [Management API](management-api.md)) that decides which detections run and whether a hit means _allow_ or _block_. |
+| **Security profile** | The named ruleset (managed via the [Management API](management-api)) that decides which detections run and whether a hit means _allow_ or _block_. |
 | **Verdict**          | The result: `category` (`benign`/`malicious`) and `action` (`allow`/`block`).                                                                         |
 | **Sync vs async**    | Sync gives an inline verdict in one call. Async accepts a batch, returns receipts, and you poll for results later.                                    |
 
 :::tip[Profiles live in the Management API]
-The Scan API only _references_ a profile by name or ID — it never creates one. Define and tune profiles with the [Management API](management-api.md), then point scans at them.
+The Scan API only _references_ a profile by name or ID — it never creates one. Define and tune profiles with the [Management API](management-api), then point scans at them.
 :::
 ## Authentication
 
@@ -177,7 +177,7 @@ These are **byte** limits (multibyte characters count for more than one). For ve
 
 **Reuse the `Scanner`.** `init()` sets a global singleton; construct one `Scanner` and share it. There's no per-call connection setup to repeat.
 
-**Trace your scans.** Always pass `trId` and `sessionId`. They flow into AIRS scan logs (queryable via the [Management API](management-api.md)), making incident triage and per-conversation analysis far easier later.
+**Trace your scans.** Always pass `trId` and `sessionId`. They flow into AIRS scan logs (queryable via the [Management API](management-api)), making incident triage and per-conversation analysis far easier later.
 
 **Code and tool content get their own fields.** Put code into `codePrompt` / `codeResponse` and MCP/function-call events into `toolEvent` rather than stuffing everything into `prompt` — detectors are tuned per field.
 
