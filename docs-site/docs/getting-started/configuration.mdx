@@ -108,7 +108,7 @@ If you use the same OAuth2 client for all services, you only need to set `PANW_M
 Set `PANW_AI_SEC_DEBUG` to `1`, `true`, `yes`, or `on` to log each HTTP request and response to `stderr`. The SDK hashes `Authorization` and `x-pan-token` values before logging, but request and response bodies are logged verbatim, so keep this disabled in production.
 
 ```bash
-PANW_AI_SEC_DEBUG=1 npm run example:red-team-scans
+PANW_AI_SEC_DEBUG=1 npx tsx --env-file=.env docs-site/examples/red-team-scans.ts
 ```
 
 See [Environment Variables](environment-variables) for the complete reference.

@@ -1,6 +1,11 @@
-# CONTEXT.md
+---
+title: Architecture Vocabulary
+description: Shared vocabulary for the prisma-airs-sdk codebase — request specs, auth adapters, listings, and the validation error model.
+---
 
-Architecture vocabulary for the prisma-airs-sdk codebase. Use these terms exactly when discussing design — they have specific meanings here.
+# Architecture Vocabulary
+
+Use these terms exactly when discussing the SDK's design — they have specific meanings here.
 
 ## Domain concepts
 

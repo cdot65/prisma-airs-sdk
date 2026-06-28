@@ -45,6 +45,7 @@ const sidebars: SidebarsConfig = {
       label: 'Developer',
       items: [
         'developer/architecture',
+        'developer/vocabulary',
         'developer/api-design-versioning',
         'developer/error-handling',
       ],

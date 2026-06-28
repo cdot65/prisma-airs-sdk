@@ -178,32 +178,32 @@ for (const rule of rules.security_rules) {
 cp .env.example .env   # fill in credentials
 
 # AI Runtime Security (API key auth)
-npm run example:scan
-npm run example:async-scan
-npm run example:query
+npx tsx --env-file=.env docs-site/examples/basic-scan.ts
+npx tsx --env-file=.env docs-site/examples/async-scan.ts
+npx tsx --env-file=.env docs-site/examples/query-results.ts
 
 # Management CRUD (OAuth2)
-npm run example:mgmt-auth
-npm run example:mgmt-profiles
-npm run example:mgmt-topics
-npx tsx --env-file=.env examples/mgmt-dashboard.ts
+npx tsx --env-file=.env docs-site/examples/mgmt-auth.ts
+npx tsx --env-file=.env docs-site/examples/mgmt-profiles.ts
+npx tsx --env-file=.env docs-site/examples/mgmt-topics.ts
+npx tsx --env-file=.env docs-site/examples/mgmt-dashboard.ts
 
 # DLP namespace (OAuth2 through ManagementClient)
-npm run example:dlp-data-filtering-profiles
-npm run example:dlp-data-patterns
-npm run example:dlp-data-profiles
-npm run example:dlp-dictionaries
+npx tsx --env-file=.env docs-site/examples/mgmt-dlp-data-filtering-profiles.ts
+npx tsx --env-file=.env docs-site/examples/mgmt-dlp-data-patterns.ts
+npx tsx --env-file=.env docs-site/examples/mgmt-dlp-data-profiles.ts
+npx tsx --env-file=.env docs-site/examples/mgmt-dlp-dictionaries.ts
 
 # Model Security (OAuth2)
-npm run example:model-sec-scans
+npx tsx --env-file=.env docs-site/examples/model-security-scans.ts
 
 # Red Team (OAuth2)
-npm run example:red-team-scans
-npm run example:red-team-targets
+npx tsx --env-file=.env docs-site/examples/red-team-scans.ts
+npx tsx --env-file=.env docs-site/examples/red-team-targets.ts
 
 # Self-contained validation (no credentials needed — uses mock servers)
-npm run example:profiles-get       # get() and getByName() methods
-npm run example:profiles-crud      # full CRUD lifecycle
-npm run example:oauth-lifecycle    # OAuth token state machine
-npm run example:red-team-mgmt     # Red Team target + custom attack CRUD
+npx tsx --env-file=.env docs-site/examples/profiles-get-validation.ts       # get() and getByName() methods
+npx tsx --env-file=.env docs-site/examples/profiles-crud-validation.ts      # full CRUD lifecycle
+npx tsx --env-file=.env docs-site/examples/oauth-lifecycle-validation.ts    # OAuth token state machine
+npx tsx --env-file=.env docs-site/examples/red-team-mgmt-validation.ts     # Red Team target + custom attack CRUD
 ```

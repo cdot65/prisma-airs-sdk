@@ -25,12 +25,9 @@ npm run docs:check     # verify every public symbol has example coverage (CI gat
 npm run docs:check:warn # same, exit 0 even on gaps
 npm run preflight      # diff Zod schemas vs OpenAPI specs (strict; CI gate)
 npm run preflight:warn # same, exit 0 even on drift
-npm run audit:live     # hit read-only endpoints on a real tenant; reports schema drift
 ```
 
-`npm run example:*` scripts (`example:scan`, `example:mgmt-profiles`, `example:red-team-scans`, `example:dlp-*`, etc.) run the runnable examples in `examples/` against a live tenant via `tsx --env-file=.env`.
-
-`audit:live` requires `PANW_*` env vars set for the tenants you want to probe. It catches API-vs-Zod runtime divergence (the kind that surfaced #128, #134, #136 only after CLI smoke tests). Run before tagging a release or after API-side changes.
+`preflight` diffs the Zod schemas in `src/models/` against the OpenAPI specs in `specs/` and gates CI; run it before tagging a release or after API-side changes. Runnable usage examples live in `docs-site/examples/` (one `*.ts` per workflow) and are surfaced through the docs site, not via `npm run` scripts.
 
 Run a single test file:
 

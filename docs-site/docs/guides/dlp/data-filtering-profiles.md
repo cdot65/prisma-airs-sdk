@@ -301,4 +301,4 @@ try {
 - [Full API reference](../../reference/api/index.md) — every `DataFilteringProfilesClient` method with input/output examples
 - [DLP — Data Profiles](data-profiles.md) — `data_profile_id` references resolve here
 - [DLP — Data Patterns](data-patterns.md) — patterns referenced inside detection rules on the linked data profile
-- Runnable walkthrough: [`examples/mgmt-dlp-data-filtering-profiles.ts`](https://github.com/cdot65/prisma-airs-sdk/blob/main/examples/mgmt-dlp-data-filtering-profiles.ts)
+- Runnable walkthrough: [`docs-site/examples/mgmt-dlp-data-filtering-profiles.ts`](https://github.com/cdot65/prisma-airs-sdk/blob/main/docs-site/examples/mgmt-dlp-data-filtering-profiles.ts)

@@ -346,4 +346,4 @@ try {
 - [Full API reference](../../reference/api/index.md) — every `DataPatternsClient` method with input/output examples
 - [DLP — Data Profiles](data-profiles.md) — data profiles compose patterns via detection rule items (use the pattern's `id`)
 - [DLP — Dictionaries](dictionaries.md) — keyword-list-driven detection technique
-- Runnable walkthrough: [`examples/mgmt-dlp-data-patterns.ts`](https://github.com/cdot65/prisma-airs-sdk/blob/main/examples/mgmt-dlp-data-patterns.ts)
+- Runnable walkthrough: [`docs-site/examples/mgmt-dlp-data-patterns.ts`](https://github.com/cdot65/prisma-airs-sdk/blob/main/docs-site/examples/mgmt-dlp-data-patterns.ts)

@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="docs-site/static/img/logo-banner.png" alt="prisma-airs-sdk" width="520" />
+  <img src="docs-site/static/img/logo-banner.svg" alt="prisma-airs-sdk" width="420" />
 </p>
 
 # prisma-airs-sdk

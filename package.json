@@ -54,26 +54,8 @@
     "docs:check:warn": "tsx scripts/check-example-coverage.ts --warn-only",
     "preflight": "tsx scripts/preflight-schemas.ts",
     "preflight:warn": "tsx scripts/preflight-schemas.ts --warn-only",
-    "audit:live": "tsx scripts/live-audit.ts",
     "prepare": "git config core.hooksPath .githooks && npm run build",
-    "prepublishOnly": "npm run lint && npm run test",
-    "example:scan": "npx tsx --env-file=.env examples/basic-scan.ts",
-    "example:async-scan": "npx tsx --env-file=.env examples/async-scan.ts",
-    "example:query": "npx tsx --env-file=.env examples/query-results.ts",
-    "example:mgmt-auth": "npx tsx --env-file=.env examples/mgmt-auth.ts",
-    "example:mgmt-profiles": "npx tsx --env-file=.env examples/mgmt-profiles.ts",
-    "example:mgmt-topics": "npx tsx --env-file=.env examples/mgmt-topics.ts",
-    "example:model-sec-scans": "npx tsx --env-file=.env examples/model-security-scans.ts",
-    "example:red-team-scans": "npx tsx --env-file=.env examples/red-team-scans.ts",
-    "example:red-team-targets": "npx tsx --env-file=.env examples/red-team-targets.ts",
-    "example:profiles-get": "npx tsx examples/profiles-get-validation.ts",
-    "example:profiles-crud": "npx tsx examples/profiles-crud-validation.ts",
-    "example:oauth-lifecycle": "npx tsx examples/oauth-lifecycle-validation.ts",
-    "example:red-team-mgmt": "npx tsx examples/red-team-mgmt-validation.ts",
-    "example:dlp-data-filtering-profiles": "npx tsx --env-file=.env examples/mgmt-dlp-data-filtering-profiles.ts",
-    "example:dlp-data-patterns": "npx tsx --env-file=.env examples/mgmt-dlp-data-patterns.ts",
-    "example:dlp-data-profiles": "npx tsx --env-file=.env examples/mgmt-dlp-data-profiles.ts",
-    "example:dlp-dictionaries": "npx tsx --env-file=.env examples/mgmt-dlp-dictionaries.ts"
+    "prepublishOnly": "npm run lint && npm run test"
   },
   "dependencies": {
     "zod": "^3.24.0"

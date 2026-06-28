@@ -7,8 +7,8 @@ description: How the Prisma AIRS SDK tracks OpenAPI specs, validates schemas, do
 
 This page describes the design and versioning philosophy of the Prisma AIRS TypeScript SDK: how it
 relates to the upstream OpenAPI specs and the Python `pan-aisecurity` SDK, what counts as a breaking
-change, how `.passthrough()` keeps responses forward-compatible, and the two-stage automated tooling
-(`preflight` + `audit:live`) plus the changeset-driven release flow that keep schemas honest.
+change, how `.passthrough()` keeps responses forward-compatible, and the automated `preflight`
+tooling plus the changeset-driven release flow that keep schemas honest.
 
 :::tip[Looking for the symbol-level docs?]
 The TypeDoc-generated [Full API reference](../reference/api/index.md) is the authoritative
@@ -70,7 +70,7 @@ API ships a new response field, an already-installed SDK version:
 This decouples the API's release cadence from the SDK's. The SDK models known fields strictly
 (required vs optional, types) while staying robust to additive server changes. The risk it accepts
 is the inverse: if the API _changes the shape_ of a known field, `.passthrough()` won't catch it —
-that's what `audit:live` is for.
+preflight's strict checks on required fields and shared field types are what guard against that.
 
 ## Relationship to the OpenAPI specs and the Python SDK
 
@@ -129,35 +129,6 @@ The report separates _acknowledged_ (allowlisted) drift from _unacknowledged_ dr
 latter fails the build. The gate started life as `preflight:warn` in CI while drift was paid down
 (81 → 39 findings across a series of PRs) and then flipped to strict. Run `preflight` before tagging
 a release.
-
-## audit:live: catching API-vs-Zod runtime drift
-
-Preflight compares Zod to the _spec_. But specs drift from reality, and `.passthrough()` hides
-additive changes. `npm run audit:live` (`scripts/live-audit.ts`) closes that gap by hitting a
-representative set of **read-only** endpoints on a real tenant and checking actual responses against
-the live Zod schemas:
-
-```bash
-# requires PANW_* env vars for the tenants you want to probe
-npm run audit:live
-```
-
-It probes list/get endpoints across all three OAuth domains (e.g. `profiles.list`, `scanLogs.query`,
-the DLP lists, model-security `securityRules.list`, red-team `targets.list`, `eula.getStatus`,
-`getQuota`), classifies each result, and **exits non-zero on any `RESPONSE_VALIDATION`**. Results
-are bucketed into `ok`, `schema-drift` (the API returned a shape Zod rejected — fix the schema),
-`auth` (never reached the API — missing creds), and `other-error` (usually an empty tenant or
-permissions, not a bug).
-
-This is the check that surfaced the runtime divergences (#128, #134, #136) that only appeared after
-real CLI smoke tests. The two checks are complementary:
-
-| Check        | Compares           | Catches                                  | Needs a live tenant? |
-| ------------ | ------------------ | ---------------------------------------- | -------------------- |
-| `preflight`  | Zod ↔ OpenAPI spec | schema drift from the documented spec    | No                   |
-| `audit:live` | live API ↔ Zod     | runtime divergence the spec doesn't show | Yes (`PANW_*`)       |
-
-Run `audit:live` before tagging a release or after any API-side change.
 
 ## Documentation checks
 
