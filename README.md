@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="docs-site/static/img/logo-banner.png" alt="prisma-airs-sdk" width="520" />
+</p>
+
 # prisma-airs-sdk
 
 [![CI](https://github.com/cdot65/prisma-airs-sdk/actions/workflows/ci.yml/badge.svg)](https://github.com/cdot65/prisma-airs-sdk/actions/workflows/ci.yml)
