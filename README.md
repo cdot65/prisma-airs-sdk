@@ -36,8 +36,6 @@ All OAuth2 services share credentials and handle token lifecycle automatically (
 
 ## Quick Start
 
-### AI Runtime Security — Content Scanning (API Key)
-
 ```ts
 import { init, Scanner, Content } from '@cdot65/prisma-airs-sdk';
 
@@ -55,114 +53,28 @@ console.log(result.category); // "benign" | "malicious"
 console.log(result.action); // "allow" | "block"
 ```
 
-### Management — Configuration CRUD (OAuth2)
-
-```ts
-import { ManagementClient } from '@cdot65/prisma-airs-sdk';
-
-const client = new ManagementClient(); // reads PANW_MGMT_* env vars
-
-// 8 sub-clients available:
-client.profiles; // AI security profile CRUD
-client.topics; // Custom detection topic CRUD
-client.apiKeys; // API key lifecycle (create, list, regenerate, delete)
-client.customerApps; // Customer application management
-client.dlpProfiles; // DLP data profile listing
-client.deploymentProfiles; // Deployment profile listing
-client.scanLogs; // Scan activity log queries
-client.oauth; // OAuth token management (get/invalidate)
-
-// DLP namespace — separate base URL, same OAuth credentials:
-client.dlp.dataFilteringProfiles; // list / get / replace
-client.dlp.dataPatterns; // full CRUD + JSON Merge Patch
-client.dlp.dataProfiles; // CRUD without DELETE + JSON Merge Patch
-client.dlp.dictionaries; // multipart upload + CRUD + JSON Merge Patch
-```
-
-### Model Security — ML Model Scanning (OAuth2)
-
-```ts
-import { ModelSecurityClient } from '@cdot65/prisma-airs-sdk';
-
-const client = new ModelSecurityClient(); // falls back to PANW_MGMT_* env vars
-
-// 3 sub-clients: scans, securityGroups, securityRules
-const scans = await client.scans.list({ limit: 10 });
-const groups = await client.securityGroups.list();
-const rules = await client.securityRules.list();
-
-// PyPI integration auth
-const pypiAuth = await client.getPyPIAuth();
-```
-
-### AI Red Teaming — Automated Testing (OAuth2)
-
-```ts
-import { RedTeamClient } from '@cdot65/prisma-airs-sdk';
-
-const client = new RedTeamClient(); // falls back to PANW_MGMT_* env vars
-
-// 7 sub-clients: scans, reports, customAttackReports, targets, customAttacks, eula, instances
-const scans = await client.scans.list({ limit: 5 });
-const targets = await client.targets.list();
-const categories = await client.scans.getCategories();
-
-// EULA + instance management
-const eulaStatus = await client.eula.getStatus();
-const templates = await client.targets.getTargetTemplates();
-
-// 7 convenience methods on the top-level client
-const stats = await client.getScanStatistics();
-const trend = await client.getScoreTrend('target-uuid');
-const quota = await client.getQuota();
-const errors = await client.getErrorLogs('job-uuid');
-const dashboard = await client.getDashboardOverview();
-```
-
-## Authentication
-
-| Auth Method                     | Used By                                                     |
-| ------------------------------- | ----------------------------------------------------------- |
-| **API Key** (HMAC-SHA256)       | AI Runtime Security scans only                              |
-| **OAuth2** (client_credentials) | Everything else — Management CRUD, Red Team, Model Security |
-
-```bash
-# AI Runtime Security scans
-export PANW_AI_SEC_API_KEY=your-api-key
-
-# OAuth2 (shared by Management, Red Team, Model Security)
-export PANW_MGMT_CLIENT_ID=your-client-id
-export PANW_MGMT_CLIENT_SECRET=your-client-secret
-export PANW_MGMT_TSG_ID=1234567890
-```
-
-## Error Handling
-
-```ts
-import { AISecSDKException, ErrorType } from '@cdot65/prisma-airs-sdk';
-
-try {
-  await scanner.syncScan(profile, content);
-} catch (err) {
-  if (err instanceof AISecSDKException) {
-    console.error(err.message);
-    console.error(err.errorType);
-  }
-}
-```
-
-Error types: `SERVER_SIDE_ERROR`, `CLIENT_SIDE_ERROR`, `USER_REQUEST_PAYLOAD_ERROR`, `MISSING_VARIABLE`, `AISEC_SDK_ERROR`, `OAUTH_ERROR`.
+That's the API-key scanning path. The OAuth2 clients (`ManagementClient`, `ModelSecurityClient`, `RedTeamClient`), authentication setup, error handling, and runnable examples are all covered in the documentation.
 
 ## Documentation
 
-Full documentation at **[cdot65.github.io/prisma-airs-sdk](https://cdot65.github.io/prisma-airs-sdk/)** — includes API reference, service guides, OAuth lifecycle docs, and examples.
+Full docs at **[cdot65.github.io/prisma-airs-sdk](https://cdot65.github.io/prisma-airs-sdk/)**:
+
+- [Getting Started](https://cdot65.github.io/prisma-airs-sdk/getting-started/quick-start) — installation, quick start, configuration, environment variables
+- [Scan API](https://cdot65.github.io/prisma-airs-sdk/guides/scan-api) — sync/async content scanning
+- [Management API](https://cdot65.github.io/prisma-airs-sdk/guides/management-api) — profiles, topics, API keys, apps, DLP, deployment, logs
+- [Model Security API](https://cdot65.github.io/prisma-airs-sdk/guides/model-security-api) — model scans, security groups, rules
+- [Red Team API](https://cdot65.github.io/prisma-airs-sdk/guides/red-team-api) — scans, reports, targets, custom attacks
+- [OAuth Lifecycle](https://cdot65.github.io/prisma-airs-sdk/guides/oauth-lifecycle) & [Error Handling](https://cdot65.github.io/prisma-airs-sdk/developer/error-handling)
+- [API Reference](https://cdot65.github.io/prisma-airs-sdk/reference/api) — generated from source
+
+Runnable example scripts live in [`docs-site/examples/`](docs-site/examples).
 
 ## Development
 
 ```bash
 npm install
 npm run build          # tsup (CJS + ESM + .d.ts)
-npm run test           # vitest (970 tests, 99%+ coverage)
+npm run test           # vitest
 npm run lint           # eslint
 npm run typecheck      # tsc --noEmit
 ```
