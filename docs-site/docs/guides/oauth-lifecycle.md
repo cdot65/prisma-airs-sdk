@@ -103,7 +103,7 @@ This handles the case where a token expires between the buffer check and the API
 The SDK includes a validation script that exercises the full lifecycle with real timing using a local mock OAuth server (5s tokens, 3s buffer). Run it with:
 
 ```bash
-npm run example:oauth-lifecycle
+npx tsx --env-file=.env docs-site/examples/oauth-lifecycle-validation.ts
 ```
 
 <details>

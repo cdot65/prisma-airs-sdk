@@ -376,4 +376,4 @@ try {
 - [DLP — Data Filtering Profiles](data-filtering-profiles.md) — binds a data profile via `data_profile_id`
 - [DLP — Data Patterns](data-patterns.md) — pattern ids referenced inside `DetectionRuleItem` leaves
 - [DLP — Dictionaries](dictionaries.md) — `detection_technique: 'dictionary'` references dictionary ids
-- Runnable walkthrough: [`examples/mgmt-dlp-data-profiles.ts`](https://github.com/cdot65/prisma-airs-sdk/blob/main/examples/mgmt-dlp-data-profiles.ts)
+- Runnable walkthrough: [`docs-site/examples/mgmt-dlp-data-profiles.ts`](https://github.com/cdot65/prisma-airs-sdk/blob/main/docs-site/examples/mgmt-dlp-data-profiles.ts)

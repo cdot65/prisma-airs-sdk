@@ -353,4 +353,4 @@ try {
 - [Full API reference](../../reference/api/index.md) — every `DictionariesClient` method with input/output examples
 - [DLP — Data Profiles](data-profiles.md) — `DetectionRuleItem` with `detection_technique: 'dictionary'` references dictionary ids
 - [DLP — Data Patterns](data-patterns.md) — alternative detection surface (regex / weighted_regex)
-- Runnable walkthrough: [`examples/mgmt-dlp-dictionaries.ts`](https://github.com/cdot65/prisma-airs-sdk/blob/main/examples/mgmt-dlp-dictionaries.ts)
+- Runnable walkthrough: [`docs-site/examples/mgmt-dlp-dictionaries.ts`](https://github.com/cdot65/prisma-airs-sdk/blob/main/docs-site/examples/mgmt-dlp-dictionaries.ts)
