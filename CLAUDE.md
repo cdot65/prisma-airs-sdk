@@ -65,7 +65,7 @@ Key modules:
 - `src/errors.ts` — `AISecSDKException` with `ErrorType` enum (7 types)
 - `src/constants.ts` — API paths, content limits, batch limits, header names, endpoints, retry config
 
-**Auth:** API key (HMAC-SHA256) for AIRS scans only. OAuth2 client*credentials for everything else (management CRUD, model security, red teaming). Model Security and Red Team OAuth creds fall back to `PANW_MGMT*_`when their own`PANW*MODEL_SEC*_`/`PANW*RED_TEAM*\*` vars are unset.
+**Auth:** API key (HMAC-SHA256) for AIRS scans only. OAuth2 `client_credentials` for everything else (management CRUD, model security, red teaming). Model Security and Red Team OAuth creds fall back to `PANW_MGMT_*` when their own `PANW_MODEL_SEC_*` / `PANW_RED_TEAM_*` vars are unset.
 
 **Validation strategy:** Content validates at setter time, Scanner validates arguments, Zod validates API responses. Models use `.passthrough()` for forward compat.
 
