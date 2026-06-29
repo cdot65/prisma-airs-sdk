@@ -9,7 +9,25 @@ Use these terms exactly when discussing the SDK's design — they have specific 
 
 ## Domain concepts
 
-Reserved for AIRS domain terms (Scan, Profile, Topic, Job, Target, Custom Attack, EULA, Instance, …). Fill in as decisions crystallize.
+- **Scan** — an AI Runtime Security inspection request. Synchronous scans return a verdict inline;
+  asynchronous scans return a receipt and are later queried by scan or report ID.
+- **Security profile** — the named or UUID-addressed AIRS runtime policy referenced by scan calls
+  and managed through `ManagementClient.profiles`.
+- **Custom topic** — a reusable topic guardrails definition managed through `ManagementClient.topics`.
+- **DLP resource** — data filtering profiles, data patterns, data profiles, and dictionaries exposed
+  under `ManagementClient.dlp`.
+- **Model Security scan** — a Model Security data-plane scan for model artifacts and related
+  evaluation, file, label, and violation data.
+- **Security group / rule instance** — Model Security management objects that configure which
+  platform-provided security rules run. Security rules themselves are read-only in the SDK.
+- **Target** — an AI Red Teaming management-plane object describing how the service calls the model,
+  API, or application under test.
+- **Scan job** — an AI Red Teaming data-plane run against a target. Jobs are asynchronous and expose
+  statuses such as `QUEUED`, `RUNNING`, `COMPLETED`, and `FAILED`.
+- **Custom attack** — a Red Teaming prompt-set workflow for user-authored prompts, CSV uploads, and
+  prompt properties.
+- **EULA / instance** — Red Teaming management-plane resources for tenant EULA acceptance and
+  instance, device, and registry-credential management.
 
 ## Architecture concepts
 
@@ -24,7 +42,10 @@ interface RequestSpec<TResponse> {
   path: string;
   params?: Record<string, string | string[]>;
   body?: unknown;
-  responseSchema?: z.ZodType<TResponse>;
+  contentType?: string;
+  formData?: FormData;
+  responseSchema?: z.ZodType<TResponse, any, any>;
+  allowEmptyBody?: boolean;
   numRetries: number;
   auth: AuthAdapter;
 }
@@ -65,17 +86,21 @@ A build-time script that diffs Zod schemas in `src/models/` against the authorit
 
 ### Listing
 
-A paginated, filterable list request. Owns serialization of `skip` / `limit` / `search` / `sort` / typed filter args into URL search params, and exposes an `async *` iterator (`listAll`) that walks pages. Each list endpoint declares its filter shape; the module owns wire-format mechanics. Replaces ad-hoc per-client query-string building.
+A paginated, filterable list request for Model Security and Red Team endpoints that use
+`skip` / `limit` / `search`. The internal `serializeListing()` helper turns those fields into URL
+search params; individual sub-clients add endpoint-specific filters such as `status`,
+`target_type`, or `job_type`.
 
 ```ts
-interface ListingOptions<TFilters = {}> {
+interface ListingOptions {
   skip?: number;
   limit?: number;
   search?: string;
-  sort?: { field: string; order: 'asc' | 'desc' };
-  filters?: TFilters;
 }
 ```
+
+Management API list endpoints use `offset` / `limit`, and DLP endpoints use `page` / `size`, so the
+SDK documents those separately instead of forcing every service through `ListingOptions`.
 
 ### RESPONSE_VALIDATION error
 

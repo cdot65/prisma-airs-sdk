@@ -17,17 +17,21 @@ The SDK covers four service domains. They split across exactly two authenticatio
 
 | Domain         | Entry point           | Auth                      | Base URL constant               |
 | -------------- | --------------------- | ------------------------- | ------------------------------- |
-| Scan API       | `init()` + `Scanner`  | API key (HMAC-SHA256)     | `DEFAULT_ENDPOINT`              |
+| Scan API       | `init()` + `Scanner`  | API key HMAC and/or bearer token | `DEFAULT_ENDPOINT`              |
 | Management API | `ManagementClient`    | OAuth2 client_credentials | `DEFAULT_MGMT_ENDPOINT` (+ DLP) |
 | Model Security | `ModelSecurityClient` | OAuth2 client_credentials | `DEFAULT_MODEL_SEC_*_ENDPOINT`  |
 | Red Team       | `RedTeamClient`       | OAuth2 client_credentials | `DEFAULT_RED_TEAM_*_ENDPOINT`   |
 
-Only the scan service uses the API key. Everything else (management CRUD, DLP, model security, red
-teaming) authenticates with OAuth2 client_credentials. The Management client additionally talks to a
-separate DLP base URL (`DEFAULT_DLP_ENDPOINT`) reusing the same OAuth credentials.
+Only the scan service uses `init()` and the `ApiKeyAuth` adapter. It accepts an API key, a
+pre-obtained bearer token, or both; it does not fetch OAuth2 tokens. Everything else (management
+CRUD, DLP, model security, red teaming) authenticates with OAuth2 client_credentials. The Management
+client additionally talks to a separate DLP base URL (`DEFAULT_DLP_ENDPOINT`) reusing the same OAuth
+credentials.
 
 All endpoint paths, base URLs, content/batch limits, header names, and retry config live in one
-place: [`src/constants.ts`](../reference/api/index.md). A few load-bearing values:
+place:
+[`src/constants.ts`](https://github.com/cdot65/prisma-airs-sdk/blob/main/src/constants.ts). A few
+load-bearing values:
 
 ```ts
 export const MAX_NUMBER_OF_RETRIES = 5;
@@ -160,10 +164,20 @@ snapshot (`hasToken`, `isValid`, `isExpired`, `isExpiringSoon`, `expiresInMs`, `
 optional `onTokenRefresh` callback fires after each successful refresh. Token-fetch failures throw
 `AISecSDKException` with `ErrorType.OAUTH_ERROR`.
 
-## Shared listing / pagination
+## Listing and pagination shapes
 
-Every list endpoint across the OAuth domains accepts the same base options, defined once in
-`src/listing.ts`:
+The OAuth domains do not all expose the same pagination contract. The SDK keeps the wire shape close
+to each service while sharing helpers where the APIs match:
+
+- **Management API** resource lists use `offset` / `limit` and return fields such as `next_offset`
+  where the endpoint supports it. `ProfilesClient.list()` defaults to `offset: 0` and `limit: 100`.
+- **Model Security and Red Team** list endpoints use `skip` / `limit` / `search`, defined in
+  `src/listing.ts` and serialized by the internal `serializeListing()` helper. Sub-clients extend
+  that base shape with endpoint-specific filters such as Red Team `status` or `target_type`.
+- **DLP** list endpoints use Spring-style `page` / `size` options and return `Page<T>` envelopes
+  from `src/models/dlp-page.ts`.
+
+The shared Model Security / Red Team base options are:
 
 ```ts
 interface ListingOptions {
@@ -172,10 +186,6 @@ interface ListingOptions {
   search?: string;
 }
 ```
-
-The internal `serializeListing()` helper turns those into a string-keyed params record. Sub-clients
-extend `ListingOptions` with endpoint-specific filters and merge their own params on top of the
-serialized base — keeping pagination semantics uniform while allowing per-endpoint filtering.
 
 ## Validation strategy: Zod with `.passthrough()`
 
