@@ -26,12 +26,15 @@ The Scan API only _references_ a profile by name or ID — it never creates one.
 :::
 ## Authentication
 
-Two auth methods (mutually exclusive):
+The Scan API is the only AIRS service in this SDK that does **not** use the OAuth2
+`client_credentials` flow. Configure it with an API key, a pre-obtained bearer token, or both:
 
-1. **API Key** — sets `X-Pan-Token` header + HMAC-SHA256 `X-Payload-Hash`
-2. **Bearer Token** — sets `Authorization: Bearer <token>` header
+1. **API key** — sets the `x-pan-token` header and, when the request has a body, an
+   HMAC-SHA256 `x-payload-hash` header.
+2. **Bearer token** — sets the `Authorization: Bearer <token>` header.
 
-The Scan API uses **API key auth only** — it does _not_ use the OAuth2 flow that the Management, Model Security, and Red Team APIs require.
+`init()` requires at least one of `apiKey` or `apiToken`. If you provide both, the request carries
+both the bearer token and the API-key HMAC headers.
 
 ## Initialization
 
@@ -45,7 +48,7 @@ init();
 // Or explicit
 init({
   apiKey: 'your-api-key',
-  // apiToken: 'your-bearer-token',  // alternative
+  // apiToken: 'your-bearer-token',  // optional; can also be used without apiKey
   // apiEndpoint: 'https://custom.endpoint.com',  // optional
   // numRetries: 3,  // 0-5, default 5
 });
