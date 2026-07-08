@@ -126,6 +126,8 @@ export const DEFAULT_RED_TEAM_DATA_ENDPOINT =
   'https://api.sase.paloaltonetworks.com/ai-red-teaming/data-plane';
 export const DEFAULT_RED_TEAM_MGMT_ENDPOINT =
   'https://api.sase.paloaltonetworks.com/ai-red-teaming/mgmt-plane';
+export const DEFAULT_RED_TEAM_NETWORK_BROKER_ENDPOINT =
+  'https://api.sase.paloaltonetworks.com/ai-red-teaming/data-plane/network-broker';
 
 // Red Team env vars
 export const RED_TEAM_CLIENT_ID = 'PANW_RED_TEAM_CLIENT_ID';
@@ -134,6 +136,7 @@ export const RED_TEAM_TSG_ID = 'PANW_RED_TEAM_TSG_ID';
 export const RED_TEAM_DATA_ENDPOINT = 'PANW_RED_TEAM_DATA_ENDPOINT';
 export const RED_TEAM_MGMT_ENDPOINT = 'PANW_RED_TEAM_MGMT_ENDPOINT';
 export const RED_TEAM_TOKEN_ENDPOINT = 'PANW_RED_TEAM_TOKEN_ENDPOINT';
+export const RED_TEAM_NETWORK_BROKER_ENDPOINT = 'PANW_RED_TEAM_NETWORK_BROKER_ENDPOINT';
 
 // API paths — red team data plane
 export const RED_TEAM_SCAN_PATH = '/v1/scan';
@@ -156,3 +159,7 @@ export const RED_TEAM_INSTANCES_PATH = '/v1/instances';
 export const RED_TEAM_REGISTRY_CREDENTIALS_PATH = '/v1/registry-credentials';
 export const RED_TEAM_CUSTOM_ATTACK_PATH = '/v1/custom-attack';
 export const RED_TEAM_MGMT_DASHBOARD_PATH = '/v1/dashboard/overview';
+
+// API paths — red team network broker (distinct data-plane base URL)
+export const RED_TEAM_CHANNELS_PATH = '/v1/channels';
+export const RED_TEAM_CHANNELS_STATS_PATH = '/v1/channels/stats';

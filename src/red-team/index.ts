@@ -31,3 +31,8 @@ export {
 } from './custom-attacks-client.js';
 export { RedTeamEulaClient, type RedTeamEulaClientOptions } from './eula-client.js';
 export { RedTeamInstancesClient, type RedTeamInstancesClientOptions } from './instances-client.js';
+export {
+  RedTeamNetworkBrokerClient,
+  type RedTeamNetworkBrokerClientOptions,
+  type ChannelListOptions,
+} from './network-broker-client.js';

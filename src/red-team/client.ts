@@ -1,8 +1,10 @@
 import {
   DEFAULT_RED_TEAM_DATA_ENDPOINT,
   DEFAULT_RED_TEAM_MGMT_ENDPOINT,
+  DEFAULT_RED_TEAM_NETWORK_BROKER_ENDPOINT,
   RED_TEAM_DATA_ENDPOINT,
   RED_TEAM_MGMT_ENDPOINT,
+  RED_TEAM_NETWORK_BROKER_ENDPOINT,
   RED_TEAM_DASHBOARD_PATH,
   RED_TEAM_QUOTA_PATH,
   RED_TEAM_ERROR_LOG_PATH,
@@ -22,6 +24,7 @@ import { RedTeamTargetsClient } from './targets-client.js';
 import { RedTeamCustomAttacksClient } from './custom-attacks-client.js';
 import { RedTeamEulaClient } from './eula-client.js';
 import { RedTeamInstancesClient } from './instances-client.js';
+import { RedTeamNetworkBrokerClient } from './network-broker-client.js';
 import {
   ScanStatisticsResponseSchema,
   ScoreTrendResponseSchema,
@@ -50,6 +53,8 @@ export interface RedTeamClientOptions {
   dataEndpoint?: string;
   /** Management plane endpoint URL. Falls back to `PANW_RED_TEAM_MGMT_ENDPOINT`. */
   mgmtEndpoint?: string;
+  /** Network broker endpoint URL. Falls back to `PANW_RED_TEAM_NETWORK_BROKER_ENDPOINT`. */
+  networkBrokerEndpoint?: string;
   /** OAuth2 token endpoint URL. Falls back to `PANW_RED_TEAM_TOKEN_ENDPOINT`, then `PANW_MGMT_TOKEN_ENDPOINT`. */
   tokenEndpoint?: string;
   /** Max retry attempts (0-5). Defaults to 5. */
@@ -85,6 +90,8 @@ export class RedTeamClient {
   public readonly eula: RedTeamEulaClient;
   /** Management plane instance/licensing operations. */
   public readonly instances: RedTeamInstancesClient;
+  /** Network broker channel operations (distinct network broker base URL). */
+  public readonly networkBroker: RedTeamNetworkBrokerClient;
 
   private readonly dataEndpoint: string;
   private readonly mgmtEndpoint: string;
@@ -96,6 +103,10 @@ export class RedTeamClient {
       opts.dataEndpoint ?? process.env[RED_TEAM_DATA_ENDPOINT] ?? DEFAULT_RED_TEAM_DATA_ENDPOINT;
     const mgmtEndpoint =
       opts.mgmtEndpoint ?? process.env[RED_TEAM_MGMT_ENDPOINT] ?? DEFAULT_RED_TEAM_MGMT_ENDPOINT;
+    const networkBrokerEndpoint =
+      opts.networkBrokerEndpoint ??
+      process.env[RED_TEAM_NETWORK_BROKER_ENDPOINT] ??
+      DEFAULT_RED_TEAM_NETWORK_BROKER_ENDPOINT;
 
     const { oauthClient, numRetries } = resolveOAuthConfig({
       clientId: opts.clientId,
@@ -129,6 +140,11 @@ export class RedTeamClient {
     });
     this.eula = new RedTeamEulaClient({ baseUrl: mgmtEndpoint, auth, numRetries });
     this.instances = new RedTeamInstancesClient({ baseUrl: mgmtEndpoint, auth, numRetries });
+    this.networkBroker = new RedTeamNetworkBrokerClient({
+      baseUrl: networkBrokerEndpoint,
+      auth,
+      numRetries,
+    });
   }
 
   // -----------------------------------------------------------------------
