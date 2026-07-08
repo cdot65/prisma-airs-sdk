@@ -57,6 +57,14 @@ export const BrandSubCategory = {
 } as const;
 export type BrandSubCategory = (typeof BrandSubCategory)[keyof typeof BrandSubCategory];
 
+/** Network broker channel lifecycle status. */
+export const ChannelStatus = {
+  ONLINE: 'ONLINE',
+  OFFLINE: 'OFFLINE',
+  DRAFT: 'DRAFT',
+} as const;
+export type ChannelStatus = (typeof ChannelStatus)[keyof typeof ChannelStatus];
+
 /** Compliance framework subcategories. */
 export const ComplianceSubCategory = {
   OWASP: 'OWASP',

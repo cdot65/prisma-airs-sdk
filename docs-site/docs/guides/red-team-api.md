@@ -32,6 +32,7 @@ The Red Team API uses OAuth2 `client_credentials` flow. Each env var falls back 
 | `PANW_RED_TEAM_TSG_ID`         | `PANW_MGMT_TSG_ID`         | Yes      | Tenant Service Group ID                                                                     |
 | `PANW_RED_TEAM_DATA_ENDPOINT`  | --                         | No       | Data plane URL (default: `https://api.sase.paloaltonetworks.com/ai-red-teaming/data-plane`) |
 | `PANW_RED_TEAM_MGMT_ENDPOINT`  | --                         | No       | Mgmt plane URL (default: `https://api.sase.paloaltonetworks.com/ai-red-teaming/mgmt-plane`) |
+| `PANW_RED_TEAM_NETWORK_BROKER_ENDPOINT` | --                | No       | Network broker URL (default: `https://api.sase.paloaltonetworks.com/ai-red-teaming/data-plane/network-broker`) |
 | `PANW_RED_TEAM_TOKEN_ENDPOINT` | `PANW_MGMT_TOKEN_ENDPOINT` | No       | Token URL (default: `https://auth.apps.paloaltonetworks.com/oauth2/access_token`)           |
 
 ### Setup
@@ -79,17 +80,20 @@ Token fetch, caching, and refresh are handled automatically. Retries (up to 5) u
 
 ## Sub-Clients
 
-The `RedTeamClient` exposes seven sub-clients:
+The `RedTeamClient` exposes eight sub-clients:
 
-| Sub-Client            | Plane      | Access                       |
-| --------------------- | ---------- | ---------------------------- |
-| `scans`               | Data       | `client.scans`               |
-| `reports`             | Data       | `client.reports`             |
-| `customAttackReports` | Data       | `client.customAttackReports` |
-| `targets`             | Management | `client.targets`             |
-| `customAttacks`       | Management | `client.customAttacks`       |
-| `eula`                | Management | `client.eula`                |
-| `instances`           | Management | `client.instances`           |
+| Sub-Client            | Plane          | Access                       |
+| --------------------- | -------------- | ---------------------------- |
+| `scans`               | Data           | `client.scans`               |
+| `reports`             | Data           | `client.reports`             |
+| `customAttackReports` | Data           | `client.customAttackReports` |
+| `targets`             | Management     | `client.targets`             |
+| `customAttacks`       | Management     | `client.customAttacks`       |
+| `eula`                | Management     | `client.eula`                |
+| `instances`           | Management     | `client.instances`           |
+| `networkBroker`       | Network Broker | `client.networkBroker`       |
+
+`networkBroker` talks to a **distinct base URL** — the network broker data plane (`.../ai-red-teaming/data-plane/network-broker`) — while sharing the same Red Team OAuth credentials.
 
 Plus 7 convenience methods directly on `RedTeamClient` for dashboard, quota, error logs, and sentiment.
 
@@ -463,6 +467,39 @@ const creds = await client.instances.getRegistryCredentials();
 console.log(creds.token); // JWT token
 console.log(creds.expiry); // expiration timestamp
 ```
+
+## Network Broker
+
+The network broker routes attack traffic to targets that live behind a private network. A target references a broker channel by its UUID (`network_broker_channel_uuid`); the `networkBroker` sub-client lets you **discover and manage those channels from code** instead of copying UUIDs from the console.
+
+It uses a distinct base URL (the network broker data plane) but shares the Red Team OAuth credentials. Override the endpoint with the `networkBrokerEndpoint` constructor option or the `PANW_RED_TEAM_NETWORK_BROKER_ENDPOINT` environment variable.
+
+```ts
+// List channels, optionally filtering by one or more statuses.
+const { data } = await client.networkBroker.listChannels({
+  status: ['ONLINE', 'DRAFT'],
+  search: 'prod',
+  limit: 20,
+});
+for (const c of data) {
+  console.log(c.uuid, c.name, c.status); // feed c.uuid into target.network_broker_channel_uuid
+}
+
+// Create a channel.
+const channel = await client.networkBroker.createChannel({
+  name: 'prod-broker',
+  description: 'Production network broker channel',
+});
+
+// Get, update, and inspect infrastructure stats.
+const detail = await client.networkBroker.getChannel(channel.uuid!);
+await client.networkBroker.updateChannel(channel.uuid!, { description: 'Updated description' });
+
+const stats = await client.networkBroker.getChannelStats();
+console.log(stats.online_channel_count, stats.total_channel_count);
+```
+
+Channel statuses are `ONLINE`, `OFFLINE`, and `DRAFT` (see the `ChannelStatus` enum).
 
 ## Custom Attacks
 

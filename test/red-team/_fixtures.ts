@@ -321,3 +321,31 @@ export function sentimentMock(overrides: Record<string, unknown> = {}): Record<s
 export function dashboardOverviewMock(): Record<string, unknown> {
   return { total_targets: 7, targets_by_type: [] };
 }
+
+export function channelMock(overrides: Record<string, unknown> = {}): Record<string, unknown> {
+  return {
+    uuid: VALID_UUID,
+    name: 'prod-broker',
+    description: 'Production network broker channel',
+    status: 'ONLINE',
+    created_at: isoNow,
+    updated_at: isoNow,
+    ...overrides,
+  };
+}
+
+export function channelListMock(items: unknown[] = []): Record<string, unknown> {
+  return { pagination: { total_items: items.length }, data: items };
+}
+
+export function channelStatsMock(overrides: Record<string, unknown> = {}): Record<string, unknown> {
+  return {
+    broker_server: 'broker.example.com',
+    registry: 'registry.example.com',
+    chart: 'network-broker-1.0.0',
+    image: 'network-broker:1.0.0',
+    online_channel_count: 3,
+    total_channel_count: 5,
+    ...overrides,
+  };
+}
