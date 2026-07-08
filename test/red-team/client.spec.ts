@@ -5,6 +5,7 @@ import { RedTeamReportsClient } from '../../src/red-team/reports-client.js';
 import { RedTeamCustomAttackReportsClient } from '../../src/red-team/custom-attack-reports-client.js';
 import { RedTeamTargetsClient } from '../../src/red-team/targets-client.js';
 import { RedTeamCustomAttacksClient } from '../../src/red-team/custom-attacks-client.js';
+import { RedTeamNetworkBrokerClient } from '../../src/red-team/network-broker-client.js';
 import { AISecSDKException } from '../../src/errors.js';
 
 const validUuid = '550e8400-e29b-41d4-a716-446655440000';
@@ -29,6 +30,27 @@ describe('RedTeamClient', () => {
     expect(client.customAttackReports).toBeInstanceOf(RedTeamCustomAttackReportsClient);
     expect(client.targets).toBeInstanceOf(RedTeamTargetsClient);
     expect(client.customAttacks).toBeInstanceOf(RedTeamCustomAttacksClient);
+    expect(client.networkBroker).toBeInstanceOf(RedTeamNetworkBrokerClient);
+  });
+
+  it('accepts a custom network broker endpoint', () => {
+    const client = new RedTeamClient({
+      clientId: 'cid',
+      clientSecret: 'sec',
+      tsgId: '1',
+      networkBrokerEndpoint: 'https://nb.example.com',
+    });
+    expect(client.networkBroker).toBeInstanceOf(RedTeamNetworkBrokerClient);
+  });
+
+  it('reads the network broker endpoint from env vars', () => {
+    process.env.PANW_RED_TEAM_CLIENT_ID = 'cid';
+    process.env.PANW_RED_TEAM_CLIENT_SECRET = 'sec';
+    process.env.PANW_RED_TEAM_TSG_ID = '1';
+    process.env.PANW_RED_TEAM_NETWORK_BROKER_ENDPOINT = 'https://nb.env.com';
+
+    const client = new RedTeamClient();
+    expect(client.networkBroker).toBeInstanceOf(RedTeamNetworkBrokerClient);
   });
 
   it('reads credentials from RED_TEAM env vars', () => {
