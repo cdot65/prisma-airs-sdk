@@ -53,6 +53,73 @@ describe('CustomerAppsClient', () => {
       const [url] = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0];
       expect(url).toContain('/v1/mgmt/customerapp/tsg/123');
     });
+
+    it('sends default offset and limit query params', async () => {
+      mockFetch({ customer_apps: [], next_offset: 0 });
+      await client.list();
+
+      const [url] = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0];
+      const params = new URL(url).searchParams;
+      expect(params.get('offset')).toBe('0');
+      expect(params.get('limit')).toBe('100');
+    });
+
+    it('sends explicit offset and limit query params', async () => {
+      mockFetch({ customer_apps: [], next_offset: 20 });
+      await client.list({ offset: 20, limit: 5 });
+
+      const [url] = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0];
+      const params = new URL(url).searchParams;
+      expect(params.get('offset')).toBe('20');
+      expect(params.get('limit')).toBe('5');
+    });
+
+    it('round-trips a populated PaginatedCustomerAppObject', async () => {
+      mockFetch({
+        customer_apps: [
+          {
+            tsg_id: '123',
+            customer_appId: 'app-uuid-1',
+            app_name: 'myapp',
+            cloud_provider: 'aws',
+            environment: 'prod',
+            model_name: 'gpt-4',
+            ai_agent_framework: 'langchain',
+            api_keys_dp_info: [{ api_key_name: 'key1', dp_name: 'dp1', auth_code: 'abc' }],
+          },
+        ],
+        next_offset: 10,
+      });
+      const result = await client.list();
+
+      expect(result.next_offset).toBe(10);
+      expect(result.customer_apps).toHaveLength(1);
+      const app = result.customer_apps![0];
+      expect(app.customer_appId).toBe('app-uuid-1');
+      expect(app.cloud_provider).toBe('aws');
+      expect(app.environment).toBe('prod');
+      expect(app.api_keys_dp_info?.[0]).toEqual({
+        api_key_name: 'key1',
+        dp_name: 'dp1',
+        auth_code: 'abc',
+      });
+    });
+
+    it('percent-encodes a TSG ID with reserved characters in the path', async () => {
+      const encodingClient = new CustomerAppsClient({
+        baseUrl: 'https://api.example.com',
+        auth: passthroughAuth(),
+        tsgId: 'tsg/with space',
+        numRetries: 0,
+      });
+      mockFetch({ customer_apps: [], next_offset: 0 });
+      await encodingClient.list();
+
+      const [url] = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0];
+      expect(url).toContain('/v1/mgmt/customerapp/tsg/tsg%2Fwith%20space');
+      // The raw slash must not create an extra path segment.
+      expect(url).not.toContain('/tsg/tsg/with');
+    });
   });
 
   describe('update', () => {
