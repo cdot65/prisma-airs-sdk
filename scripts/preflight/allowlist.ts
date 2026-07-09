@@ -431,6 +431,37 @@ export const PREFLIGHT_ALLOWLIST: AllowlistEntry[] = [
     kind: 'extra-field',
     reason: 'Combined passthrough union of all 4 OpenAPI subtypes — see schema JSDoc.',
   },
+
+  // ── z.unknown() fields the spec marks required ───────────────────────────────
+  // These fields ARE modeled in Zod, but as `z.unknown()`, which zod-to-json-schema
+  // cannot emit as `required`. The field is present and accepted; the divergence is a
+  // modeling-expressiveness artifact, not a missing field. Surfaced once the preflight
+  // resolver began matching `*Schema`-suffixed OpenAPI components (issue #192).
+  {
+    schema: 'JobResponseSchema',
+    pathSubstring: 'job_metadata',
+    kind: 'missing-required-field',
+    reason: 'job_metadata is modeled as z.unknown() (arbitrary shape); cannot be marked required.',
+  },
+  {
+    schema: 'TargetAuthValidationRequestSchema',
+    pathSubstring: 'auth_config',
+    kind: 'missing-required-field',
+    reason:
+      'auth_config is modeled as z.unknown() (union of auth shapes); cannot be marked required.',
+  },
+  {
+    schema: 'TargetResponseSchema',
+    pathSubstring: 'status',
+    kind: 'missing-required-field',
+    reason: 'status is modeled as z.unknown(); cannot be marked required.',
+  },
+  {
+    schema: 'TargetListItemSchema',
+    pathSubstring: 'status',
+    kind: 'missing-required-field',
+    reason: 'status is modeled as z.unknown(); cannot be marked required.',
+  },
 ];
 
 /**

@@ -339,6 +339,7 @@ describe('ViolationResponseSchema', () => {
       rule_name: 'rule-1',
       rule_description: 'desc',
       rule_instance_state: 'BLOCKING',
+      remediation: { steps: ['Remove the file'], url: 'https://example.com/fix' },
     };
     expect(ViolationResponseSchema.parse(v).description).toBe('Malicious op found');
   });
@@ -354,6 +355,7 @@ describe('ViolationResponseSchema', () => {
       rule_name: 'r',
       rule_description: 'rd',
       rule_instance_state: 'BLOCKING',
+      remediation: { steps: ['Remove the file'], url: 'https://example.com/fix' },
       file: 'model.pkl',
       hash: 'abc',
       threat: 'PAIT-PKL-100',
