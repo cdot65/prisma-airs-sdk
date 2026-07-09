@@ -8,6 +8,8 @@ import {
   RED_TEAM_DASHBOARD_PATH,
   RED_TEAM_QUOTA_PATH,
   RED_TEAM_ERROR_LOG_PATH,
+  RED_TEAM_ERROR_LOG_TARGET_PROFILE_PATH,
+  RED_TEAM_LANGUAGES_PATH,
   RED_TEAM_SENTIMENT_PATH,
   RED_TEAM_MGMT_DASHBOARD_PATH,
 } from '../constants.js';
@@ -32,6 +34,7 @@ import {
   ErrorLogListResponseSchema,
   SentimentResponseSchema,
   DashboardOverviewResponseSchema,
+  TenantLanguagesResponseSchema,
   type ScanStatisticsResponse,
   type ScoreTrendResponse,
   type QuotaSummary,
@@ -39,6 +42,7 @@ import {
   type SentimentRequest,
   type SentimentResponse,
   type DashboardOverviewResponse,
+  type TenantLanguagesResponse,
 } from '../models/red-team.js';
 
 /** Options for constructing a {@link RedTeamClient}. */
@@ -258,6 +262,88 @@ export class RedTeamClient {
       path: `${RED_TEAM_ERROR_LOG_PATH}/${jobId}`,
       params: serializeListing(opts),
       responseSchema: ErrorLogListResponseSchema,
+      auth: this.auth,
+      numRetries: this.numRetries,
+    });
+  }
+
+  /**
+   * List profiling error logs for a target (data plane).
+   * @param targetId - The target UUID.
+   * @param opts - Optional pagination/search options (the endpoint honors `limit`).
+   * @returns The paginated list of target-profile error logs.
+   * @example
+   * ```ts
+   * import { RedTeamClient } from '@cdot65/prisma-airs-sdk';
+   * const rt = new RedTeamClient();
+   *
+   * const logs = await rt.getTargetProfileErrorLogs('550e8400-e29b-41d4-a716-446655440000', { limit: 10 });
+   * // logs =>
+   * // { pagination: { total_items: 1 }, data: [{ target_id: '550e8400-...', error_type: 'PROBE', error_message: '...', created_at: '2025-01-01T00:00:00Z' }] }
+   * ```
+   */
+  async getTargetProfileErrorLogs(
+    targetId: string,
+    opts?: RedTeamListOptions,
+  ): Promise<ErrorLogListResponse> {
+    assertUuid(targetId, 'target id');
+    return request({
+      method: 'GET',
+      baseUrl: this.dataEndpoint,
+      path: `${RED_TEAM_ERROR_LOG_TARGET_PROFILE_PATH}/${targetId}`,
+      params: serializeListing(opts),
+      responseSchema: ErrorLogListResponseSchema,
+      auth: this.auth,
+      numRetries: this.numRetries,
+    });
+  }
+
+  /**
+   * Get the tenant's allowed languages for Red Team scans (data plane).
+   * @returns The supported-languages response.
+   * @example
+   * ```ts
+   * import { RedTeamClient } from '@cdot65/prisma-airs-sdk';
+   * const rt = new RedTeamClient();
+   *
+   * const langs = await rt.getLanguages();
+   * // langs =>
+   * // { multilingual_enabled: true, supported_job_types: ['STATIC', 'DYNAMIC'],
+   * //   languages: [{ code: 'en', name: 'English' }, { code: 'es', name: 'Spanish' }] }
+   * ```
+   */
+  async getLanguages(): Promise<TenantLanguagesResponse> {
+    return request({
+      method: 'GET',
+      baseUrl: this.dataEndpoint,
+      path: RED_TEAM_LANGUAGES_PATH,
+      responseSchema: TenantLanguagesResponseSchema,
+      auth: this.auth,
+      numRetries: this.numRetries,
+    });
+  }
+
+  /**
+   * Get the tenant's allowed languages from the management plane.
+   * Same response shape as {@link RedTeamClient.getLanguages}, served from the management endpoint.
+   * @returns The supported-languages response.
+   * @example
+   * ```ts
+   * import { RedTeamClient } from '@cdot65/prisma-airs-sdk';
+   * const rt = new RedTeamClient();
+   *
+   * const langs = await rt.getManagementLanguages();
+   * // langs =>
+   * // { multilingual_enabled: true, supported_job_types: ['STATIC', 'DYNAMIC'],
+   * //   languages: [{ code: 'en', name: 'English' }] }
+   * ```
+   */
+  async getManagementLanguages(): Promise<TenantLanguagesResponse> {
+    return request({
+      method: 'GET',
+      baseUrl: this.mgmtEndpoint,
+      path: RED_TEAM_LANGUAGES_PATH,
+      responseSchema: TenantLanguagesResponseSchema,
       auth: this.auth,
       numRetries: this.numRetries,
     });

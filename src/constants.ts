@@ -149,6 +149,8 @@ export const RED_TEAM_DASHBOARD_PATH = '/v1/dashboard';
 export const RED_TEAM_QUOTA_PATH = '/v1/metering/quota';
 export const RED_TEAM_ERROR_LOG_PATH = '/v1/error-log/job';
 export const RED_TEAM_SENTIMENT_PATH = '/v1/sentiment';
+export const RED_TEAM_LANGUAGES_PATH = '/v1/languages';
+export const RED_TEAM_ERROR_LOG_TARGET_PROFILE_PATH = '/v1/error-log/target-profile';
 
 // API paths — red team management plane
 export const RED_TEAM_TARGET_PATH = '/v1/target';
