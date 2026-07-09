@@ -49,3 +49,6 @@ docs/reference/api/
 
 # Claude Code hook logs
 .claude/hooks/*.log
+
+# Symlinks to external OpenAPI specs
+schemas

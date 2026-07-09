@@ -503,6 +503,16 @@ export const PREFLIGHT_ALLOWLIST: AllowlistEntry[] = [
     reason:
       'API returns `features` (per-adapter capability flags) on channels; not in upstream OpenAPI Channel.',
   },
+
+  // ── CustomerAppObject ────────────────────────────────────────────────────────
+  {
+    schema: 'CustomerAppObject',
+    pathSubstring: 'tsg_id',
+    kind: 'extra-required-field',
+    reason:
+      'The latest mgmt spec marks `tsg_id` optional, but every customer app belongs to a TSG ' +
+      '(the SDK even builds the list URL from it), so Zod keeps it required for consumers.',
+  },
 ];
 
 /**

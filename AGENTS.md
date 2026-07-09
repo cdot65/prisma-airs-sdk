@@ -23,11 +23,11 @@ npm run docs:serve     # build typedoc, then run docs-site (Docusaurus) dev serv
 npm run docs:build     # build typedoc + docs-site static site
 npm run docs:check     # verify every public symbol has example coverage (CI gate)
 npm run docs:check:warn # same, exit 0 even on gaps
-npm run preflight      # diff Zod schemas vs OpenAPI specs (strict; CI gate)
+npm run preflight      # diff Zod schemas vs OpenAPI specs in schemas/ (strict; local/pre-release)
 npm run preflight:warn # same, exit 0 even on drift
 ```
 
-`preflight` diffs the Zod schemas in `src/models/` against the OpenAPI specs in `specs/` and gates CI; run it before tagging a release or after API-side changes. Runnable usage examples live in `docs-site/examples/` (one `*.ts` per workflow) and are surfaced through the docs site, not via `npm run` scripts.
+`preflight` diffs the Zod schemas in `src/models/` against the OpenAPI specs referenced by `schemas/`. `schemas/` is a **gitignored** directory of symlinks to a local pan.dev `openapi-specs` checkout (see `.gitignore`), so preflight is a **local / pre-release check, not a CI gate** — run it before tagging a release or after API-side changes. The exact spec files it reads are the explicit `MODELED_SPECS` list in `scripts/preflight-schemas.ts`; keep that list in sync with `src/models/`. Runnable usage examples live in `docs-site/examples/` (one `*.ts` per workflow) and are surfaced through the docs site, not via `npm run` scripts.
 
 Run a single test file:
 
