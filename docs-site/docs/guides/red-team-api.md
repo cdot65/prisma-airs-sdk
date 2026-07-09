@@ -622,6 +622,15 @@ const errors = await client.getErrorLogs('job-uuid', {
   limit: 50,
 });
 
+// Profiling error logs for a target (the endpoint honors `limit`)
+const targetErrors = await client.getTargetProfileErrorLogs('target-uuid', { limit: 50 });
+
+// Tenant's allowed languages for scans (data plane and management plane share the same shape)
+const langs = await client.getLanguages();
+// { multilingual_enabled: true, supported_job_types: ['STATIC', 'DYNAMIC'],
+//   languages: [{ code: 'en', name: 'English' }, { code: 'es', name: 'Spanish' }] }
+const mgmtLangs = await client.getManagementLanguages();
+
 // Update sentiment (thumbs up/down) for a scan report
 const sentiment = await client.updateSentiment({
   job_id: 'job-uuid',

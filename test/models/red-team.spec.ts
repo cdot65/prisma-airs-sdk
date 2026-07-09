@@ -58,6 +58,8 @@ import {
   InstanceResponseSchema,
   InstanceGetResponseSchema,
   RegistryCredentialsSchema,
+  LanguageOptionSchema,
+  TenantLanguagesResponseSchema,
 } from '../../src/models/red-team.js';
 
 // ---------------------------------------------------------------------------
@@ -1786,5 +1788,35 @@ describe('RegistryCredentialsSchema', () => {
   it('passes through unknown fields', () => {
     const parsed = RegistryCredentialsSchema.parse({ token: 't', expiry: 'e', extra: 1 });
     expect((parsed as Record<string, unknown>).extra).toBe(1);
+  });
+});
+
+describe('TenantLanguagesResponseSchema', () => {
+  it('parses an upstream-shaped languages response', () => {
+    const parsed = TenantLanguagesResponseSchema.parse({
+      multilingual_enabled: true,
+      supported_job_types: ['STATIC', 'DYNAMIC'],
+      languages: [
+        { code: 'en', name: 'English' },
+        { code: 'es', name: 'Spanish' },
+      ],
+      future_field: 'kept',
+    });
+    expect(parsed.multilingual_enabled).toBe(true);
+    expect(parsed.languages).toHaveLength(2);
+    expect(parsed.languages[0]).toEqual({ code: 'en', name: 'English' });
+    expect((parsed as Record<string, unknown>).future_field).toBe('kept');
+  });
+
+  it('requires code and name on each language', () => {
+    expect(() => LanguageOptionSchema.parse({ code: 'en' })).toThrow();
+    expect(LanguageOptionSchema.parse({ code: 'en', name: 'English' })).toEqual({
+      code: 'en',
+      name: 'English',
+    });
+  });
+
+  it('requires the top-level fields', () => {
+    expect(() => TenantLanguagesResponseSchema.parse({ multilingual_enabled: true })).toThrow();
   });
 });

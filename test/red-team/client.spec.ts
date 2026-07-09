@@ -310,4 +310,66 @@ describe('RedTeamClient', () => {
       expect(url).toContain('/v1/dashboard/overview');
     });
   });
+
+  const languagesResponse = {
+    multilingual_enabled: true,
+    supported_job_types: ['STATIC', 'DYNAMIC'],
+    languages: [
+      { code: 'en', name: 'English' },
+      { code: 'es', name: 'Spanish' },
+    ],
+  };
+
+  describe('getLanguages', () => {
+    it('GETs /v1/languages on the data plane', async () => {
+      mockTwoFetches(languagesResponse);
+      const client = makeClient();
+      const result = await client.getLanguages();
+      expect(result.multilingual_enabled).toBe(true);
+      expect(result.languages[0]).toEqual({ code: 'en', name: 'English' });
+
+      const [url] = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[1];
+      expect(url).toContain('/v1/languages');
+      expect(url).toContain('data-plane');
+    });
+  });
+
+  describe('getManagementLanguages', () => {
+    it('GETs /v1/languages on the management plane', async () => {
+      mockTwoFetches(languagesResponse);
+      const client = makeClient();
+      const result = await client.getManagementLanguages();
+      expect(result.supported_job_types).toEqual(['STATIC', 'DYNAMIC']);
+
+      const [url] = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[1];
+      expect(url).toContain('/v1/languages');
+      expect(url).toContain('mgmt-plane');
+    });
+  });
+
+  describe('getTargetProfileErrorLogs', () => {
+    it('GETs /v1/error-log/target-profile/:targetId', async () => {
+      mockTwoFetches({ pagination: { total_items: 0 }, data: [] });
+      const client = makeClient();
+      const result = await client.getTargetProfileErrorLogs(validUuid);
+      expect(result.data).toEqual([]);
+
+      const [url] = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[1];
+      expect(url).toContain(`/v1/error-log/target-profile/${validUuid}`);
+    });
+
+    it('serializes the limit option', async () => {
+      mockTwoFetches({ pagination: { total_items: 0 }, data: [] });
+      const client = makeClient();
+      await client.getTargetProfileErrorLogs(validUuid, { limit: 25 });
+
+      const [url] = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[1];
+      expect(url).toContain('limit=25');
+    });
+
+    it('rejects invalid UUID', async () => {
+      const client = makeClient();
+      await expect(client.getTargetProfileErrorLogs('bad')).rejects.toThrow(AISecSDKException);
+    });
+  });
 });

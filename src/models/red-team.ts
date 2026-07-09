@@ -1031,6 +1031,24 @@ export const ErrorLogListResponseSchema = z
 export type ErrorLogListResponse = z.infer<typeof ErrorLogListResponseSchema>;
 
 // ---------------------------------------------------------------------------
+// Supported languages (data plane & management plane)
+// ---------------------------------------------------------------------------
+
+/** A single language option (code + display name). */
+export const LanguageOptionSchema = z.object({ code: z.string(), name: z.string() }).passthrough();
+export type LanguageOption = z.infer<typeof LanguageOptionSchema>;
+
+/** Tenant's allowed languages for Red Team scans. */
+export const TenantLanguagesResponseSchema = z
+  .object({
+    multilingual_enabled: z.boolean(),
+    supported_job_types: z.array(z.string()),
+    languages: z.array(LanguageOptionSchema),
+  })
+  .passthrough();
+export type TenantLanguagesResponse = z.infer<typeof TenantLanguagesResponseSchema>;
+
+// ---------------------------------------------------------------------------
 // Management — Target schemas
 // ---------------------------------------------------------------------------
 
