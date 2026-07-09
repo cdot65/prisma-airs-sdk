@@ -64,7 +64,7 @@ Falls back to `PANW_MGMT_*` variables if service-specific ones are not set.
 | `PANW_MODEL_SEC_TSG_ID`         | Falls back to MGMT | —                                                 |
 | `PANW_MODEL_SEC_DATA_ENDPOINT`  | No                 | `https://api.sase.paloaltonetworks.com/aims/data` |
 | `PANW_MODEL_SEC_MGMT_ENDPOINT`  | No                 | `https://api.sase.paloaltonetworks.com/aims/mgmt` |
-| `PANW_MODEL_SEC_TOKEN_ENDPOINT` | Falls back to MGMT | —                                                 |
+| `PANW_MODEL_SEC_TOKEN_ENDPOINT` | Falls back to MGMT | `https://auth.apps.paloaltonetworks.com/oauth2/access_token` |
 
 ## Red Team API
 
@@ -78,7 +78,7 @@ Falls back to `PANW_MGMT_*` variables if service-specific ones are not set.
 | `PANW_RED_TEAM_DATA_ENDPOINT`  | No                 | `https://api.sase.paloaltonetworks.com/ai-red-teaming/data-plane` |
 | `PANW_RED_TEAM_MGMT_ENDPOINT`  | No                 | `https://api.sase.paloaltonetworks.com/ai-red-teaming/mgmt-plane` |
 | `PANW_RED_TEAM_NETWORK_BROKER_ENDPOINT` | No        | `https://api.sase.paloaltonetworks.com/ai-red-teaming/data-plane/network-broker` |
-| `PANW_RED_TEAM_TOKEN_ENDPOINT` | Falls back to MGMT | —                                                                 |
+| `PANW_RED_TEAM_TOKEN_ENDPOINT` | Falls back to MGMT | `https://auth.apps.paloaltonetworks.com/oauth2/access_token` |
 
 ## Regional Endpoints
 
@@ -92,6 +92,10 @@ export PANW_AI_SEC_API_ENDPOINT=https://service-sg.api.aisecurity.paloaltonetwor
 
 # EU
 export PANW_MGMT_ENDPOINT=https://api.eu.sase.paloaltonetworks.com/aisec
+export PANW_MODEL_SEC_DATA_ENDPOINT=https://api.eu.sase.paloaltonetworks.com/aims/data
+export PANW_MODEL_SEC_MGMT_ENDPOINT=https://api.eu.sase.paloaltonetworks.com/aims/mgmt
+export PANW_RED_TEAM_DATA_ENDPOINT=https://api.eu.sase.paloaltonetworks.com/ai-red-teaming/data-plane
+export PANW_RED_TEAM_MGMT_ENDPOINT=https://api.eu.sase.paloaltonetworks.com/ai-red-teaming/mgmt-plane
 
 # UK
 export PANW_MGMT_ENDPOINT=https://api.uk.sase.paloaltonetworks.com/aisec

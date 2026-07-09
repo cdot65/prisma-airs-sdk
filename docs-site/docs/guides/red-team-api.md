@@ -165,8 +165,8 @@ const { data } = await client.scans.list();
 
 // With filters
 const filtered = await client.scans.list({
-  status: 'completed',
-  job_type: 'static',
+  status: 'COMPLETED',
+  job_type: 'STATIC',
   target_id: 'target-uuid',
   skip: 0,
   limit: 10,
@@ -200,8 +200,8 @@ const categories = await client.scans.getCategories();
 ```ts
 // List attacks for a static scan
 const attacks = await client.reports.listAttacks('job-uuid', {
-  status: 'failed',
-  severity: 'high',
+  status: 'FAILED',
+  severity: 'HIGH',
   category: 'prompt-injection',
   skip: 0,
   limit: 20,
@@ -237,7 +237,8 @@ const policy = await client.reports.getDynamicRuntimePolicy('job-uuid');
 
 // List goals
 const goals = await client.reports.listGoals('job-uuid', {
-  goal_type: 'security',
+  goal_type: 'AGENT',
+  status: 'SUCCESSFUL',
   skip: 0,
   limit: 10,
 });
@@ -325,8 +326,8 @@ const target = await client.targets.create(
 
 ```ts
 const targets = await client.targets.list({
-  target_type: 'api',
-  status: 'active',
+  target_type: 'API',
+  status: 'ACTIVE',
   skip: 0,
   limit: 10,
 });
@@ -570,7 +571,7 @@ const p = await client.customAttacks.getPrompt('prompt-set-uuid', 'prompt-uuid')
 
 // Update a prompt
 const updated = await client.customAttacks.updatePrompt('prompt-set-uuid', 'prompt-uuid', {
-  content: 'Updated prompt text',
+  prompt: 'Updated prompt text',
 });
 
 // Delete a prompt

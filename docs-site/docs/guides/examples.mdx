@@ -1,0 +1,117 @@
+---
+id: examples
+title: Runnable Examples
+description: How to run the SDK example scripts for scanning, management, DLP, model security, red teaming, and validation workflows.
+---
+
+# Runnable Examples
+
+The repository includes runnable TypeScript examples in `docs-site/examples/`. They exercise the
+same public SDK APIs documented in the guides and can be run with `tsx` from the repository root.
+
+## Setup
+
+Install dependencies and create an environment file:
+
+```bash
+npm install
+cp .env.example .env
+```
+
+Fill in the credentials required by the workflow you want to run:
+
+- Scan examples require `PANW_AI_SEC_API_KEY` or `PANW_AI_SEC_API_TOKEN`, plus
+  `PANW_AI_SEC_PROFILE_NAME`.
+- Management examples require `PANW_MGMT_CLIENT_ID`, `PANW_MGMT_CLIENT_SECRET`, and
+  `PANW_MGMT_TSG_ID`.
+- Model Security and Red Team examples can use their service-specific `PANW_MODEL_SEC_*` /
+  `PANW_RED_TEAM_*` credentials or fall back to `PANW_MGMT_*`.
+- Validation scripts marked as mock-backed do not require live AIRS credentials.
+
+Run examples with:
+
+```bash
+npx tsx --env-file=.env docs-site/examples/<script>.ts
+```
+
+## AI Runtime Security Scan Examples
+
+| Script | What it demonstrates |
+| --- | --- |
+| `basic-scan.ts` | Calls `init()`, creates `Content`, and runs `Scanner.syncScan()` with metadata. |
+| `async-scan.ts` | Submits a batch with `Scanner.asyncScan()`; batch size is capped at five items. |
+| `query-results.ts` | Fetches async scan results and threat reports by scan ID or report ID. |
+
+```bash
+npx tsx --env-file=.env docs-site/examples/basic-scan.ts
+npx tsx --env-file=.env docs-site/examples/async-scan.ts
+npx tsx --env-file=.env docs-site/examples/query-results.ts
+```
+
+## Management and DLP Examples
+
+| Script | What it demonstrates |
+| --- | --- |
+| `mgmt-auth.ts` | Constructs `ManagementClient` and triggers OAuth on the first API call. |
+| `mgmt-profiles.ts` | Lists and works with AI security profiles. |
+| `mgmt-topics.ts` | Uses custom topic management APIs. |
+| `mgmt-dashboard.ts` | Reads runtime dashboard application and violation data. |
+| `mgmt-dlp-data-filtering-profiles.ts` | Lists and replaces DLP data filtering profiles. |
+| `mgmt-dlp-data-patterns.ts` | Creates, reads, replaces, patches, and deletes DLP data patterns. |
+| `mgmt-dlp-data-profiles.ts` | Works with DLP data profiles and merge-patch updates. |
+| `mgmt-dlp-dictionaries.ts` | Uses DLP dictionary CRUD with multipart keyword uploads. |
+
+```bash
+npx tsx --env-file=.env docs-site/examples/mgmt-auth.ts
+npx tsx --env-file=.env docs-site/examples/mgmt-profiles.ts
+npx tsx --env-file=.env docs-site/examples/mgmt-topics.ts
+npx tsx --env-file=.env docs-site/examples/mgmt-dashboard.ts
+npx tsx --env-file=.env docs-site/examples/mgmt-dlp-data-filtering-profiles.ts
+npx tsx --env-file=.env docs-site/examples/mgmt-dlp-data-patterns.ts
+npx tsx --env-file=.env docs-site/examples/mgmt-dlp-data-profiles.ts
+npx tsx --env-file=.env docs-site/examples/mgmt-dlp-dictionaries.ts
+```
+
+## Model Security and Red Team Examples
+
+| Script | What it demonstrates |
+| --- | --- |
+| `model-security-scans.ts` | Lists Model Security scans and related data-plane resources. |
+| `red-team-scans.ts` | Lists Red Team scan jobs and categories. |
+| `red-team-targets.ts` | Works with Red Team targets and profile helpers. |
+| `red-team-network-broker.ts` | Lists, reads, and inspects stats for Red Team network broker channels. |
+
+```bash
+npx tsx --env-file=.env docs-site/examples/model-security-scans.ts
+npx tsx --env-file=.env docs-site/examples/red-team-scans.ts
+npx tsx --env-file=.env docs-site/examples/red-team-targets.ts
+npx tsx --env-file=.env docs-site/examples/red-team-network-broker.ts
+```
+
+## Mock-Backed Validation Scripts
+
+These scripts spin up local mock servers or validate schemas directly, so they can run without live
+tenant credentials:
+
+| Script | What it validates |
+| --- | --- |
+| `profiles-get-validation.ts` | `profiles.get()` and `profiles.getByName()` behavior. |
+| `profiles-crud-validation.ts` | Management profile create, list, get, update, delete, and force-delete flow. |
+| `oauth-lifecycle-validation.ts` | OAuth token caching, refresh, 401/403 retry, callbacks, and token state inspection. |
+| `red-team-mgmt-validation.ts` | Red Team target and custom attack schemas plus management-plane workflows. |
+
+```bash
+npx tsx --env-file=.env docs-site/examples/profiles-get-validation.ts
+npx tsx --env-file=.env docs-site/examples/profiles-crud-validation.ts
+npx tsx --env-file=.env docs-site/examples/oauth-lifecycle-validation.ts
+npx tsx --env-file=.env docs-site/examples/red-team-mgmt-validation.ts
+```
+
+## Related Pages
+
+- [Quick Start](../getting-started/quick-start)
+- [Environment Variables](../getting-started/environment-variables)
+- [Scan API](./scan-api)
+- [Management API](./management-api)
+- [Model Security API](./model-security-api)
+- [Red Team API](./red-team-api)

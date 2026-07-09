@@ -21,16 +21,16 @@ import useBaseUrl from '@docusaurus/useBaseUrl';
 
 </div>
 
-Type-safe clients for all four AIRS service domains — real-time content scanning, security configuration management, model security analysis, and AI red teaming. Zero external HTTP dependencies. Native `fetch` + `crypto`. ESM-first with dual CJS/ESM exports.
+Type-safe clients for all four AIRS service domains — real-time content scanning, security configuration management, model security analysis, and AI red teaming. Zero external HTTP dependencies. Native `fetch` + `crypto` for transport, with `zod` for response validation. ESM-first with dual CJS/ESM exports.
 
 ## Features
 
 - **Real-Time Content Scanning** — Synchronous and asynchronous scanning of AI prompts and responses. Detect prompt injection, toxic content, data leaks, and malicious URLs inline.
 - **Security Management** — Manage security profiles, custom topics, API keys, dashboard data, and DLP resources through OAuth2 clients.
-- **Model Security** — Scan ML models for supply chain threats: malicious code execution, backdoors, unapproved file formats. Manage security groups and rules.
+- **Model Security** — Scan ML models for supply chain threats: malicious code execution, backdoors, unapproved file formats. Manage security groups and rule instances; platform security rules are read-only.
 - **AI Red Teaming** — Run automated red team scans against AI targets. Static attack libraries, dynamic agent-based testing, custom prompt sets, and comprehensive reporting.
 - **Type-Safe Everything** — Exported TypeScript types, enum const objects, Zod schemas with `.passthrough()` for forward compatibility, and JSDoc examples on public symbols.
-- **Zero Dependencies** — Native `fetch` + `crypto` only. No external HTTP libraries. Exponential backoff retry built in. ES2022 target, Node 18+.
+- **Zero External HTTP Dependencies** — Native `fetch` + `crypto` for requests. Exponential backoff retry is built in; `zod` validates API responses. ES2022 target, Node 18+.
 
 ## Four Independent APIs
 
