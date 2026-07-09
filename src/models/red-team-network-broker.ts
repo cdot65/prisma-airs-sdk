@@ -46,8 +46,14 @@ export const ChannelSchema = z
     description: z.string().nullable().optional(),
     // Kept as a plain string (not the enum) so unknown upstream statuses never fail parsing.
     status: z.string().nullable().optional(),
+    added_by: z.string().nullable().optional(),
     created_at: z.string().nullable().optional(),
     updated_at: z.string().nullable().optional(),
+    last_online_at: z.string().nullable().optional(),
+    // Present on live responses (not in the base OpenAPI Channel schema).
+    connected_clients_count: z.number().int().nullable().optional(),
+    outdated_clients_count: z.number().int().nullable().optional(),
+    features: z.record(z.boolean()).nullable().optional(),
   })
   .passthrough();
 export type Channel = z.infer<typeof ChannelSchema>;
@@ -70,12 +76,14 @@ export type ChannelListResponse = z.infer<typeof ChannelListResponseSchema>;
 /** Network broker infrastructure and channel-count stats. */
 export const ChannelStatsSchema = z
   .object({
-    broker_server: z.string().nullable().optional(),
-    registry: z.string().nullable().optional(),
-    chart: z.string().nullable().optional(),
-    image: z.string().nullable().optional(),
-    online_channel_count: z.number().int().nullable().optional(),
-    total_channel_count: z.number().int().nullable().optional(),
+    network_channels_server_domain: z.string().nullable().optional(),
+    docker_registry: z.string().nullable().optional(),
+    helm_chart: z.string().nullable().optional(),
+    docker_image: z.string().nullable().optional(),
+    online_channels: z.number().int().nullable().optional(),
+    total_channels: z.number().int().nullable().optional(),
+    // Present on live responses (not in the base OpenAPI ChannelStats schema).
+    client_version: z.string().nullable().optional(),
   })
   .passthrough();
 export type ChannelStats = z.infer<typeof ChannelStatsSchema>;

@@ -340,12 +340,13 @@ export function channelListMock(items: unknown[] = []): Record<string, unknown> 
 
 export function channelStatsMock(overrides: Record<string, unknown> = {}): Record<string, unknown> {
   return {
-    broker_server: 'broker.example.com',
-    registry: 'registry.example.com',
-    chart: 'network-broker-1.0.0',
-    image: 'network-broker:1.0.0',
-    online_channel_count: 3,
-    total_channel_count: 5,
+    network_channels_server_domain: 'broker.example.com',
+    docker_registry: 'registry.example.com',
+    helm_chart: 'charts/network-client:1.0.0',
+    docker_image: 'images/network-client:1.0.0',
+    online_channels: 3,
+    total_channels: 5,
+    client_version: '1.4.0',
     ...overrides,
   };
 }

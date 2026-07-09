@@ -496,7 +496,7 @@ const detail = await client.networkBroker.getChannel(channel.uuid!);
 await client.networkBroker.updateChannel(channel.uuid!, { description: 'Updated description' });
 
 const stats = await client.networkBroker.getChannelStats();
-console.log(stats.online_channel_count, stats.total_channel_count);
+console.log(stats.online_channels, stats.total_channels);
 ```
 
 Channel statuses are `ONLINE`, `OFFLINE`, and `DRAFT` (see the `ChannelStatus` enum).

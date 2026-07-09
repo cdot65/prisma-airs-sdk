@@ -103,7 +103,7 @@ describe('RedTeamNetworkBrokerClient', () => {
       mockFetch(channelStatsMock());
       const result = await client.getChannelStats();
 
-      expect(result.total_channel_count).toBe(5);
+      expect(result.total_channels).toBe(5);
       const [url, init] = lastCall();
       expect(url).toBe('https://nb.example.com/v1/channels/stats');
       expect(init.method).toBe('GET');

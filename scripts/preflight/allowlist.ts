@@ -462,6 +462,47 @@ export const PREFLIGHT_ALLOWLIST: AllowlistEntry[] = [
     kind: 'missing-required-field',
     reason: 'status is modeled as z.unknown(); cannot be marked required.',
   },
+
+  // ── ErrorResponse name collision ─────────────────────────────────────────────
+  // src/models/error-response.ts models the AIRS scan/gateway error envelope
+  // (status_code, error{}, retry_after). The Network Broker spec coincidentally defines an
+  // unrelated `ErrorResponse` component (code, message). Same name, different contract — the
+  // SDK schema is not meant to model the network-broker error shape.
+  {
+    schema: 'ErrorResponse',
+    pathSubstring: '$',
+    reason:
+      'SDK ErrorResponse models the AIRS scan error envelope; the network-broker spec has an ' +
+      'unrelated component of the same name (code/message). Coincidental collision.',
+  },
+
+  // ── Network Broker fields the live API returns but the OpenAPI omits ──────────
+  // Verified live on 2026-07-09; modeled so callers get typed access.
+  {
+    schema: 'ChannelStats',
+    pathSubstring: 'client_version',
+    kind: 'extra-field',
+    reason: 'API returns `client_version` on channel stats; not in upstream OpenAPI ChannelStats.',
+  },
+  {
+    schema: 'Channel',
+    pathSubstring: 'connected_clients_count',
+    kind: 'extra-field',
+    reason: 'API returns `connected_clients_count` on channels; not in upstream OpenAPI Channel.',
+  },
+  {
+    schema: 'Channel',
+    pathSubstring: 'outdated_clients_count',
+    kind: 'extra-field',
+    reason: 'API returns `outdated_clients_count` on channels; not in upstream OpenAPI Channel.',
+  },
+  {
+    schema: 'Channel',
+    pathSubstring: 'features',
+    kind: 'extra-field',
+    reason:
+      'API returns `features` (per-adapter capability flags) on channels; not in upstream OpenAPI Channel.',
+  },
 ];
 
 /**
