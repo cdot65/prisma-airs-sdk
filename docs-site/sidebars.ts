@@ -23,6 +23,7 @@ const sidebars: SidebarsConfig = {
         'guides/oauth-lifecycle',
         'guides/model-security-api',
         'guides/red-team-api',
+        'guides/examples',
         {
           type: 'category',
           label: 'DLP',
