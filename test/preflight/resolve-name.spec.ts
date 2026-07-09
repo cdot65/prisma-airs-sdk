@@ -15,6 +15,11 @@ describe('resolveOpenApiName', () => {
     expect(resolveOpenApiName('DbsEntry', map)?.matchedName).toBe('DbsEntryObject');
   });
 
+  it('falls back to <Name>Schema suffix (upstream components named *Schema)', () => {
+    const map = new Map([['LanguageOptionSchema', obj]]);
+    expect(resolveOpenApiName('LanguageOption', map)?.matchedName).toBe('LanguageOptionSchema');
+  });
+
   it('prefers bare name over a suffixed alternate when both exist', () => {
     const map = new Map([
       ['Item', obj],

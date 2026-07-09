@@ -397,6 +397,7 @@ describe('ModelSecurityScansClient', () => {
         rule_name: 'r',
         rule_description: 'rd',
         rule_instance_state: 'BLOCKING',
+        remediation: { steps: ['Remove the file'], url: 'https://example.com/fix' },
       };
       mockFetch(violation);
       const result = await client.getViolation(validUuid);

@@ -150,7 +150,8 @@ export const ScanCreateRequestSchema = z
   .object({
     model_uri: z.string(),
     security_group_uuid: z.string(),
-    scan_origin: z.string(),
+    // Optional per the OpenAPI spec (server defaults it); the scans-client example still sets it.
+    scan_origin: z.string().optional(),
     allow_patterns: z.array(z.string()).nullable().optional(),
     ignore_patterns: z.array(z.string()).nullable().optional(),
     labels: z.array(LabelSchema).nullable().optional(),
@@ -180,7 +181,8 @@ export const ScanBaseResponseSchema = z
     scan_origin: z.string(),
     security_group_uuid: z.string(),
     security_group_name: z.string(),
-    model_version_uuid: z.string(),
+    // Optional per the OpenAPI spec — a scan may not have a resolved model version yet.
+    model_version_uuid: z.string().nullable().optional(),
     eval_outcome: z.string(),
     source_type: z.string(),
     created_by: z.string().nullable().optional(),
@@ -361,6 +363,15 @@ export type RuleEvaluationList = z.infer<typeof RuleEvaluationListSchema>;
 // DataPlane — Violation response
 // ---------------------------------------------------------------------------
 
+/** Remediation returned on a violation — steps and a reference URL. */
+export const ViolationRemediationSchema = z
+  .object({
+    steps: z.array(z.string()),
+    url: z.string(),
+  })
+  .passthrough();
+export type ViolationRemediation = z.infer<typeof ViolationRemediationSchema>;
+
 /** Zod schema for a single violation response. */
 export const ViolationResponseSchema = z
   .object({
@@ -373,6 +384,7 @@ export const ViolationResponseSchema = z
     rule_name: z.string(),
     rule_description: z.string(),
     rule_instance_state: z.string(),
+    remediation: ViolationRemediationSchema,
     file: z.string().nullable().optional(),
     hash: z.string().nullable().optional(),
     module: z.string().nullable().optional(),

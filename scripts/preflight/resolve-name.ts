@@ -14,6 +14,10 @@ export const NAME_SUFFIXES = [
   'Detail',
   'List',
   'Item',
+  // Some upstream components carry a literal `Schema` suffix in their name
+  // (e.g. `LanguageOptionSchema`, `ModelResponseSchema`). Try it last so a bare
+  // or conventionally-suffixed match still wins.
+  'Schema',
 ];
 
 /**
