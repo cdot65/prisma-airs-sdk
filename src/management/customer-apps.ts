@@ -83,7 +83,7 @@ export class CustomerAppsClient {
     return request({
       method: 'GET',
       baseUrl: this.baseUrl,
-      path: `${MGMT_CUSTOMER_APPS_TSG_PATH}/${this.tsgId}`,
+      path: `${MGMT_CUSTOMER_APPS_TSG_PATH}/${encodeURIComponent(this.tsgId)}`,
       params,
       responseSchema: CustomerAppListResponseSchema,
       auth: this.auth,
