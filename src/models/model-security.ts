@@ -252,6 +252,77 @@ export const FileListSchema = z
 export type FileList = z.infer<typeof FileListSchema>;
 
 // ---------------------------------------------------------------------------
+// DataPlane — Model & model-version resources
+// ---------------------------------------------------------------------------
+
+/**
+ * A model resource (aggregate over its versions). Enum-typed fields are modeled as strings
+ * to tolerate new backend values, consistent with the rest of the Model Security schemas.
+ */
+export const ModelResponseSchema = z
+  .object({
+    uuid: z.string(),
+    tsg_id: z.string(),
+    created_at: z.string(),
+    updated_at: z.string(),
+    name: z.string(),
+    latest_version_uuid: z.string().nullable().optional(),
+    latest_version_fingerprint: z.string().nullable().optional(),
+    latest_version_revision: z.string().nullable().optional(),
+    latest_version_hf_commit_sha: z.string().nullable().optional(),
+    latest_version_outcome: z.string().nullable().optional(),
+    latest_version_formats: z.array(z.string()).nullable().optional(),
+    latest_version_source_types: z.array(z.string()).nullable().optional(),
+    latest_version_scan_time: z.string().nullable().optional(),
+  })
+  .passthrough();
+export type Model = z.infer<typeof ModelResponseSchema>;
+
+/** Paginated list of models. */
+export const ModelListSchema = z
+  .object({
+    pagination: ModelSecurityPaginationSchema,
+    models: z.array(ModelResponseSchema),
+  })
+  .passthrough();
+export type ModelList = z.infer<typeof ModelListSchema>;
+
+/** A specific version (revision) of a model. */
+export const ModelVersionResponseSchema = z
+  .object({
+    uuid: z.string(),
+    tsg_id: z.string(),
+    created_at: z.string(),
+    updated_at: z.string(),
+    revision: z.string(),
+    model_uuid: z.string(),
+    fingerprint: z.string().nullable().optional(),
+    file_count: z.number().int().nullable().optional(),
+    license: z.string().nullable().optional(),
+    latest_scan_time: z.string().nullable().optional(),
+    hf_commit_sha: z.string().nullable().optional(),
+    hf_commit_title: z.string().nullable().optional(),
+    hf_commit_authors: z.array(z.string()).nullable().optional(),
+    hf_model_name: z.string().nullable().optional(),
+    hf_organization: z.string().nullable().optional(),
+    model_formats: z.array(z.string()).nullable().optional(),
+    source_types: z.array(z.string()).nullable().optional(),
+    last_eval_outcome: z.string().nullable().optional(),
+    last_eval_summary: EvalSummarySchema.nullable().optional(),
+  })
+  .passthrough();
+export type ModelVersion = z.infer<typeof ModelVersionResponseSchema>;
+
+/** Paginated list of model versions. */
+export const ModelVersionListSchema = z
+  .object({
+    pagination: ModelSecurityPaginationSchema,
+    model_versions: z.array(ModelVersionResponseSchema),
+  })
+  .passthrough();
+export type ModelVersionList = z.infer<typeof ModelVersionListSchema>;
+
+// ---------------------------------------------------------------------------
 // DataPlane — Rule evaluation response
 // ---------------------------------------------------------------------------
 

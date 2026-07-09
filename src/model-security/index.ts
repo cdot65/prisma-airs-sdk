@@ -20,3 +20,10 @@ export {
   type ModelSecurityRulesClientOptions,
   type ModelSecurityRuleListOptions,
 } from './security-rules-client.js';
+export {
+  ModelSecurityModelsClient,
+  type ModelSecurityModelsClientOptions,
+  type ModelSecurityModelListOptions,
+  type ModelSecurityModelVersionListOptions,
+  type ModelSecurityModelVersionFileListOptions,
+} from './models-client.js';

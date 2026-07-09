@@ -12,6 +12,7 @@ import { resolveOAuthConfig } from '../oauth-config.js';
 import { ModelSecurityScansClient } from './scans-client.js';
 import { ModelSecurityGroupsClient } from './security-groups-client.js';
 import { ModelSecurityRulesClient } from './security-rules-client.js';
+import { ModelSecurityModelsClient } from './models-client.js';
 import { PyPIAuthResponseSchema, type PyPIAuthResponse } from '../models/model-security.js';
 
 /** Options for constructing a {@link ModelSecurityClient}. */
@@ -54,6 +55,8 @@ export class ModelSecurityClient {
   public readonly securityGroups: ModelSecurityGroupsClient;
   /** Management plane security rule operations (read-only). */
   public readonly securityRules: ModelSecurityRulesClient;
+  /** Data plane model and model-version operations (read-only). */
+  public readonly models: ModelSecurityModelsClient;
 
   private readonly mgmtEndpoint: string;
   private readonly auth: AuthAdapter;
@@ -82,6 +85,7 @@ export class ModelSecurityClient {
     this.numRetries = numRetries;
 
     this.scans = new ModelSecurityScansClient({ baseUrl: dataEndpoint, auth, numRetries });
+    this.models = new ModelSecurityModelsClient({ baseUrl: dataEndpoint, auth, numRetries });
     this.securityGroups = new ModelSecurityGroupsClient({
       baseUrl: mgmtEndpoint,
       auth,
