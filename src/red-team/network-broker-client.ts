@@ -118,7 +118,7 @@ export class RedTeamNetworkBrokerClient {
    *
    * const stats = await rt.networkBroker.getChannelStats();
    * // stats =>
-   * // { broker_server: 'broker.example.com', online_channel_count: 3, total_channel_count: 5 }
+   * // { network_channels_server_domain: 'broker.example.com', online_channels: 3, total_channels: 5, client_version: '1.4.0' }
    * ```
    */
   async getChannelStats(): Promise<ChannelStats> {

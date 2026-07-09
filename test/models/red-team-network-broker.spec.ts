@@ -73,16 +73,18 @@ describe('red-team network broker models', () => {
 
   it('ChannelStatsSchema parses stats and keeps extra fields', () => {
     const parsed = ChannelStatsSchema.parse({
-      broker_server: 'broker.example.com',
-      registry: 'registry.example.com',
-      chart: 'chart-1',
-      image: 'image-1',
-      online_channel_count: 3,
-      total_channel_count: 5,
+      network_channels_server_domain: 'broker.example.com',
+      docker_registry: 'registry.example.com',
+      helm_chart: 'charts/network-client:1.0.0',
+      docker_image: 'images/network-client:1.0.0',
+      online_channels: 3,
+      total_channels: 5,
+      client_version: '1.4.0',
       future_field: true,
     });
-    expect(parsed.online_channel_count).toBe(3);
-    expect(parsed.total_channel_count).toBe(5);
+    expect(parsed.online_channels).toBe(3);
+    expect(parsed.total_channels).toBe(5);
+    expect(parsed.client_version).toBe('1.4.0');
     expect((parsed as Record<string, unknown>).future_field).toBe(true);
   });
 });

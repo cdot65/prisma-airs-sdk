@@ -43,9 +43,9 @@ async function main() {
     // --- STATS ---
     console.log('\nGetting channel stats...');
     const stats = await client.networkBroker.getChannelStats();
-    console.log('  Broker server:', stats.broker_server);
-    console.log('  Online channels:', stats.online_channel_count);
-    console.log('  Total channels:', stats.total_channel_count);
+    console.log('  Broker server:', stats.network_channels_server_domain);
+    console.log('  Online channels:', stats.online_channels);
+    console.log('  Total channels:', stats.total_channels);
   } catch (error) {
     if (error instanceof AISecSDKException) {
       console.error('Error:', error.message);
