@@ -1,5 +1,34 @@
 # Release Notes
 
+## Unreleased
+
+### New Features — Red Team Network Broker
+
+Adds `RedTeamClient.networkBroker` (new `RedTeamNetworkBrokerClient`) for discovering and managing the broker channels that Red Team targets reference via `network_broker_channel_uuid`. It uses a distinct network broker data-plane base URL, overridable with the `networkBrokerEndpoint` constructor option or `PANW_RED_TEAM_NETWORK_BROKER_ENDPOINT`, and shares the existing Red Team OAuth credentials.
+
+**New methods:** `listChannels(opts?)` (`GET /v1/channels`, with `status` / `search` / `include_all_if_empty` / `limit` / `skip`), `createChannel(body)`, `getChannel(channelId)`, `updateChannel(channelId, body)`, `getChannelStats()`.
+
+**New exports:** `RedTeamNetworkBrokerClient`, `RedTeamNetworkBrokerClientOptions`, `ChannelListOptions`, and the `Channel`, `ChannelStats`, `ChannelStatus`, `CreateChannelRequest`, `UpdateChannelRequest`, and channel-list schemas/types.
+
+### New Features — Red Team supported languages & target-profile error logs
+
+- **`getLanguages()` / `getManagementLanguages()`** — the tenant's allowed languages for scans (`GET /v1/languages`, data plane and management plane). Returns `TenantLanguagesResponse` (`multilingual_enabled`, `supported_job_types`, `languages: { code, name }[]`).
+- **`getTargetProfileErrorLogs(targetId, opts?)`** — profiling errors for a target (`GET /v1/error-log/target-profile/{target_id}`), reusing the existing `ErrorLogListResponse` shape.
+
+### New Features — Model Security models sub-client
+
+Adds a read-only `ModelSecurityClient.models` (new `ModelSecurityModelsClient`) for browsing models and their versions/files on the data plane, complementing point-in-time scans.
+
+**New methods:** `listModels(opts?)` (`GET /v1/models`, with search / sort / `latest_version_*` filters), `getModel(uuid)`, `listModelVersions(modelUuid, opts?)`, `getModelVersion(uuid)`, `listModelVersionFiles(modelVersionUuid, opts?)`.
+
+**New exports:** `ModelSecurityModelsClient` and its option types, plus the `Model`, `ModelVersion`, and their list schemas/types.
+
+### Fixes & Alignment
+
+- `customerApps.list()` now percent-encodes the TSG ID in the request path, so a TSG ID with URL-reserved characters can't corrupt the URL.
+- Model Security schema accuracy vs the latest OpenAPI: `ScanCreateRequest.scan_origin` is now optional, `ScanBaseResponse.model_version_uuid` is now optional/nullable, and `ViolationResponse.remediation` is now typed (new `ViolationRemediation` schema) instead of only passed through.
+- Refreshed the committed Red Team and Model Security OpenAPI specs to the latest upstream revisions and expanded schema-vs-spec preflight coverage (128 → 232 matched schemas).
+
 ## v0.12.0
 
 ### New Features — Dashboard Apps Enumeration

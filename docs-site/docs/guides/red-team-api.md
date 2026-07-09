@@ -657,7 +657,7 @@ Run **static** scans on every release for fast, repeatable regression coverage. 
 - **Bulk-load custom prompts via CSV.** `uploadPromptsCsv()` is far faster than `createPrompt()` in a loop; grab the shape with `downloadTemplate()`. Mark a prompt set active so it can be referenced by a custom scan.
 - **Accept the EULA once per tenant.** If scans error before running, confirm `eula.getStatus().is_accepted` is `true`.
 
-For the complete, per-method list with input/output shapes (`RedTeamClient` and its seven sub-clients), see the [Full API reference](../reference/api/index.md).
+For the complete, per-method list with input/output shapes (`RedTeamClient` and its eight sub-clients), see the [Full API reference](../reference/api/index.md).
 
 ## Error Handling
 
