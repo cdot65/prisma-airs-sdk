@@ -29,6 +29,3 @@ jobs:
 
       - name: Typecheck
         run: npm run typecheck
-
-      - name: OpenAPI schema pre-flight (strict — fails on unacknowledged drift)
-        run: npm run preflight

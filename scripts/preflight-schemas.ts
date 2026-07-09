@@ -12,6 +12,7 @@
  *   tsx scripts/preflight-schemas.ts --warn-only  # report drift, exit 0
  */
 import { readdir } from 'node:fs/promises';
+import { existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join, relative } from 'node:path';
 import { ZodType } from 'zod';
@@ -23,7 +24,7 @@ import { resolveOpenApiName } from './preflight/resolve-name.js';
 import { isAllowlisted } from './preflight/allowlist.js';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
-const SPECS_DIR = join(ROOT, 'specs');
+const SCHEMAS_DIR = join(ROOT, 'schemas');
 const MODELS_DIR = join(ROOT, 'src', 'models');
 
 interface ModelSchema {
@@ -34,34 +35,46 @@ interface ModelSchema {
 }
 
 /**
- * DLP specs the SDK actually models. Other yaml files in `specs/dlp/` describe DLP endpoints
- * we have not implemented yet — loading them creates name collisions (e.g. their `Policy`
- * component differs from the mgmt `Policy`) and false drift against unrelated Zod schemas.
+ * The exact OpenAPI spec files the SDK models, as paths under the gitignored `schemas/` alias
+ * (symlinks to a local pan.dev `openapi-specs` checkout). Listed explicitly rather than globbed:
+ * the alias tree also holds `-latest` duplicates and unmodeled specs (e.g. most of `dlp/`, whose
+ * `Policy` component collides with the mgmt `Policy`) that would produce false drift.
+ *
+ * Keep this in sync with the Zod models in `src/models/`. This runs locally / pre-release only —
+ * `schemas/` is gitignored, so preflight is not a CI gate (see CLAUDE.md).
  */
-const DLP_SPEC_WHITELIST = new Set([
-  'DataFilteringProfiles.yaml',
-  'DataPatterns.yaml',
-  'DataProfiles.yaml',
-  'Dictionaries.yaml',
-]);
+const MODELED_SPECS = [
+  'prisma-airs/scan/scan-service_latest.yaml',
+  'prisma-airs/management/mgmt-service_latest.yaml',
+  'prisma-airs-model-security/dataplane/AIRS-Model-Security-DataPlane-latest.yaml',
+  'prisma-airs-model-security/management/AIRS-Model-Security-Management.yaml',
+  'prisma-airs-redteam/data-plane/dp-openapi.yaml',
+  'prisma-airs-redteam/management/mp-openapi.yaml',
+  'prisma-airs-redteam/network-broker/AIRS-Red-Teaming-Network-Broker.yaml',
+  'dlp/DataFilteringProfiles.yaml',
+  'dlp/DataPatterns.yaml',
+  'dlp/DataProfiles.yaml',
+  'dlp/Dictionaries.yaml',
+];
 
-async function findSpecFiles(dir: string, parentName?: string): Promise<string[]> {
-  const out: string[] = [];
-  const entries = await readdir(dir, { withFileTypes: true });
-  for (const entry of entries) {
-    const full = join(dir, entry.name);
-    if (entry.isDirectory()) {
-      out.push(...(await findSpecFiles(full, entry.name)));
-    } else if (entry.isFile() && (entry.name.endsWith('.yaml') || entry.name.endsWith('.yml'))) {
-      if (parentName === 'dlp' && !DLP_SPEC_WHITELIST.has(entry.name)) continue;
-      out.push(full);
-    }
+function findSpecFiles(): string[] {
+  if (!existsSync(SCHEMAS_DIR)) {
+    throw new Error(
+      `The 'schemas/' alias is missing. Preflight reads the gitignored 'schemas/' directory ` +
+        `(symlinks to a local pan.dev openapi-specs checkout). Set it up before running preflight — see CLAUDE.md.`,
+    );
   }
-  return out;
+  return MODELED_SPECS.map((rel) => {
+    const full = join(SCHEMAS_DIR, rel);
+    if (!existsSync(full)) {
+      throw new Error(`Missing modeled schema file under schemas/: ${rel}`);
+    }
+    return full;
+  });
 }
 
 async function loadAllSpecs(): Promise<Map<string, OpenAPIV3.SchemaObject>> {
-  const files = await findSpecFiles(SPECS_DIR);
+  const files = findSpecFiles();
   const merged = new Map<string, OpenAPIV3.SchemaObject>();
   const collisions: string[] = [];
   for (const path of files) {
