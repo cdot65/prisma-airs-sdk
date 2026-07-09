@@ -115,6 +115,8 @@ export const MODEL_SEC_TOKEN_ENDPOINT = 'PANW_MODEL_SEC_TOKEN_ENDPOINT';
 export const MODEL_SEC_SCANS_PATH = '/v1/scans';
 export const MODEL_SEC_EVALUATIONS_PATH = '/v1/evaluations';
 export const MODEL_SEC_VIOLATIONS_PATH = '/v1/violations';
+export const MODEL_SEC_MODELS_PATH = '/v1/models';
+export const MODEL_SEC_MODEL_VERSIONS_PATH = '/v1/model-versions';
 
 // API paths — model security management
 export const MODEL_SEC_SECURITY_GROUPS_PATH = '/v1/security-groups';

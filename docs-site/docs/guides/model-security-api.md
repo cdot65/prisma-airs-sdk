@@ -74,9 +74,10 @@ Token fetch, caching, and refresh are handled automatically. A single OAuth2 tok
 
 ### Architecture
 
-The client exposes three sub-clients:
+The client exposes four sub-clients:
 
 - `client.scans` -- data plane scan operations (create, list, get, evaluations, files, labels, violations)
+- `client.models` -- data plane read-only access to models and their versions/files
 - `client.securityGroups` -- management plane CRUD for security groups and their rule instances
 - `client.securityRules` -- management plane read-only access to security rules
 
@@ -203,6 +204,36 @@ const keys = await client.scans.getLabelKeys();
 
 // Get distinct values for a label key
 const values = await client.scans.getLabelValues('team');
+```
+
+## Models
+
+Where a scan is a single point-in-time job, a **model** is the persistent resource that aggregates every scan/version of a given model. The `models` sub-client is read-only and lives on the data plane.
+
+```ts
+// List models — supports search, sort, and latest-version filters
+const models = await client.models.listModels({
+  limit: 10,
+  search_query: 'llama',
+  sort_field: 'created_at',
+  sort_order: 'desc',
+  latest_version_outcomes: ['PASSED', 'FAILED'],
+});
+for (const m of models.models) {
+  console.log(m.uuid, m.name, m.latest_version_outcome);
+}
+
+// Get one model
+const model = await client.models.getModel('model-uuid');
+
+// List a model's versions
+const versions = await client.models.listModelVersions('model-uuid', { sort_order: 'desc' });
+
+// Get one version (carries an eval summary: rules_passed/rules_failed/total_rules)
+const version = await client.models.getModelVersion('model-version-uuid');
+
+// List the files in a version (same shape as scan files)
+const files = await client.models.listModelVersionFiles('model-version-uuid', { limit: 50 });
 ```
 
 ## Walkthrough: define a security group (your scan policy)

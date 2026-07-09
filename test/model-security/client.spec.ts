@@ -3,6 +3,7 @@ import { ModelSecurityClient } from '../../src/model-security/client.js';
 import { ModelSecurityScansClient } from '../../src/model-security/scans-client.js';
 import { ModelSecurityGroupsClient } from '../../src/model-security/security-groups-client.js';
 import { ModelSecurityRulesClient } from '../../src/model-security/security-rules-client.js';
+import { ModelSecurityModelsClient } from '../../src/model-security/models-client.js';
 import { AISecSDKException } from '../../src/errors.js';
 
 describe('ModelSecurityClient', () => {
@@ -23,6 +24,7 @@ describe('ModelSecurityClient', () => {
     expect(client.scans).toBeInstanceOf(ModelSecurityScansClient);
     expect(client.securityGroups).toBeInstanceOf(ModelSecurityGroupsClient);
     expect(client.securityRules).toBeInstanceOf(ModelSecurityRulesClient);
+    expect(client.models).toBeInstanceOf(ModelSecurityModelsClient);
   });
 
   it('reads credentials from MODEL_SEC env vars', () => {

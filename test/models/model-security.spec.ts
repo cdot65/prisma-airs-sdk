@@ -33,6 +33,10 @@ import {
   ModelSecurityGroupUpdateRequestSchema,
   ListModelSecurityGroupsResponseSchema,
   PyPIAuthResponseSchema,
+  ModelResponseSchema,
+  ModelListSchema,
+  ModelVersionResponseSchema,
+  ModelVersionListSchema,
 } from '../../src/models/model-security.js';
 
 // ---------------------------------------------------------------------------
@@ -532,5 +536,63 @@ describe('PyPIAuthResponseSchema', () => {
     const data = { url: 'https://x.com', expires_at: now, extra: 'field' };
     const parsed = PyPIAuthResponseSchema.parse(data);
     expect((parsed as Record<string, unknown>).extra).toBe('field');
+  });
+});
+
+describe('Model / ModelVersion schemas', () => {
+  const now = '2025-01-01T00:00:00Z';
+  const uuid = '550e8400-e29b-41d4-a716-446655440000';
+
+  it('ModelListSchema parses a populated list and passes through extras', () => {
+    const parsed = ModelListSchema.parse({
+      pagination: { total_items: 1 },
+      models: [
+        {
+          uuid,
+          tsg_id: '123',
+          created_at: now,
+          updated_at: now,
+          name: 'org/model',
+          latest_version_outcome: 'PASSED',
+          latest_version_formats: ['safetensors'],
+          latest_version_source_types: ['HUGGING_FACE'],
+          future_field: 1,
+        },
+      ],
+    });
+    expect(parsed.models[0].name).toBe('org/model');
+    expect(parsed.models[0].latest_version_outcome).toBe('PASSED');
+    expect((parsed.models[0] as Record<string, unknown>).future_field).toBe(1);
+  });
+
+  it('ModelResponseSchema requires the core fields', () => {
+    expect(() => ModelResponseSchema.parse({ uuid, tsg_id: '123' })).toThrow();
+  });
+
+  it('ModelVersionListSchema parses versions with an eval summary', () => {
+    const parsed = ModelVersionListSchema.parse({
+      pagination: { total_items: 1 },
+      model_versions: [
+        {
+          uuid,
+          tsg_id: '123',
+          created_at: now,
+          updated_at: now,
+          revision: 'main',
+          model_uuid: uuid,
+          file_count: 3,
+          last_eval_outcome: 'FAILED',
+          last_eval_summary: { rules_failed: 1, rules_passed: 2, total_rules: 3 },
+        },
+      ],
+    });
+    expect(parsed.model_versions[0].revision).toBe('main');
+    expect(parsed.model_versions[0].last_eval_summary?.rules_failed).toBe(1);
+  });
+
+  it('ModelVersionResponseSchema requires revision and model_uuid', () => {
+    expect(() =>
+      ModelVersionResponseSchema.parse({ uuid, tsg_id: '123', created_at: now, updated_at: now }),
+    ).toThrow();
   });
 });
