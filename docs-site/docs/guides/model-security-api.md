@@ -14,7 +14,7 @@ Three concepts do the work:
 
 The flow: define a security group once → run scans against it → read the outcome and drill into violations. Scans run asynchronously, so a fresh scan starts as `PENDING` and you poll `get()` until it settles.
 
-**When to use it:** vetting third-party models (Hugging Face, S3, registries) before deployment, gating models in CI, or auditing what's already in use. Two planes are involved — a **data plane** for scans (`client.scans`) and a **management plane** for groups and rules (`client.securityGroups`, `client.securityRules`) — but a single OAuth2 token covers both, handled for you.
+**When to use it:** vetting third-party models (Hugging Face, S3, registries) before deployment, gating models in CI, or auditing what's already in use. Two planes are involved — a **data plane** for scans and model/version browsing (`client.scans`, `client.models`) and a **management plane** for groups and rules (`client.securityGroups`, `client.securityRules`) — but a single OAuth2 token covers both, handled for you.
 
 ## Authentication
 
