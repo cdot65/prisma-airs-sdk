@@ -1,6 +1,6 @@
 # Release Notes
 
-## Unreleased
+## v0.13.0
 
 ### New Features — Red Team Network Broker
 
@@ -26,6 +26,7 @@ Adds a read-only `ModelSecurityClient.models` (new `ModelSecurityModelsClient`) 
 ### Fixes & Alignment
 
 - `customerApps.list()` now percent-encodes the TSG ID in the request path, so a TSG ID with URL-reserved characters can't corrupt the URL.
+- Corrected the Network Broker `ChannelStats` field names to match the live API (`getChannelStats()` previously modeled non-existent fields — `broker_server`, `registry`, `online_channel_count`, etc. — so every typed accessor returned `undefined`; they are now `network_channels_server_domain`, `docker_registry`, `online_channels`, `total_channels`, and friends). `Channel` also gains live fields (`added_by`, `last_online_at`, `connected_clients_count`, `outdated_clients_count`, `features`), and the Network Broker OpenAPI spec is now committed so preflight validates these going forward.
 - Model Security schema accuracy vs the latest OpenAPI: `ScanCreateRequest.scan_origin` is now optional, `ScanBaseResponse.model_version_uuid` is now optional/nullable, and `ViolationResponse.remediation` is now typed (new `ViolationRemediation` schema) instead of only passed through.
 - Refreshed the committed Red Team and Model Security OpenAPI specs to the latest upstream revisions and expanded schema-vs-spec preflight coverage (128 → 232 matched schemas).
 
