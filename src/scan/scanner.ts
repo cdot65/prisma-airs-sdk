@@ -142,13 +142,13 @@ export class Scanner {
   /**
    * Submit one batch of content for asynchronous scanning.
    *
-   * The call accepts 1–5 request objects and returns one batch receipt. A batch `scan_id` can fan
+   * The call accepts 1–20 request objects and returns one batch receipt. A batch `scan_id` can fan
    * out to several unordered result rows. Correlate each row by `(scan_id, req_id)`, never array
    * position or `scan_id` alone. The SDK preserves the server's row order and cardinality.
    *
    * Setting `numRetries: 0` guarantees one SDK fetch attempt, but cannot guarantee exactly-once
    * server submission after an ambiguous network or 5xx failure.
-   * @param scanObjects - Array of scan objects (1–5 items), each with its own `req_id`.
+   * @param scanObjects - Array of scan objects (1–20 items), each with its own `req_id`.
    * @param opts - Optional per-call retry override.
    * @returns One batch receipt containing the shared scan ID for later querying.
    * @example

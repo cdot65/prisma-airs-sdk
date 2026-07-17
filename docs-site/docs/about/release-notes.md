@@ -1,5 +1,11 @@
 # Release Notes
 
+## v0.13.2
+
+### Fix async scan batch limit
+
+Raise the `asyncScan()` submission limit from 5 to 20 request objects to match the current AIRS API. The SDK previously rejected valid 6–20 item batches before making a network request. `queryByScanIds()` and `queryByReportIds()` retain their independent five-ID limits.
+
 ## v0.13.1
 
 ### Reliable SDK primitives for AIRS bulk scanning

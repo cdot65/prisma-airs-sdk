@@ -124,9 +124,25 @@ describe('Scanner', () => {
       await expect(scanner.asyncScan([])).rejects.toThrow(AISecSDKException);
     });
 
-    it('throws for >5 objects', async () => {
+    it('submits a 20-object batch', async () => {
+      mockFetch({ received: '2026-07-17T00:00:00Z', scan_id: 'batch-20' });
       const scanner = new Scanner();
-      const objects = Array.from({ length: 6 }, (_, i) => ({
+      const objects = Array.from({ length: 20 }, (_, i) => ({
+        req_id: i,
+        scan_req: { ai_profile: profile, contents: [{ prompt: `prompt-${i}` }] },
+      }));
+
+      const result = await scanner.asyncScan(objects, { numRetries: 0 });
+
+      expect(result.scan_id).toBe('batch-20');
+      expect(globalThis.fetch).toHaveBeenCalledTimes(1);
+      const body = JSON.parse((globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0][1].body);
+      expect(body).toHaveLength(20);
+    });
+
+    it('throws for >20 objects', async () => {
+      const scanner = new Scanner();
+      const objects = Array.from({ length: 21 }, (_, i) => ({
         req_id: i,
         scan_req: { ai_profile: profile, contents: [{ prompt: 'x' }] },
       }));

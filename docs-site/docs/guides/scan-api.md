@@ -19,7 +19,7 @@ Key concepts:
 | `Content`            | A wrapper holding the text to scan (`prompt`, `response`, `context`, code, tool events). Validates size as you set it.                                |
 | **Security profile** | The named ruleset (managed via the [Management API](management-api)) that decides which detections run and whether a hit means _allow_ or _block_. |
 | **Verdict**          | The result: `category` (`benign`/`malicious`) and `action` (`allow`/`block`).                                                                         |
-| **Sync vs async**    | Sync gives an inline verdict in one call. Async accepts 1–5 request objects, returns one batch receipt, and you poll for result rows later.           |
+| **Sync vs async**    | Sync gives an inline verdict in one call. Async accepts 1–20 request objects, returns one batch receipt, and you poll for result rows later.          |
 
 :::tip[Profiles live in the Management API]
 The Scan API only _references_ a profile by name or ID — it never creates one. Define and tune profiles with the [Management API](management-api), then point scans at them.
@@ -117,7 +117,7 @@ console.log(result.category, result.scan_id, result.report_id);
 
 ### Scan many items off the hot path (asynchronous)
 
-When you have a backlog (logs, batch evaluation, offline review), submit **1–5 request objects** in one call. AIRS returns one batch receipt. A batch `scan_id` can later produce several result rows, one per `req_id`, and those rows can arrive in any order.
+When you have a backlog (logs, batch evaluation, offline review), submit **1–20 request objects** in one call. AIRS returns one batch receipt. A batch `scan_id` can later produce several result rows, one per `req_id`, and those rows can arrive in any order.
 
 ```ts
 const submitted = await scanner.asyncScan(
@@ -136,7 +136,7 @@ const submitted = await scanner.asyncScan(
         contents: [{ prompt: 'second prompt' }],
       },
     },
-    // ... up to 5 objects, each with a distinct req_id
+    // ... up to 20 objects, each with a distinct req_id
   ],
   { numRetries: 0 },
 );
@@ -186,7 +186,7 @@ A profile is only as good as where you put it. Scan the **prompt inbound** and t
 These are **byte** limits (multibyte characters count for more than one). For very long documents, trim or chunk before scanning. Use `content.length` to check the combined size before sending.
 :::
 :::note[Batch and query caps are 5]
-`asyncScan`, `queryByScanIds`, and `queryByReportIds` each accept **at most 5 items**. The SDK throws a client-side error before any network call if you exceed it — loop in batches of 5 for larger workloads.
+`asyncScan` accepts **at most 20 request objects**. `queryByScanIds` and `queryByReportIds` independently accept **at most 5 IDs**. The SDK throws a client-side error before any network call if you exceed the applicable limit—submit larger workloads in batches of 20, then query IDs in groups of 5.
 :::
 **Retry behavior** — every scan call retries automatically on network failures and transient server errors (`500`, `502`, `503`, `504`) with exponential backoff plus jitter. Tune the global count with `init({ numRetries })` (0–5, default 5), or pass `{ numRetries }` to an individual `syncScan`, `asyncScan`, `queryByScanIds`, or `queryByReportIds` call. The per-call value wins when provided; omitting it preserves the global setting. A value of `0` means one total fetch attempt, while `5` permits six attempts. HTTP 429 is not retried automatically.
 
