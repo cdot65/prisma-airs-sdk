@@ -39,7 +39,7 @@ export const MAX_AI_PROFILE_NAME_LENGTH = 100;
 // Batch / query limits
 export const MAX_NUMBER_OF_SCAN_IDS = 5;
 export const MAX_NUMBER_OF_REPORT_IDS = 5;
-export const MAX_NUMBER_OF_BATCH_SCAN_OBJECTS = 5;
+export const MAX_NUMBER_OF_BATCH_SCAN_OBJECTS = 20;
 
 // HTTP / retry
 export const MAX_CONNECTION_POOL_SIZE = 100;
@@ -47,7 +47,7 @@ export const MAX_NUMBER_OF_RETRIES = 5;
 export const HTTP_FORCE_RETRY_STATUS_CODES = [500, 502, 503, 504];
 
 // User-Agent (version injected at build time or read from package.json)
-export const SDK_VERSION = '0.13.1';
+export const SDK_VERSION = '0.13.2';
 export const USER_AGENT = `PAN-AIRS/${SDK_VERSION}-typescript-sdk`;
 
 // Management API defaults

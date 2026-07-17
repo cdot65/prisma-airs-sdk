@@ -36,7 +36,7 @@ load-bearing values:
 ```ts
 export const MAX_NUMBER_OF_RETRIES = 5;
 export const HTTP_FORCE_RETRY_STATUS_CODES = [500, 502, 503, 504];
-export const MAX_NUMBER_OF_BATCH_SCAN_OBJECTS = 5; // batch ops cap at 5 items
+export const MAX_NUMBER_OF_BATCH_SCAN_OBJECTS = 20; // async submission cap
 export const MAX_CONTENT_PROMPT_LENGTH = 2 * 1024 * 1024; // 2 MB
 ```
 
