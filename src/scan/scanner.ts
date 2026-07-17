@@ -7,6 +7,7 @@ import {
   MAX_NUMBER_OF_SCAN_IDS,
   MAX_NUMBER_OF_REPORT_IDS,
   MAX_NUMBER_OF_BATCH_SCAN_OBJECTS,
+  MAX_NUMBER_OF_RETRIES,
   MAX_TRANSACTION_ID_STR_LENGTH,
   MAX_SESSION_ID_STR_LENGTH,
 } from '../constants.js';
@@ -28,8 +29,30 @@ import { ScanIdResultSchema, type ScanIdResult } from '../models/scan-id-result.
 import { ThreatScanReportSchema, type ThreatScanReport } from '../models/threat-report.js';
 import { Content } from './content.js';
 
+function resolveNumRetries(opts: ScanCallOptions): number {
+  const numRetries = opts.numRetries ?? globalConfiguration.numRetries;
+  if (
+    !Number.isFinite(numRetries) ||
+    !Number.isInteger(numRetries) ||
+    numRetries < 0 ||
+    numRetries > MAX_NUMBER_OF_RETRIES
+  ) {
+    throw new AISecSDKException(
+      `numRetries must be a finite integer between 0 and ${MAX_NUMBER_OF_RETRIES}`,
+      ErrorType.USER_REQUEST_PAYLOAD_ERROR,
+    );
+  }
+  return numRetries;
+}
+
+/** Transport options shared by all {@link Scanner} operations. */
+export interface ScanCallOptions {
+  /** Per-call retry override (0–5). Omit to use the global configuration. */
+  numRetries?: number;
+}
+
 /** Optional parameters for {@link Scanner.syncScan}. */
-export interface SyncScanOptions {
+export interface SyncScanOptions extends ScanCallOptions {
   /** Transaction ID for tracing. Max 100 characters. */
   trId?: string;
   /** Session ID for grouping related scans. Max 100 characters. */
@@ -60,7 +83,7 @@ export class Scanner {
    * Perform a synchronous content scan.
    * @param aiProfile - AI security profile to scan against.
    * @param content - Content to scan.
-   * @param opts - Optional transaction/session IDs and metadata.
+   * @param opts - Optional transaction/session IDs, metadata, and per-call retry override.
    * @returns Scan response with verdict, action, and detection details.
    * @example
    * ```ts
@@ -83,6 +106,7 @@ export class Scanner {
     content: Content,
     opts: SyncScanOptions = {},
   ): Promise<ScanResponse> {
+    const numRetries = resolveNumRetries(opts);
     if (opts.trId && opts.trId.length > MAX_TRANSACTION_ID_STR_LENGTH) {
       throw new AISecSDKException(
         `trId exceeds max length of ${MAX_TRANSACTION_ID_STR_LENGTH}`,
@@ -111,34 +135,56 @@ export class Scanner {
       body,
       responseSchema: ScanResponseSchema,
       auth: this.buildAuth(),
-      numRetries: globalConfiguration.numRetries,
+      numRetries,
     });
   }
 
   /**
-   * Submit content for asynchronous scanning.
-   * @param scanObjects - Array of scan objects (1–5 items).
-   * @returns Response containing scan IDs for later querying.
+   * Submit one batch of content for asynchronous scanning.
+   *
+   * The call accepts 1–5 request objects and returns one batch receipt. A batch `scan_id` can fan
+   * out to several unordered result rows. Correlate each row by `(scan_id, req_id)`, never array
+   * position or `scan_id` alone. The SDK preserves the server's row order and cardinality.
+   *
+   * Setting `numRetries: 0` guarantees one SDK fetch attempt, but cannot guarantee exactly-once
+   * server submission after an ambiguous network or 5xx failure.
+   * @param scanObjects - Array of scan objects (1–5 items), each with its own `req_id`.
+   * @param opts - Optional per-call retry override.
+   * @returns One batch receipt containing the shared scan ID for later querying.
    * @example
    * ```ts
    * import { init, Scanner } from '@cdot65/prisma-airs-sdk';
    * init();
    * const scanner = new Scanner();
    *
-   * const result = await scanner.asyncScan([
-   *   {
-   *     req_id: 1,
-   *     scan_req: {
-   *       ai_profile: { profile_name: 'my-profile' },
-   *       contents: [{ prompt: 'Tell me about machine learning.' }],
+   * const receipt = await scanner.asyncScan(
+   *   [
+   *     {
+   *       req_id: 1,
+   *       scan_req: {
+   *         ai_profile: { profile_name: 'my-profile' },
+   *         contents: [{ prompt: 'Tell me about machine learning.' }],
+   *       },
    *     },
-   *   },
-   * ]);
-   * // result =>
+   *     {
+   *       req_id: 2,
+   *       scan_req: {
+   *         ai_profile: { profile_name: 'my-profile' },
+   *         contents: [{ prompt: 'What are neural networks?' }],
+   *       },
+   *     },
+   *   ],
+   *   { numRetries: 0 },
+   * );
+   * // receipt =>
    * // { received: '2024-01-01T00:00:00Z', scan_id: '550e...' }
    * ```
    */
-  async asyncScan(scanObjects: AsyncScanObject[]): Promise<AsyncScanResponse> {
+  async asyncScan(
+    scanObjects: AsyncScanObject[],
+    opts: ScanCallOptions = {},
+  ): Promise<AsyncScanResponse> {
+    const numRetries = resolveNumRetries(opts);
     if (scanObjects.length < 1) {
       throw new AISecSDKException(
         'At least 1 scan object is required',
@@ -159,14 +205,18 @@ export class Scanner {
       body: scanObjects,
       responseSchema: AsyncScanResponseSchema,
       auth: this.buildAuth(),
-      numRetries: globalConfiguration.numRetries,
+      numRetries,
     });
   }
 
   /**
    * Query scan results by scan IDs.
+   *
+   * One scan ID can return several unordered rows. Correlate them using `(scan_id, req_id)`. The
+   * SDK does not sort, deduplicate, or collapse the response.
    * @param scanIds - Array of scan UUIDs (1–5 items).
-   * @returns Array of scan results with status and response data.
+   * @param opts - Optional per-call retry override.
+   * @returns Every scan-result row in server order, with status and response data.
    * @example
    * ```ts
    * import { init, Scanner } from '@cdot65/prisma-airs-sdk';
@@ -176,12 +226,14 @@ export class Scanner {
    * const results = await scanner.queryByScanIds([
    *   '550e8400-e29b-41d4-a716-446655440000',
    * ]);
-   * // results =>
-   * // [{ scan_id: '550e8400-e29b-41d4-a716-446655440000', status: 'complete',
-   * //    result: { category: 'benign', action: 'allow', ... } }]
+   * // A single scan ID may produce multiple rows, for example req_id 2 then req_id 1.
+   * for (const row of results) {
+   *   console.log(`${row.scan_id}:${row.req_id}`, row.status, row.result?.action);
+   * }
    * ```
    */
-  async queryByScanIds(scanIds: string[]): Promise<ScanIdResult[]> {
+  async queryByScanIds(scanIds: string[], opts: ScanCallOptions = {}): Promise<ScanIdResult[]> {
+    const numRetries = resolveNumRetries(opts);
     if (scanIds.length < 1) {
       throw new AISecSDKException(
         'At least 1 scan_id is required',
@@ -207,14 +259,18 @@ export class Scanner {
       params: { scan_ids: scanIds.join(',') },
       responseSchema: z.array(ScanIdResultSchema),
       auth: this.buildAuth(),
-      numRetries: globalConfiguration.numRetries,
+      numRetries,
     });
   }
 
   /**
    * Query detailed threat reports by report IDs.
+   *
+   * One report ID can return several rows. Correlate them using `(report_id, req_id)`. The SDK
+   * preserves server order and cardinality without sorting or deduplicating.
    * @param reportIds - Array of report IDs (1–5 items).
-   * @returns Array of threat scan reports with detection details.
+   * @param opts - Optional per-call retry override.
+   * @returns Every report row in server order, with detection details.
    * @example
    * ```ts
    * import { init, Scanner } from '@cdot65/prisma-airs-sdk';
@@ -222,12 +278,16 @@ export class Scanner {
    * const scanner = new Scanner();
    *
    * const reports = await scanner.queryByReportIds(['R000...']);
-   * // reports =>
-   * // [{ report_id: 'R000...', scan_id: '550e...',
-   * //    detection_results: [{ detection_service: 'pi', verdict: 'benign', action: 'allow' }] }]
+   * for (const report of reports) {
+   *   console.log(`${report.report_id}:${report.req_id}`, report.detection_results);
+   * }
    * ```
    */
-  async queryByReportIds(reportIds: string[]): Promise<ThreatScanReport[]> {
+  async queryByReportIds(
+    reportIds: string[],
+    opts: ScanCallOptions = {},
+  ): Promise<ThreatScanReport[]> {
+    const numRetries = resolveNumRetries(opts);
     if (reportIds.length < 1) {
       throw new AISecSDKException(
         'At least 1 report_id is required',
@@ -248,7 +308,7 @@ export class Scanner {
       params: { report_ids: reportIds.join(',') },
       responseSchema: z.array(ThreatScanReportSchema),
       auth: this.buildAuth(),
-      numRetries: globalConfiguration.numRetries,
+      numRetries,
     });
   }
 }

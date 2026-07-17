@@ -19,7 +19,7 @@ Key concepts:
 | `Content`            | A wrapper holding the text to scan (`prompt`, `response`, `context`, code, tool events). Validates size as you set it.                                |
 | **Security profile** | The named ruleset (managed via the [Management API](management-api)) that decides which detections run and whether a hit means _allow_ or _block_. |
 | **Verdict**          | The result: `category` (`benign`/`malicious`) and `action` (`allow`/`block`).                                                                         |
-| **Sync vs async**    | Sync gives an inline verdict in one call. Async accepts a batch, returns receipts, and you poll for results later.                                    |
+| **Sync vs async**    | Sync gives an inline verdict in one call. Async accepts 1–5 request objects, returns one batch receipt, and you poll for result rows later.           |
 
 :::tip[Profiles live in the Management API]
 The Scan API only _references_ a profile by name or ID — it never creates one. Define and tune profiles with the [Management API](management-api), then point scans at them.
@@ -113,32 +113,46 @@ if (result.action === 'block') {
 console.log(result.category, result.scan_id, result.report_id);
 ```
 
-`result` is a `ScanResponse`: `category` is `"benign"` or `"malicious"`; `action` is `"allow"` or `"block"`. Keep `scan_id` / `report_id` to fetch detail later.
+`result` is a `ScanResponse`: `category` is `"benign"` or `"malicious"`; `action` is `"allow"` or `"block"`. Prompt detector flags are typed under `prompt_detected`, including the optional boolean `source_code`. Keep `scan_id` / `report_id` to fetch detail later.
 
 ### Scan many items off the hot path (asynchronous)
 
-When you have a backlog (logs, batch evaluation, offline review), submit up to **5** items in one call, get a `scan_id` receipt back immediately, then poll for results once processing completes.
+When you have a backlog (logs, batch evaluation, offline review), submit **1–5 request objects** in one call. AIRS returns one batch receipt. A batch `scan_id` can later produce several result rows, one per `req_id`, and those rows can arrive in any order.
 
 ```ts
-const submitted = await scanner.asyncScan([
-  {
-    req_id: 1,
-    scan_req: {
-      ai_profile: { profile_name: 'my-profile' },
-      contents: [{ prompt: 'hello', response: 'world' }],
+const submitted = await scanner.asyncScan(
+  [
+    {
+      req_id: 1,
+      scan_req: {
+        ai_profile: { profile_name: 'my-profile' },
+        contents: [{ prompt: 'hello', response: 'world' }],
+      },
     },
-  },
-  // ... up to 5 objects
-]);
+    {
+      req_id: 2,
+      scan_req: {
+        ai_profile: { profile_name: 'my-profile' },
+        contents: [{ prompt: 'second prompt' }],
+      },
+    },
+    // ... up to 5 objects, each with a distinct req_id
+  ],
+  { numRetries: 0 },
+);
 
 // submitted: AsyncScanResponse — { received, scan_id }
-const results = await scanner.queryByScanIds([submitted.scan_id]);
-for (const r of results) {
-  console.log(r.scan_id, r.status, r.result?.category);
+const results = await scanner.queryByScanIds([submitted.scan_id], { numRetries: 2 });
+for (const row of results) {
+  console.log(row.scan_id, row.req_id, row.status, row.result?.category);
 }
 ```
 
-`req_id` is your own correlation number so you can match each item back in the results.
+`req_id` is your correlation number. Match scan results using the tuple `(scan_id, req_id)`—never array position or `scan_id` alone. The SDK returns every row in server order; it does not sort, deduplicate, or collapse rows that share a scan ID.
+
+:::warning[Async submission is not exactly once]
+`{ numRetries: 0 }` guarantees one SDK fetch attempt. It cannot prove whether AIRS accepted a request when the POST ends in a network error or 5xx response. Do not blindly resubmit an ambiguous async outcome unless your application has a safe reconciliation strategy. AIRS does not currently expose an SDK-level idempotency guarantee.
+:::
 
 ### Pull the full threat report
 
@@ -147,11 +161,14 @@ for (const r of results) {
 ```ts
 const reports = await scanner.queryByReportIds([result.report_id]);
 for (const report of reports) {
+  console.log(report.report_id, report.req_id);
   for (const det of report.detection_results ?? []) {
     console.log(det.detection_service, det.verdict, det.action);
   }
 }
 ```
+
+One report ID can also return multiple rows. Preserve every row and correlate it with `(report_id, req_id)`; do not store reports in a map keyed only by `report_id`.
 
 ## Get the most out of it
 
@@ -171,7 +188,9 @@ These are **byte** limits (multibyte characters count for more than one). For ve
 :::note[Batch and query caps are 5]
 `asyncScan`, `queryByScanIds`, and `queryByReportIds` each accept **at most 5 items**. The SDK throws a client-side error before any network call if you exceed it — loop in batches of 5 for larger workloads.
 :::
-**Retry behavior** — every scan call retries automatically on transient server errors (`500`, `502`, `503`, `504`) with exponential backoff plus jitter. Tune the attempt count with `init({ numRetries })` (0–5, default 5). Set it to `0` only if you have your own retry layer; client-side `4xx` errors are never retried.
+**Retry behavior** — every scan call retries automatically on network failures and transient server errors (`500`, `502`, `503`, `504`) with exponential backoff plus jitter. Tune the global count with `init({ numRetries })` (0–5, default 5), or pass `{ numRetries }` to an individual `syncScan`, `asyncScan`, `queryByScanIds`, or `queryByReportIds` call. The per-call value wins when provided; omitting it preserves the global setting. A value of `0` means one total fetch attempt, while `5` permits six attempts. HTTP 429 is not retried automatically.
+
+For bulk scanning, use `numRetries: 0` on the async POST and deliberate retry policy in your application. Polling GETs are idempotent and can safely use a bounded override. On `AISecSDKException`, inspect `failureKind`, `statusCode`, and `retryAfterMs`; a definite 429 rejection differs from an ambiguous network/5xx async outcome.
 
 **Sync vs async — pick deliberately:**
 
@@ -208,3 +227,4 @@ All types are Zod-validated and exported:
 | `AiProfile`         | Profile identifier (profile_name or profile_id)   |
 | `Content`           | Scan content wrapper class                        |
 | `Metadata`          | Optional scan metadata (app_name, ai_model, etc.) |
+| `ScanCallOptions`   | Per-call Scanner retry override                   |

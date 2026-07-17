@@ -47,6 +47,21 @@ describe('isAllowlisted', () => {
     ).toBe(false);
   });
 
+  it.each([
+    ['PromptDetected', '$'],
+    ['ScanIdResult', '$.result.prompt_detected'],
+    ['ScanResponse', '$.prompt_detected'],
+  ])('acknowledges live-observed source_code drift for %s', (schemaName, path) => {
+    expect(
+      isAllowlisted({
+        ...baseFinding,
+        schemaName,
+        path,
+        kind: 'extra-field',
+      }),
+    ).toBe(true);
+  });
+
   it('every entry has a non-empty reason', () => {
     for (const entry of PREFLIGHT_ALLOWLIST) {
       expect(entry.reason.length).toBeGreaterThan(0);

@@ -15,6 +15,32 @@ describe('AISecSDKException', () => {
     expect(err.errorType).toBe(ErrorType.MISSING_VARIABLE);
   });
 
+  it('exposes structured failure metadata without changing the legacy constructor', () => {
+    const legacy = new AISecSDKException('missing key', ErrorType.MISSING_VARIABLE);
+    const structured = new AISecSDKException('rate limited', ErrorType.CLIENT_SIDE_ERROR, {
+      failureKind: 'http',
+      statusCode: 429,
+      retryAfterMs: 2_000,
+    });
+
+    expect(legacy).toMatchObject({
+      name: 'AISecSDKException',
+      message: `${ErrorType.MISSING_VARIABLE}:missing key`,
+      errorType: ErrorType.MISSING_VARIABLE,
+    });
+    expect(legacy.failureKind).toBeUndefined();
+    expect(legacy.statusCode).toBeUndefined();
+    expect(legacy.retryAfterMs).toBeUndefined();
+    expect(Object.keys(legacy)).toEqual(['errorType', 'name']);
+    expect(structured).toMatchObject({
+      message: `${ErrorType.CLIENT_SIDE_ERROR}:rate limited`,
+      errorType: ErrorType.CLIENT_SIDE_ERROR,
+      failureKind: 'http',
+      statusCode: 429,
+      retryAfterMs: 2_000,
+    });
+  });
+
   it('is instanceof Error', () => {
     const err = new AISecSDKException('test');
     expect(err).toBeInstanceOf(Error);

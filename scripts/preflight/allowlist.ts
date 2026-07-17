@@ -27,6 +27,28 @@ export interface AllowlistEntry {
 }
 
 export const PREFLIGHT_ALLOWLIST: AllowlistEntry[] = [
+  // ── AIRS scan response fields observed live but missing from OpenAPI ──────────
+  // Verified live on 2026-07-17. The same nested prompt detector appears in the
+  // direct schema and through both scan response envelopes.
+  {
+    schema: 'PromptDetected',
+    pathSubstring: '$',
+    kind: 'extra-field',
+    reason: 'API returns prompt detector flag `source_code`; not in upstream OpenAPI.',
+  },
+  {
+    schema: 'ScanIdResult',
+    pathSubstring: '$.result.prompt_detected',
+    kind: 'extra-field',
+    reason: 'API returns nested prompt detector flag `source_code`; not in upstream OpenAPI.',
+  },
+  {
+    schema: 'ScanResponse',
+    pathSubstring: '$.prompt_detected',
+    kind: 'extra-field',
+    reason: 'API returns nested prompt detector flag `source_code`; not in upstream OpenAPI.',
+  },
+
   // ── DataProtectionObject ─────────────────────────────────────────────────────
   {
     schema: 'DataProtectionObject',

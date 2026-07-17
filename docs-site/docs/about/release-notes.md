@@ -1,5 +1,24 @@
 # Release Notes
 
+## v0.13.1
+
+### Reliable SDK primitives for AIRS bulk scanning
+
+- Every `Scanner` operation accepts an optional per-call `{ numRetries }` override. Omitting it
+  preserves the global `init()` setting; `0` means one total fetch attempt. This lets callers avoid
+  blind SDK retries on async POSTs while retaining bounded retries for polling GETs.
+- `AISecSDKException` now exposes optional `failureKind`, `statusCode`, and `retryAfterMs` fields.
+  HTTP failures retain the real transport status, network failures remain
+  `CLIENT_SIDE_ERROR`-classified for compatibility, and valid header/body retry guidance is
+  normalized to milliseconds.
+- `prompt_detected.source_code` is now an explicit optional boolean in the public schema/type.
+- Async scan and report documentation now reflects live fan-out: one batch scan/report ID may
+  produce multiple unordered rows. Correlate with `(scan_id, req_id)` or `(report_id, req_id)`;
+  the SDK preserves server order and cardinality without sorting or deduplicating.
+
+This patch does not claim exactly-once async submission. A network or 5xx failure after an async
+POST remains an ambiguous outcome unless the server provides idempotency or reconciliation.
+
 ## v0.13.0
 
 ### New Features — Red Team Network Broker

@@ -18,21 +18,38 @@ export enum ErrorType {
   RESPONSE_VALIDATION = 'AISEC_RESPONSE_VALIDATION',
 }
 
+/** Transport-level facts attached to HTTP and network failures. */
+export interface AISecSDKExceptionMetadata {
+  /** Whether the request received an HTTP response or failed at the network boundary. */
+  failureKind?: 'http' | 'network';
+  /** HTTP response status, when a response was received. */
+  statusCode?: number;
+  /** Server-provided retry delay normalized to milliseconds. */
+  retryAfterMs?: number;
+}
+
 /**
  * Base exception for all AIRS SDK errors.
  * The `errorType` field classifies the error origin.
  */
 export class AISecSDKException extends Error {
   public readonly errorType?: ErrorType;
+  declare public readonly failureKind?: 'http' | 'network';
+  declare public readonly statusCode?: number;
+  declare public readonly retryAfterMs?: number;
 
   /**
    * @param message - Human-readable error description.
    * @param errorType - Classification of the error.
+   * @param metadata - Optional transport failure metadata.
    */
-  constructor(message: string, errorType?: ErrorType) {
+  constructor(message: string, errorType?: ErrorType, metadata: AISecSDKExceptionMetadata = {}) {
     super(errorType ? `${errorType}:${message}` : message);
     this.name = 'AISecSDKException';
     this.errorType = errorType;
+    if (metadata.failureKind !== undefined) this.failureKind = metadata.failureKind;
+    if (metadata.statusCode !== undefined) this.statusCode = metadata.statusCode;
+    if (metadata.retryAfterMs !== undefined) this.retryAfterMs = metadata.retryAfterMs;
     if (Error.captureStackTrace) {
       Error.captureStackTrace(this, AISecSDKException);
     }
