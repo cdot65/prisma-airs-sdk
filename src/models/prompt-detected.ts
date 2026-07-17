@@ -18,6 +18,7 @@ export const PromptDetectedSchema = z
     injection: z.boolean().optional(),
     toxic_content: z.boolean().optional(),
     malicious_code: z.boolean().optional(),
+    source_code: z.boolean().optional(),
     agent: z.boolean().optional(),
     topic_violation: z.boolean().optional(),
   })

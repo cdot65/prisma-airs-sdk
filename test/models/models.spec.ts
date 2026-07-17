@@ -5,6 +5,7 @@ import {
   AsyncScanResponseSchema,
   ScanIdResultSchema,
   ThreatScanReportSchema,
+  PromptDetectedSchema,
   MetadataSchema,
   ToolEventSchema,
 } from '../../src/models/index.js';
@@ -64,6 +65,23 @@ describe('ScanResponseSchema', () => {
       prompt_masked_data: { data: 'masked ***' },
     });
     expect(result.success).toBe(true);
+  });
+
+  it('exposes source_code as an optional boolean in runtime and static types', () => {
+    expect(PromptDetectedSchema.shape.source_code).toBeDefined();
+    const result = ScanResponseSchema.parse({
+      report_id: 'r1',
+      scan_id: 's1',
+      category: 'malicious',
+      action: 'block',
+      timeout: false,
+      error: false,
+      errors: [],
+      prompt_detected: { source_code: true },
+    });
+
+    const sourceCode: boolean | undefined = result.prompt_detected?.source_code;
+    expect(sourceCode).toBe(true);
   });
 
   it('parses timeout, error, and errors fields', () => {

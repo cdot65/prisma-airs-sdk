@@ -63,6 +63,63 @@ export function extractErrorMessage(body: string, status: number): string {
   }
 }
 
+/** @internal Normalize a Retry-After delta-seconds or HTTP-date header to milliseconds. */
+export function parseRetryAfterHeader(value: string | null): number | undefined {
+  if (value === null) return undefined;
+  const normalized = value.trim();
+  if (/^\d+$/.test(normalized)) {
+    const milliseconds = Number(normalized) * 1_000;
+    return Number.isFinite(milliseconds) ? milliseconds : undefined;
+  }
+  const weekday = '(?:Mon|Tue|Wed|Thu|Fri|Sat|Sun)';
+  const longWeekday = '(?:Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday)';
+  const month = '(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)';
+  const httpDatePatterns = [
+    new RegExp(`^${weekday}, \\d{2} ${month} \\d{4} \\d{2}:\\d{2}:\\d{2} GMT$`),
+    new RegExp(`^${longWeekday}, \\d{2}-${month}-\\d{2} \\d{2}:\\d{2}:\\d{2} GMT$`),
+    new RegExp(`^${weekday} ${month} [ \\d]\\d \\d{2}:\\d{2}:\\d{2} \\d{4}$`),
+  ];
+  if (!httpDatePatterns.some((pattern) => pattern.test(normalized))) return undefined;
+  const timestamp = Date.parse(normalized);
+  if (!Number.isFinite(timestamp)) return undefined;
+  return Math.max(0, timestamp - Date.now());
+}
+
+/** @internal Normalize AIRS JSON retry guidance to milliseconds. */
+export function parseRetryAfterBody(body: string): number | undefined {
+  try {
+    const parsed = JSON.parse(body) as { retry_after?: { interval?: unknown; unit?: unknown } };
+    const interval = parsed.retry_after?.interval;
+    const unit = parsed.retry_after?.unit;
+    if (typeof interval !== 'number' || !Number.isFinite(interval) || interval < 0)
+      return undefined;
+    if (typeof unit !== 'string') return undefined;
+    const unitMultipliers: Record<string, number> = {
+      ms: 1,
+      msec: 1,
+      msecs: 1,
+      millisecond: 1,
+      milliseconds: 1,
+      s: 1_000,
+      sec: 1_000,
+      secs: 1_000,
+      second: 1_000,
+      seconds: 1_000,
+      m: 60_000,
+      min: 60_000,
+      mins: 60_000,
+      minute: 60_000,
+      minutes: 60_000,
+    };
+    const multiplier = unitMultipliers[unit.toLowerCase()];
+    if (multiplier === undefined) return undefined;
+    const milliseconds = interval * multiplier;
+    return Number.isFinite(milliseconds) ? milliseconds : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
 /** @internal Options for {@link executeWithRetry}. */
 export interface RetryOptions {
   /** Maximum number of retry attempts. */
@@ -98,6 +155,7 @@ export async function executeWithRetry(opts: RetryOptions): Promise<Response> {
       throw new AISecSDKException(
         lastError.message ?? 'Network error',
         ErrorType.CLIENT_SIDE_ERROR,
+        { failureKind: 'network' },
       );
     }
 
@@ -121,11 +179,18 @@ export async function executeWithRetry(opts: RetryOptions): Promise<Response> {
     // Non-retryable error
     const errorText = await response.text();
     const errorMessage = extractErrorMessage(errorText, response.status);
-    throw new AISecSDKException(errorMessage, classifyErrorType(response.status));
+    const retryAfterHeader = response.headers?.get?.('Retry-After') ?? null;
+    const headerRetryAfterMs = parseRetryAfterHeader(retryAfterHeader);
+    throw new AISecSDKException(errorMessage, classifyErrorType(response.status), {
+      failureKind: 'http',
+      statusCode: response.status,
+      retryAfterMs: headerRetryAfterMs ?? parseRetryAfterBody(errorText),
+    });
   }
 
   throw new AISecSDKException(
     lastError?.message ?? 'Max retries exceeded',
     ErrorType.CLIENT_SIDE_ERROR,
+    lastError ? { failureKind: 'network' } : {},
   );
 }

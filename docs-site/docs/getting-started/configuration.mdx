@@ -32,6 +32,16 @@ init({
 ```
 
 `numRetries` is supported by all SDK clients, accepts values from `0` to `5`, and defaults to `5`.
+Every `Scanner` method also accepts a per-call override. This is useful for giving an async POST one
+fetch attempt while retaining bounded retries for idempotent polling GETs:
+
+```ts
+const receipt = await scanner.asyncScan(batch, { numRetries: 0 });
+const rows = await scanner.queryByScanIds([receipt.scan_id], { numRetries: 2 });
+```
+
+Omitting the per-call option uses the global value. `numRetries` counts retries after the initial
+attempt, so `0` means one total attempt and `5` permits six total attempts.
 
 ## Management API
 

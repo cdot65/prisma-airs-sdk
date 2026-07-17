@@ -5,7 +5,17 @@ description: Understand AISecSDKException, ErrorType values, response validation
 
 # Error Handling
 
-All SDK errors throw `AISecSDKException` with a typed `errorType` property.
+All SDK errors throw `AISecSDKException` with a typed `errorType` property. Transport failures also
+carry facts that callers can use without parsing the message:
+
+| Property       | Meaning                                                                 |
+| -------------- | ----------------------------------------------------------------------- |
+| `failureKind`  | `'http'` when AIRS returned a response; `'network'` when fetch rejected |
+| `statusCode`   | Actual HTTP response status; absent for network failures                |
+| `retryAfterMs` | Valid server retry guidance normalized to milliseconds                  |
+
+Configuration and response-validation errors leave these transport fields undefined. The metadata
+does not contain credentials, request payloads, URLs, authorization headers, or raw response bodies.
 
 ## Error Types
 
@@ -25,9 +35,18 @@ All SDK errors throw `AISecSDKException` with a typed `errorType` property.
 import { AISecSDKException, ErrorType } from '@cdot65/prisma-airs-sdk';
 
 try {
-  await scanner.syncScan(profile, content);
+  await scanner.asyncScan(batch, { numRetries: 0 });
 } catch (err) {
   if (err instanceof AISecSDKException) {
+    if (err.failureKind === 'http' && err.statusCode === 429) {
+      console.error(`Rate limited; server delay is ${err.retryAfterMs ?? 'unspecified'}ms`);
+      return;
+    }
+    if (err.failureKind === 'network') {
+      console.error('Network failure; an async POST may have reached AIRS:', err.message);
+      return;
+    }
+
     switch (err.errorType) {
       case ErrorType.SERVER_SIDE_ERROR:
         console.error('Server error — retry later:', err.message);
@@ -57,6 +76,16 @@ try {
 The SDK automatically retries on transient errors:
 
 - **Status codes**: 500, 502, 503, 504
+- **Network failures**: Retried within the same retry budget
+- **429**: Not retried automatically; valid `Retry-After` header guidance takes precedence over the
+  AIRS JSON `retry_after.interval` / `unit` fields and is exposed as `retryAfterMs`
 - **Backoff**: Exponential with full jitter (`uniform [0, 2^attempt × 1000ms]`)
 - **Max retries**: Configurable 0-5, default 5
+- **Scanner per-call override**: Pass `{ numRetries }` to any Scanner operation; `0` means one total
+  fetch attempt, and an omitted value preserves the global setting
 - **401/403 handling**: Management/Model Security/Red Team clients automatically refresh the OAuth token and retry once on 401 or 403 responses
+
+For async POSTs, a terminal network error or 5xx response is an ambiguous outcome: AIRS may have
+accepted the request. The SDK does not claim exactly-once submission and does not expose a generic
+`retryable` flag because retry safety depends on the operation. Polling GETs are idempotent; async
+submission is not known to be.
