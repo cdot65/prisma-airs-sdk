@@ -5,19 +5,19 @@ import { assertUuid, assertNumericId } from '../validators.js';
 import {
   ListIntegrationsResponseSchema,
   GatewayIntegrationSchema,
-  IntegrationModelsResponseSchema,
-  IntegrationWorkspacesResponseSchema,
+  GatewayIntegrationModelsResponseSchema,
+  GatewayIntegrationWorkspacesResponseSchema,
   GatewayWriteResponseSchema,
   type ListIntegrationsResponse,
   type GatewayIntegration,
-  type IntegrationModelsResponse,
-  type IntegrationWorkspacesResponse,
+  type GatewayIntegrationModelsResponse,
+  type GatewayIntegrationWorkspacesResponse,
   type GatewayWriteResponse,
 } from '../models/ai-gateway.js';
 import type { AIGatewaySubClientOptions } from './types.js';
 
 /** Request body for creating an org-level provider integration. */
-export interface IntegrationCreateRequest {
+export interface GatewayIntegrationCreateRequest {
   /** The TSG as a numeric string. */
   organisation_id: string;
   /** Upstream AI provider id. */
@@ -33,12 +33,12 @@ export interface IntegrationCreateRequest {
 }
 
 /** Per-model enablement payload for `integrations/{id}/models`. */
-export interface IntegrationModelsRequest {
+export interface GatewayIntegrationModelsRequest {
   models: { slug: string; enabled: boolean }[];
 }
 
 /** Workspace-binding payload for `integrations/{id}/workspaces`. */
-export interface IntegrationWorkspacesRequest {
+export interface GatewayIntegrationWorkspacesRequest {
   workspaces?: unknown[];
   global_workspace_access?: boolean;
 }
@@ -126,7 +126,7 @@ export class AIGatewayIntegrationsClient {
    * });
    * ```
    */
-  async create(body: IntegrationCreateRequest): Promise<GatewayWriteResponse> {
+  async create(body: GatewayIntegrationCreateRequest): Promise<GatewayWriteResponse> {
     assertUuid(body.ai_provider_id, 'ai_provider_id');
     return request({
       method: 'POST',
@@ -157,7 +157,7 @@ export class AIGatewayIntegrationsClient {
    */
   async update(
     integrationId: string,
-    body: Partial<IntegrationCreateRequest>,
+    body: Partial<GatewayIntegrationCreateRequest>,
   ): Promise<GatewayWriteResponse> {
     assertUuid(integrationId, 'integrationId');
     if (body.ai_provider_id !== undefined) assertUuid(body.ai_provider_id, 'ai_provider_id');
@@ -214,13 +214,13 @@ export class AIGatewayIntegrationsClient {
    * // m.models[0] => { slug: 'gpt-4', enabled: true }
    * ```
    */
-  async getModels(integrationId: string): Promise<IntegrationModelsResponse> {
+  async getModels(integrationId: string): Promise<GatewayIntegrationModelsResponse> {
     assertUuid(integrationId, 'integrationId');
     return request({
       method: 'GET',
       baseUrl: this.baseUrl,
       path: `${AI_GW_INTEGRATIONS_PATH}/${integrationId}/models`,
-      responseSchema: IntegrationModelsResponseSchema,
+      responseSchema: GatewayIntegrationModelsResponseSchema,
       auth: this.auth,
       numRetries: this.numRetries,
     });
@@ -243,7 +243,7 @@ export class AIGatewayIntegrationsClient {
    */
   async setModels(
     integrationId: string,
-    body: IntegrationModelsRequest,
+    body: GatewayIntegrationModelsRequest,
   ): Promise<GatewayWriteResponse> {
     assertUuid(integrationId, 'integrationId');
     return request({
@@ -270,13 +270,13 @@ export class AIGatewayIntegrationsClient {
    * // w.global_workspace_access => false
    * ```
    */
-  async getWorkspaces(integrationId: string): Promise<IntegrationWorkspacesResponse> {
+  async getWorkspaces(integrationId: string): Promise<GatewayIntegrationWorkspacesResponse> {
     assertUuid(integrationId, 'integrationId');
     return request({
       method: 'GET',
       baseUrl: this.baseUrl,
       path: `${AI_GW_INTEGRATIONS_PATH}/${integrationId}/workspaces`,
-      responseSchema: IntegrationWorkspacesResponseSchema,
+      responseSchema: GatewayIntegrationWorkspacesResponseSchema,
       auth: this.auth,
       numRetries: this.numRetries,
     });
@@ -299,7 +299,7 @@ export class AIGatewayIntegrationsClient {
    */
   async setWorkspaces(
     integrationId: string,
-    body: IntegrationWorkspacesRequest,
+    body: GatewayIntegrationWorkspacesRequest,
   ): Promise<GatewayWriteResponse> {
     assertUuid(integrationId, 'integrationId');
     return request({

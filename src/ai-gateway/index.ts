@@ -21,17 +21,20 @@ export { AIGatewayProvidersClient, type GatewayProviderCreateRequest } from './p
 export { AIGatewayApiKeysClient, type GatewayApiKeyCreateRequest } from './api-keys-client.js';
 export {
   AIGatewayIntegrationsClient,
-  type IntegrationCreateRequest,
-  type IntegrationModelsRequest,
-  type IntegrationWorkspacesRequest,
+  type GatewayIntegrationCreateRequest,
+  type GatewayIntegrationModelsRequest,
+  type GatewayIntegrationWorkspacesRequest,
 } from './integrations-client.js';
 export {
   AIGatewayMcpIntegrationsClient,
   type McpIntegrationCreateRequest,
   type McpIntegrationWorkspacesRequest,
 } from './mcp-integrations-client.js';
-export { AIGatewayDeploymentsClient, type DeploymentCreateRequest } from './deployments-client.js';
-export { AIGatewayPluginsClient, type PluginCreateRequest } from './plugins-client.js';
+export {
+  AIGatewayDeploymentsClient,
+  type GatewayDeploymentCreateRequest,
+} from './deployments-client.js';
+export { AIGatewayPluginsClient, type GatewayPluginCreateRequest } from './plugins-client.js';
 export { AIGatewayOrganisationsClient } from './organisations-client.js';
 export {
   AIGatewayAuditLogsClient,

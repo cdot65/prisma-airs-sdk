@@ -29,7 +29,7 @@ export interface McpIntegrationCreateRequest {
 
 /**
  * Workspace-binding payload for `mcp-integrations/{id}/workspaces`.
- * Shape inferred from the sibling `IntegrationWorkspacesRequest` — not confirmed against a
+ * Shape inferred from the sibling `GatewayIntegrationWorkspacesRequest` — not confirmed against a
  * live MCP-integrations tenant.
  */
 export interface McpIntegrationWorkspacesRequest {

@@ -9,7 +9,7 @@ import {
   ListWorkspacesResponseSchema,
   ListConfigsResponseSchema,
   ListDeploymentsResponseSchema,
-  DeploymentCreateResponseSchema,
+  GatewayDeploymentCreateResponseSchema,
   GatewayAuditLogsResponseSchema,
 } from '../../src/models/ai-gateway.js';
 
@@ -226,7 +226,7 @@ describe('AI Gateway resource schemas', () => {
   });
 
   it('parses the deployment CREATE receipt, which is NOT the record shape', () => {
-    const r = DeploymentCreateResponseSchema.parse({
+    const r = GatewayDeploymentCreateResponseSchema.parse({
       id: '21414819-485e-4ba3-b3d3-3e1815580e43',
       client_auth: 'client-auth-1edUcNFlbaTSueWe5gdlcmSCHPRO',
       credentials: { username: '1852583913', password: 's3cret' },

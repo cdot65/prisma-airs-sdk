@@ -526,24 +526,28 @@ export const ListIntegrationsResponseSchema = aiGatewayList(GatewayIntegrationSc
 export type ListIntegrationsResponse = z.infer<typeof ListIntegrationsResponseSchema>;
 
 /** `integrations/{id}/models` — per-model enablement for one integration. */
-export const IntegrationModelsResponseSchema = z
+export const GatewayIntegrationModelsResponseSchema = z
   .object({
     models: z.array(z.object({ slug: z.string(), enabled: z.boolean() }).passthrough()),
     allow_all_models: z.boolean(),
     object: z.string(),
   })
   .passthrough();
-export type IntegrationModelsResponse = z.infer<typeof IntegrationModelsResponseSchema>;
+export type GatewayIntegrationModelsResponse = z.infer<
+  typeof GatewayIntegrationModelsResponseSchema
+>;
 
 /** `integrations/{id}/workspaces` — which workspaces may use this integration. */
-export const IntegrationWorkspacesResponseSchema = z
+export const GatewayIntegrationWorkspacesResponseSchema = z
   .object({
     workspaces: z.array(z.record(z.unknown())),
     global_workspace_access: z.boolean(),
     object: z.string(),
   })
   .passthrough();
-export type IntegrationWorkspacesResponse = z.infer<typeof IntegrationWorkspacesResponseSchema>;
+export type GatewayIntegrationWorkspacesResponse = z.infer<
+  typeof GatewayIntegrationWorkspacesResponseSchema
+>;
 
 /** An MCP server integration. */
 export const McpIntegrationSchema = z
@@ -591,7 +595,7 @@ export const GatewayDeploymentSchema = z
 export type GatewayDeployment = z.infer<typeof GatewayDeploymentSchema>;
 
 /** Deployment detail — adds credentials (masked), auth settings, and bound workspaces. */
-export const DeploymentDetailSchema = GatewayDeploymentSchema.extend({
+export const GatewayDeploymentDetailSchema = GatewayDeploymentSchema.extend({
   credentials: z.object({ username: z.string(), password: z.string() }).passthrough().optional(),
   deployment_config: z.record(z.unknown()).nullable(),
   auth_settings: z
@@ -606,7 +610,7 @@ export const DeploymentDetailSchema = GatewayDeploymentSchema.extend({
   client_auth: z.string().optional(),
   workspaces: z.array(z.object({ id: z.string(), slug: z.string() }).passthrough()).optional(),
 }).passthrough();
-export type DeploymentDetail = z.infer<typeof DeploymentDetailSchema>;
+export type GatewayDeploymentDetail = z.infer<typeof GatewayDeploymentDetailSchema>;
 
 /**
  * `POST /deployments` response — a 5-field creation receipt, **not** a {@link GatewayDeployment}.
@@ -615,7 +619,7 @@ export type DeploymentDetail = z.infer<typeof DeploymentDetailSchema>;
  * This is the only time `credentials.password` and `client_auth` are readable; the detail
  * read masks them. Capture them at creation or they are unrecoverable.
  */
-export const DeploymentCreateResponseSchema = z
+export const GatewayDeploymentCreateResponseSchema = z
   .object({
     id: z.string(),
     client_auth: z.string(),
@@ -625,7 +629,7 @@ export const DeploymentCreateResponseSchema = z
     object: z.string(),
   })
   .passthrough();
-export type DeploymentCreateResponse = z.infer<typeof DeploymentCreateResponseSchema>;
+export type GatewayDeploymentCreateResponse = z.infer<typeof GatewayDeploymentCreateResponseSchema>;
 
 export const ListDeploymentsResponseSchema = aiGatewayList(GatewayDeploymentSchema);
 export type ListDeploymentsResponse = z.infer<typeof ListDeploymentsResponseSchema>;

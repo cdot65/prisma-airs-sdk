@@ -4,16 +4,16 @@ import type { AuthAdapter } from '../http/types.js';
 import { assertUuid, assertNumericId } from '../validators.js';
 import {
   ListDeploymentsResponseSchema,
-  DeploymentDetailSchema,
-  DeploymentCreateResponseSchema,
+  GatewayDeploymentDetailSchema,
+  GatewayDeploymentCreateResponseSchema,
   type ListDeploymentsResponse,
-  type DeploymentDetail,
-  type DeploymentCreateResponse,
+  type GatewayDeploymentDetail,
+  type GatewayDeploymentCreateResponse,
 } from '../models/ai-gateway.js';
 import type { AIGatewaySubClientOptions } from './types.js';
 
 /** Request body for creating a deployment. */
-export interface DeploymentCreateRequest {
+export interface GatewayDeploymentCreateRequest {
   name: string;
   /** `production` or `non_production`. */
   type: string;
@@ -77,13 +77,13 @@ export class AIGatewayDeploymentsClient {
    * // d.auth_settings?.allow_all_workspaces => 1   (a number, not a boolean)
    * ```
    */
-  async get(deploymentId: string): Promise<DeploymentDetail> {
+  async get(deploymentId: string): Promise<GatewayDeploymentDetail> {
     assertUuid(deploymentId, 'deploymentId');
     return request({
       method: 'GET',
       baseUrl: this.baseUrl,
       path: `${AI_GW_DEPLOYMENTS_PATH}/${deploymentId}`,
-      responseSchema: DeploymentDetailSchema,
+      responseSchema: GatewayDeploymentDetailSchema,
       auth: this.auth,
       numRetries: this.numRetries,
     });
@@ -118,13 +118,13 @@ export class AIGatewayDeploymentsClient {
    * const full = await gw.deployments.get(receipt.id);
    * ```
    */
-  async create(body: DeploymentCreateRequest): Promise<DeploymentCreateResponse> {
+  async create(body: GatewayDeploymentCreateRequest): Promise<GatewayDeploymentCreateResponse> {
     return request({
       method: 'POST',
       baseUrl: this.baseUrl,
       path: AI_GW_DEPLOYMENTS_PATH,
       body,
-      responseSchema: DeploymentCreateResponseSchema,
+      responseSchema: GatewayDeploymentCreateResponseSchema,
       auth: this.auth,
       numRetries: this.numRetries,
     });

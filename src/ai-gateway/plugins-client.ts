@@ -11,7 +11,7 @@ import {
 import type { AIGatewaySubClientOptions } from './types.js';
 
 /** Request body for binding a plugin (e.g. the Prisma AIRS scanner) to the organisation. */
-export interface PluginCreateRequest {
+export interface GatewayPluginCreateRequest {
   /** The TSG as a numeric string. */
   organisation_id: string;
   /** Plugin provider integration id, e.g. the `panw-prisma-airs` provider. */
@@ -76,7 +76,7 @@ export class AIGatewayPluginsClient {
    * });
    * ```
    */
-  async create(body: PluginCreateRequest): Promise<GatewayWriteResponse> {
+  async create(body: GatewayPluginCreateRequest): Promise<GatewayWriteResponse> {
     assertUuid(body.integration_id, 'integration_id');
     return request({
       method: 'POST',
