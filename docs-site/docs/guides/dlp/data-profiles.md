@@ -9,8 +9,6 @@ Two distinct rule shapes live under `detection_rules[].rule_type`:
 - `expression_tree` — recursive boolean tree of `DetectionRuleItem` leaves (the leaf carries the detection technique + thresholds)
 - `multi_profile` — composes other data profiles by id, joined by an operator (build "this OR that OR the other")
 
-Spec source: [`specs/dlp/DataProfiles.yaml`](https://github.com/cdot65/prisma-airs-sdk/blob/main/specs/dlp/DataProfiles.yaml)
-
 ## How it works
 
 A **data profile** is the detection policy: it bundles individual detectors into one decision unit by composing them with boolean logic. Each leaf (`DetectionRuleItem`) picks a `detection_technique` — `regex`, `weighted_regex`, `dictionary`, `edm`, etc. — and its thresholds (confidence level, occurrence count); the `expression_tree` joins leaves with AND/OR so a profile can say "fire only when SSN **and** credit-card both appear." A `multi_profile` rule goes one level higher, OR-ing whole profiles together into an umbrella.

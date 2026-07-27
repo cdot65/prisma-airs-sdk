@@ -1,0 +1,110 @@
+---
+id: development
+title: Development Workflow
+description: Local development, testing, documentation, and release checks for prisma-airs-sdk contributors.
+---
+
+# Development Workflow
+
+This repository is a TypeScript SDK package with a Docusaurus documentation site in `docs-site/`.
+The SDK source lives under `src/`, tests under `test/`, and runnable documentation examples under
+`docs-site/examples/`.
+
+## Prerequisites
+
+- Node.js 18 or later for the SDK package.
+- Node.js 20 or later for the Docusaurus site.
+- npm for the checked-in lockfiles.
+
+Install root dependencies from the repository root:
+
+```bash
+npm ci
+```
+
+Install the docs-site dependencies before running Docusaurus directly:
+
+```bash
+npm --prefix docs-site ci
+```
+
+## Core Commands
+
+| Command | Purpose |
+| --- | --- |
+| `npm run build` | Builds CJS, ESM, and TypeScript declaration output into `dist/` with `tsup`. |
+| `npm run clean` | Removes generated SDK build output. |
+| `npm run test` | Runs the Vitest suite once. |
+| `npm run test:watch` | Runs Vitest in watch mode. |
+| `npm run test:coverage` | Runs Vitest with v8 coverage. |
+| `npm run lint` | Runs ESLint across the repository. |
+| `npm run typecheck` | Runs `tsc --noEmit`. |
+| `npm run format` | Formats files with Prettier. |
+| `npm run format:check` | Checks formatting without rewriting files. |
+
+Run one test file or one named test with Vitest:
+
+```bash
+npx vitest run test/scan/scanner.spec.ts
+npx vitest run -t "async scan"
+```
+
+## Documentation Commands
+
+The prose docs are in `docs-site/docs/`. The API reference is generated from the public barrel
+export in `src/index.ts` and written to `docs-site/docs/reference/api`, which is gitignored.
+
+| Command | Purpose |
+| --- | --- |
+| `npm run docs:api` | Generates the TypeDoc API reference. |
+| `npm run docs:serve` | Generates the API reference, then starts the Docusaurus dev server. |
+| `npm run docs:build` | Generates the API reference, then builds the static Docusaurus site. |
+| `npm run docs:check` | Verifies that public methods and exported functions have `@example` JSDoc coverage. |
+| `npm run docs:check:warn` | Reports missing example coverage without failing. |
+
+Runnable examples live in `docs-site/examples/` and are run from the repository root:
+
+```bash
+cp .env.example .env
+npx tsx --env-file=.env docs-site/examples/basic-scan.ts
+npx tsx --env-file=.env docs-site/examples/mgmt-auth.ts
+npx tsx --env-file=.env docs-site/examples/red-team-network-broker.ts
+```
+
+Some examples require live AIRS credentials. The validation examples named `*-validation.ts` use
+mock servers or schema checks and do not require tenant credentials.
+
+## Schema Preflight
+
+Runtime response validation is implemented with Zod schemas under `src/models/`. The optional
+preflight check compares those schemas with OpenAPI specs from a gitignored `schemas/` directory of
+symlinks to a local pan.dev `openapi-specs` checkout.
+
+```bash
+npm run preflight
+npm run preflight:warn
+```
+
+`schemas/` is not part of the repository, so preflight is a local / pre-release check rather than a
+CI gate. The exact OpenAPI files loaded by the script are listed in `MODELED_SPECS` inside
+`scripts/preflight-schemas.ts`.
+
+## CI and Publishing
+
+GitHub Actions define the automated checks:
+
+- `.github/workflows/ci.yml` runs Prettier, ESLint, and TypeScript type checking on Node 22.
+- `.github/workflows/test.yml` runs tests and the SDK build on Node 18, 20, and 22.
+- `.github/workflows/docs-deploy.yml` runs `docs:check`, regenerates TypeDoc output, builds the
+  Docusaurus site on Node 20, and deploys to GitHub Pages.
+- `.github/workflows/publish.yml` publishes the package on GitHub release using npm trusted
+  publishing with Node 24.
+
+`prepublishOnly` runs `npm run lint && npm run test` before publishing.
+
+## Related Pages
+
+- [Architecture & Internals](./architecture)
+- [API Design & Versioning](./api-design-versioning)
+- [Error Handling](./error-handling)
+- [Runnable Examples](../guides/examples)

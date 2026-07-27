@@ -12,7 +12,7 @@ Prisma AIRS has two authentication methods. Understanding which applies where is
 | Auth Method                     | Used By                                                                  |
 | ------------------------------- | ------------------------------------------------------------------------ |
 | **OAuth2** (client_credentials) | Management CRUD for all 3 services, Red Team scans, Model Security scans |
-| **API Key** (HMAC-SHA256)       | AI Runtime Security scans only                                           |
+| **API key** or **bearer token** | AI Runtime Security content scans only                                   |
 
 ```mermaid
 graph LR
@@ -21,12 +21,12 @@ graph LR
         RT[Red Team API<br/>Scans, Reports, Targets]
         MS[Model Security API<br/>Scans, Groups, Rules]
     end
-    subgraph "API Key (HMAC-SHA256)"
+    subgraph "API key or bearer token"
         SCAN[AI Runtime Security<br/>Content Scanning]
     end
 ```
 
-In practice, if you set `PANW_MGMT_CLIENT_ID`, `PANW_MGMT_CLIENT_SECRET`, and `PANW_MGMT_TSG_ID`, all OAuth2 services share those credentials automatically. The only separate credential is the API key for AI Runtime Security content scanning.
+In practice, if you set `PANW_MGMT_CLIENT_ID`, `PANW_MGMT_CLIENT_SECRET`, and `PANW_MGMT_TSG_ID`, all OAuth2 services share those credentials automatically. AI Runtime Security content scanning is configured separately through `init()` with `PANW_AI_SEC_API_KEY`, `PANW_AI_SEC_API_TOKEN`, or explicit options.
 
 ---
 
@@ -105,12 +105,12 @@ for (const g of groups.security_groups) {
 
 ## AI Runtime Security — Content Scanning
 
-This is the **only service that uses API key authentication** instead of OAuth2.
+This is the **only service configured through `init()`** instead of OAuth2. It accepts an API key, a pre-obtained bearer token, or both.
 
 ```ts
 import { init, Scanner, Content } from '@cdot65/prisma-airs-sdk';
 
-// Initialize with API key (not OAuth2)
+// Initialize with an API key or pre-obtained bearer token (not OAuth2)
 init({ apiKey: 'your-api-key' });
 
 const scanner = new Scanner();
@@ -177,7 +177,7 @@ for (const rule of rules.security_rules) {
 ```bash
 cp .env.example .env   # fill in credentials
 
-# AI Runtime Security (API key auth)
+# AI Runtime Security (API key or bearer token auth)
 npx tsx --env-file=.env docs-site/examples/basic-scan.ts
 npx tsx --env-file=.env docs-site/examples/async-scan.ts
 npx tsx --env-file=.env docs-site/examples/query-results.ts
@@ -200,6 +200,7 @@ npx tsx --env-file=.env docs-site/examples/model-security-scans.ts
 # Red Team (OAuth2)
 npx tsx --env-file=.env docs-site/examples/red-team-scans.ts
 npx tsx --env-file=.env docs-site/examples/red-team-targets.ts
+npx tsx --env-file=.env docs-site/examples/red-team-network-broker.ts
 
 # Self-contained validation (no credentials needed — uses mock servers)
 npx tsx --env-file=.env docs-site/examples/profiles-get-validation.ts       # get() and getByName() methods

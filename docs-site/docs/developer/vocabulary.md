@@ -82,7 +82,7 @@ interface PreparedRequest {
 
 ### Pre-flight check
 
-A build-time script that diffs Zod schemas in `src/models/` against the authoritative OpenAPI specs in `specs/`. Catches schema drift before it reaches the production parsing path. Runs in CI; failures block merge.
+A local / pre-release script that diffs Zod schemas in `src/models/` against the authoritative OpenAPI specs referenced through the gitignored `schemas/` alias. It catches schema drift before it reaches the production parsing path, but it is not a CI gate because the external spec checkout is not committed to this repository.
 
 ### Listing
 

@@ -6,8 +6,6 @@ Subclient lives at `client.dlp.dictionaries` (a `DictionariesClient`). **Full CR
 
 Accepted file shapes: `Blob`, `ArrayBuffer`, `Uint8Array`, `string`. The SDK builds the multipart boundary; **do not set `Content-Type` manually**.
 
-Spec source: [`specs/dlp/Dictionaries.yaml`](https://github.com/cdot65/prisma-airs-sdk/blob/main/specs/dlp/Dictionaries.yaml)
-
 ## How it works
 
 A **dictionary** is a named list of keywords (one term per line) plus metadata. It is the keyword half of detection — where a data pattern matches by shape (regex), a dictionary matches by membership ("is this token in my list of project codenames / banned drug names / internal hostnames?"). A dictionary does nothing by itself; a data profile activates it through a detection rule item set to `detection_technique: 'dictionary'`, referencing the dictionary's `id`.

@@ -4,8 +4,6 @@ Manage Data Patterns on the DLP service (`/v2/api/data-patterns`).
 
 Subclient lives at `client.dlp.dataPatterns` (a `DataPatternsClient`). **Full CRUD**: list, create, get, replace (PUT), patch (RFC 7396 JSON Merge Patch), delete. DELETE soft-deletes (archives) server-side — the pattern becomes invisible to list but its `id` still resolves on `get()` with `status: 'deleted'`.
 
-Spec source: [`specs/dlp/DataPatterns.yaml`](https://github.com/cdot65/prisma-airs-sdk/blob/main/specs/dlp/DataPatterns.yaml)
-
 ## How it works
 
 A **data pattern** is the lowest-level building block in DLP: a single, reusable **detector**. It says "here is what sensitive data looks like" — a set of regexes, proximity keywords, or another detection technique (`regex`, `weighted_regex`, `dictionary`, `edm`, `ml`, fingerprinting, etc.). A pattern on its own does nothing; it has to be referenced by a data profile to take effect.

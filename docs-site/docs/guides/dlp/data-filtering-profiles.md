@@ -4,8 +4,6 @@ Manage Data Filtering Profiles on the DLP service (`/v2/api/data-filtering-profi
 
 Subclient lives at `client.dlp.dataFilteringProfiles` (a `DataFilteringProfilesClient`). Surface is **read + full-replace only** — the underlying API does not expose create or delete. To onboard a brand-new profile, provision it via the Strata Cloud Manager UI first, then manage it through this SDK.
 
-Spec source: [`specs/dlp/DataFilteringProfiles.yaml`](https://github.com/cdot65/prisma-airs-sdk/blob/main/specs/dlp/DataFilteringProfiles.yaml)
-
 ## How it works
 
 A **data filtering profile** is the enforcement layer — the resource that actually _acts_. It points at a data profile through `data_profile_id` and decides what to do when that profile matches: which directions to inspect (`direction`), whether to scan files (`file_based`) and/or chat/prompt content (`non_file_based`), at what `log_severity`, and any per-group `exception_rules` or `exclusions`. The detection logic lives in the data profile; the _policy_ (where, when, how loud) lives here.
