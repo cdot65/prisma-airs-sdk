@@ -1,5 +1,15 @@
 # Release Notes
 
+## v0.14.0
+
+### AI Gateway support
+
+New `AIGatewayClient` covering the SCM-managed Prisma AIRS AI Gateway across both of its planes: runtime telemetry (`/ai_gw/v2/logs/*`) and configuration (`/ai_gw/v2` and `/ai_gw/admin/v2`). Twelve sub-clients — `telemetry`, `workspaces`, `configs`, `guardrails`, `providers`, `apiKeys`, `integrations`, `mcpIntegrations`, `deployments`, `plugins`, `organisations`, and `auditLogs`. Configure with `PANW_AI_GW_*`, falling back to `PANW_MGMT_*`.
+
+The gateway's two planes authorize against **different SCM role scopes**, so a service account needs both an admin role at tenant-root scope _and_ `view_only_admin` (or higher) on the `main_airs_workspace_<TSG>` scope. With only one grant, half the API returns 403 — `errorCode: "AB03"` means the workspace-scope grant is missing, `x-opa-decision: false` means the tenant-root one is.
+
+Monetary values are returned **in cents**, exactly as the API sends them; the SDK does not convert. `deployments.delete()` archives rather than removes, so the record remains in `list()` with `status: 'archived'`. Write response shapes are verified against a live tenant for `deployments` only; other create and update responses are typed permissively until confirmed.
+
 ## v0.13.2
 
 ### Fix async scan batch limit
