@@ -19,8 +19,13 @@ import { z } from 'zod';
 const aiGatewayEnvelope = <T extends z.ZodTypeAny>(data: T) =>
   z.object({ success: z.boolean(), data }).passthrough();
 
-/** Envelope B: `{ object, total, data[] }` — config and admin collections. */
-export const aiGatewayList = <T extends z.ZodTypeAny>(item: T) =>
+/**
+ * Envelope B: `{ object, total, data[] }` — config and admin collections.
+ *
+ * Module-private like its two siblings: it is only ever applied within this file, and
+ * exporting it would put an internal factory on the package's public API surface.
+ */
+const aiGatewayList = <T extends z.ZodTypeAny>(item: T) =>
   z
     .object({
       object: z.string(),
