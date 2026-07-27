@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { AIGatewayConfigsClient } from '../../src/ai-gateway/configs-client.js';
 import type { AuthAdapter } from '../../src/http/types.js';
+import { AISecSDKException } from '../../src/errors.js';
 
 const wsId = '16f7e90d-382a-4e78-b577-1b01eb5f8297';
 const cfgId = '764cf9cd-4ebf-449e-b669-08149b0fbbbc';
@@ -72,5 +73,23 @@ describe('AIGatewayConfigsClient', () => {
     const body = JSON.parse((init as RequestInit).body as string) as Record<string, unknown>;
     expect(typeof body.config).toBe('object');
     expect((init as RequestInit).method).toBe('POST');
+  });
+
+  it('rejects list with an invalid workspaceId before issuing a request', async () => {
+    globalThis.fetch = vi.fn();
+    await expect(client.list({ workspaceId: 'not-a-uuid' })).rejects.toThrow(AISecSDKException);
+    expect(globalThis.fetch).not.toHaveBeenCalled();
+  });
+
+  it('rejects update with an invalid body.workspace_id before issuing a request', async () => {
+    globalThis.fetch = vi.fn();
+    await expect(
+      client.update(cfgId, {
+        name: 'test',
+        workspace_id: 'not-a-uuid',
+        config: {},
+      }),
+    ).rejects.toThrow(AISecSDKException);
+    expect(globalThis.fetch).not.toHaveBeenCalled();
   });
 });

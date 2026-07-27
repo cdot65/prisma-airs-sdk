@@ -10,7 +10,7 @@ import {
   type GatewayConfig,
   type GatewayWriteResponse,
 } from '../models/ai-gateway.js';
-import type { AIGatewaySubClientOptions } from './workspaces-client.js';
+import type { AIGatewaySubClientOptions } from './types.js';
 
 /** Options for listing configs. */
 export interface AIGatewayConfigListOptions {
@@ -142,6 +142,7 @@ export class AIGatewayConfigsClient {
    */
   async update(configId: string, body: GatewayConfigCreateRequest): Promise<GatewayWriteResponse> {
     assertUuid(configId, 'configId');
+    assertUuid(body.workspace_id, 'workspace_id');
     return request({
       method: 'PUT',
       baseUrl: this.baseUrl,

@@ -8,13 +8,7 @@ import {
   type ListWorkspacesResponse,
   type GatewayWorkspaceDetail,
 } from '../models/ai-gateway.js';
-
-/** @internal Shared construction options for every AI Gateway sub-client. */
-export interface AIGatewaySubClientOptions {
-  baseUrl: string;
-  auth: AuthAdapter;
-  numRetries: number;
-}
+import type { AIGatewaySubClientOptions } from './types.js';
 
 /** Client for AI Gateway workspace reads (data plane). */
 export class AIGatewayWorkspacesClient {
