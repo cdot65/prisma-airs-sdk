@@ -6,6 +6,11 @@ import {
   GroupListResponseSchema,
   UserGroupResponseSchema,
   GatewayLogsResponseSchema,
+  ListWorkspacesResponseSchema,
+  ListConfigsResponseSchema,
+  ListDeploymentsResponseSchema,
+  DeploymentCreateResponseSchema,
+  AuditLogsResponseSchema,
 } from '../../src/models/ai-gateway.js';
 
 describe('AI Gateway telemetry schemas', () => {
@@ -123,5 +128,119 @@ describe('AI Gateway telemetry schemas', () => {
       data: { records: [], total: 0, avg: 0, isQuotaExceeded: false, brandNewField: 'x' },
     });
     expect((r.data as Record<string, unknown>).brandNewField).toBe('x');
+  });
+});
+
+describe('AI Gateway resource schemas', () => {
+  it('parses a workspace list', () => {
+    const r = ListWorkspacesResponseSchema.parse({
+      object: 'list',
+      total: 1,
+      data: [
+        {
+          id: '16f7e90d-382a-4e78-b577-1b01eb5f8297',
+          slug: 'ws-main-a-349e0e',
+          name: 'talos_k8s_cluster',
+          icon: null,
+          description: 'Default workspace',
+          created_at: '2026-07-16T15:48:18.000Z',
+          last_updated_at: '2026-07-17T12:25:22.000Z',
+          is_default: 0,
+          status: 'active',
+          scope_name: 'main_airs_workspace_1852583913',
+          object: 'workspace',
+        },
+      ],
+    });
+    expect(r.data[0].scope_name).toBe('main_airs_workspace_1852583913');
+  });
+
+  it('keeps config.config as an unparsed JSON STRING', () => {
+    const r = ListConfigsResponseSchema.parse({
+      object: 'list',
+      total: 1,
+      data: [
+        {
+          id: '764cf9cd-4ebf-449e-b669-08149b0fbbbc',
+          name: 'claude-code',
+          slug: 'pc-claude-e46fe6',
+          organisation_id: '80f1e8db-1efe-49a7-a45b-b45cade4d861',
+          is_default: 0,
+          status: 'active',
+          owner_id: 'fad91538-65a9-41f7-8b9c-6e4c0e8b9c5f',
+          updated_by: 'fad91538-65a9-41f7-8b9c-6e4c0e8b9c5f',
+          created_at: '2026-07-17T00:42:44.000Z',
+          last_updated_at: '2026-07-17T00:42:44.000Z',
+          workspace_id: '16f7e90d-382a-4e78-b577-1b01eb5f8297',
+          config: '{"provider":"@anthropic-prod"}',
+          format: 'json',
+          type: 'ORG_CONFIG',
+          version_id: 'v1',
+          object: 'config',
+        },
+      ],
+    });
+    expect(typeof r.data[0].config).toBe('string');
+  });
+
+  it('parses a deployment list row (11 fields, no credentials)', () => {
+    const r = ListDeploymentsResponseSchema.parse({
+      object: 'list',
+      total: 1,
+      data: [
+        {
+          id: '32e8314e-7e68-4384-aacb-a476f6c3f91d',
+          name: 'talos',
+          slug: 'dp-talos-f3b74e',
+          type: 'production',
+          status: 'active',
+          created_at: '2026-07-16T15:50:06.000Z',
+          last_updated_at: '2026-07-16T15:50:06.000Z',
+          last_synced_at: '2026-07-27T10:27:00.000Z',
+          last_resynced_at: null,
+          is_default: 1,
+          created_by: 'fad91538-65a9-41f7-8b9c-6e4c0e8b9c5f',
+          object: 'deployment',
+        },
+      ],
+    });
+    expect(r.data[0].last_resynced_at).toBeNull();
+  });
+
+  it('parses the deployment CREATE receipt, which is NOT the record shape', () => {
+    const r = DeploymentCreateResponseSchema.parse({
+      id: '21414819-485e-4ba3-b3d3-3e1815580e43',
+      client_auth: 'client-auth-1edUcNFlbaTSueWe5gdlcmSCHPRO',
+      credentials: { username: '1852583913', password: 's3cret' },
+      organisation_id: '80f1e8db-1efe-49a7-a45b-b45cade4d861',
+      object: 'deployment',
+    });
+    expect(r.credentials.password).toBe('s3cret');
+  });
+
+  it('parses audit logs (records, not the list envelope)', () => {
+    const r = AuditLogsResponseSchema.parse({
+      records: [
+        {
+          timestamp: '2026-07-24T21:04:11.000Z',
+          method: 'DELETE',
+          uri: '/ai_gw/admin/v2/deployments/abc',
+          request_id: '600be074-d9d6-4fca-a8ec-5090f22138d6',
+          request_body: '{}',
+          query_params: '{}',
+          request_headers: '{}',
+          user_id: 'fad91538-65a9-41f7-8b9c-6e4c0e8b9c5f',
+          user_type: 'user',
+          organisation_id: '80f1e8db-1efe-49a7-a45b-b45cade4d861',
+          workspace_id: '',
+          response_status_code: 200,
+          resource_type: 'admin',
+          action: '',
+          client_ip: '::ffff:127.0.0.1',
+          country: '',
+        },
+      ],
+    });
+    expect(r.records[0].method).toBe('DELETE');
   });
 });
