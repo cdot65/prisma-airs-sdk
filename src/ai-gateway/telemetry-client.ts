@@ -1,5 +1,5 @@
 import type { z } from 'zod';
-import { AI_GW_CHARTS_PATH } from '../constants.js';
+import { AI_GW_CHARTS_PATH, AI_GW_GROUPS_PATH, AI_GW_LOGS_PATH } from '../constants.js';
 import { request } from '../http/request.js';
 import type { AuthAdapter } from '../http/types.js';
 import {
@@ -14,6 +14,9 @@ import {
   RescuedRetriesResponseSchema,
   FeedbackScoreDistributionResponseSchema,
   FeedbackModelsResponseSchema,
+  GroupListResponseSchema,
+  UserGroupResponseSchema,
+  GatewayLogsResponseSchema,
   type CostChartResponse,
   type CountChartResponse,
   type LatencyChartResponse,
@@ -25,6 +28,9 @@ import {
   type RescuedRetriesResponse,
   type FeedbackScoreDistributionResponse,
   type FeedbackModelsResponse,
+  type GroupListResponse,
+  type UserGroupResponse,
+  type GatewayLogsResponse,
 } from '../models/ai-gateway.js';
 import { serializeWindow, type AIGatewayWindowOptions } from './window.js';
 
@@ -34,6 +40,30 @@ export interface AIGatewayTelemetryClientOptions {
   auth: AuthAdapter;
   numRetries: number;
   tsgId: string;
+}
+
+/** Options for a `logs/groups/{dimension}` query. */
+export interface AIGatewayGroupOptions extends AIGatewayWindowOptions {
+  /**
+   * Extra columns to aggregate. Invalid names are silently dropped by the API rather than
+   * erroring. Valid: `cost`, `avg_latency`, `avg_tokens`, `total_tokens`, `success_rate`, `last_seen`.
+   */
+  columns?: string[];
+}
+
+/**
+ * Options for the raw `logs` collection.
+ *
+ * Deliberately NOT {@link ListingOptions}: offset paging is broken upstream. `skip`/`offset`/
+ * `page` are ignored by the API and every unfiltered call returns the same most-recent batch.
+ */
+export interface AIGatewayLogsOptions extends AIGatewayWindowOptions {
+  /** Rows per response. The only working pagination control. */
+  pageSize?: number;
+  /** Return the single row for one trace id. */
+  traceId?: string;
+  /** Filter by HTTP status. **Bypasses the ~50-row cap** — use 446 to pull every AIRS block. */
+  statusCode?: number;
 }
 
 /**
@@ -331,5 +361,136 @@ export class AIGatewayTelemetryClient {
    */
   async feedbackModels(opts: AIGatewayWindowOptions): Promise<FeedbackModelsResponse> {
     return this.chart('feedback-models', opts, FeedbackModelsResponseSchema);
+  }
+
+  /**
+   * Aggregate requests by a dimension.
+   * @param dimension - One of `ai_service`, `model`, `api_key`, `provider`. Underscore names only.
+   * @param opts - Window plus optional extra columns.
+   * @returns One row per distinct dimension value.
+   * @example
+   * ```ts
+   * import { AIGatewayClient } from '@cdot65/prisma-airs-sdk';
+   * const gw = new AIGatewayClient();
+   *
+   * const byModel = await gw.telemetry.groupBy('model', {
+   *   workspaceSlug: 'ws-main-a-349e0e',
+   *   columns: ['cost', 'total_tokens'],
+   * });
+   * // byModel.data[0] => { model: 'claude-sonnet-5', requests: 10506, cost: 29704.16, ... }
+   * ```
+   */
+  async groupBy(
+    dimension: 'ai_service' | 'model' | 'api_key' | 'provider',
+    opts: AIGatewayGroupOptions,
+  ): Promise<GroupListResponse> {
+    const params = serializeWindow(this.tsgId, opts);
+    if (opts.columns?.length) params.columns = opts.columns.join(',');
+
+    return request({
+      method: 'GET',
+      baseUrl: this.baseUrl,
+      path: `${AI_GW_GROUPS_PATH}/${dimension}`,
+      params,
+      responseSchema: GroupListResponseSchema,
+      auth: this.auth,
+      numRetries: this.numRetries,
+    });
+  }
+
+  /**
+   * Requests and cost per end user.
+   * @param opts - Workspace slug and time window.
+   * @returns One record per user; `_user: ''` means calls with no end-user id. Costs in cents.
+   * @example
+   * ```ts
+   * import { AIGatewayClient } from '@cdot65/prisma-airs-sdk';
+   * const gw = new AIGatewayClient();
+   *
+   * const users = await gw.telemetry.byUser({ workspaceSlug: 'ws-main-a-349e0e' });
+   * // users.data.records[0] => { _user: '', count: 25748, cost: 411060.85 }
+   * ```
+   */
+  async byUser(opts: AIGatewayWindowOptions): Promise<UserGroupResponse> {
+    return request({
+      method: 'GET',
+      baseUrl: this.baseUrl,
+      path: `${AI_GW_GROUPS_PATH}/users`,
+      params: serializeWindow(this.tsgId, opts),
+      responseSchema: UserGroupResponseSchema,
+      auth: this.auth,
+      numRetries: this.numRetries,
+    });
+  }
+
+  /**
+   * Requests grouped by HTTP status code.
+   * @param opts - Window plus optional extra columns.
+   * @returns One row per status. **446 = AIRS security block** (cost 0, never reached the LLM).
+   * @example
+   * ```ts
+   * import { AIGatewayClient } from '@cdot65/prisma-airs-sdk';
+   * const gw = new AIGatewayClient();
+   *
+   * const codes = await gw.telemetry.byStatusCode({
+   *   workspaceSlug: 'ws-main-a-349e0e',
+   *   columns: ['cost', 'avg_latency'],
+   * });
+   * // codes.data => [{ status_code: 200, requests: 25623, ... }, { status_code: 446, ... }]
+   * ```
+   */
+  async byStatusCode(opts: AIGatewayGroupOptions): Promise<GroupListResponse> {
+    const params = serializeWindow(this.tsgId, opts);
+    if (opts.columns?.length) params.columns = opts.columns.join(',');
+
+    return request({
+      method: 'GET',
+      baseUrl: this.baseUrl,
+      path: `${AI_GW_GROUPS_PATH}/status_code`,
+      params,
+      responseSchema: GroupListResponseSchema,
+      auth: this.auth,
+      numRetries: this.numRetries,
+    });
+  }
+
+  /**
+   * Raw per-request log rows — the deepest granularity this API offers.
+   *
+   * @remarks
+   * Upstream pagination is broken: only `pageSize` works, and an unfiltered call always
+   * returns the same most-recent batch (~50 rows) regardless of offset. To read beyond that,
+   * filter by `statusCode`, which bypasses the cap and returns every match in the window.
+   *
+   * @param opts - Window plus `pageSize` / `traceId` / `statusCode` filters.
+   * @returns Log records plus the full-period `total` (which you cannot page to).
+   * @example
+   * ```ts
+   * import { AIGatewayClient } from '@cdot65/prisma-airs-sdk';
+   * const gw = new AIGatewayClient();
+   *
+   * // Every AIRS security block in the window, not just the most recent page.
+   * const blocked = await gw.telemetry.logs({
+   *   workspaceSlug: 'ws-main-a-349e0e',
+   *   statusCode: 446,
+   * });
+   * // blocked.data.records[0] => { response_status_code: 446, cost: 0, is_success: 0, ... }
+   * ```
+   */
+  async logs(opts: AIGatewayLogsOptions): Promise<GatewayLogsResponse> {
+    const params = serializeWindow(this.tsgId, opts);
+    if (opts.pageSize !== undefined) params.pageSize = String(opts.pageSize);
+    if (opts.traceId !== undefined) params.traceId = opts.traceId;
+    if (opts.statusCode !== undefined) params.statusCode = String(opts.statusCode);
+
+    return request({
+      method: 'GET',
+      baseUrl: this.baseUrl,
+      path: AI_GW_LOGS_PATH,
+      params,
+      responseSchema: GatewayLogsResponseSchema,
+      auth: this.auth,
+      numRetries: this.numRetries,
+    });
   }
 }

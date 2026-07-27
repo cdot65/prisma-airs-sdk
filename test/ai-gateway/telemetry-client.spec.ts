@@ -113,3 +113,75 @@ describe('AIGatewayTelemetryClient', () => {
     }
   });
 });
+
+describe('AIGatewayTelemetryClient groups and logs', () => {
+  const originalFetch = globalThis.fetch;
+  let client: AIGatewayTelemetryClient;
+
+  beforeEach(() => {
+    client = new AIGatewayTelemetryClient({
+      baseUrl: 'https://gw.example.com',
+      auth: passthroughAuth(),
+      numRetries: 0,
+      tsgId: '1852583913',
+    });
+  });
+
+  afterEach(() => {
+    globalThis.fetch = originalFetch;
+  });
+
+  it('joins columns with commas on groupBy', async () => {
+    mockFetch({
+      object: 'list',
+      is_quota_exceeded: false,
+      total: 1,
+      data: [{ model: 'm', requests: 1, object: 'log' }],
+    });
+    await client.groupBy('model', { workspaceSlug: 'ws-x', columns: ['cost', 'total_tokens'] });
+
+    const [url] = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0];
+    const u = new URL(url as string);
+    expect(u.pathname).toBe('/logs/groups/model');
+    expect(u.searchParams.get('columns')).toBe('cost,total_tokens');
+  });
+
+  it('byUser uses the plural path and the OTHER envelope', async () => {
+    mockFetch({
+      success: true,
+      data: { records: [{ _user: '', count: 2, cost: 1 }], total: 1, isQuotaExceeded: false },
+    });
+    const res = await client.byUser({ workspaceSlug: 'ws-x' });
+
+    expect(res.data.records[0].count).toBe(2);
+    const [url] = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0];
+    expect(new URL(url as string).pathname).toBe('/logs/groups/users');
+  });
+
+  it('logs() hits the BARE path and passes pageSize/statusCode', async () => {
+    mockFetch({
+      success: true,
+      data: { records: [], total: 0, capturedTotal: 0, isQuotaExceeded: false },
+    });
+    await client.logs({ workspaceSlug: 'ws-x', pageSize: 25, statusCode: 446 });
+
+    const [url] = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0];
+    const u = new URL(url as string);
+    expect(u.pathname).toBe('/logs');
+    expect(u.searchParams.get('pageSize')).toBe('25');
+    expect(u.searchParams.get('statusCode')).toBe('446');
+  });
+
+  it('omits log filters that were not supplied', async () => {
+    mockFetch({
+      success: true,
+      data: { records: [], total: 0, capturedTotal: 0, isQuotaExceeded: false },
+    });
+    await client.logs({ workspaceSlug: 'ws-x' });
+
+    const [url] = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0];
+    const u = new URL(url as string);
+    expect(u.searchParams.has('statusCode')).toBe(false);
+    expect(u.searchParams.has('traceId')).toBe(false);
+  });
+});
