@@ -56,10 +56,19 @@ describe('AIGatewayTelemetryClient', () => {
   });
 
   it('percent-encodes the + in the timezone offset', async () => {
-    mockFetch(costBody);
-    await client.cost({ workspaceSlug: 'ws-x' });
-    const [url] = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0];
-    expect(url as string).not.toMatch(/timeOfGenerationMin=[^&]*\+/);
+    // Force a positive UTC offset so the '+' path is exercised on any host.
+    const spy = vi.spyOn(Date.prototype, 'getTimezoneOffset').mockReturnValue(-120); // UTC+02:00
+    try {
+      mockFetch(costBody);
+      await client.cost({ workspaceSlug: 'ws-x' });
+
+      const [url] = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0];
+      // The offset must arrive percent-encoded: a literal '+' decodes to a space and 400s.
+      expect(url as string).toContain('%2B02%3A00');
+      expect(url as string).not.toMatch(/timeOfGenerationMin=[^&]*\+/);
+    } finally {
+      spy.mockRestore();
+    }
   });
 
   it('routes each chart method to its own bespoke slug', async () => {
