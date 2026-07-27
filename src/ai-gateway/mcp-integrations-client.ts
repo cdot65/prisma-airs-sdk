@@ -27,7 +27,11 @@ export interface McpIntegrationCreateRequest {
   secret_mappings?: unknown[];
 }
 
-/** Workspace-binding payload for `mcp-integrations/{id}/workspaces`. */
+/**
+ * Workspace-binding payload for `mcp-integrations/{id}/workspaces`.
+ * Shape inferred from the sibling `IntegrationWorkspacesRequest` — not confirmed against a
+ * live MCP-integrations tenant.
+ */
 export interface McpIntegrationWorkspacesRequest {
   workspaces?: unknown[];
   global_workspace_access?: boolean;

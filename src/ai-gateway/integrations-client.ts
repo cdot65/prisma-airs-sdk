@@ -122,6 +122,7 @@ export class AIGatewayIntegrationsClient {
    * ```
    */
   async create(body: IntegrationCreateRequest): Promise<GatewayWriteResponse> {
+    assertUuid(body.ai_provider_id, 'ai_provider_id');
     return request({
       method: 'POST',
       baseUrl: this.baseUrl,
@@ -154,6 +155,7 @@ export class AIGatewayIntegrationsClient {
     body: Partial<IntegrationCreateRequest>,
   ): Promise<GatewayWriteResponse> {
     assertUuid(integrationId, 'integrationId');
+    if (body.ai_provider_id !== undefined) assertUuid(body.ai_provider_id, 'ai_provider_id');
     return request({
       method: 'PUT',
       baseUrl: this.baseUrl,

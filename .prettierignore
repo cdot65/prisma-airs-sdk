@@ -5,6 +5,7 @@ coverage
 *.lock
 tsup.config.bundled_*
 review-*
+.superpowers/
 specs
 # Docusaurus site has its own formatting/tooling; generated API ref is huge.
 docs-site/

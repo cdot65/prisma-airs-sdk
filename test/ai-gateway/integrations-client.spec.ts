@@ -157,6 +157,27 @@ describe('AIGatewayIntegrationsClient', () => {
     expect(globalThis.fetch).not.toHaveBeenCalled();
   });
 
+  it('rejects create with an invalid body.ai_provider_id before issuing a request', async () => {
+    globalThis.fetch = vi.fn();
+    await expect(
+      client.create({
+        organisation_id: '1852583913',
+        ai_provider_id: 'not-a-uuid',
+        name: 'openai-prod',
+        slug: 'openai-prod',
+      }),
+    ).rejects.toThrow(AISecSDKException);
+    expect(globalThis.fetch).not.toHaveBeenCalled();
+  });
+
+  it('rejects update with an invalid body.ai_provider_id before issuing a request', async () => {
+    globalThis.fetch = vi.fn();
+    await expect(client.update(intId, { ai_provider_id: 'not-a-uuid' })).rejects.toThrow(
+      AISecSDKException,
+    );
+    expect(globalThis.fetch).not.toHaveBeenCalled();
+  });
+
   it('rejects delete with an invalid integrationId before issuing a request', async () => {
     globalThis.fetch = vi.fn();
     await expect(client.delete('not-a-uuid', '1852583913')).rejects.toThrow(AISecSDKException);
