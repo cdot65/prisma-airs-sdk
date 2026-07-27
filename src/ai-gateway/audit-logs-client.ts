@@ -1,7 +1,10 @@
 import { AI_GW_AUDIT_LOGS_PATH } from '../constants.js';
 import { request } from '../http/request.js';
 import type { AuthAdapter } from '../http/types.js';
-import { AuditLogsResponseSchema, type AuditLogsResponse } from '../models/ai-gateway.js';
+import {
+  GatewayAuditLogsResponseSchema,
+  type GatewayAuditLogsResponse,
+} from '../models/ai-gateway.js';
 import type { AIGatewaySubClientOptions } from './types.js';
 
 /** Time range for an audit-log query. Both bounds are required by the API. */
@@ -31,7 +34,9 @@ export class AIGatewayAuditLogsClient {
    * contain live secrets — private keys, provider API keys — in plaintext. The sibling
    * `request_headers` field is masked, but `request_body` is not. The SDK returns the
    * response faithfully rather than altering it; never log these records wholesale, and
-   * never forward them to a third-party sink.
+   * never forward them to a third-party sink. Note that setting `PANW_AI_SEC_DEBUG` will
+   * print the raw response — including these unredacted secrets — to the SDK's own debug
+   * log regardless of this warning.
    *
    * @param opts - Inclusive start and end of the window.
    * @returns Audit records, newest first.
@@ -48,7 +53,7 @@ export class AIGatewayAuditLogsClient {
    * const summary = logs.records.map((r) => `${r.timestamp} ${r.method} ${r.uri}`);
    * ```
    */
-  async list(opts: AIGatewayAuditLogListOptions): Promise<AuditLogsResponse> {
+  async list(opts: AIGatewayAuditLogListOptions): Promise<GatewayAuditLogsResponse> {
     return request({
       method: 'GET',
       baseUrl: this.baseUrl,
@@ -57,7 +62,7 @@ export class AIGatewayAuditLogsClient {
         start_time: opts.start.toISOString(),
         end_time: opts.end.toISOString(),
       },
-      responseSchema: AuditLogsResponseSchema,
+      responseSchema: GatewayAuditLogsResponseSchema,
       auth: this.auth,
       numRetries: this.numRetries,
     });

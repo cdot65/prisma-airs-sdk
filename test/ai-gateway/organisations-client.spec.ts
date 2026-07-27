@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { AIGatewayOrganisationsClient } from '../../src/ai-gateway/organisations-client.js';
 import type { AuthAdapter } from '../../src/http/types.js';
+import { AISecSDKException } from '../../src/errors.js';
 
 function passthroughAuth(): AuthAdapter {
   return { prepare: async (req) => req };
@@ -71,8 +72,23 @@ describe('AIGatewayOrganisationsClient', () => {
     expect(JSON.parse((init as RequestInit).body as string)).toEqual({ domains: ['acme.com'] });
   });
 
-  it('accepts a numeric-string tsgId without UUID validation', async () => {
-    mockFetch({ success: true, data: {} });
-    await expect(client.getAuthSettings('1852583913')).resolves.toBeDefined();
+  it('rejects a non-numeric tsgId in getAuthSettings() before issuing a request', async () => {
+    globalThis.fetch = vi.fn();
+    await expect(client.getAuthSettings('not-numeric')).rejects.toThrow(AISecSDKException);
+    expect(globalThis.fetch).not.toHaveBeenCalled();
+  });
+
+  it('rejects a non-numeric tsgId in updateAuthSettings() before issuing a request', async () => {
+    globalThis.fetch = vi.fn();
+    await expect(
+      client.updateAuthSettings('not-numeric', { domains: ['acme.com'] }),
+    ).rejects.toThrow(AISecSDKException);
+    expect(globalThis.fetch).not.toHaveBeenCalled();
+  });
+
+  it('rejects a tsgId containing a path-traversal segment', async () => {
+    globalThis.fetch = vi.fn();
+    await expect(client.getAuthSettings('../self')).rejects.toThrow(AISecSDKException);
+    expect(globalThis.fetch).not.toHaveBeenCalled();
   });
 });

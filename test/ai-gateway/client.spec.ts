@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { AIGatewayClient } from '../../src/ai-gateway/client.js';
 import { AISecSDKException } from '../../src/errors.js';
 
@@ -47,16 +47,9 @@ describe('AIGatewayClient', () => {
     expect(() => new AIGatewayClient()).toThrow(AISecSDKException);
   });
 
-  it('honours endpoint overrides', () => {
-    const gw = new AIGatewayClient({
-      clientId: 'cid',
-      clientSecret: 'sec',
-      tsgId: '1',
-      dataEndpoint: 'https://api.sase.paloaltonetworks.com/ai_gw/v2',
-      adminEndpoint: 'https://api.sase.paloaltonetworks.com/ai_gw/admin/v2',
-    });
-    expect(gw).toBeInstanceOf(AIGatewayClient);
-  });
+  // "honours endpoint overrides" as its own weak toBeInstanceOf-only test was removed —
+  // the 'plane assignment' block below already proves overrides are honoured, per
+  // sub-client, by asserting the resolved baseUrl for both dataEndpoint and adminEndpoint.
 
   describe('plane assignment', () => {
     // Deliberately-distinguishable overrides so a swapped/mis-wired sub-client is caught
@@ -108,6 +101,51 @@ describe('AIGatewayClient', () => {
 
     it.each(cases)('$name is wired to $expectedOrigin', ({ accessor, expectedOrigin }) => {
       expect(baseUrlOf(accessor())).toBe(expectedOrigin);
+    });
+  });
+
+  describe('x-tsg-id on the wire', () => {
+    const originalFetch = globalThis.fetch;
+
+    afterEach(() => {
+      globalThis.fetch = originalFetch;
+    });
+
+    // Every AI Gateway request goes through TsgHeaderAuth wrapping OAuthAuth (see
+    // src/ai-gateway/client.ts), which is only unit-tested in isolation (test/http/tsg-header.spec.ts).
+    // Nothing else proves x-tsg-id actually reaches the outgoing fetch() call once a real
+    // AIGatewayClient is constructed end-to-end. This stubs both hops — the OAuth token
+    // exchange, then the API call — and asserts the header on the second (API) request.
+    it('sends x-tsg-id on the outgoing API request, after a stubbed OAuth exchange', async () => {
+      const tokenResp = { access_token: 'tok', token_type: 'bearer', expires_in: 3600 };
+      const apiResp = { object: 'list', total: 0, data: [] };
+
+      const fetchMock = vi
+        .fn()
+        .mockResolvedValueOnce({
+          ok: true,
+          status: 200,
+          json: () => Promise.resolve(tokenResp),
+          text: () => Promise.resolve(JSON.stringify(tokenResp)),
+        })
+        .mockResolvedValueOnce({
+          ok: true,
+          status: 200,
+          text: () => Promise.resolve(JSON.stringify(apiResp)),
+        });
+      globalThis.fetch = fetchMock;
+
+      const gw = new AIGatewayClient({
+        clientId: 'cid',
+        clientSecret: 'sec',
+        tsgId: '1852583913',
+        numRetries: 0,
+      });
+      await gw.workspaces.list();
+
+      expect(fetchMock).toHaveBeenCalledTimes(2);
+      const [, init] = fetchMock.mock.calls[1] as [string, { headers: Record<string, string> }];
+      expect(init.headers['x-tsg-id']).toBe('1852583913');
     });
   });
 });

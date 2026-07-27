@@ -8,8 +8,7 @@ import {
   type ListProvidersResponse,
   type GatewayWriteResponse,
 } from '../models/ai-gateway.js';
-import type { AIGatewaySubClientOptions } from './types.js';
-import type { AIGatewayWorkspaceScopedListOptions } from './guardrails-client.js';
+import type { AIGatewaySubClientOptions, AIGatewayWorkspaceScopedListOptions } from './types.js';
 
 /** Request body for binding an org integration into a workspace as a provider. */
 export interface GatewayProviderCreateRequest {
@@ -82,6 +81,8 @@ export class AIGatewayProvidersClient {
    */
   async create(body: GatewayProviderCreateRequest): Promise<GatewayWriteResponse> {
     assertUuid(body.workspace_id, 'workspace_id');
+    assertUuid(body.ai_provider_id, 'ai_provider_id');
+    assertUuid(body.integration_id, 'integration_id');
     return request({
       method: 'POST',
       baseUrl: this.baseUrl,

@@ -54,6 +54,19 @@ All fall back to the corresponding `PANW_MGMT_*` variable if not set.
 | `PANW_RED_TEAM_NETWORK_BROKER_ENDPOINT` | —                | `https://api.sase.paloaltonetworks.com/ai-red-teaming/data-plane/network-broker` | Network broker base URL |
 | `PANW_RED_TEAM_TOKEN_ENDPOINT` | `PANW_MGMT_TOKEN_ENDPOINT` | `https://auth.apps.paloaltonetworks.com/oauth2/access_token` | OAuth2 token endpoint     |
 
+## AI Gateway API
+
+All fall back to the corresponding `PANW_MGMT_*` variable if not set.
+
+| Variable                     | Fallback                   | Default                                              | Description                |
+| ----------------------------- | -------------------------- | ----------------------------------------------------- | --------------------------- |
+| `PANW_AI_GW_CLIENT_ID`        | `PANW_MGMT_CLIENT_ID`      | —                                                     | OAuth2 client ID            |
+| `PANW_AI_GW_CLIENT_SECRET`    | `PANW_MGMT_CLIENT_SECRET`  | —                                                     | OAuth2 client secret        |
+| `PANW_AI_GW_TSG_ID`           | `PANW_MGMT_TSG_ID`         | —                                                     | Tenant Service Group ID; also sent as the `x-tsg-id` header on every request |
+| `PANW_AI_GW_DATA_ENDPOINT`    | —                           | `https://api.apps.paloaltonetworks.com/ai_gw/v2`       | Data plane base URL         |
+| `PANW_AI_GW_ADMIN_ENDPOINT`   | —                           | `https://api.apps.paloaltonetworks.com/ai_gw/admin/v2` | Admin plane base URL        |
+| `PANW_AI_GW_TOKEN_ENDPOINT`   | `PANW_MGMT_TOKEN_ENDPOINT` | `https://auth.apps.paloaltonetworks.com/oauth2/access_token` | OAuth2 token endpoint |
+
 ## Debugging
 
 | Variable             | Required | Default | Description                                                     |
@@ -61,8 +74,9 @@ All fall back to the corresponding `PANW_MGMT_*` variable if not set.
 | `PANW_AI_SEC_DEBUG`  | No       | —       | Set to `1`/`true`/`yes`/`on` to log every API call to `stderr`. |
 
 When enabled, the SDK logs each HTTP request (method, full URL, headers, body) and response
-(status, duration, body) to **stderr** for every domain — scan, management, model security, and
-red teaming. It logs once per attempt, so retries and 401-driven token refreshes are visible.
+(status, duration, body) to **stderr** for every domain — scan, management, model security, red
+teaming, and AI Gateway. It logs once per attempt, so retries and 401-driven token refreshes are
+visible.
 
 Access-token header values (`Authorization`, `x-pan-token`) are replaced with a non-reversible
 `sha256:<prefix>` hash, so debug logs are safe to share and you can still tell when a token

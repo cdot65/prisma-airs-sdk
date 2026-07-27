@@ -57,6 +57,11 @@ export class AIGatewayPluginsClient {
 
   /**
    * Bind a plugin to the organisation.
+   *
+   * @remarks
+   * `body.credentials` (e.g. `AIRS_API_KEY`) is a live secret. Setting `PANW_AI_SEC_DEBUG`
+   * will print it, unredacted, to the SDK's own debug log.
+   *
    * @param body - Integration id and provider-specific credentials.
    * @returns The raw create response. Shape unverified against a live tenant — see the PRD.
    * @example

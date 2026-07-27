@@ -1,4 +1,4 @@
-import { AI_GW_ORGANISATIONS_SELF_PATH } from '../constants.js';
+import { AI_GW_ORGANISATIONS_SELF_PATH, aiGwOrganisationsAuthSettingsPath } from '../constants.js';
 import { request } from '../http/request.js';
 import type { AuthAdapter } from '../http/types.js';
 import {
@@ -10,6 +10,7 @@ import {
   type GatewayWriteResponse,
 } from '../models/ai-gateway.js';
 import type { AIGatewaySubClientOptions } from './types.js';
+import { assertNumericId } from '../validators.js';
 
 /** Client for AI Gateway organisation settings (admin plane). */
 export class AIGatewayOrganisationsClient {
@@ -75,6 +76,8 @@ export class AIGatewayOrganisationsClient {
    *
    * @remarks
    * The response includes a `scim_token` — a live secret. Never log the returned object.
+   * Note that setting `PANW_AI_SEC_DEBUG` will print it (unredacted) to the SDK's own debug
+   * log regardless of this warning, since debug logging only sanitizes header values.
    *
    * @param tsgId - The TSG as a numeric string, not a UUID.
    * @returns Auth settings, including domains and the SCIM token.
@@ -88,10 +91,11 @@ export class AIGatewayOrganisationsClient {
    * ```
    */
   async getAuthSettings(tsgId: string): Promise<AuthSettingsResponse> {
+    assertNumericId(tsgId, 'tsgId');
     return request({
       method: 'GET',
       baseUrl: this.baseUrl,
-      path: `/organisations/${tsgId}/auth-settings`,
+      path: aiGwOrganisationsAuthSettingsPath(tsgId),
       responseSchema: AuthSettingsResponseSchema,
       auth: this.auth,
       numRetries: this.numRetries,
@@ -117,10 +121,11 @@ export class AIGatewayOrganisationsClient {
     tsgId: string,
     body: Record<string, unknown>,
   ): Promise<GatewayWriteResponse> {
+    assertNumericId(tsgId, 'tsgId');
     return request({
       method: 'PUT',
       baseUrl: this.baseUrl,
-      path: `/organisations/${tsgId}/auth-settings`,
+      path: aiGwOrganisationsAuthSettingsPath(tsgId),
       body,
       responseSchema: GatewayWriteResponseSchema,
       auth: this.auth,

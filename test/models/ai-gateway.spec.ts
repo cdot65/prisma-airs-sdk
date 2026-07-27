@@ -10,7 +10,7 @@ import {
   ListConfigsResponseSchema,
   ListDeploymentsResponseSchema,
   DeploymentCreateResponseSchema,
-  AuditLogsResponseSchema,
+  GatewayAuditLogsResponseSchema,
 } from '../../src/models/ai-gateway.js';
 
 describe('AI Gateway telemetry schemas', () => {
@@ -59,6 +59,24 @@ describe('AI Gateway telemetry schemas', () => {
     expect(r.data.trend[0].y).toEqual([]);
   });
 
+  it('accepts an unobserved-shape rescued-retries trend[].y element', () => {
+    // y's element shape has never been observed on a live tenant (only empty arrays so far).
+    // It's typed z.array(z.unknown()) like its trends[].retry/fallback siblings — confirm it
+    // doesn't reject whatever shape a tenant with actual retries eventually sends.
+    const r = RescuedRetriesResponseSchema.parse({
+      success: true,
+      data: {
+        trend: [{ x: '2026-07-20T05:00:00.000Z', y: [{ anything: 'goes', count: 3 }, 42, 'x'] }],
+        total: 3,
+        trends: [{ x: '2026-07-20T05:00:00.000Z', retry: [], fallback: [] }],
+        retryTotal: 0,
+        fallbackTotal: 0,
+        isQuotaExceeded: false,
+      },
+    });
+    expect(r.data.trend[0].y).toHaveLength(3);
+  });
+
   it('parses a groups row using the snake_case quota flag', () => {
     const r = GroupListResponseSchema.parse({
       object: 'list',
@@ -81,7 +99,7 @@ describe('AI Gateway telemetry schemas', () => {
     expect(r.data.records[0]._user).toBe('');
   });
 
-  it('parses a log record with 0/1 integer booleans and null-safe fields', () => {
+  it('parses a log record with 0/1 integer booleans', () => {
     const r = GatewayLogsResponseSchema.parse({
       success: true,
       data: {
@@ -219,7 +237,7 @@ describe('AI Gateway resource schemas', () => {
   });
 
   it('parses audit logs (records, not the list envelope)', () => {
-    const r = AuditLogsResponseSchema.parse({
+    const r = GatewayAuditLogsResponseSchema.parse({
       records: [
         {
           timestamp: '2026-07-24T21:04:11.000Z',

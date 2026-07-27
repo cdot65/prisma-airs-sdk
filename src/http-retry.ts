@@ -45,19 +45,29 @@ export function classifyErrorType(status: number): ErrorType {
 /**
  * @internal
  * Extract a human-readable error message from an API error response body.
- * Tries `error_message`, `message`, and `error.message` fields in order.
+ *
+ * Tries, in order: `error_message`, `message`, `data.message` (the AI Gateway app-RBAC
+ * shape, `{success:false,data:{message,errorCode}}`), `error.message`, and `msg` (the SCM
+ * OPA-denial shape, `{"msg":"Access denied"}`). When the body carries an `errorCode` (e.g.
+ * AI Gateway's `AB01`/`AB02`/`AB03`), it is appended to the message so callers can act on
+ * the distinction without inspecting headers — see PRD-ai-gateway-client.md "Failure modes".
+ *
  * @param body - Raw response body string.
  * @param status - HTTP status code for fallback message.
  */
 export function extractErrorMessage(body: string, status: number): string {
   try {
     const parsed = JSON.parse(body) as Record<string, unknown>;
-    return (
+    const data = parsed.data as Record<string, unknown> | undefined;
+    const code = (data?.errorCode as string | undefined) ?? undefined;
+    const base =
       (parsed.error_message as string) ??
       (parsed.message as string) ??
+      (data?.message as string) ??
       ((parsed.error as Record<string, unknown> | undefined)?.message as string) ??
-      `API error ${status}`
-    );
+      (parsed.msg as string) ??
+      `API error ${status}`;
+    return code ? `${base} (errorCode: ${code})` : base;
   } catch {
     return body ? `API error ${status}: ${body}` : `API error ${status}`;
   }

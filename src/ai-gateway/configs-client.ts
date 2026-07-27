@@ -10,13 +10,7 @@ import {
   type GatewayConfig,
   type GatewayWriteResponse,
 } from '../models/ai-gateway.js';
-import type { AIGatewaySubClientOptions } from './types.js';
-
-/** Options for listing configs. */
-export interface AIGatewayConfigListOptions {
-  /** Workspace UUID. Required — omitting it returns `404 AB02`, not an empty list. */
-  workspaceId: string;
-}
+import type { AIGatewaySubClientOptions, AIGatewayWorkspaceScopedListOptions } from './types.js';
 
 /** Request body for creating or updating a config. */
 export interface GatewayConfigCreateRequest {
@@ -56,7 +50,7 @@ export class AIGatewayConfigsClient {
    * // routing.provider => '@anthropic-prod'
    * ```
    */
-  async list(opts: AIGatewayConfigListOptions): Promise<ListConfigsResponse> {
+  async list(opts: AIGatewayWorkspaceScopedListOptions): Promise<ListConfigsResponse> {
     assertUuid(opts.workspaceId, 'workspaceId');
     return request({
       method: 'GET',

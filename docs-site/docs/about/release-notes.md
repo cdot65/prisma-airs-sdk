@@ -10,6 +10,8 @@ The gateway's two planes authorize against **different SCM role scopes**, so a s
 
 Monetary values are returned **in cents**, exactly as the API sends them; the SDK does not convert. `deployments.delete()` archives rather than removes, so the record remains in `list()` with `status: 'archived'`. Write response shapes are verified against a live tenant for `deployments` only; other create and update responses are typed permissively until confirmed.
 
+This is not full admin-plane coverage. `workspaces` is data-plane read-only (`list()` only) — the admin-plane workspace-management endpoints (`GET`/`POST`/`PUT /ai_gw/admin/v2/workspaces`) are not implemented, so 0.14.0 cannot create a workspace. Admin-plane `guardrails` (`GET`) is likewise not implemented; `guardrails` here is the data-plane sub-client only. Both were deferred rather than modeled from unverified response shapes — see the design doc's open questions.
+
 ## v0.13.2
 
 ### Fix async scan batch limit

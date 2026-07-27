@@ -8,13 +8,7 @@ import {
   type ListGuardrailsResponse,
   type GatewayWriteResponse,
 } from '../models/ai-gateway.js';
-import type { AIGatewaySubClientOptions } from './types.js';
-
-/** Options for listing workspace-scoped resources. */
-export interface AIGatewayWorkspaceScopedListOptions {
-  /** Workspace UUID. Required — omitting it returns `404 AB02`. */
-  workspaceId: string;
-}
+import type { AIGatewaySubClientOptions, AIGatewayWorkspaceScopedListOptions } from './types.js';
 
 /** One guardrail check binding. */
 export interface GatewayGuardrailCheck {

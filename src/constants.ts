@@ -186,7 +186,8 @@ export const DEFAULT_AI_GW_ADMIN_ENDPOINT = 'https://api.apps.paloaltonetworks.c
 
 export const AI_GW_DATA_ENDPOINT = 'PANW_AI_GW_DATA_ENDPOINT';
 export const AI_GW_ADMIN_ENDPOINT = 'PANW_AI_GW_ADMIN_ENDPOINT';
-export const AI_GW_TOKEN_ENDPOINT = 'PANW_AI_GW_TOKEN_ENDPOINT';
+// No AI_GW_TOKEN_ENDPOINT constant: resolveOAuthConfig() builds `${primaryEnvPrefix}_TOKEN_ENDPOINT`
+// dynamically from 'PANW_AI_GW', so a static export here would be dead code (see oauth-config.ts).
 
 /** Mandatory on every AI Gateway request; omitting it yields a 403 OPA denial. */
 export const TSG_ID_HEADER = 'x-tsg-id';
@@ -209,6 +210,14 @@ export const AI_GW_DEPLOYMENTS_PATH = '/deployments';
 export const AI_GW_PLUGINS_PATH = '/plugins';
 export const AI_GW_ORGANISATIONS_SELF_PATH = '/organisations/self';
 export const AI_GW_AUDIT_LOGS_PATH = '/audit-logs';
+
+/**
+ * @internal
+ * Build the `/organisations/{tsgId}/auth-settings` path. Validate `tsgId` before calling.
+ */
+export function aiGwOrganisationsAuthSettingsPath(tsgId: string): string {
+  return `/organisations/${tsgId}/auth-settings`;
+}
 
 /**
  * Chart metric slugs. Bespoke and unguessable — plural vs singular is load-bearing

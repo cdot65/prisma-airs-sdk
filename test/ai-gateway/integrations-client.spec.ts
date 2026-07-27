@@ -184,6 +184,12 @@ describe('AIGatewayIntegrationsClient', () => {
     expect(globalThis.fetch).not.toHaveBeenCalled();
   });
 
+  it('rejects delete with a non-numeric organisationId before issuing a request', async () => {
+    globalThis.fetch = vi.fn();
+    await expect(client.delete(intId, 'not-numeric')).rejects.toThrow(AISecSDKException);
+    expect(globalThis.fetch).not.toHaveBeenCalled();
+  });
+
   it('rejects setModels with an invalid integrationId before issuing a request', async () => {
     globalThis.fetch = vi.fn();
     await expect(

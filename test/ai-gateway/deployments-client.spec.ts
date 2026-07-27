@@ -110,4 +110,10 @@ describe('AIGatewayDeploymentsClient', () => {
     await expect(client.delete('not-a-uuid', '1852583913')).rejects.toThrow(AISecSDKException);
     expect(globalThis.fetch).not.toHaveBeenCalled();
   });
+
+  it('rejects delete with a non-numeric organisationId before issuing a request', async () => {
+    globalThis.fetch = vi.fn();
+    await expect(client.delete(depId, 'not-numeric')).rejects.toThrow(AISecSDKException);
+    expect(globalThis.fetch).not.toHaveBeenCalled();
+  });
 });

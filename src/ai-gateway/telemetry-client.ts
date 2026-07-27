@@ -1,5 +1,12 @@
 import type { z } from 'zod';
-import { AI_GW_CHARTS_PATH, AI_GW_GROUPS_PATH, AI_GW_LOGS_PATH } from '../constants.js';
+import {
+  AI_GW_CHARTS_PATH,
+  AI_GW_GROUPS_PATH,
+  AI_GW_LOGS_PATH,
+  AI_GW_CHART_METRICS,
+  AI_GW_GROUP_DIMENSIONS,
+  AI_GW_GROUP_COLUMNS,
+} from '../constants.js';
 import { request } from '../http/request.js';
 import type { AuthAdapter } from '../http/types.js';
 import {
@@ -46,9 +53,9 @@ export interface AIGatewayTelemetryClientOptions {
 export interface AIGatewayGroupOptions extends AIGatewayWindowOptions {
   /**
    * Extra columns to aggregate. Invalid names are silently dropped by the API rather than
-   * erroring. Valid: `cost`, `avg_latency`, `avg_tokens`, `total_tokens`, `success_rate`, `last_seen`.
+   * erroring. See {@link AI_GW_GROUP_COLUMNS} for the valid set.
    */
-  columns?: string[];
+  columns?: (typeof AI_GW_GROUP_COLUMNS)[number][];
 }
 
 /**
@@ -87,7 +94,7 @@ export class AIGatewayTelemetryClient {
 
   /** @internal Shared GET for every `logs/charts/*` endpoint. */
   private chart<T>(
-    metric: string,
+    metric: (typeof AI_GW_CHART_METRICS)[number],
     opts: AIGatewayWindowOptions,
     // `any` for Zod's def/input generics, mirroring RequestSpec.responseSchema — schemas
     // built with .passthrough() have input ≠ output and fail a stricter constraint.
@@ -365,7 +372,7 @@ export class AIGatewayTelemetryClient {
 
   /**
    * Aggregate requests by a dimension.
-   * @param dimension - One of `ai_service`, `model`, `api_key`, `provider`. Underscore names only.
+   * @param dimension - One of {@link AI_GW_GROUP_DIMENSIONS}. Underscore names only.
    * @param opts - Window plus optional extra columns.
    * @returns One row per distinct dimension value.
    * @example
@@ -381,7 +388,7 @@ export class AIGatewayTelemetryClient {
    * ```
    */
   async groupBy(
-    dimension: 'ai_service' | 'model' | 'api_key' | 'provider',
+    dimension: (typeof AI_GW_GROUP_DIMENSIONS)[number],
     opts: AIGatewayGroupOptions,
   ): Promise<GroupListResponse> {
     const params = serializeWindow(this.tsgId, opts);

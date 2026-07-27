@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { assertUuid, assertLength } from '../src/validators.js';
+import { assertUuid, assertLength, assertNumericId } from '../src/validators.js';
 import { AISecSDKException, ErrorType } from '../src/errors.js';
 
 describe('assertUuid', () => {
@@ -80,6 +80,50 @@ describe('assertLength', () => {
       expect(msg).toMatch(/sessionId/);
       expect(msg).toMatch(/5/);
       expect(msg).toMatch(/20/);
+    }
+  });
+});
+
+describe('assertNumericId', () => {
+  it('accepts a plain numeric string', () => {
+    expect(() => assertNumericId('1852583913', 'tsgId')).not.toThrow();
+  });
+
+  it('accepts a single digit', () => {
+    expect(() => assertNumericId('0', 'tsgId')).not.toThrow();
+  });
+
+  it('throws on empty string', () => {
+    expect(() => assertNumericId('', 'tsgId')).toThrow(AISecSDKException);
+  });
+
+  it('throws on a UUID', () => {
+    expect(() => assertNumericId('550e8400-e29b-41d4-a716-446655440000', 'organisationId')).toThrow(
+      AISecSDKException,
+    );
+  });
+
+  it('throws on a value with a path-traversal segment', () => {
+    expect(() => assertNumericId('../self', 'tsgId')).toThrow(AISecSDKException);
+  });
+
+  it('throws on a value with a slash', () => {
+    expect(() => assertNumericId('123/456', 'tsgId')).toThrow(AISecSDKException);
+  });
+
+  it('throws on a negative number', () => {
+    expect(() => assertNumericId('-123', 'tsgId')).toThrow(AISecSDKException);
+  });
+
+  it('throws USER_REQUEST_PAYLOAD_ERROR and embeds field name in error message', () => {
+    try {
+      assertNumericId('bad', 'tsgId');
+      expect.fail('should have thrown');
+    } catch (err) {
+      expect(err).toBeInstanceOf(AISecSDKException);
+      expect((err as AISecSDKException).errorType).toBe(ErrorType.USER_REQUEST_PAYLOAD_ERROR);
+      expect((err as Error).message).toContain('tsgId');
+      expect((err as Error).message).toContain('bad');
     }
   });
 });

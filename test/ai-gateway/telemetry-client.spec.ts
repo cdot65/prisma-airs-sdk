@@ -112,6 +112,135 @@ describe('AIGatewayTelemetryClient', () => {
       expect(u.pathname).toBe(path);
     }
   });
+
+  // Chart slugs are bespoke and unguessable (see constants.ts AI_GW_CHART_METRICS) — a typo
+  // in any one of them ships as a silent runtime 404. This table drives every chart method
+  // plus byStatusCode through a minimal-but-valid response body for its schema and asserts
+  // the exact request path, so a slug regression fails here by name instead of in prod.
+  const allChartCases: [string, string, unknown][] = [
+    [
+      'cost',
+      '/logs/charts/cost',
+      { data: { records: [], total: 0, avg: 0, isQuotaExceeded: false } },
+    ],
+    [
+      'requests',
+      '/logs/charts/requests',
+      { data: { records: [], total: 0, isQuotaExceeded: false } },
+    ],
+    [
+      'latency',
+      '/logs/charts/latency',
+      { data: { records: [], total: 0, p50: 0, p90: 0, p99: 0, isQuotaExceeded: false } },
+    ],
+    [
+      'tokens',
+      '/logs/charts/tokens',
+      {
+        data: {
+          records: [],
+          total: 0,
+          avg: 0,
+          total_request_units: 0,
+          total_response_units: 0,
+          isQuotaExceeded: false,
+        },
+      },
+    ],
+    ['errors', '/logs/charts/errors', { data: { records: [], total: 0, isQuotaExceeded: false } }],
+    ['users', '/logs/charts/users', { data: { records: [], total: 0, isQuotaExceeded: false } }],
+    [
+      'cacheSummary',
+      '/logs/charts/cache-summary',
+      {
+        data: {
+          summary: { cacheHits: 0, avgCacheLatency: null, totalRequests: 0, cacheSpeedup: 0 },
+          isQuotaExceeded: false,
+        },
+      },
+    ],
+    [
+      'cacheHitTrend',
+      '/logs/charts/cache-hit-trend',
+      {
+        data: {
+          trend: [],
+          total: 0,
+          summary: { totalCacheHits: 0, hitRate: 0 },
+          isQuotaExceeded: false,
+        },
+      },
+    ],
+    [
+      'userTrends',
+      '/logs/charts/user-trends',
+      { data: { summary: { total: 0, unique: 0, avg: 0 }, trend: [], isQuotaExceeded: false } },
+    ],
+    [
+      'errorTrends',
+      '/logs/charts/error-trends',
+      { data: { summary: { errorPercent: 0 }, trend: [], isQuotaExceeded: false } },
+    ],
+    [
+      'rescuedRetries',
+      '/logs/charts/rescued-retries',
+      {
+        data: {
+          trend: [],
+          total: 0,
+          trends: [],
+          retryTotal: 0,
+          fallbackTotal: 0,
+          isQuotaExceeded: false,
+        },
+      },
+    ],
+    [
+      'feedbackTrend',
+      '/logs/charts/feedback-trend',
+      { data: { records: [], total: 0, isQuotaExceeded: false } },
+    ],
+    [
+      'feedbackWeighted',
+      '/logs/charts/feedback-weighted',
+      { data: { records: [], total: 0, isQuotaExceeded: false } },
+    ],
+    [
+      'feedbackScoreDistribution',
+      '/logs/charts/feedback-score-distribution',
+      { data: { records: [], total: 0, isQuotaExceeded: false } },
+    ],
+    [
+      'feedbackModels',
+      '/logs/charts/feedback-models',
+      { data: { records: [], isQuotaExceeded: false } },
+    ],
+  ];
+
+  it.each(allChartCases)('%s routes to the exact chart path %s', async (method, path, data) => {
+    mockFetch({ success: true, ...(data as object) });
+    await (
+      client[method as keyof AIGatewayTelemetryClient] as (o: {
+        workspaceSlug: string;
+      }) => Promise<unknown>
+    )({ workspaceSlug: 'ws-x' });
+
+    const [url] = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0];
+    expect(new URL(url as string).pathname, `${method} routed to the wrong path`).toBe(path);
+  });
+
+  it('byStatusCode routes to /logs/groups/status_code', async () => {
+    mockFetch({
+      object: 'list',
+      is_quota_exceeded: false,
+      total: 0,
+      data: [],
+    });
+    await client.byStatusCode({ workspaceSlug: 'ws-x' });
+
+    const [url] = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0];
+    expect(new URL(url as string).pathname).toBe('/logs/groups/status_code');
+  });
 });
 
 describe('AIGatewayTelemetryClient groups and logs', () => {

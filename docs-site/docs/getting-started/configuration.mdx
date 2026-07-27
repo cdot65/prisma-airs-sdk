@@ -90,6 +90,19 @@ Falls back to `PANW_MGMT_*` variables if service-specific ones are not set.
 | `PANW_RED_TEAM_NETWORK_BROKER_ENDPOINT` | No        | `https://api.sase.paloaltonetworks.com/ai-red-teaming/data-plane/network-broker` |
 | `PANW_RED_TEAM_TOKEN_ENDPOINT` | Falls back to MGMT | `https://auth.apps.paloaltonetworks.com/oauth2/access_token` |
 
+## AI Gateway API
+
+Falls back to `PANW_MGMT_*` variables if service-specific ones are not set. `PANW_AI_GW_TSG_ID` is also sent as the `x-tsg-id` header on every request.
+
+| Env Var                      | Required           | Default                                                |
+| ----------------------------- | ------------------ | ------------------------------------------------------- |
+| `PANW_AI_GW_CLIENT_ID`        | Falls back to MGMT | —                                                       |
+| `PANW_AI_GW_CLIENT_SECRET`    | Falls back to MGMT | —                                                       |
+| `PANW_AI_GW_TSG_ID`           | Falls back to MGMT | —                                                       |
+| `PANW_AI_GW_DATA_ENDPOINT`    | No                  | `https://api.apps.paloaltonetworks.com/ai_gw/v2`         |
+| `PANW_AI_GW_ADMIN_ENDPOINT`   | No                  | `https://api.apps.paloaltonetworks.com/ai_gw/admin/v2`   |
+| `PANW_AI_GW_TOKEN_ENDPOINT`   | Falls back to MGMT | `https://auth.apps.paloaltonetworks.com/oauth2/access_token` |
+
 ## Regional Endpoints
 
 Override endpoint variables for non-US deployments. The scan client also exports `AIRS_ENDPOINTS` with the verified scan hosts:
@@ -115,7 +128,7 @@ export PANW_MGMT_ENDPOINT=https://api.gov.sase.paloaltonetworks.com/aisec
 ```
 
 :::info[Shared Credentials]
-If you use the same OAuth2 client for all services, you only need to set `PANW_MGMT_CLIENT_ID`, `PANW_MGMT_CLIENT_SECRET`, and `PANW_MGMT_TSG_ID`. The Model Security and Red Team clients will use these automatically.
+If you use the same OAuth2 client for all services, you only need to set `PANW_MGMT_CLIENT_ID`, `PANW_MGMT_CLIENT_SECRET`, and `PANW_MGMT_TSG_ID`. The Model Security, Red Team, and AI Gateway clients will use these automatically.
 :::
 
 ## Debug Logging

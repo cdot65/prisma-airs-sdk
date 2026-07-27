@@ -54,16 +54,16 @@ const quotaFlag = { isQuotaExceeded: z.boolean() };
 // ---------------------------------------------------------------------------
 
 /** A `{x, y}` time-bucket, optionally carrying a bucket average. */
-export const ChartRecordSchema = z
+export const GatewayChartRecordSchema = z
   .object({ x: z.string(), y: z.number(), avg: z.number().optional() })
   .passthrough();
-export type ChartRecord = z.infer<typeof ChartRecordSchema>;
+export type GatewayChartRecord = z.infer<typeof GatewayChartRecordSchema>;
 
 /** `logs/charts/cost`. **`y` and `total` are in cents.** */
 export const CostChartResponseSchema = aiGatewayEnvelope(
   z
     .object({
-      records: z.array(ChartRecordSchema),
+      records: z.array(GatewayChartRecordSchema),
       total: z.number(),
       avg: z.number(),
       ...quotaFlag,
@@ -76,7 +76,7 @@ export type CostChartResponse = z.infer<typeof CostChartResponseSchema>;
 export const CountChartResponseSchema = aiGatewayEnvelope(
   z
     .object({
-      records: z.array(ChartRecordSchema),
+      records: z.array(GatewayChartRecordSchema),
       total: z.number().nullable(),
       ...quotaFlag,
     })
@@ -181,7 +181,7 @@ export const UserTrendsResponseSchema = aiGatewayEnvelope(
   z
     .object({
       summary: z.object({ total: z.number(), unique: z.number(), avg: z.number() }).passthrough(),
-      trend: z.array(ChartRecordSchema),
+      trend: z.array(GatewayChartRecordSchema),
       ...quotaFlag,
     })
     .passthrough(),
@@ -193,7 +193,7 @@ export const ErrorTrendsResponseSchema = aiGatewayEnvelope(
   z
     .object({
       summary: z.object({ errorPercent: z.number() }).passthrough(),
-      trend: z.array(ChartRecordSchema),
+      trend: z.array(GatewayChartRecordSchema),
       ...quotaFlag,
     })
     .passthrough(),
@@ -202,7 +202,7 @@ export type ErrorTrendsResponse = z.infer<typeof ErrorTrendsResponseSchema>;
 
 /**
  * `logs/charts/rescued-retries`. **`trend[].y` is an array, not a scalar** — it cannot share
- * {@link ChartRecordSchema}. Sparse: only populated on upstream failures.
+ * {@link GatewayChartRecordSchema}. Sparse: only populated on upstream failures.
  */
 export const RescuedRetriesResponseSchema = aiGatewayEnvelope(
   z
@@ -211,9 +211,11 @@ export const RescuedRetriesResponseSchema = aiGatewayEnvelope(
         z
           .object({
             x: z.string(),
-            y: z.array(
-              z.object({ retry_success_count: z.number(), count: z.number() }).passthrough(),
-            ),
+            // Element shape unobserved — sample tenants only ever produced an empty array.
+            // Treated like the sibling trends[].retry/fallback below until a tenant with
+            // actual gateway retries lets us confirm the real shape. See open questions in
+            // PRD-ai-gateway-client.md.
+            y: z.array(z.unknown()),
           })
           .passthrough(),
       ),
@@ -274,7 +276,7 @@ export type FeedbackModelsResponse = z.infer<typeof FeedbackModelsResponseSchema
  * (`model`, `ai_service`, `api_key`, `provider`, `status_code`), so only the shared
  * columns are declared; `.passthrough()` carries the dimension key through.
  */
-export const GroupRowSchema = z
+export const GatewayGroupRowSchema = z
   .object({
     requests: z.number(),
     cost: z.number().optional(),
@@ -286,10 +288,10 @@ export const GroupRowSchema = z
     object: z.string(),
   })
   .passthrough();
-export type GroupRow = z.infer<typeof GroupRowSchema>;
+export type GatewayGroupRow = z.infer<typeof GatewayGroupRowSchema>;
 
 /** `logs/groups/{ai_service,model,api_key,provider,status_code}`. */
-export const GroupListResponseSchema = aiGatewayGroupList(GroupRowSchema);
+export const GroupListResponseSchema = aiGatewayGroupList(GatewayGroupRowSchema);
 export type GroupListResponse = z.infer<typeof GroupListResponseSchema>;
 
 /**
@@ -500,7 +502,7 @@ export type ListApiKeysResponse = z.infer<typeof ListApiKeysResponseSchema>;
 // ---------------------------------------------------------------------------
 
 /** An organisation-level provider integration. */
-export const IntegrationSchema = z
+export const GatewayIntegrationSchema = z
   .object({
     id: z.string(),
     organisation_id: z.string().optional(),
@@ -519,8 +521,8 @@ export const IntegrationSchema = z
     object: z.string(),
   })
   .passthrough();
-export type Integration = z.infer<typeof IntegrationSchema>;
-export const ListIntegrationsResponseSchema = aiGatewayList(IntegrationSchema);
+export type GatewayIntegration = z.infer<typeof GatewayIntegrationSchema>;
+export const ListIntegrationsResponseSchema = aiGatewayList(GatewayIntegrationSchema);
 export type ListIntegrationsResponse = z.infer<typeof ListIntegrationsResponseSchema>;
 
 /** `integrations/{id}/models` — per-model enablement for one integration. */
@@ -569,7 +571,7 @@ export type ListMcpIntegrationsResponse = z.infer<typeof ListMcpIntegrationsResp
 // ---------------------------------------------------------------------------
 
 /** A deployment list row. */
-export const DeploymentSchema = z
+export const GatewayDeploymentSchema = z
   .object({
     id: z.string(),
     name: z.string(),
@@ -586,10 +588,10 @@ export const DeploymentSchema = z
     object: z.string(),
   })
   .passthrough();
-export type Deployment = z.infer<typeof DeploymentSchema>;
+export type GatewayDeployment = z.infer<typeof GatewayDeploymentSchema>;
 
 /** Deployment detail — adds credentials (masked), auth settings, and bound workspaces. */
-export const DeploymentDetailSchema = DeploymentSchema.extend({
+export const DeploymentDetailSchema = GatewayDeploymentSchema.extend({
   credentials: z.object({ username: z.string(), password: z.string() }).passthrough().optional(),
   deployment_config: z.record(z.unknown()).nullable(),
   auth_settings: z
@@ -607,7 +609,7 @@ export const DeploymentDetailSchema = DeploymentSchema.extend({
 export type DeploymentDetail = z.infer<typeof DeploymentDetailSchema>;
 
 /**
- * `POST /deployments` response — a 5-field creation receipt, **not** a {@link Deployment}.
+ * `POST /deployments` response — a 5-field creation receipt, **not** a {@link GatewayDeployment}.
  * Verified live 2026-07-27.
  *
  * This is the only time `credentials.password` and `client_auth` are readable; the detail
@@ -625,7 +627,7 @@ export const DeploymentCreateResponseSchema = z
   .passthrough();
 export type DeploymentCreateResponse = z.infer<typeof DeploymentCreateResponseSchema>;
 
-export const ListDeploymentsResponseSchema = aiGatewayList(DeploymentSchema);
+export const ListDeploymentsResponseSchema = aiGatewayList(GatewayDeploymentSchema);
 export type ListDeploymentsResponse = z.infer<typeof ListDeploymentsResponseSchema>;
 
 // ---------------------------------------------------------------------------
@@ -633,7 +635,7 @@ export type ListDeploymentsResponse = z.infer<typeof ListDeploymentsResponseSche
 // ---------------------------------------------------------------------------
 
 /** A gateway plugin binding (e.g. the Prisma AIRS scanner). Credentials arrive masked. */
-export const PluginSchema = z
+export const GatewayPluginSchema = z
   .object({
     id: z.string(),
     integration_id: z.string(),
@@ -648,8 +650,8 @@ export const PluginSchema = z
     object: z.string(),
   })
   .passthrough();
-export type Plugin = z.infer<typeof PluginSchema>;
-export const ListPluginsResponseSchema = aiGatewayList(PluginSchema);
+export type GatewayPlugin = z.infer<typeof GatewayPluginSchema>;
+export const ListPluginsResponseSchema = aiGatewayList(GatewayPluginSchema);
 export type ListPluginsResponse = z.infer<typeof ListPluginsResponseSchema>;
 
 /** `organisations/self`. Wrapped in `{success, data}` unlike the other admin resources. */
@@ -671,7 +673,7 @@ export type AuthSettingsResponse = z.infer<typeof AuthSettingsResponseSchema>;
  * credentials (private keys, API keys) submitted through the SCM UI. The sibling
  * `request_headers` field IS masked. Never log this record wholesale.
  */
-export const AuditLogRecordSchema = z
+export const GatewayAuditLogRecordSchema = z
   .object({
     timestamp: z.string(),
     method: z.string(),
@@ -691,10 +693,10 @@ export const AuditLogRecordSchema = z
     country: z.string(),
   })
   .passthrough();
-export type AuditLogRecord = z.infer<typeof AuditLogRecordSchema>;
+export type GatewayAuditLogRecord = z.infer<typeof GatewayAuditLogRecordSchema>;
 
 /** `audit-logs` — a bare `{records}` object, neither list envelope. */
-export const AuditLogsResponseSchema = z
-  .object({ records: z.array(AuditLogRecordSchema) })
+export const GatewayAuditLogsResponseSchema = z
+  .object({ records: z.array(GatewayAuditLogRecordSchema) })
   .passthrough();
-export type AuditLogsResponse = z.infer<typeof AuditLogsResponseSchema>;
+export type GatewayAuditLogsResponse = z.infer<typeof GatewayAuditLogsResponseSchema>;

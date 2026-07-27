@@ -1,20 +1,19 @@
 export { AIGatewayClient, type AIGatewayClientOptions } from './client.js';
 export {
   AIGatewayTelemetryClient,
+  type AIGatewayTelemetryClientOptions,
   type AIGatewayGroupOptions,
   type AIGatewayLogsOptions,
 } from './telemetry-client.js';
 export { type AIGatewayWindowOptions } from './window.js';
-export { type AIGatewaySubClientOptions } from './types.js';
-export { AIGatewayWorkspacesClient } from './workspaces-client.js';
 export {
-  AIGatewayConfigsClient,
-  type AIGatewayConfigListOptions,
-  type GatewayConfigCreateRequest,
-} from './configs-client.js';
+  type AIGatewaySubClientOptions,
+  type AIGatewayWorkspaceScopedListOptions,
+} from './types.js';
+export { AIGatewayWorkspacesClient } from './workspaces-client.js';
+export { AIGatewayConfigsClient, type GatewayConfigCreateRequest } from './configs-client.js';
 export {
   AIGatewayGuardrailsClient,
-  type AIGatewayWorkspaceScopedListOptions,
   type GatewayGuardrailCheck,
   type GatewayGuardrailCreateRequest,
 } from './guardrails-client.js';
@@ -29,6 +28,7 @@ export {
 export {
   AIGatewayMcpIntegrationsClient,
   type McpIntegrationCreateRequest,
+  type McpIntegrationWorkspacesRequest,
 } from './mcp-integrations-client.js';
 export { AIGatewayDeploymentsClient, type DeploymentCreateRequest } from './deployments-client.js';
 export { AIGatewayPluginsClient, type PluginCreateRequest } from './plugins-client.js';

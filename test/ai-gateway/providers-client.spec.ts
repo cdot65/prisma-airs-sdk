@@ -81,4 +81,32 @@ describe('AIGatewayProvidersClient', () => {
     ).rejects.toThrow(AISecSDKException);
     expect(globalThis.fetch).not.toHaveBeenCalled();
   });
+
+  it('rejects a non-UUID ai_provider_id in create() before issuing a request', async () => {
+    globalThis.fetch = vi.fn();
+    await expect(
+      client.create({
+        workspace_id: wsId,
+        ai_provider_id: 'not-a-uuid',
+        integration_id: 'f6692544-3265-49be-9711-bbdcebc079e4',
+        name: 'openai-calvin',
+        slug: 'openai-calvin',
+      }),
+    ).rejects.toThrow(AISecSDKException);
+    expect(globalThis.fetch).not.toHaveBeenCalled();
+  });
+
+  it('rejects a non-UUID integration_id in create() before issuing a request', async () => {
+    globalThis.fetch = vi.fn();
+    await expect(
+      client.create({
+        workspace_id: wsId,
+        ai_provider_id: 'de7d7d50-31cd-11ee-b93b-0e06f1aa7f7c',
+        integration_id: 'not-a-uuid',
+        name: 'openai-calvin',
+        slug: 'openai-calvin',
+      }),
+    ).rejects.toThrow(AISecSDKException);
+    expect(globalThis.fetch).not.toHaveBeenCalled();
+  });
 });

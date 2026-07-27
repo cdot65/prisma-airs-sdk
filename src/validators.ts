@@ -27,3 +27,19 @@ export function assertLength(value: string, min: number, max: number, fieldName:
     );
   }
 }
+
+/**
+ * @internal
+ * Throw `AISecSDKException(USER_REQUEST_PAYLOAD_ERROR)` if `value` is not a plain numeric-string
+ * id (`/^\d+$/`). Use for identifiers that are numeric but not UUIDs (e.g. AI Gateway's
+ * `tsgId`/`organisationId`) — rejects `/` or `..` so the value can't reshape a path built by
+ * string interpolation.
+ */
+export function assertNumericId(value: string, fieldName: string): void {
+  if (!/^\d+$/.test(value)) {
+    throw new AISecSDKException(
+      `Invalid ${fieldName}: ${value}`,
+      ErrorType.USER_REQUEST_PAYLOAD_ERROR,
+    );
+  }
+}

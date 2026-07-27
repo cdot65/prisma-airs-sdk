@@ -8,8 +8,7 @@ import {
   type ListApiKeysResponse,
   type GatewayWriteResponse,
 } from '../models/ai-gateway.js';
-import type { AIGatewaySubClientOptions } from './types.js';
-import type { AIGatewayWorkspaceScopedListOptions } from './guardrails-client.js';
+import type { AIGatewaySubClientOptions, AIGatewayWorkspaceScopedListOptions } from './types.js';
 
 /** Request body for creating a service or user API key. */
 export interface GatewayApiKeyCreateRequest {

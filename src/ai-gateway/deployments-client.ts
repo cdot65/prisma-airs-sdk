@@ -1,7 +1,7 @@
 import { AI_GW_DEPLOYMENTS_PATH } from '../constants.js';
 import { request } from '../http/request.js';
 import type { AuthAdapter } from '../http/types.js';
-import { assertUuid } from '../validators.js';
+import { assertUuid, assertNumericId } from '../validators.js';
 import {
   ListDeploymentsResponseSchema,
   DeploymentDetailSchema,
@@ -98,6 +98,8 @@ export class AIGatewayDeploymentsClient {
    *
    * This is the **only** time `credentials.password` and `client_auth` are readable; the
    * detail read masks them. Capture them here or they are unrecoverable. Never log them.
+   * Note that setting `PANW_AI_SEC_DEBUG` will print the raw request/response, including
+   * `credentials.password`, to the SDK's own debug log regardless of this warning.
    *
    * @param body - Name, type, TSG, and auth settings.
    * @returns The creation receipt including the deployment's gateway credentials.
@@ -150,6 +152,7 @@ export class AIGatewayDeploymentsClient {
    */
   async delete(deploymentId: string, organisationId: string): Promise<void> {
     assertUuid(deploymentId, 'deploymentId');
+    assertNumericId(organisationId, 'organisationId');
     // The API returns 200 with an empty body. request() resolves to undefined whenever
     // no responseSchema is supplied, regardless of allowEmptyBody — so that flag is
     // intentionally omitted here rather than implying it does something.

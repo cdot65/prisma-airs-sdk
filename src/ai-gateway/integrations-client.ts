@@ -1,15 +1,15 @@
 import { AI_GW_INTEGRATIONS_PATH } from '../constants.js';
 import { request } from '../http/request.js';
 import type { AuthAdapter } from '../http/types.js';
-import { assertUuid } from '../validators.js';
+import { assertUuid, assertNumericId } from '../validators.js';
 import {
   ListIntegrationsResponseSchema,
-  IntegrationSchema,
+  GatewayIntegrationSchema,
   IntegrationModelsResponseSchema,
   IntegrationWorkspacesResponseSchema,
   GatewayWriteResponseSchema,
   type ListIntegrationsResponse,
-  type Integration,
+  type GatewayIntegration,
   type IntegrationModelsResponse,
   type IntegrationWorkspacesResponse,
   type GatewayWriteResponse,
@@ -91,13 +91,13 @@ export class AIGatewayIntegrationsClient {
    * // i.name => 'openai-calvin'
    * ```
    */
-  async get(integrationId: string): Promise<Integration> {
+  async get(integrationId: string): Promise<GatewayIntegration> {
     assertUuid(integrationId, 'integrationId');
     return request({
       method: 'GET',
       baseUrl: this.baseUrl,
       path: `${AI_GW_INTEGRATIONS_PATH}/${integrationId}`,
-      responseSchema: IntegrationSchema,
+      responseSchema: GatewayIntegrationSchema,
       auth: this.auth,
       numRetries: this.numRetries,
     });
@@ -105,6 +105,11 @@ export class AIGatewayIntegrationsClient {
 
   /**
    * Create an integration.
+   *
+   * @remarks
+   * `body.key` (the provider API key) is a live secret. Setting `PANW_AI_SEC_DEBUG` will
+   * print it, unredacted, to the SDK's own debug log.
+   *
    * @param body - Provider id, name, slug, and provider-specific configuration.
    * @returns The raw create response. Shape unverified against a live tenant — see the PRD.
    * @example
@@ -182,12 +187,15 @@ export class AIGatewayIntegrationsClient {
    */
   async delete(integrationId: string, organisationId: string): Promise<void> {
     assertUuid(integrationId, 'integrationId');
+    assertNumericId(organisationId, 'organisationId');
+    // The API returns 200 with an empty body. request() resolves to undefined whenever
+    // no responseSchema is supplied, regardless of allowEmptyBody — so that flag is
+    // intentionally omitted here rather than implying it does something.
     await request({
       method: 'DELETE',
       baseUrl: this.baseUrl,
       path: `${AI_GW_INTEGRATIONS_PATH}/${integrationId}`,
       params: { organisation_id: organisationId },
-      allowEmptyBody: true,
       auth: this.auth,
       numRetries: this.numRetries,
     });
