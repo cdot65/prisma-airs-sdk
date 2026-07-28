@@ -372,10 +372,14 @@ export type GatewayLogsResponse = z.infer<typeof GatewayLogsResponseSchema>;
 /**
  * Placeholder for write responses whose shape has NOT been verified against a live tenant.
  *
- * Verifying `deployments` proved a create response can differ completely from the record it
- * creates (5-field receipt vs 15-field record), so these shapes cannot be inferred from the
- * corresponding read. Tighten each into a named schema as it is verified. See
- * PRD-ai-gateway-client.md "Testing".
+ * Verifying `deployments`, `configs`, `guardrails`, and `providers` create responses proved
+ * every create returns a minimal receipt rather than the record it creates — never inferable
+ * from the corresponding read. See {@link GatewayDeploymentCreateResponseSchema}, {@link
+ * GatewayConfigCreateResponseSchema}, {@link GatewayGuardrailCreateResponseSchema}, and {@link
+ * GatewayProviderCreateResponseSchema} for the four now-verified receipts. This placeholder
+ * still covers every remaining unverified write (all `update()` PUT responses, plus
+ * `api-keys`/`integrations`/`mcp-integrations`/`workspaces`/`plugins` create responses).
+ * Tighten each into a named schema as it is verified. See PRD-ai-gateway-client.md "Testing".
  */
 export const GatewayWriteResponseSchema = z.object({}).passthrough();
 export type GatewayWriteResponse = z.infer<typeof GatewayWriteResponseSchema>;
@@ -474,17 +478,107 @@ export const GatewayConfigDetailSchema = GatewayConfigSchema.extend({
 }).passthrough();
 export type GatewayConfigDetail = z.infer<typeof GatewayConfigDetailSchema>;
 
+/**
+ * `POST /configs` response — a 4-field creation receipt, **not** a {@link GatewayConfig} or
+ * {@link GatewayConfigDetail}. Verified live 2026-07-28 (create -> read -> delete cycle).
+ * Confirms the "create returns a receipt, not the record" pattern first established for
+ * {@link GatewayDeploymentCreateResponseSchema} also holds for configs. Call {@link
+ * GatewayConfigDetailSchema}'s `get()` for the full record.
+ */
+export const GatewayConfigCreateResponseSchema = z
+  .object({
+    id: z.string(),
+    version_id: z.string(),
+    slug: z.string(),
+    object: z.string(),
+  })
+  .passthrough();
+export type GatewayConfigCreateResponse = z.infer<typeof GatewayConfigCreateResponseSchema>;
+
 // ---------------------------------------------------------------------------
-// Guardrails / providers / API keys (data plane)
+// Guardrails (data plane) — list row, detail, and create receipt, verified live
 // ---------------------------------------------------------------------------
 
-/** A workspace guardrail. Field set beyond the identifiers is tenant-dependent. */
+/**
+ * A guardrail **list row** (`GET /guardrails?workspace_id=`) — 10 fields. It does NOT carry
+ * `checks`, `actions`, or `version_id`; see {@link GatewayGuardrailDetailSchema} for those.
+ * Verified live 2026-07-28.
+ */
 export const GatewayGuardrailSchema = z
-  .object({ id: z.string(), name: z.string().optional(), object: z.string().optional() })
+  .object({
+    id: z.string(),
+    name: z.string(),
+    slug: z.string(),
+    organisation_id: z.string(),
+    status: z.string(),
+    owner_id: z.string(),
+    updated_by: z.string().nullable(),
+    created_at: z.string(),
+    last_updated_at: z.string(),
+    workspace_id: z.string(),
+    object: z.string(),
+  })
   .passthrough();
 export type GatewayGuardrail = z.infer<typeof GatewayGuardrailSchema>;
 export const ListGuardrailsResponseSchema = aiGatewayList(GatewayGuardrailSchema);
 export type ListGuardrailsResponse = z.infer<typeof ListGuardrailsResponseSchema>;
+
+/** One `on_success`/`on_fail` feedback action. Absent entirely on guardrails created without them. */
+const guardrailFeedbackActionSchema = z
+  .object({
+    feedback: z
+      .object({ value: z.number(), weight: z.number(), metadata: z.string() })
+      .passthrough(),
+  })
+  .passthrough();
+
+/**
+ * Guardrail detail (`GET /guardrails/{id}`) — adds `checks`, `actions`, and `version_id` on
+ * top of the list row. Verified live 2026-07-28.
+ */
+export const GatewayGuardrailDetailSchema = GatewayGuardrailSchema.extend({
+  checks: z.array(
+    z
+      .object({
+        /** e.g. `panw-prisma-airs.intercept`, the Prisma AIRS intercept check. */
+        id: z.string(),
+        parameters: z.record(z.unknown()),
+        is_enabled: z.boolean(),
+      })
+      .passthrough(),
+  ),
+  actions: z
+    .object({
+      deny: z.boolean(),
+      async: z.boolean(),
+      sequential: z.boolean(),
+      /** Absent when the guardrail was created without a pass/fail feedback action. */
+      on_success: guardrailFeedbackActionSchema.optional(),
+      on_fail: guardrailFeedbackActionSchema.optional(),
+    })
+    .passthrough(),
+  version_id: z.string(),
+}).passthrough();
+export type GatewayGuardrailDetail = z.infer<typeof GatewayGuardrailDetailSchema>;
+
+/**
+ * `POST /guardrails` response — a 4-field creation receipt, **not** a {@link GatewayGuardrail}
+ * or {@link GatewayGuardrailDetail}. Verified live 2026-07-28. Same receipt pattern as
+ * {@link GatewayConfigCreateResponseSchema}.
+ */
+export const GatewayGuardrailCreateResponseSchema = z
+  .object({
+    id: z.string(),
+    version_id: z.string(),
+    slug: z.string(),
+    object: z.string(),
+  })
+  .passthrough();
+export type GatewayGuardrailCreateResponse = z.infer<typeof GatewayGuardrailCreateResponseSchema>;
+
+// ---------------------------------------------------------------------------
+// Providers (data plane)
+// ---------------------------------------------------------------------------
 
 /** A workspace-scoped AI provider binding. */
 export const GatewayProviderSchema = z
@@ -498,6 +592,25 @@ export const GatewayProviderSchema = z
 export type GatewayProvider = z.infer<typeof GatewayProviderSchema>;
 export const ListProvidersResponseSchema = aiGatewayList(GatewayProviderSchema);
 export type ListProvidersResponse = z.infer<typeof ListProvidersResponseSchema>;
+
+/**
+ * `POST /providers` response — a 3-field creation receipt, **not** a {@link GatewayProvider}.
+ * Verified live 2026-07-28. **No `version_id`** — unlike its {@link
+ * GatewayConfigCreateResponseSchema} and {@link GatewayGuardrailCreateResponseSchema}
+ * siblings. Do not add one speculatively.
+ */
+export const GatewayProviderCreateResponseSchema = z
+  .object({
+    id: z.string(),
+    slug: z.string(),
+    object: z.string(),
+  })
+  .passthrough();
+export type GatewayProviderCreateResponse = z.infer<typeof GatewayProviderCreateResponseSchema>;
+
+// ---------------------------------------------------------------------------
+// API keys (data plane)
+// ---------------------------------------------------------------------------
 
 /** A service or user API key. The secret itself is only returned at creation. */
 export const GatewayApiKeySchema = z

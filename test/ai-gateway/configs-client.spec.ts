@@ -77,9 +77,14 @@ describe('AIGatewayConfigsClient', () => {
     expect(url).toBe(`https://gw.example.com/configs/${cfgId}`);
   });
 
-  it('POSTs a config with the config body as an OBJECT', async () => {
-    mockFetch({});
-    await client.create({
+  it('POSTs a config with the config body as an OBJECT, and parses the create RECEIPT', async () => {
+    mockFetch({
+      id: cfgId,
+      version_id: 'v1',
+      slug: 'pc-sdk-ve-14620d',
+      object: 'config',
+    });
+    const receipt = await client.create({
       name: 'vertex-airs',
       workspace_id: wsId,
       config: { retry: { attempts: 3 }, cache: { mode: 'simple' } },
@@ -89,6 +94,33 @@ describe('AIGatewayConfigsClient', () => {
     const body = JSON.parse((init as RequestInit).body as string) as Record<string, unknown>;
     expect(typeof body.config).toBe('object');
     expect((init as RequestInit).method).toBe('POST');
+
+    // The create receipt does NOT carry the full record's fields.
+    expect(receipt.slug).toBe('pc-sdk-ve-14620d');
+    expect((receipt as unknown as { name?: string }).name).toBeUndefined();
+    expect((receipt as unknown as { config?: string }).config).toBeUndefined();
+    expect((receipt as unknown as { status?: string }).status).toBeUndefined();
+  });
+
+  it('DELETEs a config with no organisation_id param and no responseSchema', async () => {
+    globalThis.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      text: () => Promise.resolve(''),
+    });
+    await expect(client.delete(cfgId)).resolves.toBeUndefined();
+
+    const [url, init] = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0];
+    const u = new URL(url as string);
+    expect(u.pathname).toBe(`/configs/${cfgId}`);
+    expect(u.searchParams.get('organisation_id')).toBeNull();
+    expect((init as RequestInit).method).toBe('DELETE');
+  });
+
+  it('rejects delete with an invalid configId before issuing a request', async () => {
+    globalThis.fetch = vi.fn();
+    await expect(client.delete('not-a-uuid')).rejects.toThrow(AISecSDKException);
+    expect(globalThis.fetch).not.toHaveBeenCalled();
   });
 
   it('rejects list with an invalid workspaceId before issuing a request', async () => {

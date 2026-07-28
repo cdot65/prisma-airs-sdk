@@ -9,6 +9,11 @@ import {
   ListWorkspacesResponseSchema,
   ListConfigsResponseSchema,
   GatewayConfigDetailSchema,
+  GatewayConfigCreateResponseSchema,
+  ListGuardrailsResponseSchema,
+  GatewayGuardrailDetailSchema,
+  GatewayGuardrailCreateResponseSchema,
+  GatewayProviderCreateResponseSchema,
   ListDeploymentsResponseSchema,
   GatewayDeploymentCreateResponseSchema,
   GatewayAuditLogsResponseSchema,
@@ -222,6 +227,121 @@ describe('AI Gateway resource schemas', () => {
       object: 'config',
     });
     expect(typeof r.config).toBe('string');
+  });
+
+  it('parses the config CREATE receipt, which is NOT the record shape', () => {
+    const r = GatewayConfigCreateResponseSchema.parse({
+      id: '764cf9cd-4ebf-449e-b669-08149b0fbbbc',
+      version_id: 'v1',
+      slug: 'pc-sdk-ve-14620d',
+      object: 'config',
+    });
+    expect(r.slug).toBe('pc-sdk-ve-14620d');
+    expect((r as unknown as { name?: string }).name).toBeUndefined();
+    expect((r as unknown as { config?: string }).config).toBeUndefined();
+  });
+
+  it('parses a guardrail LIST row — 11 fields, no checks/actions/version_id', () => {
+    const r = ListGuardrailsResponseSchema.parse({
+      object: 'list',
+      total: 1,
+      data: [
+        {
+          id: '9f6c2a8e-2b3d-4e5f-8a9b-0c1d2e3f4a5b',
+          name: 'PrismaAIRS',
+          slug: 'pg-prisma-099a16',
+          organisation_id: '80f1e8db-1efe-49a7-a45b-b45cade4d861',
+          status: 'active',
+          owner_id: 'fad91538-65a9-41f7-8b9c-6e4c0e8b9c5f',
+          updated_by: null,
+          created_at: '2026-07-17T00:42:44.000Z',
+          last_updated_at: '2026-07-17T00:42:44.000Z',
+          workspace_id: '16f7e90d-382a-4e78-b577-1b01eb5f8297',
+          object: 'guardrail',
+        },
+      ],
+    });
+    expect(r.data[0].slug).toBe('pg-prisma-099a16');
+    expect(r.data[0].updated_by).toBeNull();
+    expect((r.data[0] as unknown as { checks?: unknown }).checks).toBeUndefined();
+  });
+
+  it('parses a guardrail DETAIL read, adding checks/actions/version_id', () => {
+    const r = GatewayGuardrailDetailSchema.parse({
+      checks: [
+        {
+          id: 'panw-prisma-airs.intercept',
+          parameters: { profile_name: 'AI Gateway - Strict', ai_model: '', app_user: '' },
+          is_enabled: true,
+        },
+      ],
+      actions: {
+        deny: false,
+        async: false,
+        sequential: false,
+        on_success: { feedback: { value: 5, weight: 1, metadata: '' } },
+        on_fail: { feedback: { value: -5, weight: 1, metadata: '' } },
+      },
+      version_id: 'v1',
+      created_at: '2026-07-17T00:42:44.000Z',
+      id: '9f6c2a8e-2b3d-4e5f-8a9b-0c1d2e3f4a5b',
+      name: 'PrismaAIRS',
+      slug: 'pg-prisma-099a16',
+      organisation_id: '80f1e8db-1efe-49a7-a45b-b45cade4d861',
+      status: 'active',
+      owner_id: 'fad91538-65a9-41f7-8b9c-6e4c0e8b9c5f',
+      updated_by: null,
+      last_updated_at: '2026-07-17T00:42:44.000Z',
+      workspace_id: '16f7e90d-382a-4e78-b577-1b01eb5f8297',
+      object: 'guardrail',
+    });
+    expect(r.checks[0].id).toBe('panw-prisma-airs.intercept');
+    expect(r.actions.on_success?.feedback.value).toBe(5);
+    expect(r.updated_by).toBeNull();
+  });
+
+  it('parses a guardrail DETAIL read without on_success/on_fail (optional)', () => {
+    const r = GatewayGuardrailDetailSchema.parse({
+      checks: [],
+      actions: { deny: false, async: false, sequential: false },
+      version_id: 'v1',
+      created_at: '2026-07-17T00:42:44.000Z',
+      id: '9f6c2a8e-2b3d-4e5f-8a9b-0c1d2e3f4a5b',
+      name: 'no-feedback',
+      slug: 'pg-no-feedback',
+      organisation_id: '80f1e8db-1efe-49a7-a45b-b45cade4d861',
+      status: 'active',
+      owner_id: 'fad91538-65a9-41f7-8b9c-6e4c0e8b9c5f',
+      updated_by: null,
+      last_updated_at: '2026-07-17T00:42:44.000Z',
+      workspace_id: '16f7e90d-382a-4e78-b577-1b01eb5f8297',
+      object: 'guardrail',
+    });
+    expect(r.actions.on_success).toBeUndefined();
+    expect(r.actions.on_fail).toBeUndefined();
+  });
+
+  it('parses the guardrail CREATE receipt, which is NOT the record shape', () => {
+    const r = GatewayGuardrailCreateResponseSchema.parse({
+      id: '9f6c2a8e-2b3d-4e5f-8a9b-0c1d2e3f4a5b',
+      version_id: 'v1',
+      slug: 'pg-sdk-ve-874b62',
+      object: 'guardrail',
+    });
+    expect(r.slug).toBe('pg-sdk-ve-874b62');
+    expect((r as unknown as { checks?: unknown }).checks).toBeUndefined();
+    expect((r as unknown as { actions?: unknown }).actions).toBeUndefined();
+  });
+
+  it('parses the provider CREATE receipt, which has NO version_id unlike configs/guardrails', () => {
+    const r = GatewayProviderCreateResponseSchema.parse({
+      id: 'f6692544-3265-49be-9711-bbdcebc079e4',
+      slug: 'sdk-verify-delete-me-provider',
+      object: 'provider',
+    });
+    expect(r.slug).toBe('sdk-verify-delete-me-provider');
+    expect((r as unknown as { version_id?: string }).version_id).toBeUndefined();
+    expect((r as unknown as { name?: string }).name).toBeUndefined();
   });
 
   it('parses an MCP integration, keeping configurations as an unparsed JSON STRING', () => {

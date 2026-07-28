@@ -3,7 +3,7 @@
  * @internal
  * AI Gateway live smoke test.
  *
- * Calls every AI Gateway READ method (41 total) against a real tenant and reports which
+ * Calls every AI Gateway READ method (43 total) against a real tenant and reports which
  * parse cleanly. Unit tests use recorded fixtures written by the same person who wrote the
  * schemas, so they cannot catch a schema that disagrees with the live API — this is the one
  * mechanism that can. See PRD-ai-gateway-client.md in the Obsidian vault for the schema
@@ -106,6 +106,8 @@ async function main(): Promise<void> {
   await check('workspaces.get', () => gw.workspaces.get(wsId));
   await check('configs.list', () => gw.configs.list({ workspaceId: wsId }));
   await check('guardrails.list', () => gw.guardrails.list({ workspaceId: wsId }));
+  const grs = await gw.guardrails.list({ workspaceId: wsId }).catch(() => null);
+  if (grs?.data?.[0]) await check('guardrails.get', () => gw.guardrails.get(grs.data[0].id));
   await check('providers.list', () => gw.providers.list({ workspaceId: wsId }));
   await check('apiKeys.listService', () => gw.apiKeys.listService({ workspaceId: wsId }));
   await check('apiKeys.listUser', () => gw.apiKeys.listUser({ workspaceId: wsId }));

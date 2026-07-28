@@ -5,9 +5,11 @@ import { assertUuid } from '../validators.js';
 import {
   ListConfigsResponseSchema,
   GatewayConfigDetailSchema,
+  GatewayConfigCreateResponseSchema,
   GatewayWriteResponseSchema,
   type ListConfigsResponse,
   type GatewayConfigDetail,
+  type GatewayConfigCreateResponse,
   type GatewayWriteResponse,
 } from '../models/ai-gateway.js';
 import type { AIGatewaySubClientOptions, AIGatewayWorkspaceScopedListOptions } from './types.js';
@@ -96,28 +98,35 @@ export class AIGatewayConfigsClient {
 
   /**
    * Create a config.
+   *
+   * @remarks
+   * The response is a **creation receipt** — `{ id, version_id, slug, object }` — not a
+   * {@link GatewayConfigDetail}. Call {@link get} for the full record. Verified live
+   * 2026-07-28.
+   *
    * @param body - Name, workspace UUID, and the routing config object.
-   * @returns The raw create response. Shape unverified against a live tenant — see the PRD.
+   * @returns The creation receipt.
    * @example
    * ```ts
    * import { AIGatewayClient } from '@cdot65/prisma-airs-sdk';
    * const gw = new AIGatewayClient();
    *
-   * await gw.configs.create({
+   * const receipt = await gw.configs.create({
    *   name: 'vertex-airs',
    *   workspace_id: '16f7e90d-382a-4e78-b577-1b01eb5f8297',
    *   config: { retry: { attempts: 3 }, cache: { mode: 'simple' } },
    * });
+   * // receipt => { id: '...', version_id: '...', slug: 'pc-sdk-ve-14620d', object: 'config' }
    * ```
    */
-  async create(body: GatewayConfigCreateRequest): Promise<GatewayWriteResponse> {
+  async create(body: GatewayConfigCreateRequest): Promise<GatewayConfigCreateResponse> {
     assertUuid(body.workspace_id, 'workspace_id');
     return request({
       method: 'POST',
       baseUrl: this.baseUrl,
       path: AI_GW_CONFIGS_PATH,
       body,
-      responseSchema: GatewayWriteResponseSchema,
+      responseSchema: GatewayConfigCreateResponseSchema,
       auth: this.auth,
       numRetries: this.numRetries,
     });
@@ -149,6 +158,39 @@ export class AIGatewayConfigsClient {
       path: `${AI_GW_CONFIGS_PATH}/${configId}`,
       body,
       responseSchema: GatewayWriteResponseSchema,
+      auth: this.auth,
+      numRetries: this.numRetries,
+    });
+  }
+
+  /**
+   * Delete a config.
+   *
+   * @remarks
+   * This is a **hard delete** — unlike {@link AIGatewayDeploymentsClient.delete | deployments.delete}
+   * (which archives), the config disappears from {@link list} entirely. Verified live
+   * 2026-07-28. No `organisation_id` query param is required, unlike deployments/integrations.
+   *
+   * @param configId - Config UUID.
+   * @returns Nothing.
+   * @example
+   * ```ts
+   * import { AIGatewayClient } from '@cdot65/prisma-airs-sdk';
+   * const gw = new AIGatewayClient();
+   *
+   * await gw.configs.delete('764cf9cd-4ebf-449e-b669-08149b0fbbbc');
+   * // the config no longer appears in gw.configs.list()
+   * ```
+   */
+  async delete(configId: string): Promise<void> {
+    assertUuid(configId, 'configId');
+    // The API returns 200 with an empty body. request() resolves to undefined whenever
+    // no responseSchema is supplied, regardless of allowEmptyBody — see
+    // deployments-client.ts's delete() for the fuller explanation.
+    await request({
+      method: 'DELETE',
+      baseUrl: this.baseUrl,
+      path: `${AI_GW_CONFIGS_PATH}/${configId}`,
       auth: this.auth,
       numRetries: this.numRetries,
     });
