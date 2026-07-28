@@ -27,8 +27,8 @@ Type-safe clients for all four AIRS service domains — real-time content scanni
 
 - **Real-Time Content Scanning** — Synchronous and asynchronous scanning of AI prompts and responses. Detect prompt injection, toxic content, data leaks, and malicious URLs inline.
 - **Security Management** — Manage security profiles, custom topics, API keys, dashboard data, and DLP resources through OAuth2 clients.
-- **Model Security** — Scan ML models for supply chain threats: malicious code execution, backdoors, unapproved file formats. Manage security groups and rule instances; platform security rules are read-only.
-- **AI Red Teaming** — Run automated red team scans against AI targets. Static attack libraries, dynamic agent-based testing, custom prompt sets, and comprehensive reporting.
+- **Model Security** — Scan ML models for supply chain threats: malicious code execution, backdoors, unapproved file formats. Browse model/version inventory, manage security groups and rule instances, and inspect read-only platform rules.
+- **AI Red Teaming** — Run automated red team scans against AI targets. Static attack libraries, dynamic agent-based testing, custom prompt sets, network broker channels, and comprehensive reporting.
 - **Type-Safe Everything** — Exported TypeScript types, enum const objects, Zod schemas with `.passthrough()` for forward compatibility, and JSDoc examples on public symbols.
 - **Zero External HTTP Dependencies** — Native `fetch` + `crypto` for requests. Exponential backoff retry is built in; `zod` validates API responses. ES2022 target, Node 18+.
 
@@ -54,4 +54,5 @@ flowchart LR
 - **[Install](getting-started/installation.md)** — Install the SDK, configure credentials, and connect to AIRS.
 - **[Quick Start](getting-started/quick-start)** — Scanning, management, and more in under 5 minutes.
 - **[Configure](getting-started/configuration)** — Environment variables, auth methods, and endpoint setup.
+- **[Develop](developer/development)** — Local commands, docs workflow, CI, preflight, and release notes.
 - **[API Reference](reference/api/index.md)** — Complete method signatures, types, enums, and error handling.

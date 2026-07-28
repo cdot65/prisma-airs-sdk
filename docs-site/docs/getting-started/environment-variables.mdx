@@ -7,6 +7,10 @@ description: Complete environment-variable reference for scan, management, model
 
 Complete reference for all environment variables used by the SDK.
 
+The checked-in `.env.example` includes the core scan and management credentials. Some optional
+endpoint overrides listed below are documented from source constants and may need to be added to
+your local `.env` manually.
+
 ## Scan API
 
 | Variable                   | Required         | Default                                               | Description                  |
@@ -70,7 +74,7 @@ rotates. The raw token is never written.
 
 ```text
 [airs-sdk] → GET https://api.sase.paloaltonetworks.com/ai-red-teaming/mgmt-plane/v1/custom-attack/list-custom-prompt-sets?limit=1
-[airs-sdk]   headers {"User-Agent":"PAN-AIRS/0.12.0-typescript-sdk","service-name":"api","Authorization":"sha256:6ba877dddebe"}
+[airs-sdk]   headers {"User-Agent":"PAN-AIRS/0.13.2-typescript-sdk","service-name":"api","Authorization":"sha256:6ba877dddebe"}
 [airs-sdk] ← 200 (1397ms) {"pagination":{"total_items":1},"data":[...]}
 ```
 
