@@ -109,11 +109,27 @@ describe('AIGatewayIntegrationsClient', () => {
     expect((init as RequestInit).method).toBe('PUT');
   });
 
-  it('reads the workspaces sub-resource', async () => {
-    mockFetch({ workspaces: [], global_workspace_access: true, object: 'list' });
+  it('reads the workspaces sub-resource, where global_workspace_access is an object', async () => {
+    mockFetch({
+      workspaces: [
+        {
+          id: '16f7e90d-382a-4e78-b577-1b01eb5f8297',
+          usage_limits: null,
+          rate_limits: null,
+          enabled: true,
+          status: 'active',
+          created_at: '2026-07-16T15:48:18.000Z',
+          last_updated_at: '2026-07-17T12:25:22.000Z',
+          last_reset_at: null,
+        },
+      ],
+      global_workspace_access: { enabled: false, rate_limits: null, usage_limits: null },
+      object: 'integration',
+    });
     const res = await client.getWorkspaces(intId);
 
-    expect(res.global_workspace_access).toBe(true);
+    expect(res.global_workspace_access.enabled).toBe(false);
+    expect(res.workspaces[0].enabled).toBe(true);
     const [url] = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0];
     expect(url).toBe(`https://admin.example.com/integrations/${intId}/workspaces`);
   });

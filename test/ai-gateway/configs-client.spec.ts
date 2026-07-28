@@ -17,6 +17,7 @@ function mockFetch(data: unknown) {
   });
 }
 
+// List row — 12 fields, no config/format/type/version_id.
 const sampleConfig = {
   id: cfgId,
   name: 'claude-code',
@@ -29,11 +30,16 @@ const sampleConfig = {
   created_at: '2026-07-17T00:42:44.000Z',
   last_updated_at: '2026-07-17T00:42:44.000Z',
   workspace_id: wsId,
+  object: 'config',
+};
+
+// Detail read — adds config/format/type/version_id on top of the list row.
+const sampleConfigDetail = {
+  ...sampleConfig,
   config: '{"provider":"@anthropic-prod"}',
   format: 'json',
   type: 'ORG_CONFIG',
   version_id: 'v1',
-  object: 'config',
 };
 
 describe('AIGatewayConfigsClient', () => {
@@ -51,14 +57,24 @@ describe('AIGatewayConfigsClient', () => {
     globalThis.fetch = originalFetch;
   });
 
-  it('sends workspace_id as a query param on list', async () => {
+  it('sends workspace_id as a query param on list, returning list rows with no config field', async () => {
     mockFetch({ object: 'list', total: 1, data: [sampleConfig] });
-    await client.list({ workspaceId: wsId });
+    const res = await client.list({ workspaceId: wsId });
 
+    expect((res.data[0] as unknown as { config?: string }).config).toBeUndefined();
     const [url] = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0];
     const u = new URL(url as string);
     expect(u.pathname).toBe('/configs');
     expect(u.searchParams.get('workspace_id')).toBe(wsId);
+  });
+
+  it('fetches one config detail, including config as a JSON string', async () => {
+    mockFetch(sampleConfigDetail);
+    const res = await client.get(cfgId);
+
+    expect(res.config).toBe('{"provider":"@anthropic-prod"}');
+    const [url] = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0];
+    expect(url).toBe(`https://gw.example.com/configs/${cfgId}`);
   });
 
   it('POSTs a config with the config body as an OBJECT', async () => {

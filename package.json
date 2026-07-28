@@ -54,6 +54,7 @@
     "docs:check:warn": "tsx scripts/check-example-coverage.ts --warn-only",
     "preflight": "tsx scripts/preflight-schemas.ts",
     "preflight:warn": "tsx scripts/preflight-schemas.ts --warn-only",
+    "smoke:ai-gateway": "tsx scripts/smoke-ai-gateway.ts",
     "prepare": "git config core.hooksPath .githooks && npm run build",
     "prepublishOnly": "npm run lint && npm run test"
   },

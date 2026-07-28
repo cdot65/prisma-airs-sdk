@@ -8,9 +8,12 @@ import {
   GatewayLogsResponseSchema,
   ListWorkspacesResponseSchema,
   ListConfigsResponseSchema,
+  GatewayConfigDetailSchema,
   ListDeploymentsResponseSchema,
   GatewayDeploymentCreateResponseSchema,
   GatewayAuditLogsResponseSchema,
+  ListMcpIntegrationsResponseSchema,
+  GatewayIntegrationWorkspacesResponseSchema,
 } from '../../src/models/ai-gateway.js';
 
 describe('AI Gateway telemetry schemas', () => {
@@ -173,7 +176,7 @@ describe('AI Gateway resource schemas', () => {
     expect(r.data[0].scope_name).toBe('main_airs_workspace_1852583913');
   });
 
-  it('keeps config.config as an unparsed JSON STRING', () => {
+  it('parses a config LIST row — 12 fields, no config/format/type/version_id', () => {
     const r = ListConfigsResponseSchema.parse({
       object: 'list',
       total: 1,
@@ -190,15 +193,80 @@ describe('AI Gateway resource schemas', () => {
           created_at: '2026-07-17T00:42:44.000Z',
           last_updated_at: '2026-07-17T00:42:44.000Z',
           workspace_id: '16f7e90d-382a-4e78-b577-1b01eb5f8297',
-          config: '{"provider":"@anthropic-prod"}',
-          format: 'json',
-          type: 'ORG_CONFIG',
-          version_id: 'v1',
           object: 'config',
         },
       ],
     });
-    expect(typeof r.data[0].config).toBe('string');
+    expect(r.data[0].status).toBe('active');
+    expect((r.data[0] as unknown as { config?: string }).config).toBeUndefined();
+    expect((r.data[0] as unknown as { format?: string }).format).toBeUndefined();
+  });
+
+  it('parses a config DETAIL read, which adds config/format/type/version_id', () => {
+    const r = GatewayConfigDetailSchema.parse({
+      id: '764cf9cd-4ebf-449e-b669-08149b0fbbbc',
+      name: 'claude-code',
+      slug: 'pc-claude-e46fe6',
+      organisation_id: '80f1e8db-1efe-49a7-a45b-b45cade4d861',
+      is_default: 0,
+      status: 'active',
+      owner_id: 'fad91538-65a9-41f7-8b9c-6e4c0e8b9c5f',
+      updated_by: 'fad91538-65a9-41f7-8b9c-6e4c0e8b9c5f',
+      created_at: '2026-07-17T00:42:44.000Z',
+      last_updated_at: '2026-07-17T00:42:44.000Z',
+      workspace_id: '16f7e90d-382a-4e78-b577-1b01eb5f8297',
+      config: '{"provider":"@anthropic-prod"}',
+      format: 'json',
+      type: 'ORG_CONFIG',
+      version_id: 'v1',
+      object: 'config',
+    });
+    expect(typeof r.config).toBe('string');
+  });
+
+  it('parses an MCP integration, keeping configurations as an unparsed JSON STRING', () => {
+    const r = ListMcpIntegrationsResponseSchema.parse({
+      object: 'list',
+      total: 1,
+      data: [
+        {
+          id: '2a6f4e2e-6f5a-4a1f-9d0e-9b2b6f6c3a11',
+          organisation_id: '80f1e8db-1efe-49a7-a45b-b45cade4d861',
+          name: 'Context 7',
+          owner_id: 'fad91538-65a9-41f7-8b9c-6e4c0e8b9c5f',
+          status: 'active',
+          type: 'MCP_INTEGRATION',
+          url: 'https://mcp.context7.com/mcp',
+          auth_type: 'none',
+          transport: 'http',
+          configurations: '{}',
+          created_at: '2026-07-17T00:42:44.000Z',
+          last_updated_at: '2026-07-17T00:42:44.000Z',
+        },
+      ],
+    });
+    expect(typeof r.data[0].configurations).toBe('string');
+  });
+
+  it('parses integration workspaces, where global_workspace_access is an OBJECT not a boolean', () => {
+    const r = GatewayIntegrationWorkspacesResponseSchema.parse({
+      workspaces: [
+        {
+          id: '16f7e90d-382a-4e78-b577-1b01eb5f8297',
+          usage_limits: null,
+          rate_limits: null,
+          enabled: true,
+          status: 'active',
+          created_at: '2026-07-16T15:48:18.000Z',
+          last_updated_at: '2026-07-17T12:25:22.000Z',
+          last_reset_at: null,
+        },
+      ],
+      global_workspace_access: { enabled: false, rate_limits: null, usage_limits: null },
+      object: 'integration',
+    });
+    expect(r.global_workspace_access.enabled).toBe(false);
+    expect(r.workspaces[0].enabled).toBe(true);
   });
 
   it('parses a deployment list row (11 fields, no credentials)', () => {

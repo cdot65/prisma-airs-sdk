@@ -259,15 +259,21 @@ export class AIGatewayIntegrationsClient {
 
   /**
    * Read which workspaces may use this integration.
+   *
+   * @remarks
+   * `global_workspace_access` is an **object** on this read, not a boolean, despite the
+   * field name — `{ enabled, rate_limits, usage_limits }`. The corresponding write
+   * ({@link setWorkspaces}) DOES send a plain boolean; the two are not symmetric.
+   *
    * @param integrationId - Integration UUID.
-   * @returns Bound workspaces plus the `global_workspace_access` flag.
+   * @returns Bound workspaces plus the `global_workspace_access` object.
    * @example
    * ```ts
    * import { AIGatewayClient } from '@cdot65/prisma-airs-sdk';
    * const gw = new AIGatewayClient();
    *
    * const w = await gw.integrations.getWorkspaces('f6692544-3265-49be-9711-bbdcebc079e4');
-   * // w.global_workspace_access => false
+   * // w.global_workspace_access => { enabled: false, rate_limits: null, usage_limits: null }
    * ```
    */
   async getWorkspaces(integrationId: string): Promise<GatewayIntegrationWorkspacesResponse> {

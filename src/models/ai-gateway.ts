@@ -431,8 +431,11 @@ export type ListWorkspacesResponse = z.infer<typeof ListWorkspacesResponseSchema
 // ---------------------------------------------------------------------------
 
 /**
- * A gateway config. **`config` is a JSON-encoded STRING, not an object** — the wire type is
- * preserved rather than silently parsed. Use `JSON.parse(config)` at the call site.
+ * A gateway config **list row** — 12 fields. The list read (`GET /configs?workspace_id=`)
+ * returns a strict subset of the detail read; it does NOT carry `config`, `format`, `type`,
+ * or `version_id`. See {@link GatewayConfigDetailSchema} for the detail shape, and
+ * {@link GatewayDeploymentSchema}/{@link GatewayDeploymentDetailSchema} for the same
+ * list-vs-detail split already established for deployments.
  */
 export const GatewayConfigSchema = z
   .object({
@@ -448,10 +451,6 @@ export const GatewayConfigSchema = z
     created_at: z.string(),
     last_updated_at: z.string(),
     workspace_id: z.string(),
-    config: z.string(),
-    format: z.string(),
-    type: z.string(),
-    version_id: z.string(),
     object: z.string(),
   })
   .passthrough();
@@ -459,6 +458,21 @@ export type GatewayConfig = z.infer<typeof GatewayConfigSchema>;
 
 export const ListConfigsResponseSchema = aiGatewayList(GatewayConfigSchema);
 export type ListConfigsResponse = z.infer<typeof ListConfigsResponseSchema>;
+
+/**
+ * Config detail (`GET /configs/{id}`) — adds `config`, `format`, `type`, `version_id` on top
+ * of the list row. **`config` is a JSON-encoded STRING, not an object** — the wire type is
+ * preserved rather than silently parsed. Use `JSON.parse(config)` at the call site. Same
+ * request/response asymmetry as `mcp-integrations.configurations`, see
+ * {@link McpIntegrationSchema}.
+ */
+export const GatewayConfigDetailSchema = GatewayConfigSchema.extend({
+  config: z.string(),
+  format: z.string(),
+  type: z.string(),
+  version_id: z.string(),
+}).passthrough();
+export type GatewayConfigDetail = z.infer<typeof GatewayConfigDetailSchema>;
 
 // ---------------------------------------------------------------------------
 // Guardrails / providers / API keys (data plane)
@@ -537,11 +551,44 @@ export type GatewayIntegrationModelsResponse = z.infer<
   typeof GatewayIntegrationModelsResponseSchema
 >;
 
+/**
+ * One `integrations/{id}/workspaces.workspaces[]` element — a workspace bound to the
+ * integration. `usage_limits`, `rate_limits`, and `last_reset_at` are observed `null` on a
+ * healthy tenant.
+ */
+export const GatewayIntegrationWorkspaceSchema = z
+  .object({
+    id: z.string(),
+    usage_limits: z.record(z.unknown()).nullable(),
+    rate_limits: z.record(z.unknown()).nullable(),
+    enabled: z.boolean(),
+    status: z.string(),
+    created_at: z.string(),
+    last_updated_at: z.string(),
+    last_reset_at: z.string().nullable(),
+  })
+  .passthrough();
+export type GatewayIntegrationWorkspace = z.infer<typeof GatewayIntegrationWorkspaceSchema>;
+
+/**
+ * `integrations/{id}/workspaces.global_workspace_access` — **an object, not a boolean**
+ * despite the field name (the request-side `GatewayIntegrationWorkspacesRequest` DOES send a
+ * plain boolean here; only the response is an object).
+ */
+export const GatewayGlobalWorkspaceAccessSchema = z
+  .object({
+    enabled: z.boolean(),
+    rate_limits: z.record(z.unknown()).nullable(),
+    usage_limits: z.record(z.unknown()).nullable(),
+  })
+  .passthrough();
+export type GatewayGlobalWorkspaceAccess = z.infer<typeof GatewayGlobalWorkspaceAccessSchema>;
+
 /** `integrations/{id}/workspaces` — which workspaces may use this integration. */
 export const GatewayIntegrationWorkspacesResponseSchema = z
   .object({
-    workspaces: z.array(z.record(z.unknown())),
-    global_workspace_access: z.boolean(),
+    workspaces: z.array(GatewayIntegrationWorkspaceSchema),
+    global_workspace_access: GatewayGlobalWorkspaceAccessSchema,
     object: z.string(),
   })
   .passthrough();
@@ -561,7 +608,12 @@ export const McpIntegrationSchema = z
     url: z.string(),
     auth_type: z.string(),
     transport: z.string(),
-    configurations: z.record(z.unknown()),
+    /**
+     * JSON-encoded STRING on reads — the same request/response asymmetry as
+     * `configs.config` (see {@link GatewayConfigDetailSchema}). The CREATE request
+     * (`McpIntegrationCreateRequest.configurations`) sends an object; this is the read shape.
+     */
+    configurations: z.string(),
     created_at: z.string(),
     last_updated_at: z.string(),
   })

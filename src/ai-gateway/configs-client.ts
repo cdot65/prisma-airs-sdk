@@ -4,10 +4,10 @@ import type { AuthAdapter } from '../http/types.js';
 import { assertUuid } from '../validators.js';
 import {
   ListConfigsResponseSchema,
-  GatewayConfigSchema,
+  GatewayConfigDetailSchema,
   GatewayWriteResponseSchema,
   type ListConfigsResponse,
-  type GatewayConfig,
+  type GatewayConfigDetail,
   type GatewayWriteResponse,
 } from '../models/ai-gateway.js';
 import type { AIGatewaySubClientOptions, AIGatewayWorkspaceScopedListOptions } from './types.js';
@@ -38,16 +38,20 @@ export class AIGatewayConfigsClient {
 
   /**
    * List configs in a workspace.
+   *
+   * @remarks
+   * List rows are a strict 12-field subset of the detail read — they do NOT carry `config`,
+   * `format`, `type`, or `version_id`. Call {@link get} for those.
+   *
    * @param opts - Must include the workspace UUID.
-   * @returns Configs, each with `config` as a JSON-encoded string.
+   * @returns Config list rows.
    * @example
    * ```ts
    * import { AIGatewayClient } from '@cdot65/prisma-airs-sdk';
    * const gw = new AIGatewayClient();
    *
    * const cfgs = await gw.configs.list({ workspaceId: '16f7e90d-382a-4e78-b577-1b01eb5f8297' });
-   * const routing = JSON.parse(cfgs.data[0].config) as Record<string, unknown>;
-   * // routing.provider => '@anthropic-prod'
+   * // cfgs.data[0] => { name: 'claude-code', slug: 'pc-claude-e46fe6', status: 'active', ... }
    * ```
    */
   async list(opts: AIGatewayWorkspaceScopedListOptions): Promise<ListConfigsResponse> {
@@ -66,23 +70,25 @@ export class AIGatewayConfigsClient {
   /**
    * Fetch one config.
    * @param configId - Config UUID.
-   * @returns The config; `config` is a JSON-encoded string, not an object.
+   * @returns The config detail — adds `config` (a JSON-encoded string, not an object),
+   * `format`, `type`, and `version_id` on top of the list row.
    * @example
    * ```ts
    * import { AIGatewayClient } from '@cdot65/prisma-airs-sdk';
    * const gw = new AIGatewayClient();
    *
    * const cfg = await gw.configs.get('764cf9cd-4ebf-449e-b669-08149b0fbbbc');
-   * // cfg.name => 'claude-code'
+   * const routing = JSON.parse(cfg.config) as Record<string, unknown>;
+   * // routing.provider => '@anthropic-prod'
    * ```
    */
-  async get(configId: string): Promise<GatewayConfig> {
+  async get(configId: string): Promise<GatewayConfigDetail> {
     assertUuid(configId, 'configId');
     return request({
       method: 'GET',
       baseUrl: this.baseUrl,
       path: `${AI_GW_CONFIGS_PATH}/${configId}`,
-      responseSchema: GatewayConfigSchema,
+      responseSchema: GatewayConfigDetailSchema,
       auth: this.auth,
       numRetries: this.numRetries,
     });

@@ -26,7 +26,8 @@ const sampleMcpIntegration = {
   url: 'https://mcp.context7.com/mcp',
   auth_type: 'none',
   transport: 'http',
-  configurations: {},
+  // JSON-encoded STRING on reads — the CREATE request sends an object; see the schema comment.
+  configurations: '{}',
   created_at: '2026-07-17T00:42:44.000Z',
   last_updated_at: '2026-07-17T00:42:44.000Z',
 };
@@ -46,11 +47,12 @@ describe('AIGatewayMcpIntegrationsClient', () => {
     globalThis.fetch = originalFetch;
   });
 
-  it('lists organisation MCP integrations', async () => {
+  it('lists organisation MCP integrations, keeping configurations as a JSON string', async () => {
     mockFetch({ object: 'list', total: 1, data: [sampleMcpIntegration] });
     const res = await client.list();
 
     expect(res.data[0].name).toBe('Context 7');
+    expect(typeof res.data[0].configurations).toBe('string');
     const [url] = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0];
     expect(new URL(url as string).pathname).toBe('/mcp-integrations');
     expect((globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0][1]).toMatchObject({
