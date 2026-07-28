@@ -134,9 +134,13 @@ export class AIGatewayDeploymentsClient {
    * Archive a deployment.
    *
    * @remarks
-   * This is a **soft delete**. The API returns 200 with an empty body and the record
-   * persists with `status: 'archived'`, still visible in {@link list}. There is no
-   * observed hard-delete.
+   * This is a **soft delete** — the one exception to the gateway's usual delete semantics.
+   * The API returns 200 with an empty body and the record persists with `status:
+   * 'archived'`, still visible in {@link list}. There is no observed hard-delete for
+   * deployments specifically. Contrast with {@link AIGatewayConfigsClient.delete |
+   * configs.delete}, {@link AIGatewayGuardrailsClient.delete | guardrails.delete}, and
+   * {@link AIGatewayProvidersClient.delete | providers.delete}, all of which hard-delete —
+   * do not assume archive-on-delete is a gateway-wide convention.
    *
    * @param deploymentId - Deployment UUID.
    * @param organisationId - The TSG as a numeric string; sent as a query param.

@@ -1,6 +1,6 @@
 #!/usr/bin/env tsx
 /**
- * AI Gateway usage examples — Prisma AIRS SDK (v0.14.0).
+ * AI Gateway usage examples — Prisma AIRS SDK (v0.14.1).
  *
  * Every call below is READ-ONLY; write calls are shown as comments at the bottom instead of
  * being executed. Verified against a live tenant.
@@ -115,6 +115,10 @@ async function main(): Promise<void> {
   console.log(
     `  guardrails=${guardrails.total}  providers=${providers.total}  serviceKeys=${svcKeys.total}`,
   );
+  if (guardrails.data[0]) {
+    const detail = await gw.guardrails.get(guardrails.data[0].id); // detail read
+    console.log(`  guardrail "${detail.name}" check id: ${detail.checks[0]?.id}`);
+  }
 
   // ── 8. Admin plane. Same client, same credentials, different role scope.
   //      delete() is a SOFT delete — records persist as status:'archived'.
@@ -187,20 +191,33 @@ async function main(): Promise<void> {
   //   // receipt.credentials.password — capture now; the detail read masks it
   //   const full = await gw.deployments.get(receipt.id);
   //
-  // config is sent as an OBJECT but read back as a JSON string:
-  //   await gw.configs.create({
+  // config is sent as an OBJECT but read back as a JSON string. create() returns a
+  // { id, version_id, slug, object } RECEIPT, not the record — call configs.get() for that:
+  //   const cfgReceipt = await gw.configs.create({
   //     name: 'vertex-airs', workspace_id: workspaceId,
   //     config: { retry: { attempts: 3 }, cache: { mode: 'simple' } },
   //   });
+  //   await gw.configs.delete(cfgReceipt.id);  // HARD delete — vanishes from list(), unlike deployments
   //
-  //   await gw.guardrails.create({
+  // guardrails.create() also returns a { id, version_id, slug, object } RECEIPT.
+  // Note the real check id is 'panw-prisma-airs.intercept' (hyphen, then dot before "intercept"):
+  //   const grReceipt = await gw.guardrails.create({
   //     workspace_id: workspaceId, name: 'PrismaAIRS',
-  //     checks: [{ id: 'panw.prisma-airs.intercept',
+  //     checks: [{ id: 'panw-prisma-airs.intercept',
   //                parameters: { profile_name: 'AI Gateway - Strict' }, is_enabled: true }],
   //     actions: { deny: false, async: false, sequential: false },
   //   });
+  //   await gw.guardrails.delete(grReceipt.id);  // HARD delete — vanishes from list()
   //
-  //   await gw.deployments.delete(id, '1852583913');  // archives, does not remove
+  // providers.create() returns a { id, slug, object } RECEIPT — no version_id, unlike
+  // configs/guardrails above:
+  //   const pReceipt = await gw.providers.create({
+  //     workspace_id: workspaceId, ai_provider_id: '...', integration_id: '...',
+  //     name: 'openai-calvin', slug: 'openai-calvin',
+  //   });
+  //   await gw.providers.delete(pReceipt.id);  // HARD delete — vanishes from list()
+  //
+  //   await gw.deployments.delete(id, '1852583913');  // SOFT delete — archives, does not remove
 }
 
 main().catch((e: unknown) => {

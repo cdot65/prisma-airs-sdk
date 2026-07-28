@@ -1,5 +1,17 @@
 # Release Notes
 
+## v0.14.1
+
+### AI Gateway write-response schemas, verified against a live tenant
+
+Tightens three AI Gateway create responses that were previously typed permissively: `configs.create()`, `guardrails.create()`, and `providers.create()` now return resource-specific receipt schemas (`GatewayConfigCreateResponse`, `GatewayGuardrailCreateResponse`, `GatewayProviderCreateResponse`) instead of the generic passthrough shape. All three confirmed live: `configs`/`guardrails` return `{id, version_id, slug, object}`; `providers` returns `{id, slug, object}` with **no** `version_id`. As with `deployments.create()`, these are receipts, not the full record — do not read `name`/`config`/`checks`/`actions`/etc. off them.
+
+Adds `configs.delete()`, `guardrails.delete()`, and `providers.delete()` (`DELETE /ai_gw/v2/{resource}/{id}`). Unlike `deployments.delete()`, which archives (the record survives in `list()` with `status: 'archived'`), these three are **hard deletes** — the object is gone from `list()` entirely. None take an `organisation_id` query param.
+
+Adds `guardrails.get(guardrailId)`, modeled as `GatewayGuardrailDetail` from a verified live response (`checks[]`, `actions` with optional `on_success`/`on_fail` feedback, `version_id`, nullable `updated_by`). The list-row `Guardrail` schema is now tightened to what `list()` actually returns (no `checks`/`actions`/`version_id`).
+
+Fixes a documentation typo: the guardrail check id is `panw-prisma-airs.intercept` (hyphen, then dot), not `panw.prisma-airs.intercept` as previously shown in examples and guides.
+
 ## v0.14.0
 
 ### AI Gateway support
