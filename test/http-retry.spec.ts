@@ -94,6 +94,48 @@ describe('extractErrorMessage', () => {
   it('handles empty body', () => {
     expect(extractErrorMessage('', 500)).toBe('API error 500');
   });
+
+  it('surfaces AI Gateway data.message with errorCode AB01', () => {
+    expect(
+      extractErrorMessage(
+        JSON.stringify({
+          success: false,
+          data: { message: 'Invalid request', errorCode: 'AB01', request_id: 'req-1' },
+        }),
+        400,
+      ),
+    ).toBe('Invalid request (errorCode: AB01)');
+  });
+
+  it('surfaces AI Gateway data.message with errorCode AB02 (missing workspace_id)', () => {
+    expect(
+      extractErrorMessage(
+        JSON.stringify({
+          success: false,
+          data: { message: 'workspace_id is required', errorCode: 'AB02', request_id: 'req-2' },
+        }),
+        404,
+      ),
+    ).toBe('workspace_id is required (errorCode: AB02)');
+  });
+
+  it('surfaces AI Gateway data.message with errorCode AB03 (missing workspace scope)', () => {
+    expect(
+      extractErrorMessage(
+        JSON.stringify({
+          success: false,
+          data: { message: 'Access denied', errorCode: 'AB03', request_id: 'req-3' },
+        }),
+        403,
+      ),
+    ).toBe('Access denied (errorCode: AB03)');
+  });
+
+  it('falls back to msg field for SCM OPA-deny bodies', () => {
+    expect(extractErrorMessage(JSON.stringify({ msg: 'Access denied' }), 403)).toBe(
+      'Access denied',
+    );
+  });
 });
 
 describe('executeWithRetry', () => {

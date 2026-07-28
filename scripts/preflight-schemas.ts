@@ -57,6 +57,13 @@ const MODELED_SPECS = [
   'dlp/Dictionaries.yaml',
 ];
 
+/**
+ * Model files that intentionally have no OpenAPI spec, so their schemas must not be listed
+ * individually as "unmatched". AI Gateway has no published spec — its schemas are derived
+ * from live responses and documented in PRD-ai-gateway-client.md.
+ */
+const UNSPECCED_MODEL_FILES = ['ai-gateway.ts'];
+
 function findSpecFiles(): string[] {
   if (!existsSync(SCHEMAS_DIR)) {
     throw new Error(
@@ -168,11 +175,20 @@ function printReport(report: PreflightReport): void {
   );
 
   if (report.unmatchedZodSchemas.length > 0) {
-    console.log(
-      `[preflight] Unmatched Zod schemas (no OpenAPI counterpart, likely local helpers): ${report.unmatchedZodSchemas.length}`,
+    const unspecced = report.unmatchedZodSchemas.filter((u) =>
+      UNSPECCED_MODEL_FILES.some((f) => u.sourceFile.endsWith(f)),
     );
-    for (const u of report.unmatchedZodSchemas) {
+    const rest = report.unmatchedZodSchemas.filter((u) => !unspecced.includes(u));
+
+    console.log(
+      `[preflight] Unmatched Zod schemas (no OpenAPI counterpart, likely local helpers): ${rest.length}`,
+    );
+    for (const u of rest) {
       console.log(`  - ${u.exportName}  (${relative(ROOT, u.sourceFile)})`);
+    }
+    for (const f of UNSPECCED_MODEL_FILES) {
+      const n = unspecced.filter((u) => u.sourceFile.endsWith(f)).length;
+      if (n > 0) console.log(`[preflight] ${n} schemas in ${f} (no upstream spec by design)`);
     }
   }
 

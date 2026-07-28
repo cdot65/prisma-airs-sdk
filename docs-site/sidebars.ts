@@ -23,6 +23,7 @@ const sidebars: SidebarsConfig = {
         'guides/oauth-lifecycle',
         'guides/model-security-api',
         'guides/red-team-api',
+        'guides/ai-gateway-api',
         'guides/examples',
         {
           type: 'category',

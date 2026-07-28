@@ -13,3 +13,4 @@ export * from './constants.js';
 export * from './management/index.js';
 export * from './model-security/index.js';
 export * from './red-team/index.js';
+export * from './ai-gateway/index.js';

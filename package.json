@@ -1,6 +1,6 @@
 {
   "name": "@cdot65/prisma-airs-sdk",
-  "version": "0.13.2",
+  "version": "0.14.0",
   "description": "TypeScript SDK for Palo Alto Networks Prisma AIRS — scanning, management, model security, and red teaming APIs",
   "author": "Calvin Remsburg <cremsburg.dev@gmail.com>",
   "license": "MIT",
@@ -54,6 +54,7 @@
     "docs:check:warn": "tsx scripts/check-example-coverage.ts --warn-only",
     "preflight": "tsx scripts/preflight-schemas.ts",
     "preflight:warn": "tsx scripts/preflight-schemas.ts --warn-only",
+    "smoke:ai-gateway": "tsx scripts/smoke-ai-gateway.ts",
     "prepare": "git config core.hooksPath .githooks && npm run build",
     "prepublishOnly": "npm run lint && npm run test"
   },

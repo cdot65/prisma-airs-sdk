@@ -376,3 +376,4 @@ export * from './model-security.js';
 export * from './red-team-enums.js';
 export * from './red-team.js';
 export * from './red-team-network-broker.js';
+export * from './ai-gateway.js';

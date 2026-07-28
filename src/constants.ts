@@ -47,7 +47,7 @@ export const MAX_NUMBER_OF_RETRIES = 5;
 export const HTTP_FORCE_RETRY_STATUS_CODES = [500, 502, 503, 504];
 
 // User-Agent (version injected at build time or read from package.json)
-export const SDK_VERSION = '0.13.2';
+export const SDK_VERSION = '0.14.0';
 export const USER_AGENT = `PAN-AIRS/${SDK_VERSION}-typescript-sdk`;
 
 // Management API defaults
@@ -167,3 +167,89 @@ export const RED_TEAM_MGMT_DASHBOARD_PATH = '/v1/dashboard/overview';
 // API paths — red team network broker (distinct data-plane base URL)
 export const RED_TEAM_CHANNELS_PATH = '/v1/channels';
 export const RED_TEAM_CHANNELS_STATS_PATH = '/v1/channels/stats';
+
+// ---------------------------------------------------------------------------
+// AI Gateway
+// ---------------------------------------------------------------------------
+
+/**
+ * Default AI Gateway data-plane endpoint (telemetry + workspace-scoped config).
+ *
+ * `api.apps.paloaltonetworks.com` and `api.sase.paloaltonetworks.com` resolve to the same
+ * host and behave identically — one API gateway routing by path prefix. `api.apps` is the
+ * documented name; override with `PANW_AI_GW_DATA_ENDPOINT` to reuse an existing
+ * `api.sase` egress allowlist.
+ */
+export const DEFAULT_AI_GW_DATA_ENDPOINT = 'https://api.apps.paloaltonetworks.com/ai_gw/v2';
+/** Default AI Gateway admin-plane (organisation-scoped config) endpoint. */
+export const DEFAULT_AI_GW_ADMIN_ENDPOINT = 'https://api.apps.paloaltonetworks.com/ai_gw/admin/v2';
+
+export const AI_GW_DATA_ENDPOINT = 'PANW_AI_GW_DATA_ENDPOINT';
+export const AI_GW_ADMIN_ENDPOINT = 'PANW_AI_GW_ADMIN_ENDPOINT';
+// No AI_GW_TOKEN_ENDPOINT constant: resolveOAuthConfig() builds `${primaryEnvPrefix}_TOKEN_ENDPOINT`
+// dynamically from 'PANW_AI_GW', so a static export here would be dead code (see oauth-config.ts).
+
+/** Mandatory on every AI Gateway request; omitting it yields a 403 OPA denial. */
+export const TSG_ID_HEADER = 'x-tsg-id';
+
+// Data plane
+export const AI_GW_WORKSPACES_PATH = '/workspaces';
+export const AI_GW_CONFIGS_PATH = '/configs';
+export const AI_GW_GUARDRAILS_PATH = '/guardrails';
+export const AI_GW_PROVIDERS_PATH = '/providers';
+export const AI_GW_API_KEYS_SERVICE_PATH = '/api-keys/service';
+export const AI_GW_API_KEYS_USER_PATH = '/api-keys/user';
+export const AI_GW_LOGS_PATH = '/logs';
+export const AI_GW_CHARTS_PATH = '/logs/charts';
+export const AI_GW_GROUPS_PATH = '/logs/groups';
+
+// Admin plane
+export const AI_GW_INTEGRATIONS_PATH = '/integrations';
+export const AI_GW_MCP_INTEGRATIONS_PATH = '/mcp-integrations';
+export const AI_GW_DEPLOYMENTS_PATH = '/deployments';
+export const AI_GW_PLUGINS_PATH = '/plugins';
+export const AI_GW_ORGANISATIONS_SELF_PATH = '/organisations/self';
+export const AI_GW_AUDIT_LOGS_PATH = '/audit-logs';
+
+/**
+ * @internal
+ * Build the `/organisations/{tsgId}/auth-settings` path. Validate `tsgId` before calling.
+ */
+export function aiGwOrganisationsAuthSettingsPath(tsgId: string): string {
+  return `/organisations/${tsgId}/auth-settings`;
+}
+
+/**
+ * Chart metric slugs. Bespoke and unguessable — plural vs singular is load-bearing
+ * (`user-trends` works, `user-trend` 404s). Verified live 2026-07-27; do not derive.
+ */
+export const AI_GW_CHART_METRICS = [
+  'cost',
+  'requests',
+  'latency',
+  'tokens',
+  'errors',
+  'users',
+  'cache-summary',
+  'cache-hit-trend',
+  'user-trends',
+  'error-trends',
+  'rescued-retries',
+  'feedback-trend',
+  'feedback-weighted',
+  'feedback-score-distribution',
+  'feedback-models',
+] as const;
+
+/** Valid `logs/groups/{dimension}` values. Underscore names only; hyphen/camel variants 400. */
+export const AI_GW_GROUP_DIMENSIONS = ['ai_service', 'model', 'api_key', 'provider'] as const;
+
+/** Valid `&columns=` values for `logs/groups/*`. Invalid names are silently dropped. */
+export const AI_GW_GROUP_COLUMNS = [
+  'cost',
+  'avg_latency',
+  'avg_tokens',
+  'total_tokens',
+  'success_rate',
+  'last_seen',
+] as const;

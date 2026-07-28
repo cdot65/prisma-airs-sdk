@@ -13,7 +13,7 @@
 [![Node 18+](https://img.shields.io/badge/node-%3E%3D18-brightgreen)](https://nodejs.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 
-TypeScript SDK for Palo Alto Networks **Prisma AIRS** — covering the full lifecycle from configuration management to operational scanning across all three service domains: **AI Runtime Security**, **AI Red Teaming**, and **Model Security**.
+TypeScript SDK for Palo Alto Networks **Prisma AIRS** — covering the full lifecycle from configuration management to operational scanning across all four service domains: **AI Runtime Security**, **AI Red Teaming**, **Model Security**, and **AI Gateway**.
 
 ## Installation
 
@@ -30,6 +30,7 @@ Requires Node.js 18+. Zero external HTTP dependencies (native `fetch` + `crypto`
 | **AI Runtime Security** | `Scanner`             | API Key | Sync/async content scanning, prompt injection detection    |
 | **Management**          | `ManagementClient`    | OAuth2  | Profiles, topics, API keys, apps, DLP, deployment, logs    |
 | **Model Security**      | `ModelSecurityClient` | OAuth2  | ML model scanning, security groups, rule management        |
+| **AI Gateway**          | `AIGatewayClient`     | OAuth2  | SCM-managed gateway telemetry and configuration            |
 | **AI Red Teaming**      | `RedTeamClient`       | OAuth2  | Automated red team scans, reports, targets, custom attacks |
 
 All OAuth2 services share credentials and handle token lifecycle automatically (caching, proactive refresh, 401/403 auto-retry).
@@ -53,7 +54,50 @@ console.log(result.category); // "benign" | "malicious"
 console.log(result.action); // "allow" | "block"
 ```
 
-That's the API-key scanning path. The OAuth2 clients (`ManagementClient`, `ModelSecurityClient`, `RedTeamClient`), authentication setup, error handling, and runnable examples are all covered in the documentation.
+That's the API-key scanning path. The OAuth2 clients (`ManagementClient`, `ModelSecurityClient`, `RedTeamClient`, `AIGatewayClient`), authentication setup, error handling, and runnable examples are all covered in the documentation.
+
+## AI Gateway
+
+`AIGatewayClient` covers the SCM-managed Prisma AIRS **AI Gateway** — runtime telemetry and configuration across two planes behind one credential set: a data plane (`/ai_gw/v2`, telemetry + workspace-scoped config) and an admin plane (`/ai_gw/admin/v2`, organisation-level config). Twelve sub-clients: `telemetry`, `workspaces`, `configs`, `guardrails`, `providers`, `apiKeys` (data plane) and `integrations`, `mcpIntegrations`, `deployments`, `plugins`, `organisations`, `auditLogs` (admin plane).
+
+### SCM role grants
+
+The two planes authorize against **different SCM role scopes** — a service account needs both, or half the API returns 403:
+
+| Grant                       | Scope                            | Unlocks             |
+| --------------------------- | -------------------------------- | ------------------- |
+| Admin role                  | tenant root (empty last segment) | `/ai_gw/admin/v2/*` |
+| `view_only_admin` or higher | `main_airs_workspace_<TSG>`      | `/ai_gw/v2/*`       |
+
+Decode the service account's JWT `access` claim to check both are present:
+
+```json
+{
+  "prn:<TSG>::::": ["superuser", "base"],
+  "prn:<TSG>::::main_airs_workspace_<TSG>": ["superuser"]
+}
+```
+
+SCM's Access Management UI **edits an existing role row by default** — use _Add Role_ to add the second grant, or you'll move the first one instead of adding to it. The two failure modes look alike but mean different things: a `403` with body `errorCode: "AB03"` means the workspace-scope grant is missing; a `403` with header `x-opa-decision: false` means the tenant-root grant is.
+
+### Setup
+
+```bash
+export PANW_AI_GW_CLIENT_ID=your-client-id
+export PANW_AI_GW_CLIENT_SECRET=your-client-secret
+export PANW_AI_GW_TSG_ID=1234567890
+```
+
+`PANW_AI_GW_*` vars fall back to `PANW_MGMT_*` when unset, so existing management credentials work as-is.
+
+```ts
+import { AIGatewayClient } from '@cdot65/prisma-airs-sdk';
+
+const gw = new AIGatewayClient();
+
+const cost = await gw.telemetry.cost({ workspaceSlug: 'ws-main-a-349e0e', days: 7 });
+console.log(`$${(cost.data.total / 100).toFixed(2)}`); // cost is returned in cents
+```
 
 ## Documentation
 

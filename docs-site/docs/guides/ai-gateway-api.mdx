@@ -1,0 +1,350 @@
+# AI Gateway API
+
+Manage and observe the Prisma AIRS AI Gateway — the SCM-managed proxy that routes an app's LLM traffic through a workspace, applying provider configs, guardrails, and API keys, and recording telemetry for every request.
+
+## How it works
+
+The AI Gateway is configured and provisioned entirely through **Strata Cloud Manager (SCM)** — there is no separate onboarding flow. The SDK's `AIGatewayClient` reads and writes the same resources the SCM console does:
+
+- **Workspaces** — the top-level container (`client.workspaces`). A workspace's `slug` is what telemetry queries key on; its `id` is what config-plane resources key on. They are not interchangeable.
+- **Telemetry** — usage, cost, latency, tokens, cache, feedback, and raw request logs, all read-only (`client.telemetry`).
+- **Config plane resources** — gateway configs, guardrails, provider bindings, and API keys, all scoped to a workspace (`client.configs`, `client.guardrails`, `client.providers`, `client.apiKeys`).
+- **Admin plane resources** — organisation-level provider integrations, MCP server integrations, deployments, plugins, org/auth settings, and audit logs — not scoped to a single workspace (`client.integrations`, `client.mcpIntegrations`, `client.deployments`, `client.plugins`, `client.organisations`, `client.auditLogs`).
+
+`AIGatewayClient` exposes **12 sub-clients** total, spanning **two API planes** on one credential set:
+
+- the **data plane** (`/ai_gw/v2`) — telemetry and workspace-scoped config
+- the **admin plane** (`/ai_gw/admin/v2`) — organisation-level config
+
+Both planes share one OAuth2 token; what differs is the **SCM role scope** each plane authorizes against, which is the first thing to get right (see [Authorization](#authorization) below).
+
+:::note[No published OpenAPI spec]
+Unlike most of this SDK's other subsystems, the AI Gateway API has no published OpenAPI spec — endpoint names are bespoke (`user-trends` is plural, `groups/model` is singular, `cache-hits-trend` 404s). Every schema in `src/models/ai-gateway.ts` was verified against a live tenant; see the [Gotchas](#gotchas) section below for the corners that bit us.
+:::
+
+## Authorization
+
+**This is the part most likely to waste your time.** The two planes authorize against **different SCM role scopes**, and a service account needs **both grants** or half the API returns 403.
+
+| Grant | Scope | Unlocks |
+| --- | --- | --- |
+| An admin role | Tenant root (empty final scope segment) | `/ai_gw/admin/v2/*` |
+| `view_only_admin` or higher | `main_airs_workspace_<TSG>` | `/ai_gw/v2/*` (telemetry **and** config) |
+
+Both grants can coexist on one service account. Decode the account's JWT `access` claim to check what it actually has:
+
+```json
+{
+  "prn:<TSG>::::": ["superuser", "base"],
+  "prn:<TSG>::::main_airs_workspace_<TSG>": ["superuser"]
+}
+```
+
+The first key (empty final segment) is the tenant-root grant; the second, scoped to `main_airs_workspace_<TSG>`, is the workspace grant. You need a role present under **both** keys. The workspace scope's exact name is also returned as `scope_name` on `gw.workspaces.list()` / `gw.workspaces.get()` — use that to confirm you're granting the right scope in SCM.
+
+:::warning[SCM's Access Management UI edits, it does not add]
+SCM's Access Management UI **edits an existing role row by default**. If a service account already has a tenant-root role and you need to add the workspace-scope role too, you must explicitly **Add Role** to create a second row — otherwise you will move the existing grant to the new scope instead of adding to it, and the plane you thought you kept will go dark.
+:::
+
+### Telling the failure modes apart
+
+Three different rejections look superficially alike (all `4xx`) but mean completely different things:
+
+| Response | Layer | Meaning |
+| --- | --- | --- |
+| `403` with header `x-opa-decision: false` and body `{"msg":"Access denied"}` | SCM OPA policy | Blocked before reaching the gateway app. Missing the **tenant-root** grant. |
+| `403` with body `{"success":false,"data":{"errorCode":"AB03"}}` | Gateway app RBAC | Real endpoint, reached the app. Missing the **workspace-scope** grant. |
+| `404` with `errorCode: "AB02"` | Gateway routing | Real collection, wrong read form — usually a missing `workspace_id` query param. |
+
+`AISecSDKException` surfaces `errorCode` directly in its `message` (see [Error Handling](#error-handling)), so you don't need to inspect headers or parse the body yourself to tell these apart.
+
+## Configuration
+
+The AI Gateway client uses OAuth2 `client_credentials`, exactly like every other client in this SDK. Each `PANW_AI_GW_*` variable falls back to the corresponding `PANW_MGMT_*` one if unset, so an account already configured for `ManagementClient` needs nothing extra beyond the two SCM grants above.
+
+| Env Var | Fallback | Required | Description |
+| --- | --- | --- | --- |
+| `PANW_AI_GW_CLIENT_ID` | `PANW_MGMT_CLIENT_ID` | Yes | OAuth2 client ID from SCM |
+| `PANW_AI_GW_CLIENT_SECRET` | `PANW_MGMT_CLIENT_SECRET` | Yes | OAuth2 client secret |
+| `PANW_AI_GW_TSG_ID` | `PANW_MGMT_TSG_ID` | Yes | Tenant Service Group ID |
+| `PANW_AI_GW_DATA_ENDPOINT` | -- | No | Data plane URL (default: `https://api.apps.paloaltonetworks.com/ai_gw/v2`) |
+| `PANW_AI_GW_ADMIN_ENDPOINT` | -- | No | Admin plane URL (default: `https://api.apps.paloaltonetworks.com/ai_gw/admin/v2`) |
+| `PANW_AI_GW_TOKEN_ENDPOINT` | `PANW_MGMT_TOKEN_ENDPOINT` | No | Token URL (default: `https://auth.apps.paloaltonetworks.com/oauth2/access_token`) |
+
+### Setup
+
+```bash
+export PANW_AI_GW_CLIENT_ID=your-client-id
+export PANW_AI_GW_CLIENT_SECRET=your-client-secret
+export PANW_AI_GW_TSG_ID=1234567890
+```
+
+Or reuse existing management credentials (the fallback kicks in automatically):
+
+```bash
+export PANW_MGMT_CLIENT_ID=your-client-id
+export PANW_MGMT_CLIENT_SECRET=your-client-secret
+export PANW_MGMT_TSG_ID=1234567890
+```
+
+### Client Initialization
+
+```ts
+import { AIGatewayClient } from '@cdot65/prisma-airs-sdk';
+
+// From env vars (recommended)
+const gw = new AIGatewayClient();
+
+// Explicit
+const gw = new AIGatewayClient({
+  clientId: 'your-client-id',
+  clientSecret: 'your-client-secret',
+  tsgId: '1234567890',
+});
+
+// Custom endpoints
+const gw = new AIGatewayClient({
+  clientId: 'your-client-id',
+  clientSecret: 'your-client-secret',
+  tsgId: '1234567890',
+  dataEndpoint: 'https://api.sase.paloaltonetworks.com/ai_gw/v2',
+  adminEndpoint: 'https://api.sase.paloaltonetworks.com/ai_gw/admin/v2',
+});
+```
+
+Token fetch, caching, and refresh are handled automatically, same as every other client.
+
+:::tip[`api.apps` and `api.sase` are the same host]
+`api.apps.paloaltonetworks.com` (the default, and what PANW documents) and `api.sase.paloaltonetworks.com` resolve to the same backend and behave identically — same status codes, same error bodies, same `x-opa-decision` header. If your egress allowlist is already scoped to `api.sase` for `ManagementClient`, override `dataEndpoint` / `adminEndpoint` to reuse it rather than opening a new firewall rule.
+:::
+
+## Sub-Clients
+
+`AIGatewayClient` exposes 12 sub-clients:
+
+| Sub-Client | Plane | Access |
+| --- | --- | --- |
+| `telemetry` | Data | `gw.telemetry` |
+| `workspaces` | Data | `gw.workspaces` |
+| `configs` | Data | `gw.configs` |
+| `guardrails` | Data | `gw.guardrails` |
+| `providers` | Data | `gw.providers` |
+| `apiKeys` | Data | `gw.apiKeys` |
+| `integrations` | Admin | `gw.integrations` |
+| `mcpIntegrations` | Admin | `gw.mcpIntegrations` |
+| `deployments` | Admin | `gw.deployments` |
+| `plugins` | Admin | `gw.plugins` |
+| `organisations` | Admin | `gw.organisations` |
+| `auditLogs` | Admin | `gw.auditLogs` |
+
+## Walkthrough: workspace spend and blocked requests
+
+The core loop for observability — resolve a workspace, then pull its telemetry.
+
+```ts
+import { AIGatewayClient } from '@cdot65/prisma-airs-sdk';
+const gw = new AIGatewayClient();
+
+// 1. Workspaces carry both keys telemetry and config need: `slug` and `id`.
+const ws = (await gw.workspaces.list()).data[0];
+
+// 2. Telemetry is keyed by slug. Costs come back in CENTS.
+const cost = await gw.telemetry.cost({ workspaceSlug: ws.slug, days: 7 });
+console.log(`$${(cost.data.total / 100).toFixed(2)} over 7 days`);
+
+// 3. Group requests by HTTP status to see what AIRS blocked.
+const codes = await gw.telemetry.byStatusCode({
+  workspaceSlug: ws.slug,
+  days: 7,
+  columns: ['cost', 'avg_latency'],
+});
+const blocks = codes.data.find((r) => r.status_code === 446);
+console.log(`AIRS blocks: ${blocks?.requests ?? 0}`); // 446 = blocked before it hit the LLM
+```
+
+## Telemetry
+
+`gw.telemetry` has 19 read methods: 15 chart endpoints (`cost`, `requests`, `latency`, `tokens`, `errors`, `users`, `cacheSummary`, `cacheHitTrend`, `userTrends`, `errorTrends`, `rescuedRetries`, `feedbackTrend`, `feedbackWeighted`, `feedbackScoreDistribution`, `feedbackModels`), 3 group-by aggregates (`groupBy`, `byUser`, `byStatusCode`), and raw `logs`. Every method takes a window: `{ workspaceSlug, days? }` or `{ workspaceSlug, start, end }`.
+
+### Charts
+
+```ts
+const [cost, requests, latency, tokens] = await Promise.all([
+  gw.telemetry.cost({ workspaceSlug: 'ws-main-a-349e0e', days: 7 }),
+  gw.telemetry.requests({ workspaceSlug: 'ws-main-a-349e0e', days: 7 }),
+  gw.telemetry.latency({ workspaceSlug: 'ws-main-a-349e0e', days: 7 }),
+  gw.telemetry.tokens({ workspaceSlug: 'ws-main-a-349e0e', days: 7 }),
+]);
+console.log(cost.data.total); // cents, e.g. 411083
+console.log(latency.data.p99); // ms
+console.log(tokens.data.total_request_units, tokens.data.total_response_units);
+```
+
+Use an explicit window instead of a rolling one by passing `start`/`end` `Date`s instead of `days`.
+
+### groupBy, byUser, byStatusCode
+
+```ts
+// Spend by model — dimension names are underscore-only: 'ai_service' | 'model' | 'api_key' | 'provider'.
+const byModel = await gw.telemetry.groupBy('model', {
+  workspaceSlug: 'ws-main-a-349e0e',
+  days: 7,
+  columns: ['cost', 'total_tokens'],
+});
+
+// Requests and cost per end user.
+const byUser = await gw.telemetry.byUser({ workspaceSlug: 'ws-main-a-349e0e', days: 7 });
+
+// Requests by HTTP status — 446 is an AIRS security block, not a server error.
+const byStatus = await gw.telemetry.byStatusCode({
+  workspaceSlug: 'ws-main-a-349e0e',
+  days: 7,
+  columns: ['cost', 'avg_latency'],
+});
+```
+
+### logs
+
+```ts
+// Only pageSize actually pages upstream; an unfiltered call always returns the same
+// ~50-row recent batch regardless of offset.
+const recent = await gw.telemetry.logs({ workspaceSlug: 'ws-main-a-349e0e', days: 1, pageSize: 3 });
+
+// statusCode is the one filter that bypasses the ~50-row cap — use it to pull every
+// AIRS block in the window, not just the most recent page.
+const blocked = await gw.telemetry.logs({ workspaceSlug: 'ws-main-a-349e0e', days: 7, statusCode: 446 });
+console.log(blocked.data.records.length);
+```
+
+## Config Plane
+
+Workspace-scoped resources: gateway configs, guardrails, provider bindings, and API keys. All list methods take `{ workspaceId }` (the workspace **UUID**, not the slug telemetry uses).
+
+```ts
+const workspaceId = 'a1b2c3d4-0000-4000-8000-000000000000';
+
+const configs = await gw.configs.list({ workspaceId });
+const guardrails = await gw.guardrails.list({ workspaceId });
+const providers = await gw.providers.list({ workspaceId });
+const serviceKeys = await gw.apiKeys.listService({ workspaceId });
+const userKeys = await gw.apiKeys.listUser({ workspaceId });
+```
+
+:::warning[configs.list() and configs.get() are different shapes]
+List rows are a 12-field subset that omits `config`, `format`, `type`, and `version_id`. Fetch a config's detail to get the routing config itself — and note it comes back as a **JSON-encoded string**, not an object:
+
+```ts
+const detail = await gw.configs.get(configs.data[0].id);
+const routing = JSON.parse(detail.config) as Record<string, unknown>;
+```
+:::
+
+## Admin Plane
+
+Organisation-level resources, not scoped to a single workspace: deployments, provider integrations, MCP integrations, plugins, and organisation/auth settings.
+
+```ts
+const deployments = await gw.deployments.list();
+const integrations = await gw.integrations.list();
+const mcp = await gw.mcpIntegrations.list();
+const plugins = await gw.plugins.list();
+const org = await gw.organisations.getSelf();
+```
+
+Per-integration model and workspace bindings:
+
+```ts
+const id = integrations.data[0].id;
+const models = await gw.integrations.getModels(id);
+const bound = await gw.integrations.getWorkspaces(id);
+console.log(bound.global_workspace_access.enabled); // an OBJECT on reads — see Gotchas
+```
+
+## Audit Logs
+
+:::danger[request_body is returned unredacted]
+`gw.auditLogs.list()` returns each entry's `request_body` **unredacted**. Records for credential-bearing calls (creating integrations, plugins, API keys) can contain live secrets — provider API keys, private keys — in plaintext. The sibling `request_headers` field is masked, but `request_body` is not. The SDK returns the response faithfully rather than altering it; **never log these records wholesale, and never forward them to a third-party sink.** Project to safe fields instead:
+
+```ts
+const audit = await gw.auditLogs.list({
+  start: new Date(Date.now() - 7 * 86_400_000),
+  end: new Date(),
+});
+// Safe projection — timestamp, method, and path only, never request_body.
+const summary = audit.records.map((r) => `${r.timestamp} ${r.method} ${r.uri.split('?')[0]}`);
+```
+:::
+
+## Gotchas
+
+- **Costs are in cents, everywhere.** `telemetry.cost().data.total`, `groupBy(...).data[].cost`, `byUser(...).data.records[].cost` — none of them are dollars. Divide by 100 yourself: `(cents / 100).toFixed(2)`.
+- **Workspace slug vs. id.** Telemetry (`gw.telemetry.*`) is keyed by `workspaceSlug`; config-plane lists (`gw.configs.list`, `gw.guardrails.list`, `gw.providers.list`, `gw.apiKeys.list*`) are keyed by `workspaceId`. Both come off the same `gw.workspaces.list()` row — `ws.slug` and `ws.id` — but passing one where the other is expected fails.
+- **`configs.list()` and `configs.get()` are different shapes** — the list read omits `config`/`format`/`type`/`version_id`, and `config` is a JSON string on the detail read, not an object. See the callout above.
+- **`deployments.delete()` is a soft delete.** It returns `200` with an empty body, and the record persists in `deployments.list()` with `status: 'archived'`. There is no observed hard-delete.
+- **`deployments.create()` is the only place credentials are ever readable.** It returns a 5-field receipt — `{ id, client_auth, credentials: { username, password }, organisation_id, object }` — not a deployment record, and `credentials.password` / `client_auth` are masked on every subsequent `deployments.get()`. Capture them from the create response or not at all:
+
+  ```ts
+  const receipt = await gw.deployments.create({
+    name: 'prod-us',
+    type: 'production',
+    organisation_id: '1852583913', // the TSG, NOT the org UUID
+    auth_settings: { allow_all_workspaces: true },
+  });
+  // receipt.credentials.password — capture now; gw.deployments.get(receipt.id) masks it.
+  ```
+
+- **`telemetry.logs()` paging is broken upstream.** Only `pageSize` works; `offset`/`page`/`skip` are ignored and every unfiltered call returns the same recent ~50-row batch. `statusCode` is the one filter that bypasses the cap — use `statusCode: 446` to pull every AIRS security block in the window, since `446` means the request was blocked before it ever reached the LLM (cost `0`).
+- **`organisation_id` is polymorphic across request and response.** Write requests take the TSG as a numeric string (e.g. `'1852583913'`); read responses return the internal organisation **UUID** in the same-named field. Never round-trip a response `organisation_id` back into a request — use the TSG value you already have.
+
+## Error Handling
+
+```ts
+import { AISecSDKException, ErrorType } from '@cdot65/prisma-airs-sdk';
+
+try {
+  await gw.configs.get('00000000-0000-4000-8000-000000000000');
+} catch (err) {
+  if (err instanceof AISecSDKException) {
+    switch (err.errorType) {
+      case ErrorType.OAUTH_ERROR:
+        console.error('Auth failed:', err.message);
+        break;
+      case ErrorType.CLIENT_SIDE_ERROR:
+        // AB03 in the message -> missing view_only_admin on main_airs_workspace_<TSG>
+        // "Access denied" (OPA) in the message -> missing admin role at tenant-root scope
+        // AB02 in the message -> real collection, wrong read form (usually missing workspace_id)
+        console.error('Client error:', err.statusCode, err.message);
+        break;
+      case ErrorType.USER_REQUEST_PAYLOAD_ERROR:
+        console.error('Invalid input:', err.message);
+        break;
+    }
+  }
+}
+```
+
+`AISecSDKException.message` has the API's `errorCode` appended automatically (e.g. `"... (errorCode: AB03)"`), so you can branch on the error codes above by inspecting `message` without parsing the response body yourself.
+
+ID parameters are also validated **before** any network call. UUID-shaped fields (config, workspace, integration, deployment IDs) use `assertUuid`; the TSG/organisation ID field uses `assertNumericId`, since it's a numeric string rather than a UUID. Both throw `AISecSDKException` with `ErrorType.USER_REQUEST_PAYLOAD_ERROR` immediately, without hitting the network:
+
+```ts
+try {
+  await gw.configs.get('not-a-uuid');
+} catch (err) {
+  if (err instanceof AISecSDKException) console.log(err.errorType); // AISEC_USER_REQUEST_PAYLOAD_ERROR
+}
+```
+
+For the complete, per-method list with input/output shapes (`AIGatewayClient` and its 12 sub-clients), see the [Full API reference](../reference/api/index.md).
+
+## Testing against a live tenant
+
+Unit tests run against recorded fixtures written by the same person who wrote the schemas, so they can't catch a schema that disagrees with the live API. `scripts/smoke-ai-gateway.ts` exists specifically to catch that class of bug: it calls all 42 read methods across both planes against a real tenant and reports which parse cleanly.
+
+It is opt-in, read-only, and **not** part of CI or `npm test` — it needs live credentials and hits a real tenant. It has already caught 3 real schema mismatches before they shipped (a config list/detail shape confusion, an MCP integration field typed as an object when the API returns a JSON string, and an integration's workspace-binding flag typed as a boolean when the API returns an object).
+
+```bash
+set -a && source .env && set +a && npm run smoke:ai-gateway
+```
+
+A runnable, read-only example covering telemetry, config plane, admin plane, audit logs, and error handling end-to-end lives at [`examples/ai-gateway.ts`](https://github.com/cdot65/prisma-airs-sdk/blob/main/examples/ai-gateway.ts) in the repo root — run it directly with `npx tsx examples/ai-gateway.ts`.

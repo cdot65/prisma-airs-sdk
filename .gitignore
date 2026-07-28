@@ -52,3 +52,6 @@ docs/reference/api/
 
 # Symlinks to external OpenAPI specs
 schemas
+
+# Agent scratch reports
+.superpowers*
