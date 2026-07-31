@@ -157,6 +157,8 @@ export const RED_TEAM_ERROR_LOG_TARGET_PROFILE_PATH = '/v1/error-log/target-prof
 // API paths — red team management plane
 export const RED_TEAM_TARGET_PATH = '/v1/target';
 export const RED_TEAM_TARGET_VALIDATE_AUTH_PATH = '/v1/target/validate-auth';
+export const RED_TEAM_ADAPTER_PATH = '/v1/adapters';
+export const RED_TEAM_ADAPTER_VALIDATE_PATH = '/v1/adapters/validate';
 export const RED_TEAM_TEMPLATE_PATH = '/v1/template';
 export const RED_TEAM_EULA_PATH = '/v1/eula';
 export const RED_TEAM_INSTANCES_PATH = '/v1/instances';

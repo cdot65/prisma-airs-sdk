@@ -27,6 +27,7 @@ import { RedTeamCustomAttacksClient } from './custom-attacks-client.js';
 import { RedTeamEulaClient } from './eula-client.js';
 import { RedTeamInstancesClient } from './instances-client.js';
 import { RedTeamNetworkBrokerClient } from './network-broker-client.js';
+import { RedTeamAdaptersClient } from './adapters-client.js';
 import {
   ScanStatisticsResponseSchema,
   ScoreTrendResponseSchema,
@@ -96,6 +97,8 @@ export class RedTeamClient {
   public readonly instances: RedTeamInstancesClient;
   /** Network broker channel operations (distinct network broker base URL). */
   public readonly networkBroker: RedTeamNetworkBrokerClient;
+  /** Management plane custom target adapter operations. */
+  public readonly adapters: RedTeamAdaptersClient;
 
   private readonly dataEndpoint: string;
   private readonly mgmtEndpoint: string;
@@ -144,6 +147,7 @@ export class RedTeamClient {
     });
     this.eula = new RedTeamEulaClient({ baseUrl: mgmtEndpoint, auth, numRetries });
     this.instances = new RedTeamInstancesClient({ baseUrl: mgmtEndpoint, auth, numRetries });
+    this.adapters = new RedTeamAdaptersClient({ baseUrl: mgmtEndpoint, auth, numRetries });
     this.networkBroker = new RedTeamNetworkBrokerClient({
       baseUrl: networkBrokerEndpoint,
       auth,

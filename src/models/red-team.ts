@@ -1053,6 +1053,78 @@ export type TenantLanguagesResponse = z.infer<typeof TenantLanguagesResponseSche
 // ---------------------------------------------------------------------------
 
 /** Shared base fields for target create, update, and probe requests. */
+// ---------------------------------------------------------------------------
+// Adapter variable — used in AdapterCreateRequest.variables and
+// TargetCreateRequest.adapter_variable_overrides
+// ---------------------------------------------------------------------------
+
+export const AdapterVarTypeSchema = z.enum(['VAR', 'SECRET']);
+export type AdapterVarType = z.infer<typeof AdapterVarTypeSchema>;
+
+export const AdapterVarSchema = z.object({
+  key: z.string().max(255),
+  value: z.string().nullable().optional(),
+  type: AdapterVarTypeSchema,
+});
+export type AdapterVar = z.infer<typeof AdapterVarSchema>;
+
+// ---------------------------------------------------------------------------
+// Adapter create / update / response
+// ---------------------------------------------------------------------------
+
+export const AdapterCreateRequestSchema = z
+  .object({
+    name: z.string().max(255),
+    description: z.string().nullable().optional(),
+    script_b64: z.string(),
+    network_broker_channel_uuid: z.string().uuid().nullable().optional(),
+    variables: z.array(AdapterVarSchema).optional(),
+    /** Sample prompt used to exercise the adapter end-to-end during validation. Not stored. */
+    prompt: z.string(),
+  })
+  .strict();
+export type AdapterCreateRequest = z.infer<typeof AdapterCreateRequestSchema>;
+
+export const AdapterUpdateRequestSchema = z
+  .object({
+    name: z.string().max(255).optional(),
+    description: z.string().nullable().optional(),
+    script_b64: z.string().optional(),
+    network_broker_channel_uuid: z.string().uuid().nullable().optional(),
+    variables: z.array(AdapterVarSchema).optional(),
+    prompt: z.string().optional(),
+  })
+  .strict();
+export type AdapterUpdateRequest = z.infer<typeof AdapterUpdateRequestSchema>;
+
+export const AdapterResponseSchema = z
+  .object({
+    uuid: z.string().uuid(),
+    tsg_id: z.string().optional(), // absent from list responses, present on get/create
+    name: z.string(),
+    description: z.string().nullable().optional(),
+    status: z.string(),
+    network_broker_channel_uuid: z.string().uuid().nullable().optional(),
+    variables: z
+      .array(AdapterVarSchema.extend({ value: z.string().nullable().optional() }))
+      .optional(),
+    target_count: z.number().nullable().optional(),
+    created_at: z.string(),
+    updated_at: z.string(),
+    created_by_user_id: z.string().uuid().nullable().optional(),
+    updated_by_user_id: z.string().uuid().nullable().optional(),
+  })
+  .passthrough();
+export type AdapterResponse = z.infer<typeof AdapterResponseSchema>;
+
+export const AdapterListSchema = z
+  .object({
+    pagination: z.object({ total_items: z.number().optional() }).passthrough().optional(),
+    data: z.array(AdapterResponseSchema).optional(),
+  })
+  .passthrough();
+export type AdapterList = z.infer<typeof AdapterListSchema>;
+
 const TargetRequestBaseFields = {
   name: z.string(),
   description: z.string().nullable().optional(),
@@ -1070,6 +1142,10 @@ const TargetRequestBaseFields = {
   additional_context: TargetAdditionalContextSchema.nullable().optional(),
   extra_info: z.record(z.unknown()).nullable().optional(),
   network_broker_channel_uuid: z.string().nullable().optional(),
+  /** UUID of the custom target adapter to use. Required when connection_type is CUSTOM_TARGET_ADAPTER. */
+  adapter_uuid: z.string().uuid().nullable().optional(),
+  /** Per-target overrides for the adapter's variables. Array of AdapterVar objects. */
+  adapter_variable_overrides: z.array(AdapterVarSchema).nullable().optional(),
 } as const;
 
 export const TargetCreateRequestSchema = z.object(TargetRequestBaseFields).strict();
