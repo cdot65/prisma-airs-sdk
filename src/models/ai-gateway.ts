@@ -471,9 +471,43 @@ export const GatewayWorkspaceDetailSchema = z
     security_settings: z.record(z.boolean()).optional(),
     data_plane_security_settings: z.record(z.unknown()).optional(),
     settings: z.record(z.unknown()).optional(),
+    /**
+     * Lifecycle state. **Diverges from the list row**: `list()` reports `'active'` for a
+     * workspace whose `get()` reports `null` (observed live 2026-08-01). Prefer the list value,
+     * or treat a `null` here as "unknown", not as "inactive".
+     */
+    status: z.string().nullable().optional(),
   })
   .passthrough();
 export type GatewayWorkspaceDetail = z.infer<typeof GatewayWorkspaceDetailSchema>;
+
+/**
+ * `POST /ai_gw/admin/v2/workspaces` response — verified live 2026-08-01.
+ *
+ * **The exception to this subsystem's "receipt, not record" write pattern.** `configs.create()`,
+ * `guardrails.create()`, `providers.create()`, and `deployments.create()` each return a 4-5 field
+ * receipt; workspace create returns most of the record instead.
+ *
+ * It is still not the full detail shape — `status`, `is_default`, `icon`, `usage_limits`,
+ * `rate_limits`, and the settings blocks are all absent — so call `get()` when you need those.
+ * Conversely `users` appears here and nowhere else.
+ */
+export const GatewayWorkspaceCreateResponseSchema = z
+  .object({
+    id: z.string(),
+    name: z.string(),
+    slug: z.string(),
+    description: z.string().nullable(),
+    created_at: z.string(),
+    last_updated_at: z.string(),
+    scope_name: z.string(),
+    object: z.string(),
+    defaults: z.record(z.unknown()).nullable().optional(),
+    /** Seeded workspace members. Present on create only. */
+    users: z.array(z.unknown()).optional(),
+  })
+  .passthrough();
+export type GatewayWorkspaceCreateResponse = z.infer<typeof GatewayWorkspaceCreateResponseSchema>;
 
 export const ListWorkspacesResponseSchema = aiGatewayList(GatewayWorkspaceSchema);
 export type ListWorkspacesResponse = z.infer<typeof ListWorkspacesResponseSchema>;

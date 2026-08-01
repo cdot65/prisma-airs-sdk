@@ -7,9 +7,11 @@ import {
   ListWorkspacesResponseSchema,
   GatewayWorkspaceDetailSchema,
   GatewayWriteResponseSchema,
+  GatewayWorkspaceCreateResponseSchema,
   type ListWorkspacesResponse,
   type GatewayWorkspaceDetail,
   type GatewayWriteResponse,
+  type GatewayWorkspaceCreateResponse,
 } from '../models/ai-gateway.js';
 import type {
   AIGatewayPlane,
@@ -125,6 +127,12 @@ export class AIGatewayWorkspacesClient {
    * @param workspaceRef - Workspace UUID **or** slug; the API accepts both.
    * @param options - Plane selection. A workspace outside your workspace scope answers `403 AB03`
    * on the data plane, not `404`; re-read it with `{ plane: 'admin' }`.
+   *
+   * **Archived workspaces are not retrievable here.** Once
+   * {@link AIGatewayWorkspacesClient.delete} has archived a workspace, this returns `404 AB08`
+   * for both its UUID and its slug, on either plane (verified live 2026-08-01) — even though the
+   * row is still listed by `list({ status: 'archived' })`. Treat a 404 after a delete as expected,
+   * and use the list filter to inspect archived workspaces.
    * @returns Workspace detail; list rows do not carry the settings blocks.
    * @example
    * ```ts
@@ -157,9 +165,10 @@ export class AIGatewayWorkspacesClient {
    * Create a workspace. **Admin plane** — needs a tenant-root admin role.
    *
    * @param body - `name` and `scope_name` are both required; the API rejects a body missing either.
-   * @returns The created workspace. **Shape unverified against a live tenant** — typed
-   * permissively, like the other unconfirmed AI Gateway writes. Call
-   * {@link AIGatewayWorkspacesClient.get} for a record you can rely on.
+   * @returns The created workspace. Unlike `configs`/`guardrails`/`providers`/`deployments`,
+   * which return short receipts, this returns most of the record — but not `status`,
+   * `is_default`, `icon`, `usage_limits`, `rate_limits`, or the settings blocks. Call
+   * {@link AIGatewayWorkspacesClient.get} when you need those.
    * @example
    * ```ts
    * import { AIGatewayClient } from '@cdot65/prisma-airs-sdk';
@@ -174,7 +183,7 @@ export class AIGatewayWorkspacesClient {
    * });
    * ```
    */
-  async create(body: GatewayWorkspaceCreateRequest): Promise<GatewayWriteResponse> {
+  async create(body: GatewayWorkspaceCreateRequest): Promise<GatewayWorkspaceCreateResponse> {
     if (!body.name) {
       throw new AISecSDKException('Missing name', ErrorType.USER_REQUEST_PAYLOAD_ERROR);
     }
@@ -186,7 +195,7 @@ export class AIGatewayWorkspacesClient {
       baseUrl: this.adminBaseUrl,
       path: AI_GW_WORKSPACES_PATH,
       body,
-      responseSchema: GatewayWriteResponseSchema,
+      responseSchema: GatewayWorkspaceCreateResponseSchema,
       auth: this.auth,
       numRetries: this.numRetries,
     });
@@ -198,7 +207,9 @@ export class AIGatewayWorkspacesClient {
    * @param workspaceRef - Workspace UUID or slug.
    * @param body - At least one field. An empty patch is rejected locally, mirroring the API's own
    * "No update fields provided" rejection, so a typo'd caller fails without a round trip.
-   * @returns **Shape unverified against a live tenant.**
+   * @returns An **empty object** — the API acknowledges the write without echoing the record
+   * (verified live 2026-08-01). The change does persist; re-read with
+   * {@link AIGatewayWorkspacesClient.get} to see it.
    * @example
    * ```ts
    * import { AIGatewayClient } from '@cdot65/prisma-airs-sdk';
@@ -235,7 +246,9 @@ export class AIGatewayWorkspacesClient {
    * Delete a workspace. **Admin plane.**
    *
    * This is a **soft delete**: the workspace is archived, not destroyed. It vanishes from a default
-   * {@link AIGatewayWorkspacesClient.list} but stays retrievable via `list({ status: 'archived' })`.
+   * {@link AIGatewayWorkspacesClient.list} but stays visible via `list({ status: 'archived' })`.
+   * Note that `list` is the *only* way to see it afterwards —
+   * {@link AIGatewayWorkspacesClient.get} answers `404 AB08` for an archived workspace.
    * Same semantics as `deployments.delete()`, and the opposite of `configs`/`guardrails`/`providers`,
    * which hard delete. There is no hard delete for workspaces.
    *
