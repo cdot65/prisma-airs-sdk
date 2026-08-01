@@ -308,6 +308,22 @@ const summary = audit.records.map((r) => `${r.timestamp} ${r.method} ${r.uri.spl
 
 - **Costs are in cents, everywhere.** `telemetry.cost().data.total`, `groupBy(...).data[].cost`, `byUser(...).data.records[].cost` — none of them are dollars. Divide by 100 yourself: `(cents / 100).toFixed(2)`.
 - **Workspace slug vs. id.** Telemetry (`gw.telemetry.*`) is keyed by `workspaceSlug`; config-plane lists (`gw.configs.list`, `gw.guardrails.list`, `gw.providers.list`, `gw.apiKeys.list*`) are keyed by `workspaceId`. Both come off the same `gw.workspaces.list()` row — `ws.slug` and `ws.id` — but passing one where the other is expected fails.
+- **`workspaces.list()` hides rows by default — twice over.** It returns *active* workspaces only, and only those your service account holds a workspace-scope grant on. Neither omission is visible in the response. To see everything in the tenant:
+
+  ```ts
+  const mine = await gw.workspaces.list(); // active + scoped to you
+  const all = await gw.workspaces.list({ plane: 'admin' }); // every active workspace
+  const archived = await gw.workspaces.list({ plane: 'admin', status: 'archived' });
+  ```
+
+  There is no single call for "active and archived" — the filter is one or the other, so merge two reads if you need both.
+
+- **Workspace refs may be a UUID or a slug.** `gw.workspaces.get('ws-produc-985697')` is as valid as passing the UUID. Reading a workspace you are not scoped to needs `{ plane: 'admin' }` — on the data plane it returns `403 AB03`, not `404`, so a permission problem can read like a missing record.
+
+- **`workspaces.delete()` archives; it does not destroy.** The row survives under `list({ status: 'archived' })`. This matches `deployments.delete()` and contradicts `configs`/`guardrails`/`providers`, which hard delete. There is no hard delete for workspaces.
+
+- **`workspaces.create()` needs a `scope_name`.** It is the SCM role scope granting data-plane access to the new workspace, and it is not derived from `name`. Create one with a scope nobody holds and it simply will not appear in a data-plane `list()` — which is the most common way a freshly created workspace "goes missing".
+
 - **`usage_limits` / `rate_limits` are arrays of policy objects.** On `workspaces.get()` and on the `integrations.getWorkspaces()` rows, these hold zero or more limit policies — not a single settings object. They are typed as a union (array, legacy object, or `null`), so narrow before indexing:
 
   ```ts

@@ -102,6 +102,15 @@ describe('AIGatewayClient', () => {
     it.each(cases)('$name is wired to $expectedOrigin', ({ accessor, expectedOrigin }) => {
       expect(baseUrlOf(accessor())).toBe(expectedOrigin);
     });
+
+    // workspaces is the only sub-client spanning both planes: reads default to data, while writes
+    // and tenant-wide reads go to admin. A missing adminBaseUrl would silently route
+    // create/update/delete at the data plane. See #213.
+    it('workspaces also carries the admin base URL for its write paths', () => {
+      const adminBaseUrlOf = (client: object): string =>
+        (client as unknown as { adminBaseUrl: string }).adminBaseUrl;
+      expect(adminBaseUrlOf(gw.workspaces)).toBe(ADMIN_ENDPOINT);
+    });
   });
 
   describe('x-tsg-id on the wire', () => {

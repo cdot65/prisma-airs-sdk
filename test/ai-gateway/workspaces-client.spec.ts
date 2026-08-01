@@ -34,9 +34,15 @@ describe('AIGatewayWorkspacesClient', () => {
   const originalFetch = globalThis.fetch;
   let client: AIGatewayWorkspacesClient;
 
+  const calledUrl = (): string =>
+    (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0][0] as string;
+  const calledInit = (): RequestInit =>
+    (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0][1] as RequestInit;
+
   beforeEach(() => {
     client = new AIGatewayWorkspacesClient({
       baseUrl: 'https://gw.example.com',
+      adminBaseUrl: 'https://admin.example.com',
       auth: passthroughAuth(),
       numRetries: 0,
     });
@@ -50,14 +56,133 @@ describe('AIGatewayWorkspacesClient', () => {
     const res = await client.list();
 
     expect(res.data[0].slug).toBe('ws-main-a-349e0e');
-    const [url] = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0];
-    expect(url).toBe('https://gw.example.com/workspaces');
+    expect(calledUrl()).toBe('https://gw.example.com/workspaces');
   });
 
-  it('rejects a non-UUID id before issuing a request', async () => {
+  it('rejects a malformed workspace ref before issuing a request', async () => {
     globalThis.fetch = vi.fn();
-    await expect(client.get('not-a-uuid')).rejects.toThrow(AISecSDKException);
+    await expect(client.get('not a workspace!')).rejects.toThrow(AISecSDKException);
     expect(globalThis.fetch).not.toHaveBeenCalled();
+  });
+
+  // The API accepts a slug wherever it accepts a UUID — upstream documents the path param as
+  // "Workspace UUID. Workspace slug is also accepted for backward compatibility", and a bogus
+  // slug returns 404 (recognised key form) rather than 400. See #213.
+  it('accepts a slug as well as a UUID', async () => {
+    mockFetch({ ...sampleWorkspace, defaults: null, usage_limits: null, rate_limits: null });
+    await client.get('ws-produc-985697');
+    expect(calledUrl()).toBe('https://gw.example.com/workspaces/ws-produc-985697');
+  });
+
+  // Found live: an archived workspace created without a description returns `description: null`,
+  // and upstream declares the field `nullable: true`. The list-row schema had it non-nullable,
+  // so list({ status: 'archived' }) threw. See #213.
+  it('parses a null description on list rows', async () => {
+    mockFetch({
+      object: 'list',
+      total: 1,
+      data: [{ ...sampleWorkspace, description: null, status: 'archived' }],
+    });
+    const res = await client.list({ status: 'archived' });
+    expect(res.data[0].description).toBeNull();
+  });
+
+  describe('list filtering and plane selection', () => {
+    it('serialises the status filter in lowercase', async () => {
+      mockFetch({ object: 'list', total: 1, data: [sampleWorkspace] });
+      await client.list({ status: 'archived' });
+      expect(calledUrl()).toBe('https://gw.example.com/workspaces?status=archived');
+    });
+
+    // The data plane returns only workspaces the caller holds a workspace-scope grant on;
+    // the admin plane returns every workspace in the tenant.
+    it('targets the admin plane when asked', async () => {
+      mockFetch({ object: 'list', total: 2, data: [sampleWorkspace] });
+      await client.list({ plane: 'admin' });
+      expect(calledUrl()).toBe('https://admin.example.com/workspaces');
+    });
+
+    it('combines plane and status', async () => {
+      mockFetch({ object: 'list', total: 1, data: [sampleWorkspace] });
+      await client.list({ plane: 'admin', status: 'active' });
+      expect(calledUrl()).toBe('https://admin.example.com/workspaces?status=active');
+    });
+
+    it('reads a workspace through the admin plane when asked', async () => {
+      mockFetch({ ...sampleWorkspace, defaults: null, usage_limits: null, rate_limits: null });
+      await client.get(wsId, { plane: 'admin' });
+      expect(calledUrl()).toBe(`https://admin.example.com/workspaces/${wsId}`);
+    });
+  });
+
+  describe('writes (admin plane)', () => {
+    it('POSTs a create to the admin plane', async () => {
+      mockFetch({ id: wsId, slug: 'ws-new-000000', object: 'workspace' });
+      await client.create({ name: 'New', scope_name: 'ws_new_000000', description: 'x' });
+
+      expect(calledUrl()).toBe('https://admin.example.com/workspaces');
+      const init = calledInit();
+      expect(init.method).toBe('POST');
+      expect(JSON.parse(init.body as string)).toEqual({
+        name: 'New',
+        scope_name: 'ws_new_000000',
+        description: 'x',
+      });
+    });
+
+    it('requires name and scope_name before issuing a request', async () => {
+      globalThis.fetch = vi.fn();
+      await expect(
+        client.create({ name: '', scope_name: 'ws_x' } as Parameters<typeof client.create>[0]),
+      ).rejects.toThrow(AISecSDKException);
+      await expect(
+        client.create({ name: 'x', scope_name: '' } as Parameters<typeof client.create>[0]),
+      ).rejects.toThrow(AISecSDKException);
+      expect(globalThis.fetch).not.toHaveBeenCalled();
+    });
+
+    it('PUTs an update to the admin plane', async () => {
+      mockFetch({ ok: true });
+      await client.update(wsId, { description: 'updated' });
+
+      expect(calledUrl()).toBe(`https://admin.example.com/workspaces/${wsId}`);
+      const init = calledInit();
+      expect(init.method).toBe('PUT');
+      expect(JSON.parse(init.body as string)).toEqual({ description: 'updated' });
+    });
+
+    // The API rejects an empty patch with AB01 "No update fields provided"; fail locally
+    // instead of burning a round trip.
+    it('rejects an empty update before issuing a request', async () => {
+      globalThis.fetch = vi.fn();
+      await expect(client.update(wsId, {})).rejects.toThrow(AISecSDKException);
+      expect(globalThis.fetch).not.toHaveBeenCalled();
+    });
+
+    // Soft delete: the row persists with status 'archived' and is retrievable via
+    // list({ status: 'archived' }). Same semantics as deployments.delete().
+    it('DELETEs against the admin plane with no query params', async () => {
+      mockFetch({});
+      await client.delete(wsId);
+
+      expect(calledUrl()).toBe(`https://admin.example.com/workspaces/${wsId}`);
+      expect(calledInit().method).toBe('DELETE');
+    });
+
+    it.each(['create', 'update', 'delete'] as const)(
+      '%s rejects a malformed ref/body before issuing a request',
+      async (method) => {
+        globalThis.fetch = vi.fn();
+        const call =
+          method === 'create'
+            ? client.create({ name: 'x', scope_name: '' } as Parameters<typeof client.create>[0])
+            : method === 'update'
+              ? client.update('not a ref!', { name: 'x' })
+              : client.delete('not a ref!');
+        await expect(call).rejects.toThrow(AISecSDKException);
+        expect(globalThis.fetch).not.toHaveBeenCalled();
+      },
+    );
   });
 
   // Regression: usage_limits / rate_limits are ARRAYS of policy objects, not objects.
