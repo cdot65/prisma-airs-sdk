@@ -59,4 +59,79 @@ describe('AIGatewayWorkspacesClient', () => {
     await expect(client.get('not-a-uuid')).rejects.toThrow(AISecSDKException);
     expect(globalThis.fetch).not.toHaveBeenCalled();
   });
+
+  // Regression: usage_limits / rate_limits are ARRAYS of policy objects, not objects.
+  // The original schemas were derived from a tenant whose only workspace had `null` for both,
+  // so the array form was never observed and `get()` threw AISEC_RESPONSE_VALIDATION against
+  // any workspace with limits configured. Payload below is captured verbatim from TSG
+  // 1852583913 workspace `Production` (2026-08-01). See issue #211.
+  describe('usage_limits / rate_limits shapes', () => {
+    const detailBase = {
+      id: wsId,
+      name: 'Production',
+      description: 'All production applications',
+      created_at: '2026-07-31T23:48:05.000Z',
+      last_updated_at: '2026-08-01T11:03:22.000Z',
+      is_default: 0,
+      slug: 'ws-produc-985697',
+      icon: null,
+      defaults: { metadata: { env: 'production' } },
+    };
+
+    it('parses populated usage_limits and rate_limits arrays', async () => {
+      mockFetch({
+        ...detailBase,
+        usage_limits: [
+          {
+            id: 'cf8cfd46-d44d-44f9-92d0-c75c9fb6fab6',
+            type: 'cost',
+            status: 'active',
+            credit_limit: 10000,
+            current_usage: 0.06673187500000002,
+            periodic_reset: 'weekly',
+            alert_threshold: 8000,
+            is_exhausted_alerts_sent: false,
+            is_threshold_alerts_sent: false,
+          },
+        ],
+        rate_limits: [{ type: 'requests', unit: 'rpm', value: 100 }],
+      });
+
+      const res = await client.get(wsId);
+
+      const usage = res.usage_limits as Array<Record<string, unknown>>;
+      expect(usage[0].type).toBe('cost');
+      expect(usage[0].credit_limit).toBe(10000);
+      expect(usage[0].periodic_reset).toBe('weekly');
+
+      const rate = res.rate_limits as Array<Record<string, unknown>>;
+      expect(rate[0].unit).toBe('rpm');
+      expect(rate[0].value).toBe(100);
+    });
+
+    it('still parses empty arrays', async () => {
+      mockFetch({ ...detailBase, usage_limits: [], rate_limits: [] });
+      const res = await client.get(wsId);
+      expect(res.usage_limits).toEqual([]);
+      expect(res.rate_limits).toEqual([]);
+    });
+
+    it('still parses null limits', async () => {
+      mockFetch({ ...detailBase, usage_limits: null, rate_limits: null });
+      const res = await client.get(wsId);
+      expect(res.usage_limits).toBeNull();
+      expect(res.rate_limits).toBeNull();
+    });
+
+    it('still parses the object form, so no tenant regresses', async () => {
+      mockFetch({
+        ...detailBase,
+        usage_limits: { credit_limit: 500 },
+        rate_limits: { value: 10 },
+      });
+      const res = await client.get(wsId);
+      expect(res.usage_limits).toEqual({ credit_limit: 500 });
+      expect(res.rate_limits).toEqual({ value: 10 });
+    });
+  });
 });

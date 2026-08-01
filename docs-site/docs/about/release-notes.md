@@ -1,5 +1,17 @@
 # Release Notes
 
+## v0.14.2
+
+### Fixed: workspace usage and rate limits are arrays, not objects
+
+`workspaces.get()` threw `AISEC_RESPONSE_VALIDATION` against any workspace that had usage or rate limits configured. The SDK typed `usage_limits` and `rate_limits` as object-or-null, but the API returns **arrays of policy objects**. The original schemas were derived from a tenant where every occurrence happened to be `null`, so the array form was never observed.
+
+Three schemas carried the same wrong typing and are all corrected: `GatewayWorkspaceDetail`, `GatewayIntegrationWorkspace`, and `GatewayGlobalWorkspaceAccess`. Both fields now accept an array, and the previous object form is still accepted, so no tenant regresses.
+
+Adds two exported schemas/types for the array elements: `GatewayUsageLimit` (`credit_limit`, `type`, `alert_threshold`, `periodic_reset`, `periodic_reset_days`, `next_usage_reset_at`) and `GatewayRateLimit` (`type`, `unit`, `value`). Both are passthrough, so the server-side bookkeeping a live tenant adds — `id`, `status`, `current_usage`, `is_exhausted_alerts_sent`, `is_threshold_alerts_sent` — survives parsing.
+
+If you read these fields, note they are typed as a union. Narrow with `Array.isArray()` before indexing.
+
 ## v0.14.1
 
 ### AI Gateway write-response schemas, verified against a live tenant
