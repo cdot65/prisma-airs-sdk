@@ -1,5 +1,22 @@
 # Release Notes
 
+## v0.16.0
+
+### Red Team custom target adapters
+
+New `rt.adapters` sub-client for the `/v1/adapters` management-plane API, contributed by [@thresh97](https://github.com/thresh97) — the SDK's first external contribution. Custom target adapters are Python scripts deployed into an adapter sidecar alongside the network broker client, giving full control over how attack prompts reach targets with non-standard auth, dynamic tokens, or multi-turn session state.
+
+Six methods: `create()`, `list()`, `get()`, `update()`, `delete()`, and `validate()`. Create and update take a `validate` option (default `true`, matching the server): validated scripts save as `ACTIVE`, unvalidated as `DRAFT`. Validation requires the network broker channel client (v1.4.0+) to be running and ONLINE.
+
+Semantics worth knowing:
+
+- **`update()` is a full replacement (PUT), not a patch** — `name`, `script_b64`, and `prompt` are required. For `variables`, the list defines the complete key set: a provided value sets it, `null` keeps the stored value (unchanged secrets), and omitting a key deletes it.
+- **Secrets are write-only.** `SECRET`-typed response variables come back with `is_redacted: true` and the value masked as `'**********'` (the upstream spec documents `null` here; the live API returns the placeholder — key off `is_redacted`). Pass the masked variable back together with `adapter_uuid` and the stored value is resolved server-side.
+- **`validate()` returns the script's execution outcome** — `{ validated, stdout, stderr, traceback }` — not an adapter record. You must still send the full `variables` array: `adapter_uuid` resolves redacted values *within* it, it does not supply the list. Omitting `variables` runs the script with none set, which usually surfaces as a `KeyError` in `stderr` rather than a clear error.
+- **List rows are a 7-field subset** (no `script_b64`, `tsg_id`, or `variables`); call `get()` for the full record.
+
+Target request schemas gain `adapter_uuid` and `adapter_variable_overrides` (an array of `AdapterVar`, not a map) so `CUSTOM_TARGET_ADAPTER` targets are fully typed.
+
 ## v0.15.0
 
 ### Workspace management

@@ -36,3 +36,8 @@ export {
   type RedTeamNetworkBrokerClientOptions,
   type ChannelListOptions,
 } from './network-broker-client.js';
+export {
+  RedTeamAdaptersClient,
+  type RedTeamAdaptersClientOptions,
+  type AdapterOperationOptions,
+} from './adapters-client.js';

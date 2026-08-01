@@ -350,3 +350,49 @@ export function channelStatsMock(overrides: Record<string, unknown> = {}): Recor
     ...overrides,
   };
 }
+
+/** Spec-shaped CustomTargetAdapterSchema mock (get/create/update responses). */
+export function adapterMock(overrides: Record<string, unknown> = {}): Record<string, unknown> {
+  return {
+    uuid: VALID_UUID,
+    tsg_id: 'tsg-1',
+    name: 'keycloak-agent',
+    script_b64: 'cHJpbnQoImhpIik=',
+    status: 'ACTIVE',
+    description: null,
+    network_broker_channel_uuid: VALID_UUID,
+    variables: [
+      { key: 'endpoint', value: 'http://agent.svc:8080', type: 'VAR', is_redacted: false },
+      { key: 'client_secret', value: null, type: 'SECRET', is_redacted: true },
+    ],
+    created_at: isoNow,
+    updated_at: isoNow,
+    created_by_user_id: VALID_UUID,
+    updated_by_user_id: null,
+    target_count: 0,
+    ...overrides,
+  };
+}
+
+/** Spec-shaped CustomTargetAdapterListItemSchema mock — 7 fields, no script/tsg_id/variables. */
+export function adapterListItemMock(
+  overrides: Record<string, unknown> = {},
+): Record<string, unknown> {
+  return {
+    uuid: VALID_UUID,
+    name: 'keycloak-agent',
+    status: 'DRAFT',
+    created_at: isoNow,
+    updated_at: isoNow,
+    created_by_user_id: null,
+    target_count: null,
+    ...overrides,
+  };
+}
+
+/** Spec-shaped CustomTargetAdapterValidateResponseSchema mock. */
+export function adapterValidateResultMock(
+  overrides: Record<string, unknown> = {},
+): Record<string, unknown> {
+  return { validated: true, stdout: 'ok', stderr: null, traceback: null, ...overrides };
+}
