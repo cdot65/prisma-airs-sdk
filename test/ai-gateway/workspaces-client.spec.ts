@@ -87,6 +87,23 @@ describe('AIGatewayWorkspacesClient', () => {
     expect(res.data[0].description).toBeNull();
   });
 
+  // Observed live: list() reports status 'active' for a workspace whose get() reports
+  // status null. Both forms must parse off the detail schema. See #215.
+  it.each([
+    ['null', null],
+    ['a string', 'active'],
+  ])('parses a detail read with %s status', async (_label, status) => {
+    mockFetch({
+      ...sampleWorkspace,
+      defaults: null,
+      usage_limits: null,
+      rate_limits: null,
+      status,
+    });
+    const res = await client.get(wsId);
+    expect(res.status).toBe(status);
+  });
+
   describe('list filtering and plane selection', () => {
     it('serialises the status filter in lowercase', async () => {
       mockFetch({ object: 'list', total: 1, data: [sampleWorkspace] });
@@ -117,7 +134,16 @@ describe('AIGatewayWorkspacesClient', () => {
 
   describe('writes (admin plane)', () => {
     it('POSTs a create to the admin plane', async () => {
-      mockFetch({ id: wsId, slug: 'ws-new-000000', object: 'workspace' });
+      mockFetch({
+        id: wsId,
+        name: 'New',
+        slug: 'ws-new-000000',
+        description: 'x',
+        created_at: '2026-08-01T19:28:31.697Z',
+        last_updated_at: '2026-08-01T19:28:31.697Z',
+        scope_name: 'ws_new_000000',
+        object: 'workspace',
+      });
       await client.create({ name: 'New', scope_name: 'ws_new_000000', description: 'x' });
 
       expect(calledUrl()).toBe('https://admin.example.com/workspaces');
@@ -128,6 +154,48 @@ describe('AIGatewayWorkspacesClient', () => {
         scope_name: 'ws_new_000000',
         description: 'x',
       });
+    });
+
+    // Captured verbatim from a live create (TSG 1852583913, 2026-08-01). Workspaces are the
+    // exception to this subsystem's "receipt, not record" write pattern — configs, guardrails,
+    // providers, and deployments all return 4-5 field receipts; this returns most of the record.
+    it('parses the full observed create response', async () => {
+      mockFetch({
+        id: 'c3caae0a-1d18-44bf-8cf1-ada3d70de91e',
+        name: 'zz-sdk-probe',
+        slug: 'ws-zz-sdk-8bb9ca',
+        description: 'throwaway; validating SDK write paths',
+        created_at: '2026-08-01T19:28:31.697Z',
+        last_updated_at: '2026-08-01T19:28:31.697Z',
+        defaults: { metadata: { env: 'scratch' } },
+        users: [],
+        scope_name: 'ws_zzsdkprobe_tmp',
+        object: 'workspace',
+      });
+
+      const res = await client.create({ name: 'zz-sdk-probe', scope_name: 'ws_zzsdkprobe_tmp' });
+
+      // Typed access, no cast — this is the point of the named schema.
+      expect(res.id).toBe('c3caae0a-1d18-44bf-8cf1-ada3d70de91e');
+      expect(res.slug).toBe('ws-zz-sdk-8bb9ca');
+      expect(res.scope_name).toBe('ws_zzsdkprobe_tmp');
+      expect(res.users).toEqual([]);
+      expect(res.defaults).toEqual({ metadata: { env: 'scratch' } });
+    });
+
+    it('parses a create response with a null description', async () => {
+      mockFetch({
+        id: wsId,
+        name: 'n',
+        slug: 'ws-n-000000',
+        description: null,
+        created_at: '2026-08-01T19:28:31.697Z',
+        last_updated_at: '2026-08-01T19:28:31.697Z',
+        scope_name: 'ws_n_000000',
+        object: 'workspace',
+      });
+      const res = await client.create({ name: 'n', scope_name: 'ws_n_000000' });
+      expect(res.description).toBeNull();
     });
 
     it('requires name and scope_name before issuing a request', async () => {
@@ -149,6 +217,14 @@ describe('AIGatewayWorkspacesClient', () => {
       const init = calledInit();
       expect(init.method).toBe('PUT');
       expect(JSON.parse(init.body as string)).toEqual({ description: 'updated' });
+    });
+
+    // Verified live: update returns a literal empty object and the change persists (confirmed
+    // by a follow-up get). GatewayWriteResponse is the honest type for {}.
+    it('parses the empty-object update response', async () => {
+      mockFetch({});
+      const res = await client.update(wsId, { description: 'updated via SDK' });
+      expect(res).toEqual({});
     });
 
     // The API rejects an empty patch with AB01 "No update fields provided"; fail locally

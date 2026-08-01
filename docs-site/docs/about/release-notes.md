@@ -1,5 +1,26 @@
 # Release Notes
 
+## v0.17.0
+
+### Workspace write responses are now typed
+
+`workspaces.create()` returned the permissive `GatewayWriteResponse` placeholder, so `created.id` was `unknown` and every field needed a cast. Both write shapes have now been verified against a live tenant, and the *"Shape unverified against a live tenant"* markers are gone.
+
+`create()` returns the new `GatewayWorkspaceCreateResponse`: `{ id, name, slug, description, created_at, last_updated_at, scope_name, object }`, plus optional `defaults` and `users`.
+
+**Workspace create is the exception to this subsystem's "receipt, not record" pattern.** `configs.create()`, `guardrails.create()`, `providers.create()`, and `deployments.create()` each return a 4–5 field receipt; workspace create returns most of the record. It is still not the full detail shape — `status`, `is_default`, `icon`, `usage_limits`, `rate_limits`, and the settings blocks are absent — so call `get()` when you need those. Conversely `users` appears only here.
+
+`update()` keeps `GatewayWriteResponse`, because the API genuinely returns an empty object `{}`. The write does persist; re-read with `get()` to see it. Typing it as anything richer would misrepresent the API.
+
+### Two behaviours worth knowing before you build on this
+
+- **Archived workspaces are not retrievable by `get()`.** After `delete()` archives a workspace, `get()` answers `404 AB08` for both its UUID and its slug, on either plane — even though `list({ status: 'archived' })` still lists it. A 404 following a delete is expected, not an error; use the list filter to inspect archived workspaces.
+- **`status` disagrees between endpoints.** `list()` reports `'active'` for a workspace whose `get()` reports `null`. `GatewayWorkspaceDetail` now types `status` as nullable/optional so it is at least visible; prefer the list value, and read a `null` here as "unknown" rather than "inactive".
+
+### Also fixed
+
+The `update()` JSDoc previously described the `"No update fields provided"` error as unproven inference. It is now confirmed: that message is a **misleading not-found**, not a complaint about your payload. If you hit it, check the workspace ref before the body.
+
 ## v0.16.0
 
 ### Red Team custom target adapters
