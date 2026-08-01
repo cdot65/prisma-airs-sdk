@@ -440,7 +440,9 @@ export const GatewayWorkspaceSchema = z
     slug: z.string(),
     name: z.string(),
     icon: z.string().nullable(),
-    description: z.string(),
+    // Nullable: a workspace created without one returns null, and upstream declares it
+    // `nullable: true`. Observed on an archived workspace (#213).
+    description: z.string().nullable(),
     created_at: z.string(),
     last_updated_at: z.string(),
     is_default: z.number(),
@@ -456,7 +458,8 @@ export const GatewayWorkspaceDetailSchema = z
   .object({
     id: z.string(),
     name: z.string(),
-    description: z.string(),
+    /** Nullable — see `GatewayWorkspaceSchema.description`. */
+    description: z.string().nullable(),
     created_at: z.string(),
     last_updated_at: z.string(),
     is_default: z.number(),

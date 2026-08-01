@@ -1,5 +1,38 @@
 # Release Notes
 
+## v0.15.0
+
+### Workspace management
+
+`gw.workspaces` gains `create()`, `update()`, and `delete()`, all on the admin plane (`/ai_gw/admin/v2/workspaces`). Workspace lifecycle was previously impossible through the SDK.
+
+`create()` requires `name` and `scope_name`. `scope_name` is specific to Prisma AIRS and has no upstream equivalent: it is the SCM role scope that grants data-plane access to the new workspace. It is **not** derived from `name`, and a workspace created with a scope nobody holds will not appear in a data-plane `list()`.
+
+`delete()` is a **soft delete** — the workspace is archived, not destroyed. It disappears from a default `list()` but remains under `list({ status: 'archived' })`. Same semantics as `deployments.delete()`, the opposite of `configs`/`guardrails`/`providers`. There is no hard delete.
+
+Create and update responses are typed permissively and marked *"Shape unverified against a live tenant"*, matching the other unconfirmed AI Gateway writes. Follow a write with `get()` rather than trusting the returned body.
+
+### Fixed: `list()` was hiding workspaces two different ways
+
+`workspaces.list()` now takes an options object, because both of its previous defaults silently omitted rows:
+
+- **Archived workspaces were invisible**, with no way to ask for them. `list({ status: 'archived' })` now works; `status` is `'active' | 'archived'`.
+- **Only workspaces you were scoped to were returned.** The data plane lists just those your service account holds a workspace-scope grant on. `list({ plane: 'admin' })` enumerates the whole tenant.
+
+`list()` with no arguments behaves exactly as before.
+
+### Fixed: `get()` rejected valid identifiers
+
+`get()` validated its argument as a UUID, but the API accepts a workspace **slug** too — upstream documents the path parameter as *"Workspace UUID. Workspace slug is also accepted for backward compatibility."* `get('ws-produc-985697')` now works. `get()` also accepts `{ plane: 'admin' }`, the only way to read a workspace outside your workspace scope; on the data plane those return `403 AB03`, not `404`.
+
+### Fixed: workspace `description` can be null
+
+`GatewayWorkspace.description` and `GatewayWorkspaceDetail.description` were typed non-nullable. A workspace created without a description returns `null`, which threw `AISEC_RESPONSE_VALIDATION`. Both are now nullable, matching the upstream contract.
+
+### Note for direct sub-client construction
+
+`AIGatewayWorkspacesClient` now takes `AIGatewayWorkspacesClientOptions`, which adds a required `adminBaseUrl`. This affects only code constructing the sub-client directly; `new AIGatewayClient()` wires it automatically.
+
 ## v0.14.2
 
 ### Fixed: workspace usage and rate limits are arrays, not objects
