@@ -6,11 +6,14 @@ import { assertUuid } from '../validators.js';
 import {
   AdapterResponseSchema,
   AdapterListSchema,
+  AdapterValidateResponseSchema,
   BaseResponseSchema,
   type AdapterCreateRequest,
   type AdapterUpdateRequest,
+  type AdapterValidateRequest,
   type AdapterResponse,
   type AdapterList,
+  type AdapterValidateResponse,
   type BaseResponse,
 } from '../models/red-team.js';
 import type { RedTeamListOptions } from './scans-client.js';
@@ -148,15 +151,24 @@ export class RedTeamAdaptersClient {
   }
 
   /**
-   * Update an existing adapter.
+   * Update an adapter. **Full replacement (PUT), not a patch** — `name`, `script_b64`, and
+   * `prompt` are required just as on create. For `variables`, the list defines the complete
+   * desired key set: a provided value sets it, `null` keeps the stored value (unchanged
+   * secrets), and omitting a key **deletes** that variable.
    * @param uuid - Adapter UUID.
-   * @param body - Fields to update (all optional).
-   * @param opts - Set validate: false to save without re-running the script.
+   * @param body - The complete adapter definition.
+   * @param opts - Set validate: false to save as DRAFT without re-running the script.
    * @returns The updated adapter.
    * @example
    * ```ts
    * const updated = await rt.adapters.update('550e8400-...', {
+   *   name: 'my-keycloak-agent',
    *   script_b64: Buffer.from(newScript).toString('base64'),
+   *   prompt: 'What is the capital of France?',
+   *   variables: [
+   *     { key: 'endpoint', value: 'http://agent.svc:8080', type: 'VAR' },
+   *     { key: 'client_secret', value: null, type: 'SECRET' }, // null keeps stored secret
+   *   ],
    * });
    * ```
    */
@@ -201,28 +213,32 @@ export class RedTeamAdaptersClient {
   }
 
   /**
-   * Validate an adapter script without saving it.
-   * Runs the script against the configured target using the sample prompt.
-   * @param body - Same payload as create (minus any uuid).
-   * @returns The would-be adapter response if validation passes.
+   * Validate an adapter script without saving anything. Runs the script end-to-end through the
+   * network broker channel using the sample prompt, and returns the execution outcome —
+   * `validated` plus the script's `stdout` / `stderr` / `traceback` — not an adapter record.
+   *
+   * This endpoint has its own request shape: no `name`, `network_broker_channel_uuid` is
+   * required, and `adapter_uuid` may reference an existing adapter so `null` variable values
+   * are resolved from its stored secrets before the run.
+   * @param body - Script, channel, prompt, and optionally variables / an existing adapter UUID.
+   * @returns The validation outcome.
    * @example
    * ```ts
    * const result = await rt.adapters.validate({
-   *   name: 'test',
    *   script_b64: Buffer.from(script).toString('base64'),
    *   network_broker_channel_uuid: '550e8400-...',
-   *   variables: [],
    *   prompt: 'Hello',
    * });
+   * if (!result.validated) console.error(result.stderr ?? result.traceback);
    * ```
    */
-  async validate(body: AdapterCreateRequest): Promise<AdapterResponse> {
+  async validate(body: AdapterValidateRequest): Promise<AdapterValidateResponse> {
     return request({
       method: 'POST',
       baseUrl: this.baseUrl,
       path: RED_TEAM_ADAPTER_VALIDATE_PATH,
       body,
-      responseSchema: AdapterResponseSchema,
+      responseSchema: AdapterValidateResponseSchema,
       auth: this.auth,
       numRetries: this.numRetries,
     });

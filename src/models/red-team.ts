@@ -1049,18 +1049,20 @@ export const TenantLanguagesResponseSchema = z
 export type TenantLanguagesResponse = z.infer<typeof TenantLanguagesResponseSchema>;
 
 // ---------------------------------------------------------------------------
-// Management — Target schemas
+// Management — Custom target adapters (spec: mp-openapi 0.7.67, Adapters service)
 // ---------------------------------------------------------------------------
 
-/** Shared base fields for target create, update, and probe requests. */
-// ---------------------------------------------------------------------------
-// Adapter variable — used in AdapterCreateRequest.variables and
-// TargetCreateRequest.adapter_variable_overrides
-// ---------------------------------------------------------------------------
-
+/** Whether an adapter configuration variable is a plain var or a sensitive secret. */
 export const AdapterVarTypeSchema = z.enum(['VAR', 'SECRET']);
 export type AdapterVarType = z.infer<typeof AdapterVarTypeSchema>;
 
+/**
+ * A single adapter configuration variable, as *sent* in requests (spec `AdapterVarBase`).
+ * Also the shape of `TargetCreateRequest.adapter_variable_overrides` entries.
+ *
+ * On update, `value: null` means "keep the existing value" — the mechanism for leaving a
+ * secret unchanged, since secret values are never returned.
+ */
 export const AdapterVarSchema = z.object({
   key: z.string().max(255),
   value: z.string().nullable().optional(),
@@ -1068,15 +1070,21 @@ export const AdapterVarSchema = z.object({
 });
 export type AdapterVar = z.infer<typeof AdapterVarSchema>;
 
-// ---------------------------------------------------------------------------
-// Adapter create / update / response
-// ---------------------------------------------------------------------------
+/**
+ * A variable as *returned* in adapter responses (spec `AdapterVarResponseSchema`).
+ * Secrets are masked: `value` comes back `null` with `is_redacted: true`.
+ */
+export const AdapterVarResponseSchema = AdapterVarSchema.extend({
+  is_redacted: z.boolean().optional(),
+}).passthrough();
+export type AdapterVarResponse = z.infer<typeof AdapterVarResponseSchema>;
 
 export const AdapterCreateRequestSchema = z
   .object({
     name: z.string().max(255),
     description: z.string().nullable().optional(),
     script_b64: z.string(),
+    /** Optional while the adapter is a DRAFT; required to activate (`validate: true`). */
     network_broker_channel_uuid: z.string().uuid().nullable().optional(),
     variables: z.array(AdapterVarSchema).optional(),
     /** Sample prompt used to exercise the adapter end-to-end during validation. Not stored. */
@@ -1085,46 +1093,117 @@ export const AdapterCreateRequestSchema = z
   .strict();
 export type AdapterCreateRequest = z.infer<typeof AdapterCreateRequestSchema>;
 
+/**
+ * Update is a **full replacement** (PUT): `name`, `script_b64`, and `prompt` are required,
+ * exactly as on create — this is not a partial patch.
+ *
+ * `variables` defines the complete desired key set:
+ * - value provided → set/add the value
+ * - value `null`   → keep the existing value (unchanged secrets)
+ * - key omitted    → **delete** the variable
+ */
 export const AdapterUpdateRequestSchema = z
   .object({
-    name: z.string().max(255).optional(),
+    name: z.string().max(255),
     description: z.string().nullable().optional(),
-    script_b64: z.string().optional(),
+    script_b64: z.string(),
     network_broker_channel_uuid: z.string().uuid().nullable().optional(),
     variables: z.array(AdapterVarSchema).optional(),
-    prompt: z.string().optional(),
+    prompt: z.string(),
   })
   .strict();
 export type AdapterUpdateRequest = z.infer<typeof AdapterUpdateRequestSchema>;
 
+/**
+ * Full adapter record (spec `CustomTargetAdapterSchema`) — returned by get, create, and update.
+ * List rows use the smaller {@link AdapterListItemSchema}.
+ *
+ * `status` values are `DRAFT` | `ACTIVE`; kept as an open string per house convention so a
+ * new upstream status cannot break response parsing.
+ */
 export const AdapterResponseSchema = z
   .object({
     uuid: z.string().uuid(),
-    tsg_id: z.string().optional(), // absent from list responses, present on get/create
+    tsg_id: z.string(),
     name: z.string(),
-    description: z.string().nullable().optional(),
+    script_b64: z.string(),
     status: z.string(),
+    description: z.string().nullable().optional(),
     network_broker_channel_uuid: z.string().uuid().nullable().optional(),
-    variables: z
-      .array(AdapterVarSchema.extend({ value: z.string().nullable().optional() }))
-      .optional(),
-    target_count: z.number().nullable().optional(),
-    created_at: z.string(),
-    updated_at: z.string(),
+    variables: z.array(AdapterVarResponseSchema).optional(),
+    /** Number of targets currently referencing this adapter. */
+    target_count: z.number().int().optional(),
+    created_at: z.string().nullable().optional(),
+    updated_at: z.string().nullable().optional(),
     created_by_user_id: z.string().uuid().nullable().optional(),
     updated_by_user_id: z.string().uuid().nullable().optional(),
   })
   .passthrough();
 export type AdapterResponse = z.infer<typeof AdapterResponseSchema>;
 
+/**
+ * One list row (spec `CustomTargetAdapterListItemSchema`) — a 7-field subset. List rows carry
+ * no `script_b64`, `tsg_id`, `description`, or `variables`; call `get()` for the full record.
+ * `target_count` is populated only when the list was requested with `include_target_count`.
+ */
+export const AdapterListItemSchema = z
+  .object({
+    uuid: z.string().uuid(),
+    name: z.string(),
+    status: z.string(),
+    created_at: z.string(),
+    updated_at: z.string(),
+    created_by_user_id: z.string().uuid().nullable().optional(),
+    target_count: z.number().int().nullable().optional(),
+  })
+  .passthrough();
+export type AdapterListItem = z.infer<typeof AdapterListItemSchema>;
+
 export const AdapterListSchema = z
   .object({
-    pagination: z.object({ total_items: z.number().optional() }).passthrough().optional(),
-    data: z.array(AdapterResponseSchema).optional(),
+    pagination: RedTeamPaginationSchema,
+    data: z.array(AdapterListItemSchema).optional(),
   })
   .passthrough();
 export type AdapterList = z.infer<typeof AdapterListSchema>;
 
+/**
+ * Request for `POST /v1/adapters/validate` (spec `CustomTargetAdapterValidateRequestSchema`).
+ * Deliberately NOT the create request: there is no `name`, `network_broker_channel_uuid` is
+ * **required**, and `adapter_uuid` may reference an existing adapter so redacted/`null`
+ * variable values are resolved from its stored secret before validation.
+ */
+export const AdapterValidateRequestSchema = z
+  .object({
+    script_b64: z.string(),
+    network_broker_channel_uuid: z.string().uuid(),
+    prompt: z.string(),
+    variables: z.array(AdapterVarSchema).optional(),
+    /** Omit when validating a brand-new adapter. */
+    adapter_uuid: z.string().uuid().nullable().optional(),
+  })
+  .strict();
+export type AdapterValidateRequest = z.infer<typeof AdapterValidateRequestSchema>;
+
+/**
+ * Result of a validation run (spec `CustomTargetAdapterValidateResponseSchema`) — the script's
+ * execution outcome, not an adapter record.
+ */
+export const AdapterValidateResponseSchema = z
+  .object({
+    validated: z.boolean(),
+    stdout: z.string().nullable().optional(),
+    stderr: z.string().nullable().optional(),
+    traceback: z.string().nullable().optional(),
+  })
+  .passthrough();
+export type AdapterValidateResponse = z.infer<typeof AdapterValidateResponseSchema>;
+
+// ---------------------------------------------------------------------------
+// Management — Target schemas
+// ---------------------------------------------------------------------------
+
+/** Shared base fields for target create, update, and probe requests. */
 const TargetRequestBaseFields = {
   name: z.string(),
   description: z.string().nullable().optional(),
