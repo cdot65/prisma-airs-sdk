@@ -1072,7 +1072,11 @@ export type AdapterVar = z.infer<typeof AdapterVarSchema>;
 
 /**
  * A variable as *returned* in adapter responses (spec `AdapterVarResponseSchema`).
- * Secrets are masked: `value` comes back `null` with `is_redacted: true`.
+ *
+ * Secrets are masked with `is_redacted: true`. The spec says the masked `value` is `null`, but a
+ * live tenant returns the literal placeholder string `'**********'` (verified 2026-08-01) — so
+ * treat `is_redacted`, not the value, as the signal. Either form round-trips: pass the variable
+ * back on validate/update alongside `adapter_uuid` and the real value is resolved from storage.
  */
 export const AdapterVarResponseSchema = AdapterVarSchema.extend({
   is_redacted: z.boolean().optional(),

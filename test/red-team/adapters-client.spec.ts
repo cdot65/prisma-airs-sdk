@@ -106,6 +106,23 @@ describe('RedTeamAdaptersClient', () => {
       expect(secret?.is_redacted).toBe(true);
     });
 
+    // Live tenants mask secrets with the literal string '**********' rather than the `null`
+    // the spec documents (verified 2026-08-01). Both forms must parse — callers key off
+    // `is_redacted`, and either value round-trips through validate/update with adapter_uuid.
+    it('parses the masked-placeholder form of a redacted secret', async () => {
+      mockFetch(
+        adapterMock({
+          variables: [
+            { key: 'client_secret', value: '**********', type: 'SECRET', is_redacted: true },
+          ],
+        }),
+      );
+      const result = await client.get(VALID_UUID);
+      const secret = result.variables?.[0];
+      expect(secret?.value).toBe('**********');
+      expect(secret?.is_redacted).toBe(true);
+    });
+
     it('rejects a non-UUID before issuing a request', async () => {
       globalThis.fetch = vi.fn();
       await expect(client.get('not-a-uuid')).rejects.toThrow(AISecSDKException);
