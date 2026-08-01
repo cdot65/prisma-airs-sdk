@@ -6,6 +6,7 @@ import { RedTeamCustomAttackReportsClient } from '../../src/red-team/custom-atta
 import { RedTeamTargetsClient } from '../../src/red-team/targets-client.js';
 import { RedTeamCustomAttacksClient } from '../../src/red-team/custom-attacks-client.js';
 import { RedTeamNetworkBrokerClient } from '../../src/red-team/network-broker-client.js';
+import { RedTeamAdaptersClient } from '../../src/red-team/adapters-client.js';
 import { AISecSDKException } from '../../src/errors.js';
 
 const validUuid = '550e8400-e29b-41d4-a716-446655440000';
@@ -31,6 +32,22 @@ describe('RedTeamClient', () => {
     expect(client.targets).toBeInstanceOf(RedTeamTargetsClient);
     expect(client.customAttacks).toBeInstanceOf(RedTeamCustomAttacksClient);
     expect(client.networkBroker).toBeInstanceOf(RedTeamNetworkBrokerClient);
+    expect(client.adapters).toBeInstanceOf(RedTeamAdaptersClient);
+  });
+
+  // adapters is a management-plane sub-client; a data-plane swap would send every adapter
+  // call to the wrong host. Reads the private baseUrl through a test-only cast, matching
+  // how the AI Gateway plane-wiring assertions work.
+  it('wires adapters to the management plane', () => {
+    const client = new RedTeamClient({
+      clientId: 'cid',
+      clientSecret: 'csec',
+      tsgId: '999',
+      mgmtEndpoint: 'https://mgmt.example.com',
+      dataEndpoint: 'https://data.example.com',
+    });
+    const baseUrlOf = (c: object): string => (c as unknown as { baseUrl: string }).baseUrl;
+    expect(baseUrlOf(client.adapters)).toBe('https://mgmt.example.com');
   });
 
   it('accepts a custom network broker endpoint', () => {
