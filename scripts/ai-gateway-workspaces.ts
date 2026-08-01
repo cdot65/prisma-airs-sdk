@@ -14,12 +14,14 @@
  * 2. **Delete archives, it does not destroy.** The workspace disappears from the default list but
  *    remains under `--status archived`. There is no hard delete.
  *
- * VERIFICATION STATUS (probed live 2026-08-01 against TSG 1852583913):
- *   list / get      VERIFIED, including the status filter, admin-plane routing, and slug refs.
- *   create/update/delete  Endpoints exist and their request contracts are confirmed, but no 2xx
- *                   has been observed — the SDK types those responses permissively and marks them
- *                   "Shape unverified against a live tenant". Use --dry-run first, and follow any
- *                   write with `get` rather than trusting the returned body.
+ * VERIFICATION STATUS — all six paths verified live against TSG 1852583913 (2026-08-01), via a
+ * full create -> get -> update -> get -> delete round-trip:
+ *   list / get      status filter, admin-plane routing, and slug refs all confirmed.
+ *   create          returns most of the record (not the 4-5 field receipt the rest of this
+ *                   subsystem uses), typed as GatewayWorkspaceCreateResponse.
+ *   update          returns a literal {}. The write lands; re-read with `get` to see it.
+ *   delete          archives rather than destroys. Afterwards `get` answers 404 AB08 for both
+ *                   UUID and slug — `list --status archived` is the only way to see the row.
  *
  * Requires PANW_AI_GW_* in the environment, falling back to PANW_MGMT_*. Writes and `--plane admin`
  * need a tenant-root admin role; a workspace-scoped role alone yields 403.
