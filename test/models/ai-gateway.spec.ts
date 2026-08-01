@@ -19,6 +19,10 @@ import {
   GatewayAuditLogsResponseSchema,
   ListMcpIntegrationsResponseSchema,
   GatewayIntegrationWorkspacesResponseSchema,
+  GatewayWorkspaceDetailSchema,
+  GatewayGlobalWorkspaceAccessSchema,
+  GatewayUsageLimitSchema,
+  GatewayRateLimitSchema,
 } from '../../src/models/ai-gateway.js';
 
 describe('AI Gateway telemetry schemas', () => {
@@ -448,5 +452,85 @@ describe('AI Gateway resource schemas', () => {
       ],
     });
     expect(r.records[0].method).toBe('DELETE');
+  });
+});
+
+/**
+ * Regression suite for #211.
+ *
+ * `usage_limits` / `rate_limits` are ARRAYS of policy objects. They were originally modelled as
+ * `record | null` because the tenant these schemas were derived from returned `null` for every
+ * occurrence, so the array form was never observed — and `workspaces.get()` threw
+ * AISEC_RESPONSE_VALIDATION against any workspace that had limits configured.
+ *
+ * Payloads here are captured verbatim from TSG 1852583913 (2026-08-01).
+ */
+describe('AI Gateway usage/rate limit shapes', () => {
+  const liveUsageLimit = {
+    id: 'cf8cfd46-d44d-44f9-92d0-c75c9fb6fab6',
+    type: 'cost',
+    status: 'active',
+    credit_limit: 10000,
+    current_usage: 0.06673187500000002,
+    periodic_reset: 'weekly',
+    alert_threshold: 8000,
+    is_exhausted_alerts_sent: false,
+    is_threshold_alerts_sent: false,
+  };
+  const liveRateLimit = { type: 'requests', unit: 'rpm', value: 1000 };
+
+  const workspaceDetail = (limits: Record<string, unknown>) => ({
+    id: 'ff9a513e-2625-4677-9c41-eecdab839f7c',
+    name: 'Production',
+    description: 'All production applications',
+    created_at: '2026-07-31T23:48:05.000Z',
+    last_updated_at: '2026-08-01T11:03:22.000Z',
+    is_default: 0,
+    slug: 'ws-produc-985697',
+    icon: null,
+    defaults: { metadata: { env: 'production' } },
+    ...limits,
+  });
+
+  it('keeps server-side bookkeeping fields the upstream spec omits', () => {
+    const r = GatewayUsageLimitSchema.parse(liveUsageLimit);
+    expect(r.credit_limit).toBe(10000);
+    expect(r.periodic_reset).toBe('weekly');
+    // passthrough: `status` / `current_usage` are not in the Portkey contract but must survive
+    expect((r as Record<string, unknown>).status).toBe('active');
+    expect((r as Record<string, unknown>).current_usage).toBeCloseTo(0.0667);
+  });
+
+  it('parses a rate-limit policy', () => {
+    const r = GatewayRateLimitSchema.parse(liveRateLimit);
+    expect(r.type).toBe('requests');
+    expect(r.unit).toBe('rpm');
+    expect(r.value).toBe(1000);
+  });
+
+  it('parses workspace detail with populated limit arrays', () => {
+    const r = GatewayWorkspaceDetailSchema.parse(
+      workspaceDetail({ usage_limits: [liveUsageLimit], rate_limits: [liveRateLimit] }),
+    );
+    expect((r.usage_limits as Array<Record<string, unknown>>)[0].credit_limit).toBe(10000);
+    expect((r.rate_limits as Array<Record<string, unknown>>)[0].value).toBe(1000);
+  });
+
+  it.each([
+    ['null', { usage_limits: null, rate_limits: null }],
+    ['empty arrays', { usage_limits: [], rate_limits: [] }],
+    ['legacy object form', { usage_limits: { credit_limit: 5 }, rate_limits: { value: 5 } }],
+  ])('still parses workspace detail with %s limits', (_label, limits) => {
+    expect(() => GatewayWorkspaceDetailSchema.parse(workspaceDetail(limits))).not.toThrow();
+  });
+
+  it('parses global_workspace_access limit arrays', () => {
+    const r = GatewayGlobalWorkspaceAccessSchema.parse({
+      enabled: true,
+      rate_limits: [liveRateLimit],
+      usage_limits: [liveUsageLimit],
+    });
+    expect((r.rate_limits as Array<Record<string, unknown>>)[0].unit).toBe('rpm');
+    expect((r.usage_limits as Array<Record<string, unknown>>)[0].type).toBe('cost');
   });
 });
