@@ -35,6 +35,51 @@ const aiGatewayList = <T extends z.ZodTypeAny>(item: T) =>
     })
     .passthrough();
 
+/**
+ * One usage-limit policy. Attached to workspaces and to integration/workspace bindings.
+ *
+ * Every field is optional: the upstream contract defines `credit_limit`, `type`,
+ * `alert_threshold`, `periodic_reset`, `periodic_reset_days` and `next_usage_reset_at`, but a live
+ * tenant also returns server-side bookkeeping the spec omits (`id`, `status`, `current_usage`,
+ * `is_exhausted_alerts_sent`, `is_threshold_alerts_sent`). Passthrough keeps those rather than
+ * stripping them, and optionality means a partial policy from either side still parses.
+ */
+export const GatewayUsageLimitSchema = z
+  .object({
+    credit_limit: z.number().optional(),
+    type: z.string().optional(),
+    alert_threshold: z.number().optional(),
+    periodic_reset: z.string().nullable().optional(),
+    periodic_reset_days: z.number().nullable().optional(),
+    next_usage_reset_at: z.string().nullable().optional(),
+  })
+  .passthrough();
+export type GatewayUsageLimit = z.infer<typeof GatewayUsageLimitSchema>;
+
+/** One rate-limit policy: `type` requests|tokens, `unit` rpd|rph|rpm, `value`. */
+export const GatewayRateLimitSchema = z
+  .object({
+    type: z.string().optional(),
+    unit: z.string().optional(),
+    value: z.number().optional(),
+  })
+  .passthrough();
+export type GatewayRateLimit = z.infer<typeof GatewayRateLimitSchema>;
+
+/**
+ * `usage_limits` / `rate_limits` as they actually appear on the wire.
+ *
+ * These are **arrays** of policy objects. They were originally modelled as `record | null`,
+ * because the tenant the schemas were derived from had `null` for every occurrence and the array
+ * form was never observed — which made `workspaces.get()` throw AISEC_RESPONSE_VALIDATION against
+ * any workspace that actually had limits configured (issue #211).
+ *
+ * The union keeps the old object form accepted. Dropping it would be a gratuitous breaking change
+ * for any tenant or endpoint that does return an object, and costs nothing to retain.
+ */
+const limitsField = <T extends z.ZodTypeAny>(policy: T) =>
+  z.union([z.array(policy), z.record(z.unknown())]).nullable();
+
 /** Envelope C: `logs/groups/*` — note `is_quota_exceeded` is snake_case here only. */
 const aiGatewayGroupList = <T extends z.ZodTypeAny>(item: T) =>
   z
@@ -395,7 +440,9 @@ export const GatewayWorkspaceSchema = z
     slug: z.string(),
     name: z.string(),
     icon: z.string().nullable(),
-    description: z.string(),
+    // Nullable: a workspace created without one returns null, and upstream declares it
+    // `nullable: true`. Observed on an archived workspace (#213).
+    description: z.string().nullable(),
     created_at: z.string(),
     last_updated_at: z.string(),
     is_default: z.number(),
@@ -411,15 +458,16 @@ export const GatewayWorkspaceDetailSchema = z
   .object({
     id: z.string(),
     name: z.string(),
-    description: z.string(),
+    /** Nullable — see `GatewayWorkspaceSchema.description`. */
+    description: z.string().nullable(),
     created_at: z.string(),
     last_updated_at: z.string(),
     is_default: z.number(),
     slug: z.string(),
     icon: z.string().nullable(),
     defaults: z.record(z.unknown()).nullable(),
-    usage_limits: z.record(z.unknown()).nullable(),
-    rate_limits: z.record(z.unknown()).nullable(),
+    usage_limits: limitsField(GatewayUsageLimitSchema),
+    rate_limits: limitsField(GatewayRateLimitSchema),
     security_settings: z.record(z.boolean()).optional(),
     data_plane_security_settings: z.record(z.unknown()).optional(),
     settings: z.record(z.unknown()).optional(),
@@ -672,8 +720,8 @@ export type GatewayIntegrationModelsResponse = z.infer<
 export const GatewayIntegrationWorkspaceSchema = z
   .object({
     id: z.string(),
-    usage_limits: z.record(z.unknown()).nullable(),
-    rate_limits: z.record(z.unknown()).nullable(),
+    usage_limits: limitsField(GatewayUsageLimitSchema),
+    rate_limits: limitsField(GatewayRateLimitSchema),
     enabled: z.boolean(),
     status: z.string(),
     created_at: z.string(),
@@ -691,8 +739,8 @@ export type GatewayIntegrationWorkspace = z.infer<typeof GatewayIntegrationWorks
 export const GatewayGlobalWorkspaceAccessSchema = z
   .object({
     enabled: z.boolean(),
-    rate_limits: z.record(z.unknown()).nullable(),
-    usage_limits: z.record(z.unknown()).nullable(),
+    rate_limits: limitsField(GatewayRateLimitSchema),
+    usage_limits: limitsField(GatewayUsageLimitSchema),
   })
   .passthrough();
 export type GatewayGlobalWorkspaceAccess = z.infer<typeof GatewayGlobalWorkspaceAccessSchema>;

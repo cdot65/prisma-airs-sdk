@@ -119,7 +119,8 @@ export class AIGatewayClient {
     const adminOpts = { baseUrl: adminEndpoint, auth, numRetries };
 
     this.telemetry = new AIGatewayTelemetryClient({ ...dataOpts, tsgId });
-    this.workspaces = new AIGatewayWorkspacesClient(dataOpts);
+    // The one sub-client needing both planes: reads default to data, writes are admin-only.
+    this.workspaces = new AIGatewayWorkspacesClient({ ...dataOpts, adminBaseUrl: adminEndpoint });
     this.configs = new AIGatewayConfigsClient(dataOpts);
     this.guardrails = new AIGatewayGuardrailsClient(dataOpts);
     this.providers = new AIGatewayProvidersClient(dataOpts);

@@ -134,6 +134,38 @@ describe('AIGatewayIntegrationsClient', () => {
     expect(url).toBe(`https://admin.example.com/integrations/${intId}/workspaces`);
   });
 
+  // Regression for #211: these carry the same usage_limits/rate_limits fields as the workspace
+  // detail schema, and were typed object-or-null from the same null-only observation. The API
+  // models them as arrays of policy objects.
+  it('parses array-form usage_limits/rate_limits on the workspaces sub-resource', async () => {
+    mockFetch({
+      workspaces: [
+        {
+          id: '16f7e90d-382a-4e78-b577-1b01eb5f8297',
+          usage_limits: [{ type: 'cost', credit_limit: 10000, periodic_reset: 'weekly' }],
+          rate_limits: [{ type: 'requests', unit: 'rpm', value: 100 }],
+          enabled: true,
+          status: 'active',
+          created_at: '2026-07-16T15:48:18.000Z',
+          last_updated_at: '2026-07-17T12:25:22.000Z',
+          last_reset_at: null,
+        },
+      ],
+      global_workspace_access: {
+        enabled: true,
+        rate_limits: [{ type: 'tokens', unit: 'rph', value: 5000 }],
+        usage_limits: [{ type: 'tokens', credit_limit: 250 }],
+      },
+      object: 'integration',
+    });
+    const res = await client.getWorkspaces(intId);
+
+    const wsUsage = res.workspaces[0].usage_limits as Array<Record<string, unknown>>;
+    expect(wsUsage[0].credit_limit).toBe(10000);
+    const globalRate = res.global_workspace_access.rate_limits as Array<Record<string, unknown>>;
+    expect(globalRate[0].value).toBe(5000);
+  });
+
   it('PUTs the workspaces sub-resource', async () => {
     mockFetch({});
     await client.setWorkspaces(intId, { global_workspace_access: true });

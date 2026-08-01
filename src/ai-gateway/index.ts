@@ -9,8 +9,16 @@ export { type AIGatewayWindowOptions } from './window.js';
 export {
   type AIGatewaySubClientOptions,
   type AIGatewayWorkspaceScopedListOptions,
+  type AIGatewayWorkspacesClientOptions,
+  type AIGatewayWorkspaceListOptions,
+  type AIGatewayWorkspaceGetOptions,
+  type AIGatewayPlane,
 } from './types.js';
-export { AIGatewayWorkspacesClient } from './workspaces-client.js';
+export {
+  AIGatewayWorkspacesClient,
+  type GatewayWorkspaceCreateRequest,
+  type GatewayWorkspaceUpdateRequest,
+} from './workspaces-client.js';
 export { AIGatewayConfigsClient, type GatewayConfigCreateRequest } from './configs-client.js';
 export {
   AIGatewayGuardrailsClient,
