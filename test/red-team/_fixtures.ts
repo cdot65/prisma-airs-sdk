@@ -396,3 +396,14 @@ export function adapterValidateResultMock(
 ): Record<string, unknown> {
   return { validated: true, stdout: 'ok', stderr: null, traceback: null, ...overrides };
 }
+
+/** GET /v1/adapters/config response mock. */
+export function adapterConfigMock(
+  overrides: Record<string, unknown> = {},
+): Record<string, unknown> {
+  return {
+    default_script_b64: 'ZGVmIHByZV9wcm9jZXNz',
+    default_test_prompt: 'What is the capital of France?',
+    ...overrides,
+  };
+}

@@ -80,7 +80,7 @@ Token fetch, caching, and refresh are handled automatically. Retries (up to 5) u
 
 ## Sub-Clients
 
-The `RedTeamClient` exposes eight sub-clients:
+The `RedTeamClient` exposes nine sub-clients:
 
 | Sub-Client            | Plane          | Access                       |
 | --------------------- | -------------- | ---------------------------- |
@@ -88,6 +88,7 @@ The `RedTeamClient` exposes eight sub-clients:
 | `reports`             | Data           | `client.reports`             |
 | `customAttackReports` | Data           | `client.customAttackReports` |
 | `targets`             | Management     | `client.targets`             |
+| `adapters`            | Management     | `client.adapters`            |
 | `customAttacks`       | Management     | `client.customAttacks`       |
 | `eula`                | Management     | `client.eula`                |
 | `instances`           | Management     | `client.instances`           |
@@ -501,6 +502,84 @@ console.log(stats.online_channels, stats.total_channels);
 ```
 
 Channel statuses are `ONLINE`, `OFFLINE`, and `DRAFT` (see the `ChannelStatus` enum).
+
+## Custom Target Adapters
+
+When a built-in connector or template can't describe how to reach your target — dynamic auth, a non-standard protocol, per-turn session state — a custom target adapter takes over. It's a small Python script that runs in an adapter sidecar alongside the network broker client; the `adapters` sub-client lets you **author, validate, and manage those scripts from code** instead of pasting them into the console.
+
+The script builds each request and extracts each reply, so the adapter owns the full round trip. A target opts in by setting `connection_type: 'CUSTOM_TARGET_ADAPTER'` and referencing the adapter's UUID.
+
+:::tip[Start from the built-in template]
+Call `client.adapters.getConfig()` for a starter script and default test prompt — the same skeleton the console editor prefills — then edit it rather than writing an adapter from scratch.
+:::
+
+```ts
+// Fetch the starter template.
+const { default_script_b64, default_test_prompt } = await client.adapters.getConfig();
+
+// Author an adapter. Variables are VAR (plain) or SECRET (masked everywhere).
+const adapter = await client.adapters.create({
+  name: 'prod-agent',
+  script_b64: Buffer.from(myScript).toString('base64'),
+  network_broker_channel_uuid: channel.uuid!,
+  variables: [
+    { key: 'endpoint', value: 'http://agent.internal:8080/v1/chat/completions', type: 'VAR' },
+    { key: 'api_key', value: process.env.AGENT_KEY!, type: 'SECRET' },
+  ],
+  prompt: 'What is the capital of France?', // exercises the script end-to-end during validation
+});
+```
+
+By default the service runs the script against its target and saves the adapter as `ACTIVE` on success (`DRAFT` on failure). Validation requires the network broker client (v1.4.0+) to be running and `ONLINE`. Pass `{ validate: false }` to save a `DRAFT` without running it.
+
+```ts
+// Save a draft without running the script.
+const draft = await client.adapters.create(body, { validate: false });
+
+// List, get, update, delete.
+const { data } = await client.adapters.list({ limit: 20 });
+const detail = await client.adapters.get(adapter.uuid);
+await client.adapters.update(adapter.uuid, {
+  name: 'prod-agent',
+  script_b64: Buffer.from(newScript).toString('base64'),
+  prompt: 'What is the capital of France?',
+  variables: [
+    { key: 'endpoint', value: 'http://agent.internal:8080/v1/chat/completions', type: 'VAR' },
+    { key: 'api_key', value: null, type: 'SECRET' }, // null keeps the stored secret unchanged
+  ],
+});
+await client.adapters.delete(adapter.uuid);
+```
+
+Dry-run a script before saving with `validate()` — it returns the execution result (not a saved adapter), so you can surface `stderr`/`traceback` in your own tooling. Supply `adapter_uuid` to resolve redacted secret values from an existing adapter.
+
+```ts
+const result = await client.adapters.validate({
+  script_b64: Buffer.from(myScript).toString('base64'),
+  network_broker_channel_uuid: channel.uuid!,
+  prompt: 'What is the capital of France?',
+});
+if (!result.validated) console.error(result.stderr ?? result.traceback);
+```
+
+Point a target at the adapter and override any per-target variables inline:
+
+```ts
+const target = await client.targets.create({
+  name: 'prod-agent-target',
+  target_type: 'AGENT',
+  connection_type: 'CUSTOM_TARGET_ADAPTER',
+  adapter_uuid: adapter.uuid,
+  adapter_variable_overrides: [
+    { key: 'endpoint', value: 'http://agent.staging:8080/v1/chat/completions', type: 'VAR' },
+  ],
+});
+
+// Later, find every target using a given adapter.
+const { data: usingAdapter } = await client.targets.list({ adapter_uuid: adapter.uuid });
+```
+
+Adapter statuses are `ACTIVE` and `DRAFT` (see the `CustomTargetAdapterStatus` enum).
 
 ## Custom Attacks
 
