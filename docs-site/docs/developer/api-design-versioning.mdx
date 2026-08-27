@@ -17,7 +17,7 @@ listing of every exported type and schema. This page is about the _policy_ aroun
 ## Semantic versioning (pre-1.0)
 
 The SDK is published as `@cdot65/prisma-airs-sdk`. At the time of writing the version in
-`package.json` is **`0.12.0`** — i.e. **pre-1.0**.
+`package.json` is **`0.17.0`** — i.e. **pre-1.0**.
 
 Under pre-1.0 semver, the usual guarantees shift down one level:
 
@@ -74,10 +74,12 @@ preflight's strict checks on required fields and shared field types are what gua
 
 ## Relationship to the OpenAPI specs and the Python SDK
 
-The SDK is modeled directly from Palo Alto Networks' OpenAPI specifications, checked into `specs/`:
+Most SDK schemas are modeled directly from Palo Alto Networks' OpenAPI specifications. For local
+pre-release checks, this repository expects a gitignored `schemas/` directory of symlinks to a local
+`openapi-specs` checkout:
 
 ```text
-specs/
+schemas/
   ScanService_Oct2025.yaml                       # scan API
   mgmt_service_docs.yaml                          # management API
   AIRS-Model-Security-DataPlane.yaml             # model security (data)
@@ -90,26 +92,34 @@ specs/
     ...                                           # plus not-yet-modeled DLP endpoints
 ```
 
-These specs are the **source of truth for shapes**. The Zod schemas in `src/models/` are the
-hand-written, runtime-validating counterpart, and the preflight gate (below) continuously checks
-that the two agree.
+These specs are the **source of truth for shapes** where a published spec exists. The Zod schemas in
+`src/models/` are the hand-written, runtime-validating counterpart, and the preflight script (below)
+checks that the modeled specs and implemented schemas agree.
 
 The SDK also tracks the official Python `pan-aisecurity` SDK conceptually — files like
 `src/errors.ts` and `src/constants.ts` carry `mirrors Python SDK` comments — but it deliberately
-**extends beyond** it: the Python SDK covers scanning, whereas this SDK covers all three service
-domains (AI Runtime Security, Model Security, AI Red Teaming) plus configuration/DLP management.
+**extends beyond** it: the Python SDK covers scanning, whereas this SDK also covers Management and
+DLP, Model Security, AI Red Teaming, and AI Gateway.
+
+:::note[AI Gateway is unspecced]
+The AI Gateway API does not currently have a published OpenAPI spec in the local preflight set.
+Its schemas live in `src/models/ai-gateway.ts` and are excluded from `npm run preflight` by the
+`UNSPECCED_MODEL_FILES` list in `scripts/preflight-schemas.ts`. Use `npm run smoke:ai-gateway`
+against a live tenant when you need an end-to-end schema check for that subsystem.
+:::
 
 :::note[Why some DLP specs are excluded]
-`specs/dlp/` contains more yaml than the SDK models. The preflight script whitelists only the
+`schemas/dlp/` can contain more yaml than the SDK models. The preflight script whitelists only the
 four DLP specs that are actually implemented (`DataFilteringProfiles`, `DataPatterns`,
 `DataProfiles`, `Dictionaries`). Loading the rest would create component-name collisions (e.g.
 two different `Policy` definitions) and produce false drift against unrelated schemas.
 :::
-## Preflight: catching Zod-vs-OpenAPI drift in CI
+## Preflight: catching Zod-vs-OpenAPI drift locally
 
-`npm run preflight` (`scripts/preflight-schemas.ts`) is the static drift gate. It:
+`npm run preflight` (`scripts/preflight-schemas.ts`) is the static drift check. It:
 
-1. Loads and dereferences every OpenAPI spec in `specs/` into a map of component schemas.
+1. Loads and dereferences the explicitly modeled OpenAPI specs linked under `schemas/` into a map of
+   component schemas.
 2. Loads every `*Schema` Zod export from `src/models/` and converts each to JSON Schema via
    `zod-to-json-schema`.
 3. Matches each Zod schema to its OpenAPI counterpart by name and diffs them.
@@ -120,15 +130,15 @@ shared field types are checked strictly**. It reports four drift kinds: `missing
 `extra-required-field`, `type-mismatch`, and `extra-field`.
 
 ```bash
-npm run preflight        # strict — exit 1 on unacknowledged drift (CI gate)
+npm run preflight        # strict — exit 1 on unacknowledged drift
 npm run preflight:warn   # report drift, exit 0
 ```
 
 Known, intentional divergences are recorded in an **allowlist** (`scripts/preflight/allowlist.ts`).
 The report separates _acknowledged_ (allowlisted) drift from _unacknowledged_ drift, and only the
-latter fails the build. The gate started life as `preflight:warn` in CI while drift was paid down
-(81 → 39 findings across a series of PRs) and then flipped to strict. Run `preflight` before tagging
-a release.
+latter fails the command. Because `schemas/` is gitignored local state, preflight is a local /
+pre-release check rather than a GitHub Actions gate. Run `preflight` before tagging a release or
+after API-side schema changes.
 
 ## Documentation checks
 

@@ -13,20 +13,23 @@ The SDK has **zero external HTTP dependencies** — it is built on the runtime's
 
 ## Service domains and auth methods
 
-The SDK covers four service domains. They split across exactly two authentication methods:
+The SDK covers five service domains. They split across exactly two authentication methods:
 
-| Domain         | Entry point           | Auth                      | Base URL constant               |
-| -------------- | --------------------- | ------------------------- | ------------------------------- |
+| Domain         | Entry point           | Auth                             | Base URL constant               |
+| -------------- | --------------------- | -------------------------------- | ------------------------------- |
 | Scan API       | `init()` + `Scanner`  | API key HMAC and/or bearer token | `DEFAULT_ENDPOINT`              |
-| Management API | `ManagementClient`    | OAuth2 client_credentials | `DEFAULT_MGMT_ENDPOINT` (+ DLP) |
-| Model Security | `ModelSecurityClient` | OAuth2 client_credentials | `DEFAULT_MODEL_SEC_*_ENDPOINT`  |
-| Red Team       | `RedTeamClient`       | OAuth2 client_credentials | `DEFAULT_RED_TEAM_*_ENDPOINT`   |
+| Management API | `ManagementClient`    | OAuth2 client_credentials        | `DEFAULT_MGMT_ENDPOINT` (+ DLP) |
+| Model Security | `ModelSecurityClient` | OAuth2 client_credentials        | `DEFAULT_MODEL_SEC_*_ENDPOINT`  |
+| Red Team       | `RedTeamClient`       | OAuth2 client_credentials        | `DEFAULT_RED_TEAM_*_ENDPOINT`   |
+| AI Gateway     | `AIGatewayClient`     | OAuth2 + `x-tsg-id` header       | `DEFAULT_AI_GW_*_ENDPOINT`      |
 
 Only the scan service uses `init()` and the `ApiKeyAuth` adapter. It accepts an API key, a
 pre-obtained bearer token, or both; it does not fetch OAuth2 tokens. Everything else (management
-CRUD, DLP, model security, red teaming) authenticates with OAuth2 client_credentials. The Management
-client additionally talks to a separate DLP base URL (`DEFAULT_DLP_ENDPOINT`) reusing the same OAuth
-credentials.
+CRUD, DLP, model security, red teaming, and AI Gateway) authenticates with OAuth2
+client_credentials. The Management client additionally talks to a separate DLP base URL
+(`DEFAULT_DLP_ENDPOINT`) reusing the same OAuth credentials. AI Gateway wraps its OAuth adapter with
+`TsgHeaderAuth`, which adds the required `x-tsg-id` header to every data-plane and admin-plane
+request.
 
 All endpoint paths, base URLs, content/batch limits, header names, and retry config live in one
 place:
@@ -138,12 +141,18 @@ are present, it computes an HMAC-SHA256 payload hash over `bodyText` (keyed with
 sets it as the `x-payload-hash` header. This is why the body is serialized to `bodyText` _before_
 the adapter runs. `ApiKeyAuth` has no `onUnauthorized` — API key auth has nothing to refresh.
 
-### `OAuthAuth` — everything else (bearer)
+### `OAuthAuth` — OAuth-backed clients (bearer)
 
 `src/http/auth/oauth.ts` wraps an `OAuthClient`. Its `prepare()` calls `oauthClient.getToken()` and
 sets `Authorization: Bearer <token>`. Its `onUnauthorized()` clears the cached token on a 401/403
 and returns `true`, so the free retry fetches a fresh token. This means an expired-token round trip
 self-heals in a single transparent retry.
+
+### `TsgHeaderAuth` — AI Gateway header wrapper
+
+AI Gateway is still an OAuth2 service, but each request also needs an `x-tsg-id` header.
+`TsgHeaderAuth` in `src/http/auth/tsg-header.ts` composes over `OAuthAuth`, preserving token refresh
+behavior while adding the tenant service group ID after the bearer token is prepared.
 
 ## OAuth2 token lifecycle
 
@@ -176,6 +185,9 @@ to each service while sharing helpers where the APIs match:
   that base shape with endpoint-specific filters such as Red Team `status` or `target_type`.
 - **DLP** list endpoints use Spring-style `page` / `size` options and return `Page<T>` envelopes
   from `src/models/dlp-page.ts`.
+- **AI Gateway** keeps each endpoint's observed shape: workspace lists take optional `status` and
+  `plane`, workspace-scoped config lists require `workspaceId`, and telemetry logs use `pageSize`
+  rather than the shared listing helper because upstream offset paging is ignored.
 
 The shared Model Security / Red Team base options are:
 
@@ -212,7 +224,7 @@ export const ApiKeySchema = z
 response still validates and the new field is preserved on the returned object rather than being
 stripped or rejected. The SDK can model the fields it knows about strictly while tolerating server
 additions — so an API-side feature rollout does not break installed SDK versions. The trade-offs and
-the tooling that keeps these schemas honest (the preflight gate) are covered in
+the tooling that keeps these schemas honest (the preflight script) are covered in
 [API Design & Versioning](api-design-versioning).
 
 ## Retry and backoff
@@ -248,7 +260,7 @@ from the `ErrorType` enum:
 | `RESPONSE_VALIDATION`        | A 2xx body was invalid JSON or failed its Zod `responseSchema`     |
 
 `RESPONSE_VALIDATION` is the signal that the live API diverged from the SDK's schema — exactly the
-class of drift the `preflight` gate is built to catch. See
+class of drift the `preflight` script is built to catch before a release. See
 [Error Handling](error-handling) for usage patterns.
 
 ## The scan singleton

@@ -28,6 +28,14 @@ Use these terms exactly when discussing the SDK's design — they have specific 
   prompt properties.
 - **EULA / instance** — Red Teaming management-plane resources for tenant EULA acceptance and
   instance, device, and registry-credential management.
+- **Network broker** — a Red Teaming data-plane channel used to route attack traffic to targets
+  behind private networks.
+- **Custom target adapter** — a Red Teaming management-plane Python adapter script for non-standard
+  target protocols, dynamic authentication, or custom multi-turn session handling.
+- **AI Gateway workspace** — the top-level AI Gateway container. Telemetry calls use the workspace
+  `slug`; workspace-scoped config calls use the workspace UUID `id`.
+- **AI Gateway data/admin planes** — `AIGatewayClient` splits runtime telemetry and workspace-scoped
+  config on `/ai_gw/v2` from organisation-level config on `/ai_gw/admin/v2`.
 
 ## Architecture concepts
 
@@ -53,10 +61,12 @@ interface RequestSpec<TResponse> {
 
 ### Auth adapter
 
-The single seam where authentication strategy plugs into the request pipeline. Two implementations exist:
+The single seam where authentication strategy plugs into the request pipeline. Three implementations
+exist:
 
 - `OAuthAuth` — fetches OAuth2 bearer tokens, owns 401/403 refresh.
 - `ApiKeyAuth` — adds API-key headers and computes HMAC over the request body for the scan service.
+- `TsgHeaderAuth` — wraps another adapter and adds the AI Gateway `x-tsg-id` header.
 
 ```ts
 interface AuthAdapter {
@@ -82,7 +92,7 @@ interface PreparedRequest {
 
 ### Pre-flight check
 
-A build-time script that diffs Zod schemas in `src/models/` against the authoritative OpenAPI specs in `specs/`. Catches schema drift before it reaches the production parsing path. Runs in CI; failures block merge.
+A local / pre-release script that diffs Zod schemas in `src/models/` against the authoritative OpenAPI specs linked under the gitignored `schemas/` directory. Catches schema drift before it reaches the production parsing path. It is not a CI gate in this repository; run it before tagging a release or after API-side changes.
 
 ### Listing
 

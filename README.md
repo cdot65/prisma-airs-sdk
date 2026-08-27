@@ -13,7 +13,7 @@
 [![Node 18+](https://img.shields.io/badge/node-%3E%3D18-brightgreen)](https://nodejs.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 
-TypeScript SDK for Palo Alto Networks **Prisma AIRS** — covering the full lifecycle from configuration management to operational scanning across all four service domains: **AI Runtime Security**, **AI Red Teaming**, **Model Security**, and **AI Gateway**.
+TypeScript SDK for Palo Alto Networks **Prisma AIRS** — covering the full lifecycle from configuration management to operational scanning across five service domains: **AI Runtime Security**, **Management**, **Model Security**, **AI Red Teaming**, and **AI Gateway**.
 
 ## Installation
 
@@ -108,6 +108,7 @@ Full docs at **[cdot65.github.io/prisma-airs-sdk](https://cdot65.github.io/prism
 - [Management API](https://cdot65.github.io/prisma-airs-sdk/guides/management-api) — profiles, topics, API keys, apps, DLP, deployment, logs
 - [Model Security API](https://cdot65.github.io/prisma-airs-sdk/guides/model-security-api) — model scans, security groups, rules
 - [Red Team API](https://cdot65.github.io/prisma-airs-sdk/guides/red-team-api) — scans, reports, targets, custom attacks
+- [AI Gateway API](https://cdot65.github.io/prisma-airs-sdk/guides/ai-gateway-api) — gateway telemetry, workspaces, config, integrations, deployments, audit logs
 - [OAuth Lifecycle](https://cdot65.github.io/prisma-airs-sdk/guides/oauth-lifecycle) & [Error Handling](https://cdot65.github.io/prisma-airs-sdk/developer/error-handling)
 - [API Reference](https://cdot65.github.io/prisma-airs-sdk/reference/api) — generated from source
 
@@ -121,6 +122,9 @@ npm run build          # tsup (CJS + ESM + .d.ts)
 npm run test           # vitest
 npm run lint           # eslint
 npm run typecheck      # tsc --noEmit
+npm run docs:check     # public API JSDoc example coverage
+npm run preflight      # local Zod schema vs OpenAPI drift check
+npm run smoke:ai-gateway # opt-in live, read-only AI Gateway schema smoke test
 ```
 
 ## License

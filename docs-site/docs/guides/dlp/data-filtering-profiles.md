@@ -4,7 +4,7 @@ Manage Data Filtering Profiles on the DLP service (`/v2/api/data-filtering-profi
 
 Subclient lives at `client.dlp.dataFilteringProfiles` (a `DataFilteringProfilesClient`). Surface is **read + full-replace only** — the underlying API does not expose create or delete. To onboard a brand-new profile, provision it via the Strata Cloud Manager UI first, then manage it through this SDK.
 
-Spec source: [`specs/dlp/DataFilteringProfiles.yaml`](https://github.com/cdot65/prisma-airs-sdk/blob/main/specs/dlp/DataFilteringProfiles.yaml)
+Implementation source: `src/management/dlp/data-filtering-profiles.ts` and `src/models/dlp-data-filtering-profile.ts`.
 
 ## How it works
 

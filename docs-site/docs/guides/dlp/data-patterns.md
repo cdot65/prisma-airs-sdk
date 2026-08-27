@@ -4,7 +4,7 @@ Manage Data Patterns on the DLP service (`/v2/api/data-patterns`).
 
 Subclient lives at `client.dlp.dataPatterns` (a `DataPatternsClient`). **Full CRUD**: list, create, get, replace (PUT), patch (RFC 7396 JSON Merge Patch), delete. DELETE soft-deletes (archives) server-side — the pattern becomes invisible to list but its `id` still resolves on `get()` with `status: 'deleted'`.
 
-Spec source: [`specs/dlp/DataPatterns.yaml`](https://github.com/cdot65/prisma-airs-sdk/blob/main/specs/dlp/DataPatterns.yaml)
+Implementation source: `src/management/dlp/data-patterns.ts` and `src/models/dlp-data-pattern.ts`.
 
 ## How it works
 

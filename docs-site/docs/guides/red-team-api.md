@@ -16,7 +16,7 @@ Key concepts in plain language:
 - **Scan job** — one run of one attack type against one target. It moves through `QUEUED` → `RUNNING` → `COMPLETED` (or `FAILED`/aborted). Each scan consumes **quota** for its type.
 - **Report** — the results: which attacks succeeded, severity, a risk score, and **remediation** recommendations (including a suggested runtime security policy you can deploy in AI Runtime Security).
 
-The flow: create a target → run a scan → fetch the report and remediation → iterate. A **data plane** (`scans`, `reports`, `customAttackReports`, dashboards) handles running scans and reading results; a **management plane** (`targets`, `customAttacks`, `eula`, `instances`) handles configuration. One OAuth2 token covers both.
+The flow: create a target → run a scan → fetch the report and remediation → iterate. A **data plane** (`scans`, `reports`, `customAttackReports`, dashboards) handles running scans and reading results; a **management plane** (`targets`, `customAttacks`, `adapters`, `eula`, `instances`) handles configuration. One OAuth2 token covers both.
 
 :::note[Accept the EULA first]
 The Red Team service requires accepting an End User License Agreement before scans will run. Check `client.eula.getStatus()` and accept once per tenant — see [EULA Management](#eula-management).
@@ -80,7 +80,7 @@ Token fetch, caching, and refresh are handled automatically. Retries (up to 5) u
 
 ## Sub-Clients
 
-The `RedTeamClient` exposes eight sub-clients:
+The `RedTeamClient` exposes nine sub-clients:
 
 | Sub-Client            | Plane          | Access                       |
 | --------------------- | -------------- | ---------------------------- |
@@ -89,13 +89,14 @@ The `RedTeamClient` exposes eight sub-clients:
 | `customAttackReports` | Data           | `client.customAttackReports` |
 | `targets`             | Management     | `client.targets`             |
 | `customAttacks`       | Management     | `client.customAttacks`       |
+| `adapters`            | Management     | `client.adapters`            |
 | `eula`                | Management     | `client.eula`                |
 | `instances`           | Management     | `client.instances`           |
 | `networkBroker`       | Network Broker | `client.networkBroker`       |
 
 `networkBroker` talks to a **distinct base URL** — the network broker data plane (`.../ai-red-teaming/data-plane/network-broker`) — while sharing the same Red Team OAuth credentials.
 
-Plus 7 convenience methods directly on `RedTeamClient` for dashboard, quota, error logs, and sentiment.
+Plus 10 convenience methods directly on `RedTeamClient` for dashboard, quota, error logs, languages, and sentiment.
 
 ## Walkthrough: run a scan and read the report
 
@@ -502,6 +503,77 @@ console.log(stats.online_channels, stats.total_channels);
 
 Channel statuses are `ONLINE`, `OFFLINE`, and `DRAFT` (see the `ChannelStatus` enum).
 
+## Custom Target Adapters
+
+Custom target adapters are Python scripts that run in an adapter sidecar alongside the network broker client pod. Use `client.adapters` when a target needs non-standard protocol handling, dynamic auth, or custom multi-turn session behavior that does not fit a plain REST, streaming, WebSocket, or provider template.
+
+Adapters live on the Red Team **management plane** and reference a network broker channel by `network_broker_channel_uuid`. Validation runs the script end-to-end through that channel, so the network broker client must be running and the channel should be `ONLINE`.
+
+```ts
+const script = `
+def handle_request(prompt, variables):
+    # Adapter runtime calls this function and expects the target's text response.
+    return "echo: " + prompt
+`;
+
+const adapter = await client.adapters.create(
+  {
+    name: 'private-agent-adapter',
+    script_b64: Buffer.from(script).toString('base64'),
+    network_broker_channel_uuid: '550e8400-e29b-41d4-a716-446655440000',
+    variables: [
+      { key: 'endpoint', value: 'http://agent.svc:8080/v1/chat/completions', type: 'VAR' },
+      { key: 'client_secret', value: process.env.ADAPTER_CLIENT_SECRET ?? '', type: 'SECRET' },
+    ],
+    prompt: 'What is the capital of France?',
+  },
+  { validate: true },
+);
+
+console.log(adapter.uuid, adapter.status);
+```
+
+### List, get, update, and delete
+
+```ts
+const { data } = await client.adapters.list({ limit: 20, search: 'private-agent' });
+const current = await client.adapters.get(data[0].uuid);
+
+const updated = await client.adapters.update(
+  current.uuid,
+  {
+    name: current.name,
+    script_b64: Buffer.from(script).toString('base64'),
+    prompt: 'Hello',
+    variables: [
+      { key: 'endpoint', value: 'http://agent.svc:8080', type: 'VAR' },
+      { key: 'client_secret', value: null, type: 'SECRET' }, // keep stored secret
+    ],
+  },
+  { validate: false },
+);
+
+await client.adapters.delete(updated.uuid);
+```
+
+`update()` is a full `PUT`, not a patch: send the complete desired adapter definition, including `name`, `script_b64`, `prompt`, and the full variable key set. For variables, `value: null` keeps a stored secret, a provided value replaces it, and omitting a key deletes that variable.
+
+### Validate without saving
+
+```ts
+const result = await client.adapters.validate({
+  script_b64: Buffer.from(script).toString('base64'),
+  network_broker_channel_uuid: '550e8400-e29b-41d4-a716-446655440000',
+  prompt: 'Hello',
+});
+
+if (!result.validated) {
+  console.error(result.stderr ?? result.traceback);
+}
+```
+
+`validate()` returns an execution outcome (`validated`, `stdout`, `stderr`, and `traceback`) rather than an adapter record. It accepts an optional `adapter_uuid` when validating changes against an existing adapter so `null` variable values can resolve from stored secrets.
+
 ## Custom Attacks
 
 Author your own attack content when the built-in libraries don't cover a domain-specific risk. The hierarchy is: a **prompt set** holds many **prompts**; **properties** are optional tags (e.g. `severity`, `category`) you can attach for organization. Reference an active prompt set's UUID in a scan's `job_metadata.custom_prompt_sets` to run it.
@@ -658,7 +730,7 @@ Run **static** scans on every release for fast, repeatable regression coverage. 
 - **Bulk-load custom prompts via CSV.** `uploadPromptsCsv()` is far faster than `createPrompt()` in a loop; grab the shape with `downloadTemplate()`. Mark a prompt set active so it can be referenced by a custom scan.
 - **Accept the EULA once per tenant.** If scans error before running, confirm `eula.getStatus().is_accepted` is `true`.
 
-For the complete, per-method list with input/output shapes (`RedTeamClient` and its eight sub-clients), see the [Full API reference](../reference/api/index.md).
+For the complete, per-method list with input/output shapes (`RedTeamClient` and its nine sub-clients), see the [Full API reference](../reference/api/index.md).
 
 ## Error Handling
 

@@ -1,6 +1,6 @@
 ---
 title: Quick Start
-description: Start using the Prisma AIRS SDK across management, scan, model security, red team, and DLP workflows.
+description: Start using the Prisma AIRS SDK across scan, management, DLP, model security, red team, and AI Gateway workflows.
 ---
 
 # Quick Start
@@ -11,7 +11,7 @@ Prisma AIRS has two authentication methods. Understanding which applies where is
 
 | Auth Method                     | Used By                                                                  |
 | ------------------------------- | ------------------------------------------------------------------------ |
-| **OAuth2** (client_credentials) | Management CRUD for all 3 services, Red Team scans, Model Security scans |
+| **OAuth2** (client_credentials) | Management, DLP, Model Security, Red Team, and AI Gateway clients        |
 | **API Key** (HMAC-SHA256)       | AI Runtime Security scans only                                           |
 
 ```mermaid
@@ -20,19 +20,20 @@ graph LR
         MGMT[Management API<br/>Profiles & Topics CRUD]
         RT[Red Team API<br/>Scans, Reports, Targets]
         MS[Model Security API<br/>Scans, Groups, Rules]
+        GW[AI Gateway API<br/>Telemetry, Workspaces, Config]
     end
     subgraph "API Key (HMAC-SHA256)"
         SCAN[AI Runtime Security<br/>Content Scanning]
     end
 ```
 
-In practice, if you set `PANW_MGMT_CLIENT_ID`, `PANW_MGMT_CLIENT_SECRET`, and `PANW_MGMT_TSG_ID`, all OAuth2 services share those credentials automatically. The only separate credential is the API key for AI Runtime Security content scanning.
+In practice, if you set `PANW_MGMT_CLIENT_ID`, `PANW_MGMT_CLIENT_SECRET`, and `PANW_MGMT_TSG_ID`, Model Security, Red Team, and AI Gateway can fall back to those credentials automatically. The only separate credential is the API key or bearer token for AI Runtime Security content scanning.
 
 ---
 
 ## Management API — Configuration CRUD
 
-The Management API handles CRUD operations for **all three Prisma AIRS services**. It uses OAuth2 under the hood via the SDK's built-in `OAuthClient` (token caching, proactive refresh, and 401/403 auto-retry are handled automatically).
+The Management API handles runtime security configuration and related DLP resources. It uses OAuth2 under the hood via the SDK's built-in `OAuthClient` (token caching, proactive refresh, and 401/403 auto-retry are handled automatically).
 
 ### Security Profiles (AI Runtime Security config)
 
@@ -172,6 +173,23 @@ for (const rule of rules.security_rules) {
 
 ---
 
+## AI Gateway API — Gateway Observability and Config
+
+Uses OAuth2 plus the required `x-tsg-id` header for both data-plane telemetry and admin-plane configuration. `PANW_AI_GW_*` variables fall back to `PANW_MGMT_*`, but the service account still needs the AI Gateway SCM role grants described in the [AI Gateway guide](../guides/ai-gateway-api).
+
+```ts
+import { AIGatewayClient } from '@cdot65/prisma-airs-sdk';
+
+const gw = new AIGatewayClient(); // OAuth2 via PANW_AI_GW_* or PANW_MGMT_* env vars
+
+const ws = (await gw.workspaces.list()).data[0];
+const cost = await gw.telemetry.cost({ workspaceSlug: ws.slug, days: 7 });
+
+console.log(ws.name, `$${(cost.data.total / 100).toFixed(2)}`); // cost is returned in cents
+```
+
+---
+
 ## Running Examples
 
 ```bash
@@ -200,6 +218,10 @@ npx tsx --env-file=.env docs-site/examples/model-security-scans.ts
 # Red Team (OAuth2)
 npx tsx --env-file=.env docs-site/examples/red-team-scans.ts
 npx tsx --env-file=.env docs-site/examples/red-team-targets.ts
+npx tsx --env-file=.env docs-site/examples/red-team-network-broker.ts
+
+# AI Gateway (OAuth2 + x-tsg-id)
+set -a && source .env && set +a && npx tsx examples/ai-gateway.ts
 
 # Self-contained validation (no credentials needed — uses mock servers)
 npx tsx --env-file=.env docs-site/examples/profiles-get-validation.ts       # get() and getByName() methods
