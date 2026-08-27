@@ -4,9 +4,9 @@ The SDK manages OAuth2 `client_credentials` tokens automatically — fetching, c
 
 ## How it works
 
-The Management, Model Security, and Red Team APIs all authenticate with **OAuth2 client credentials**: you present a client ID + secret, the auth server hands back a short-lived bearer token (Strata Cloud Manager issues ~900s tokens), and every API call carries that token. Tokens expire, so something has to fetch, cache, and refresh them.
+The Management, Model Security, Red Team, and AI Gateway APIs all authenticate with **OAuth2 client credentials**: you present a client ID + secret, the auth server hands back a short-lived bearer token (Strata Cloud Manager issues ~900s tokens), and every API call carries that token. Tokens expire, so something has to fetch, cache, and refresh them.
 
-That "something" is `OAuthClient`, and **for normal use you never touch it** — `ManagementClient` (and the other OAuth clients) embed one and handle the whole cycle for you. This page exists for the cases where you _do_ want visibility or control: health checks, monitoring dashboards, custom auth flows, or just understanding what happens under load.
+That "something" is `OAuthClient`, and **for normal use you never touch it** — `ManagementClient`, `ModelSecurityClient`, `RedTeamClient`, and `AIGatewayClient` embed one and handle the whole cycle for you. AI Gateway wraps the bearer-token adapter with its required `x-tsg-id` header, but the token lifecycle is the same. This page exists for the cases where you _do_ want visibility or control: health checks, monitoring dashboards, custom auth flows, or just understanding what happens under load.
 
 The model is a small state machine with one knob — the **buffer window**:
 
@@ -89,7 +89,7 @@ The callback receives a `TokenInfo` object. If the callback throws, the error is
 
 ## Auto-Retry on 401/403
 
-When a management API request receives a **401 Unauthorized** or **403 Forbidden**:
+When an OAuth-backed SDK request receives a **401 Unauthorized** or **403 Forbidden**:
 
 1. The SDK calls `clearToken()` to invalidate the cached token
 2. `getToken()` fetches a fresh token from the OAuth endpoint

@@ -1,13 +1,14 @@
 ---
 id: examples
 title: Runnable Examples
-description: How to run the SDK example scripts for scanning, management, DLP, model security, red teaming, and validation workflows.
+description: How to run the SDK example scripts for scanning, management, DLP, model security, red teaming, AI Gateway, and validation workflows.
 ---
 
 # Runnable Examples
 
-The repository includes runnable TypeScript examples in `docs-site/examples/`. They exercise the
-same public SDK APIs documented in the guides and can be run with `tsx` from the repository root.
+The repository includes runnable TypeScript examples in `docs-site/examples/` and a read-only AI
+Gateway walkthrough in `examples/ai-gateway.ts`. They exercise the same public SDK APIs documented
+in the guides and can be run with `tsx` from the repository root.
 
 ## Setup
 
@@ -26,6 +27,9 @@ Fill in the credentials required by the workflow you want to run:
   `PANW_MGMT_TSG_ID`.
 - Model Security and Red Team examples can use their service-specific `PANW_MODEL_SEC_*` /
   `PANW_RED_TEAM_*` credentials or fall back to `PANW_MGMT_*`.
+- The AI Gateway example can use `PANW_AI_GW_*` credentials or fall back to `PANW_MGMT_*`, and the
+  service account needs both AI Gateway SCM role grants described in the
+  [AI Gateway guide](./ai-gateway-api).
 - Validation scripts marked as mock-backed do not require live AIRS credentials.
 
 Run examples with:
@@ -88,6 +92,19 @@ npx tsx --env-file=.env docs-site/examples/red-team-targets.ts
 npx tsx --env-file=.env docs-site/examples/red-team-network-broker.ts
 ```
 
+## AI Gateway Example
+
+| Script | What it demonstrates |
+| --- | --- |
+| `examples/ai-gateway.ts` | Read-only telemetry, workspace, config-plane, admin-plane, audit-log, and error-handling calls through `AIGatewayClient`. |
+
+The AI Gateway example lives under the repository-level `examples/` directory because it covers the
+full live-tenant workflow and is excluded from the published package.
+
+```bash
+set -a && source .env && set +a && npx tsx examples/ai-gateway.ts
+```
+
 ## Mock-Backed Validation Scripts
 
 These scripts spin up local mock servers or validate schemas directly, so they can run without live
@@ -115,3 +132,4 @@ npx tsx --env-file=.env docs-site/examples/red-team-mgmt-validation.ts
 - [Management API](./management-api)
 - [Model Security API](./model-security-api)
 - [Red Team API](./red-team-api)
+- [AI Gateway API](./ai-gateway-api)

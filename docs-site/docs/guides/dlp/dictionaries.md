@@ -6,7 +6,7 @@ Subclient lives at `client.dlp.dictionaries` (a `DictionariesClient`). **Full CR
 
 Accepted file shapes: `Blob`, `ArrayBuffer`, `Uint8Array`, `string`. The SDK builds the multipart boundary; **do not set `Content-Type` manually**.
 
-Spec source: [`specs/dlp/Dictionaries.yaml`](https://github.com/cdot65/prisma-airs-sdk/blob/main/specs/dlp/Dictionaries.yaml)
+Implementation source: `src/management/dlp/dictionaries.ts` and `src/models/dlp-dictionary.ts`.
 
 ## How it works
 

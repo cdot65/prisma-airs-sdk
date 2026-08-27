@@ -26,10 +26,19 @@ import {
   ManagementClient,
   RedTeamClient,
   ModelSecurityClient,
+  AIGatewayClient,
 } from '@cdot65/prisma-airs-sdk';
 
 // CJS (also supported)
-const { init, Scanner, Content, ManagementClient } = require('@cdot65/prisma-airs-sdk');
+const {
+  init,
+  Scanner,
+  Content,
+  ManagementClient,
+  RedTeamClient,
+  ModelSecurityClient,
+  AIGatewayClient,
+} = require('@cdot65/prisma-airs-sdk');
 ```
 
 ## Dependencies

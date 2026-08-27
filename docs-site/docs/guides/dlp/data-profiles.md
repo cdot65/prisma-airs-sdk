@@ -9,7 +9,7 @@ Two distinct rule shapes live under `detection_rules[].rule_type`:
 - `expression_tree` — recursive boolean tree of `DetectionRuleItem` leaves (the leaf carries the detection technique + thresholds)
 - `multi_profile` — composes other data profiles by id, joined by an operator (build "this OR that OR the other")
 
-Spec source: [`specs/dlp/DataProfiles.yaml`](https://github.com/cdot65/prisma-airs-sdk/blob/main/specs/dlp/DataProfiles.yaml)
+Implementation source: `src/management/dlp/data-profiles.ts` and `src/models/dlp-data-profile.ts`.
 
 ## How it works
 
