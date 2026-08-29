@@ -1,7 +1,12 @@
 import { MODEL_SEC_SECURITY_GROUPS_PATH } from '../constants.js';
 import { request } from '../http/request.js';
 import type { AuthAdapter } from '../http/types.js';
-import { serializeListing, type ListingOptions } from '../listing.js';
+import {
+  collectSkipPages,
+  serializeListing,
+  type CollectAllOptions,
+  type ListingOptions,
+} from '../listing.js';
 import { assertUuid } from '../validators.js';
 import {
   ModelSecurityGroupResponseSchema,
@@ -30,6 +35,8 @@ export interface ModelSecurityGroupListOptions extends ListingOptions {
   /** Filter by rule UUIDs with ALLOWING or BLOCKING state. */
   enabled_rules?: string[];
 }
+export interface ModelSecurityGroupListAllOptions
+  extends Omit<ModelSecurityGroupListOptions, 'skip'>, CollectAllOptions {}
 
 /** Options for listing rule instances within a security group. */
 export interface ModelSecurityRuleInstanceListOptions extends ListingOptions {
@@ -138,6 +145,16 @@ export class ModelSecurityGroupsClient {
       auth: this.auth,
       numRetries: this.numRetries,
     });
+  }
+
+  /** List every security-group page. @example `const groups = await ms.securityGroups.listAll();` */
+  async listAll(
+    opts: ModelSecurityGroupListAllOptions = {},
+  ): Promise<ListModelSecurityGroupsResponse['security_groups']> {
+    return collectSkipPages(async (skip, limit) => {
+      const page = await this.list({ ...opts, skip, limit });
+      return { items: page.security_groups, total: page.pagination.total_items };
+    }, opts);
   }
 
   /**

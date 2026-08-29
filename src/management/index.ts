@@ -1,9 +1,23 @@
 export { ManagementClient, type ManagementClientOptions } from './client.js';
 export { OAuthClient, type OAuthClientOptions, type TokenInfo } from './oauth-client.js';
-export { ProfilesClient, type ProfilesClientOptions, type PaginationOptions } from './profiles.js';
-export { TopicsClient, type TopicsClientOptions } from './topics.js';
-export { ApiKeysClient, type ApiKeysClientOptions } from './api-keys.js';
-export { CustomerAppsClient, type CustomerAppsClientOptions } from './customer-apps.js';
+export {
+  ProfilesClient,
+  type ProfilesClientOptions,
+  type PaginationOptions,
+  type ProfileListAllOptions,
+} from './profiles.js';
+export {
+  TopicsClient,
+  type TopicsClientOptions,
+  type TopicListOptions,
+  type TopicListAllOptions,
+} from './topics.js';
+export { ApiKeysClient, type ApiKeysClientOptions, type ApiKeyListAllOptions } from './api-keys.js';
+export {
+  CustomerAppsClient,
+  type CustomerAppsClientOptions,
+  type CustomerAppListAllOptions,
+} from './customer-apps.js';
 export { DlpProfilesClient, type DlpProfilesClientOptions } from './dlp-profiles.js';
 export {
   DeploymentProfilesClient,
@@ -31,22 +45,26 @@ export {
   DataFilteringProfilesClient,
   type DataFilteringProfilesClientOptions,
   type DataFilteringProfileListParams,
+  type DataFilteringProfileListAllParams,
 } from './dlp/data-filtering-profiles.js';
 export {
   DataPatternsClient,
   type DataPatternsClientOptions,
   type DataPatternListParams,
+  type DataPatternListAllParams,
 } from './dlp/data-patterns.js';
 export {
   DataProfilesClient,
   type DataProfilesClientOptions,
   type DataProfileListParams,
+  type DataProfileListAllParams,
 } from './dlp/data-profiles.js';
 export {
   DictionariesClient,
   type DictionariesClientOptions,
   type DictionaryFileInput,
   type DictionaryListParams,
+  type DictionaryListAllParams,
   type DictionaryGetParams,
   type DictionaryUploadParams,
 } from './dlp/dictionaries.js';

@@ -1,5 +1,68 @@
-import { describe, it, expect } from 'vitest';
-import { serializeListing, type ListingOptions } from '../src/listing.js';
+import { describe, it, expect, vi } from 'vitest';
+import {
+  collectAll,
+  collectSkipPages,
+  collectSpringPages,
+  paginate,
+  serializeListing,
+  type ListingOptions,
+} from '../src/listing.js';
+
+describe('pagination helpers', () => {
+  it('paginates until the page has no next cursor', async () => {
+    const fetchPage = vi
+      .fn()
+      .mockResolvedValueOnce({ items: [1, 2], next: 2 })
+      .mockResolvedValueOnce({ items: [3], next: undefined });
+
+    await expect(collectAll(paginate(fetchPage, 0))).resolves.toEqual([1, 2, 3]);
+    expect(fetchPage).toHaveBeenNthCalledWith(1, 0);
+    expect(fetchPage).toHaveBeenNthCalledWith(2, 2);
+  });
+
+  it('stops at max without returning more than the cap', async () => {
+    const iterator = paginate(
+      async (cursor: number) => ({
+        items: [cursor, cursor + 1],
+        next: cursor + 2,
+      }),
+      0,
+    );
+
+    await expect(collectAll(iterator, { max: 3 })).resolves.toEqual([0, 1, 2]);
+  });
+
+  it('rejects repeated cursors to prevent infinite pagination loops', async () => {
+    const iterator = paginate(async () => ({ items: [1], next: 'same' }), 'same');
+    await expect(collectAll(iterator)).rejects.toThrow('repeated cursor');
+  });
+});
+
+describe('pagination dialect adapters', () => {
+  it('walks skip/limit pages using total_items', async () => {
+    const fetchPage = vi
+      .fn()
+      .mockResolvedValueOnce({ items: ['a', 'b'], total: 3 })
+      .mockResolvedValueOnce({ items: ['c'], total: 3 });
+    await expect(collectSkipPages(fetchPage, { limit: 2 })).resolves.toEqual(['a', 'b', 'c']);
+    expect(fetchPage).toHaveBeenNthCalledWith(2, 2, 2);
+  });
+
+  it('walks zero-indexed Spring pages until last', async () => {
+    const fetchPage = vi
+      .fn()
+      .mockResolvedValueOnce({ items: [1], last: false })
+      .mockResolvedValueOnce({ items: [2], last: true });
+    await expect(collectSpringPages(fetchPage, { size: 1 })).resolves.toEqual([1, 2]);
+    expect(fetchPage).toHaveBeenNthCalledWith(2, 1, 1);
+  });
+
+  it('stops an unknown-total skip listing on a short page', async () => {
+    const fetchPage = vi.fn().mockResolvedValue({ items: ['only'] });
+    await expect(collectSkipPages(fetchPage, { limit: 2 })).resolves.toEqual(['only']);
+    expect(fetchPage).toHaveBeenCalledTimes(1);
+  });
+});
 
 describe('serializeListing', () => {
   it('returns empty record when no opts', () => {

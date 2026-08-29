@@ -5,7 +5,12 @@ import {
 } from '../constants.js';
 import { request } from '../http/request.js';
 import type { AuthAdapter } from '../http/types.js';
-import { serializeListing, type ListingOptions } from '../listing.js';
+import {
+  collectSkipPages,
+  serializeListing,
+  type CollectAllOptions,
+  type ListingOptions,
+} from '../listing.js';
 import { assertUuid } from '../validators.js';
 import {
   ScanBaseResponseSchema,
@@ -53,6 +58,8 @@ export interface ModelSecurityScanListOptions extends ListingOptions {
   /** Labels query filter (max 4096 chars). */
   labels_query?: string;
 }
+export interface ModelSecurityScanListAllOptions
+  extends Omit<ModelSecurityScanListOptions, 'skip'>, CollectAllOptions {}
 
 /** Options for listing rule evaluations within a scan. */
 export interface ModelSecurityEvaluationListOptions extends ListingOptions {
@@ -197,6 +204,14 @@ export class ModelSecurityScansClient {
       auth: this.auth,
       numRetries: this.numRetries,
     });
+  }
+
+  /** List every model-security scan page. @example `const scans = await ms.scans.listAll();` */
+  async listAll(opts: ModelSecurityScanListAllOptions = {}): Promise<ScanList['scans']> {
+    return collectSkipPages(async (skip, limit) => {
+      const page = await this.list({ ...opts, skip, limit });
+      return { items: page.scans, total: page.pagination.total_items };
+    }, opts);
   }
 
   /**

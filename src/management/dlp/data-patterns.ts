@@ -1,6 +1,7 @@
 import { DLP_DATA_PATTERNS_PATH } from '../../constants.js';
 import { request } from '../../http/request.js';
 import type { AuthAdapter } from '../../http/types.js';
+import { collectSpringPages, type CollectAllOptions } from '../../listing.js';
 import {
   DataPatternResponseSchema,
   PageDataPatternResponseSchema,
@@ -22,6 +23,8 @@ export interface DataPatternListParams {
    */
   sort?: string[];
 }
+export interface DataPatternListAllParams
+  extends Omit<DataPatternListParams, 'page'>, CollectAllOptions {}
 
 /** @internal */
 export interface DataPatternsClientOptions {
@@ -78,6 +81,24 @@ export class DataPatternsClient {
       auth: this.auth,
       numRetries: this.numRetries,
     });
+  }
+
+  /** List all data patterns. @example `const patterns = await mgmt.dlp.dataPatterns.listAll();` */
+  async listAll(
+    params: DataPatternListAllParams = {},
+  ): Promise<PageDataPatternResponse['content']> {
+    return collectSpringPages(
+      async (page, size) => {
+        const result = await this.list({ ...params, page, size });
+        const last =
+          result.last ??
+          (result.totalPages !== undefined
+            ? page + 1 >= result.totalPages
+            : result.content.length < size);
+        return { items: result.content, last };
+      },
+      { size: params.size, max: params.max },
+    );
   }
 
   /**

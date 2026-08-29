@@ -70,7 +70,15 @@ const page = await client.dlp.dictionaries.list({
   keywords: false,
 });
 for (const d of page.content) console.log(d.id, d.name);
+
+const allDictionaries = await client.dlp.dictionaries.listAll({
+  size: 100,
+  keywords: false,
+});
 ```
+
+`listAll()` walks every Spring page and preserves options such as `keywords` and `sort`. It returns
+a flat array with a 10,000-record default safety cap (`max: 0` disables the cap).
 
 ### create
 

@@ -141,6 +141,13 @@ The `ManagementClient` handles this internally — you only need `OAuthClient` d
 
 ## Security Profiles
 
+:::note[Revision-aware pagination]
+`profiles.list()` returns one API page. Use `profiles.listAll()` when you need the complete revision
+history, or `profiles.list({ latest: true })` to request only the latest profile revision from the
+service. `get()` and `getByName()` walk every page automatically, so their result is not limited to
+the first 100 records.
+:::
+
 Full CRUD on AI security profile configurations.
 
 ### Create
@@ -200,6 +207,9 @@ const { ai_profiles } = await client.profiles.list();
 // Paginated
 const page = await client.profiles.list({ offset: 0, limit: 10 });
 console.log(page.next_offset); // undefined if no more pages
+
+// Flatten every page. latest is sent to the service on every request.
+const latestProfiles = await client.profiles.listAll({ latest: true, limit: 100 });
 ```
 
 ### Update
@@ -254,6 +264,12 @@ const result = await client.profiles.forceDelete(profile.profile_id, 'user@examp
 
 ## Custom Topics
 
+:::note[Latest topic revisions]
+The topics API has no server-side latest filter. `topics.list({ latestOnly: true })` walks all pages,
+groups by `topic_name`, and returns the highest revision. Use `topics.listAll()` for the complete
+history. `get()` resolves an exact revision UUID and `getByName()` returns the highest revision.
+:::
+
 CRUD for custom detection topics used in security profiles.
 
 ### Create
@@ -272,6 +288,12 @@ const topic = await client.topics.create({
 ```ts
 const { custom_topics } = await client.topics.list();
 const page = await client.topics.list({ offset: 0, limit: 10 });
+
+// Complete revision history across every page
+const allRevisions = await client.topics.listAll({ limit: 200 });
+
+// Highest revision per topic name (then apply offset/limit to the grouped result)
+const { custom_topics: latestTopics } = await client.topics.list({ latestOnly: true });
 ```
 
 ### Update
@@ -324,6 +346,9 @@ const { api_keys } = await client.apiKeys.list();
 
 // Paginated
 const page = await client.apiKeys.list({ offset: 0, limit: 10 });
+
+// Flat inventory across every page
+const allKeys = await client.apiKeys.listAll({ limit: 100 });
 ```
 
 ### Delete
@@ -358,7 +383,13 @@ const { customer_apps } = await client.customerApps.list();
 
 // Paginated
 const page = await client.customerApps.list({ offset: 0, limit: 10 });
+
+// Flat inventory across every page
+const allApps = await client.customerApps.listAll({ limit: 100 });
 ```
+
+`listAll()` follows `next_offset` and returns a flat array. As with every all-page helper, `max`
+defaults to 10,000; use a smaller value to bound an inventory read or `max: 0` to opt out.
 
 ### Update
 

@@ -2,6 +2,8 @@ import { MGMT_TOPIC_PATH, MGMT_TOPICS_TSG_PATH, MGMT_TOPIC_FORCE_PATH } from '..
 import { request } from '../http/request.js';
 import type { AuthAdapter } from '../http/types.js';
 import { assertUuid } from '../validators.js';
+import { AISecSDKException, ErrorType } from '../errors.js';
+import { collectAll, paginate, type CollectAllOptions } from '../listing.js';
 import {
   CustomTopicSchema,
   CustomTopicListResponseSchema,
@@ -12,6 +14,16 @@ import {
   type DeleteTopicResponse,
 } from '../models/mgmt-custom-topic.js';
 import type { PaginationOptions } from './profiles.js';
+
+/** Options for listing topics, including client-side latest-revision grouping. */
+export interface TopicListOptions extends Omit<PaginationOptions, 'latest'> {
+  /** Walk all pages and return the highest revision for each topic name. */
+  latestOnly?: boolean;
+}
+
+/** Options for walking all custom-topic pages. */
+export interface TopicListAllOptions
+  extends Omit<TopicListOptions, 'offset' | 'latestOnly'>, CollectAllOptions {}
 
 /** @internal */
 export interface TopicsClientOptions {
@@ -82,7 +94,23 @@ export class TopicsClient {
    * //     revision: 1, active: true } ], next_offset: 20 }
    * ```
    */
-  async list(opts?: PaginationOptions): Promise<CustomTopicListResponse> {
+  async list(opts?: TopicListOptions): Promise<CustomTopicListResponse> {
+    if (opts?.latestOnly) {
+      const all = await this.listAll({ limit: 200 });
+      const latest = new Map<string, CustomTopic>();
+      for (const topic of all) {
+        const current = latest.get(topic.topic_name);
+        if (!current || topic.revision > current.revision) latest.set(topic.topic_name, topic);
+      }
+      const custom_topics = [...latest.values()];
+      const offset = opts.offset ?? 0;
+      const limit = opts.limit ?? 100;
+      const nextOffset = offset + limit;
+      return {
+        custom_topics: custom_topics.slice(offset, nextOffset),
+        next_offset: nextOffset < custom_topics.length ? nextOffset : undefined,
+      };
+    }
     const params: Record<string, string> = {
       offset: String(opts?.offset ?? 0),
       limit: String(opts?.limit ?? 100),
@@ -97,6 +125,58 @@ export class TopicsClient {
       auth: this.auth,
       numRetries: this.numRetries,
     });
+  }
+
+  /**
+   * List custom topics across every response page.
+   * @example
+   * ```ts
+   * const topics = await mgmt.topics.listAll({ limit: 200 });
+   * ```
+   */
+  async listAll(opts: TopicListAllOptions = {}): Promise<CustomTopic[]> {
+    const limit = opts.limit ?? 100;
+    return collectAll(
+      paginate(async (offset: number) => {
+        const page = await this.list({ offset, limit });
+        return { items: page.custom_topics, next: page.next_offset || undefined };
+      }, 0),
+      { max: opts.max },
+    );
+  }
+
+  /**
+   * Get an exact custom-topic revision by UUID.
+   * @example
+   * ```ts
+   * const topic = await mgmt.topics.get('550e8400-e29b-41d4-a716-446655440000');
+   * ```
+   */
+  async get(topicId: string): Promise<CustomTopic> {
+    const topic = (await this.listAll()).find((item) => item.topic_id === topicId);
+    if (!topic)
+      throw new AISecSDKException(
+        `Topic not found: ${topicId}`,
+        ErrorType.USER_REQUEST_PAYLOAD_ERROR,
+      );
+    return topic;
+  }
+
+  /**
+   * Get the highest revision of a custom topic by name.
+   * @example
+   * ```ts
+   * const topic = await mgmt.topics.getByName('credit-cards');
+   * ```
+   */
+  async getByName(topicName: string): Promise<CustomTopic> {
+    const matches = (await this.listAll()).filter((item) => item.topic_name === topicName);
+    if (matches.length === 0)
+      throw new AISecSDKException(
+        `Topic not found: ${topicName}`,
+        ErrorType.USER_REQUEST_PAYLOAD_ERROR,
+      );
+    return matches.reduce((best, topic) => (topic.revision > best.revision ? topic : best));
   }
 
   /**

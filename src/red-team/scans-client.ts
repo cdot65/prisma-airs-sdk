@@ -2,7 +2,12 @@ import { RED_TEAM_SCAN_PATH, RED_TEAM_CATEGORIES_PATH } from '../constants.js';
 import { request } from '../http/request.js';
 import type { AuthAdapter } from '../http/types.js';
 import { z } from 'zod';
-import { serializeListing, type ListingOptions } from '../listing.js';
+import {
+  collectSkipPages,
+  serializeListing,
+  type CollectAllOptions,
+  type ListingOptions,
+} from '../listing.js';
 import { assertUuid } from '../validators.js';
 import {
   JobResponseSchema,
@@ -25,6 +30,8 @@ export interface RedTeamScanListOptions extends RedTeamListOptions {
   job_type?: string;
   target_id?: string;
 }
+export interface RedTeamScanListAllOptions
+  extends Omit<RedTeamScanListOptions, 'skip'>, CollectAllOptions {}
 
 /** @internal */
 export interface RedTeamScansClientOptions {
@@ -105,6 +112,14 @@ export class RedTeamScansClient {
       auth: this.auth,
       numRetries: this.numRetries,
     });
+  }
+
+  /** List every scan page. @example `const scans = await rt.scans.listAll({ status: 'COMPLETED' });` */
+  async listAll(opts: RedTeamScanListAllOptions = {}): Promise<JobListResponse['data']> {
+    return collectSkipPages(async (skip, limit) => {
+      const page = await this.list({ ...opts, skip, limit });
+      return { items: page.data, total: page.pagination.total_items };
+    }, opts);
   }
 
   /**

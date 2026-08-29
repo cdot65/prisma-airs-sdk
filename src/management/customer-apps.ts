@@ -1,7 +1,10 @@
 import { MGMT_CUSTOMER_APP_PATH, MGMT_CUSTOMER_APPS_TSG_PATH } from '../constants.js';
 import { request } from '../http/request.js';
 import type { AuthAdapter } from '../http/types.js';
+import { collectAll, paginate, type CollectAllOptions } from '../listing.js';
 import type { PaginationOptions } from './profiles.js';
+export interface CustomerAppListAllOptions
+  extends Omit<PaginationOptions, 'offset' | 'latest'>, CollectAllOptions {}
 import {
   CustomerAppSchema,
   CustomerAppDeleteResponseSchema,
@@ -89,6 +92,18 @@ export class CustomerAppsClient {
       auth: this.auth,
       numRetries: this.numRetries,
     });
+  }
+
+  /** List all customer applications. @example `const apps = await mgmt.customerApps.listAll();` */
+  async listAll(opts: CustomerAppListAllOptions = {}): Promise<CustomerApp[]> {
+    const limit = opts.limit ?? 100;
+    return collectAll(
+      paginate(async (offset: number) => {
+        const page = await this.list({ offset, limit });
+        return { items: page.customer_apps ?? [], next: page.next_offset || undefined };
+      }, 0),
+      { max: opts.max },
+    );
   }
 
   /**

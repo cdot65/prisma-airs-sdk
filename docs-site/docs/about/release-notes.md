@@ -1,5 +1,42 @@
 # Release Notes
 
+## v0.18.0
+
+### Complete, bounded reads across OAuth services
+
+Resource clients now expose all-page helpers for the list operations most often used by inventory,
+audit, and CLI workflows. The helpers retain the endpoint's filters while adapting its native
+pagination contract:
+
+- Management: `profiles.listAll()`, `topics.listAll()`, `apiKeys.listAll()`, and
+  `customerApps.listAll()`.
+- DLP: `dataFilteringProfiles.listAll()`, `dataPatterns.listAll()`, `dataProfiles.listAll()`, and
+  `dictionaries.listAll()`.
+- Model Security: `scans.listAll()`, `securityGroups.listAll()`, `securityRules.listAll()`,
+  `models.listAllModels()`, `models.listAllModelVersions()`, and
+  `models.listAllModelVersionFiles()`.
+- Red Team: `scans.listAll()`, `targets.listAll()`, `adapters.listAll()`,
+  `customAttacks.listAllPromptSets()`, and `customAttacks.listAllPrompts()`.
+
+Every helper has a 10,000-record default safety cap. Set `max` to a smaller application limit or
+use `max: 0` for an explicitly unbounded walk. Pagination stops on the service's terminal metadata
+or a short page, and the generic `paginate()` helper rejects repeated cursors rather than looping
+forever.
+
+The exported `paginate()` async generator and `collectAll()` collector are available for custom
+workflows. `collectAll()` validates its bound and can consume any `AsyncIterable`.
+
+### Revision-correct management reads
+
+Profile and topic lookup no longer assumes the desired revision appears on the first page.
+`profiles.get()` / `getByName()` and `topics.get()` / `getByName()` walk the complete inventory;
+name lookup returns the highest revision. Profiles expose the service-backed `latest` list filter.
+Because topics have no equivalent server filter, `topics.list({ latestOnly: true })` walks all
+pages, groups by `topic_name`, and retains the highest revision before applying the requested page.
+
+Existing `list()` calls keep returning one native page, so applications that control pagination
+themselves do not change behavior.
+
 ## v0.17.0
 
 ### Workspace write responses are now typed

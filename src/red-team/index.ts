@@ -4,6 +4,7 @@ export {
   type RedTeamScansClientOptions,
   type RedTeamListOptions,
   type RedTeamScanListOptions,
+  type RedTeamScanListAllOptions,
 } from './scans-client.js';
 export {
   RedTeamReportsClient,
@@ -21,13 +22,16 @@ export {
   RedTeamTargetsClient,
   type RedTeamTargetsClientOptions,
   type TargetListOptions,
+  type TargetListAllOptions,
   type TargetOperationOptions,
 } from './targets-client.js';
 export {
   RedTeamCustomAttacksClient,
   type RedTeamCustomAttacksClientOptions,
   type PromptSetListOptions,
+  type PromptSetListAllOptions,
   type PromptListOptions,
+  type PromptListAllOptions,
 } from './custom-attacks-client.js';
 export { RedTeamEulaClient, type RedTeamEulaClientOptions } from './eula-client.js';
 export { RedTeamInstancesClient, type RedTeamInstancesClientOptions } from './instances-client.js';
@@ -40,4 +44,5 @@ export {
   RedTeamAdaptersClient,
   type RedTeamAdaptersClientOptions,
   type AdapterOperationOptions,
+  type AdapterListAllOptions,
 } from './adapters-client.js';

@@ -1,5 +1,13 @@
 # Red Team API
 
+:::tip[Complete inventories]
+Red Team `list()` methods return one native `skip`/`limit` page. Use the corresponding all-page
+helper for a flat, filter-preserving inventory: `scans.listAll()`, `targets.listAll()`,
+`adapters.listAll()`, `customAttacks.listAllPromptSets()`, or
+`customAttacks.listAllPrompts(promptSetUuid)`. Each collects at most 10,000 records by default;
+pass `max: 0` only when an unbounded walk is intentional.
+:::
+
 Automated adversarial testing for AI/LLM applications. Point it at a deployed model or chatbot and it launches a battery of attacks — jailbreaks, prompt injection, data exfiltration, harmful-content elicitation — then scores how the target held up and tells you how to fix the gaps.
 
 ## How it works

@@ -69,6 +69,32 @@ describe('ProfilesClient', () => {
       expect(url).toContain('offset=10');
       expect(url).toContain('limit=10');
     });
+
+    it('passes the server-side latest filter', async () => {
+      mockFetch({ ai_profiles: [] });
+      await client.list({ latest: true });
+      const [url] = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0];
+      expect(url).toContain('latest=true');
+    });
+
+    it('listAll follows next_offset across every page', async () => {
+      globalThis.fetch = vi
+        .fn()
+        .mockResolvedValueOnce({
+          ok: true,
+          status: 200,
+          text: async () => JSON.stringify({ ai_profiles: [sampleProfile], next_offset: 100 }),
+        })
+        .mockResolvedValueOnce({
+          ok: true,
+          status: 200,
+          text: async () =>
+            JSON.stringify({ ai_profiles: [{ ...sampleProfile, profile_id: 'second' }] }),
+        });
+      const result = await client.listAll({ limit: 100 });
+      expect(result).toHaveLength(2);
+      expect(globalThis.fetch).toHaveBeenCalledTimes(2);
+    });
   });
 
   describe('update', () => {
@@ -134,6 +160,23 @@ describe('ProfilesClient', () => {
       const result = await client.get('550e8400-e29b-41d4-a716-446655440000');
 
       expect(result.profile_id).toBe('550e8400-e29b-41d4-a716-446655440000');
+    });
+
+    it('finds a UUID beyond the first page', async () => {
+      globalThis.fetch = vi
+        .fn()
+        .mockResolvedValueOnce({
+          ok: true,
+          status: 200,
+          text: async () => JSON.stringify({ ai_profiles: [sampleProfile], next_offset: 100 }),
+        })
+        .mockResolvedValueOnce({
+          ok: true,
+          status: 200,
+          text: async () =>
+            JSON.stringify({ ai_profiles: [{ ...sampleProfile, profile_id: 'wanted' }] }),
+        });
+      await expect(client.get('wanted')).resolves.toMatchObject({ profile_id: 'wanted' });
     });
 
     it('throws when profile not found', async () => {

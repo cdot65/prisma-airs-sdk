@@ -3,6 +3,7 @@ import { AISecSDKException, ErrorType } from '../errors.js';
 import { request } from '../http/request.js';
 import type { AuthAdapter } from '../http/types.js';
 import { assertUuid } from '../validators.js';
+import { collectAll, paginate, type CollectAllOptions } from '../listing.js';
 import {
   SecurityProfileSchema,
   SecurityProfileListResponseSchema,
@@ -19,7 +20,13 @@ export interface PaginationOptions {
   offset?: number;
   /** Max items to return. Defaults to 100. */
   limit?: number;
+  /** Return only the latest revision of each profile when supported by the endpoint. */
+  latest?: boolean;
 }
+
+/** Options for walking all security profile pages. */
+export interface ProfileListAllOptions
+  extends Omit<PaginationOptions, 'offset'>, CollectAllOptions {}
 
 /** @internal */
 export interface ProfilesClientOptions {
@@ -94,6 +101,7 @@ export class ProfilesClient {
       offset: String(opts?.offset ?? 0),
       limit: String(opts?.limit ?? 100),
     };
+    if (opts?.latest !== undefined) params.latest = String(opts.latest);
 
     return request({
       method: 'GET',
@@ -104,6 +112,24 @@ export class ProfilesClient {
       auth: this.auth,
       numRetries: this.numRetries,
     });
+  }
+
+  /**
+   * List security profiles across every response page.
+   * @example
+   * ```ts
+   * const profiles = await mgmt.profiles.listAll({ latest: true });
+   * ```
+   */
+  async listAll(opts: ProfileListAllOptions = {}): Promise<SecurityProfile[]> {
+    const limit = opts.limit ?? 100;
+    return collectAll(
+      paginate(async (offset: number) => {
+        const page = await this.list({ offset, limit, latest: opts.latest });
+        return { items: page.ai_profiles, next: page.next_offset || undefined };
+      }, 0),
+      { max: opts.max },
+    );
   }
 
   /**
@@ -123,7 +149,7 @@ export class ProfilesClient {
    * ```
    */
   async get(profileId: string): Promise<SecurityProfile> {
-    const { ai_profiles } = await this.list();
+    const ai_profiles = await this.listAll();
     const profile = ai_profiles.find((p) => p.profile_id === profileId);
     if (!profile) {
       throw new AISecSDKException(
@@ -150,7 +176,7 @@ export class ProfilesClient {
    * ```
    */
   async getByName(profileName: string): Promise<SecurityProfile> {
-    const { ai_profiles } = await this.list();
+    const ai_profiles = await this.listAll();
     const matches = ai_profiles.filter((p) => p.profile_name === profileName);
     if (matches.length === 0) {
       throw new AISecSDKException(

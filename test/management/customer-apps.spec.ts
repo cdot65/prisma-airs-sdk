@@ -120,6 +120,50 @@ describe('CustomerAppsClient', () => {
       // The raw slash must not create an extra path segment.
       expect(url).not.toContain('/tsg/tsg/with');
     });
+
+    it('listAll follows next_offset and preserves every record', async () => {
+      globalThis.fetch = vi
+        .fn()
+        .mockResolvedValueOnce({
+          ok: true,
+          status: 200,
+          text: async () =>
+            JSON.stringify({
+              customer_apps: [
+                {
+                  tsg_id: '123',
+                  customer_appId: 'one-id',
+                  app_name: 'one',
+                  cloud_provider: 'aws',
+                  environment: 'prod',
+                },
+              ],
+              next_offset: 1,
+            }),
+        })
+        .mockResolvedValueOnce({
+          ok: true,
+          status: 200,
+          text: async () =>
+            JSON.stringify({
+              customer_apps: [
+                {
+                  tsg_id: '123',
+                  customer_appId: 'two-id',
+                  app_name: 'two',
+                  cloud_provider: 'gcp',
+                  environment: 'dev',
+                },
+              ],
+              next_offset: 0,
+            }),
+        });
+
+      const result = await client.listAll({ limit: 1 });
+
+      expect(result.map((app) => app.app_name)).toEqual(['one', 'two']);
+      expect(globalThis.fetch).toHaveBeenCalledTimes(2);
+    });
   });
 
   describe('update', () => {

@@ -1,6 +1,7 @@
 import { DLP_DATA_FILTERING_PROFILES_PATH } from '../../constants.js';
 import { request } from '../../http/request.js';
 import type { AuthAdapter } from '../../http/types.js';
+import { collectSpringPages, type CollectAllOptions } from '../../listing.js';
 import {
   DataFilteringProfileResponseSchema,
   PageDataFilteringProfileResponseSchema,
@@ -25,6 +26,8 @@ export interface DataFilteringProfileListParams {
   /** Partial-match filter on profile name. */
   name?: string;
 }
+export interface DataFilteringProfileListAllParams
+  extends Omit<DataFilteringProfileListParams, 'page'>, CollectAllOptions {}
 
 /** @internal */
 export interface DataFilteringProfilesClientOptions {
@@ -84,6 +87,24 @@ export class DataFilteringProfilesClient {
       auth: this.auth,
       numRetries: this.numRetries,
     });
+  }
+
+  /** List all filtering profiles. @example `const profiles = await mgmt.dlp.dataFilteringProfiles.listAll();` */
+  async listAll(
+    params: DataFilteringProfileListAllParams = {},
+  ): Promise<PageDataFilteringProfileResponse['content']> {
+    return collectSpringPages(
+      async (page, size) => {
+        const result = await this.list({ ...params, page, size });
+        const last =
+          result.last ??
+          (result.totalPages !== undefined
+            ? page + 1 >= result.totalPages
+            : result.content.length < size);
+        return { items: result.content, last };
+      },
+      { size: params.size, max: params.max },
+    );
   }
 
   /**

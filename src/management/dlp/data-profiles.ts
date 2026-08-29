@@ -1,6 +1,7 @@
 import { DLP_DATA_PROFILES_PATH } from '../../constants.js';
 import { request } from '../../http/request.js';
 import type { AuthAdapter } from '../../http/types.js';
+import { collectSpringPages, type CollectAllOptions } from '../../listing.js';
 import {
   DataProfileResponseSchema,
   PageDataProfileResponseSchema,
@@ -22,6 +23,8 @@ export interface DataProfileListParams {
    */
   sort?: string[];
 }
+export interface DataProfileListAllParams
+  extends Omit<DataProfileListParams, 'page'>, CollectAllOptions {}
 
 /** @internal */
 export interface DataProfilesClientOptions {
@@ -79,6 +82,24 @@ export class DataProfilesClient {
       auth: this.auth,
       numRetries: this.numRetries,
     });
+  }
+
+  /** List all data profiles. @example `const profiles = await mgmt.dlp.dataProfiles.listAll();` */
+  async listAll(
+    params: DataProfileListAllParams = {},
+  ): Promise<PageDataProfileResponse['content']> {
+    return collectSpringPages(
+      async (page, size) => {
+        const result = await this.list({ ...params, page, size });
+        const last =
+          result.last ??
+          (result.totalPages !== undefined
+            ? page + 1 >= result.totalPages
+            : result.content.length < size);
+        return { items: result.content, last };
+      },
+      { size: params.size, max: params.max },
+    );
   }
 
   /**

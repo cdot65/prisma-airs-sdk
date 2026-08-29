@@ -187,6 +187,31 @@ interface ListingOptions {
 }
 ```
 
+`paginate()` adapts any of these wire contracts to an `AsyncIterable`, while `collectAll()` applies
+a default 10,000-record safety cap (`max: 0` explicitly removes it). Resource clients expose
+`listAll()` where walking pages is part of a correct operation. In particular, profile and topic
+lookups walk all offset pages so revisions beyond the first 100 records are never missed. Profiles
+can pass the service's `latest=true` filter; topics implement latest-revision grouping client-side
+because their endpoint has no equivalent query parameter.
+
+All-page helpers deliberately return a flat array rather than synthesizing pagination metadata.
+They preserve endpoint-specific filters, choose a page size appropriate to that service, and stop
+from the response's total/last/next metadata (falling back to a short page where necessary). The
+generic walker remembers previously visited cursors and throws on repetition, preventing a faulty
+upstream cursor from creating an infinite loop. Use `list()` when page boundaries or response
+metadata matter; use `listAll()` for a bounded inventory read.
+
+```ts
+const blockedScans = await modelSecurity.scans.listAll({
+  eval_outcomes: ['BLOCKED'],
+  limit: 100,
+  max: 2_000,
+});
+
+// Explicitly accept an unbounded walk only when the caller controls the risk.
+const dictionaries = await management.dlp.dictionaries.listAll({ max: 0 });
+```
+
 ## Validation strategy: Zod with `.passthrough()`
 
 Validation happens at three distinct boundaries:

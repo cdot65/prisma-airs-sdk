@@ -56,6 +56,28 @@ console.log(result.action); // "allow" | "block"
 
 That's the API-key scanning path. The OAuth2 clients (`ManagementClient`, `ModelSecurityClient`, `RedTeamClient`, `AIGatewayClient`), authentication setup, error handling, and runnable examples are all covered in the documentation.
 
+## Complete list reads
+
+List endpoints still return their native page envelopes through `list()`. For workflows that need
+the complete result set, the OAuth resource clients also provide all-page helpers:
+
+```ts
+const profiles = await management.profiles.listAll({ latest: true });
+const models = await modelSecurity.models.listAllModels({ search_query: 'llama' });
+const targets = await redTeam.targets.listAll({ status: 'READY' });
+const patterns = await management.dlp.dataPatterns.listAll({ status: 'active' });
+```
+
+All-page helpers preserve resource filters and normalize the APIs' different pagination dialects
+(`offset`/`limit`, `skip`/`limit`, and Spring `page`/`size`). They collect at most 10,000 records by
+default as runaway-pagination protection. Pass `{ max: 500 }` for a smaller bound or `{ max: 0 }`
+to remove the bound. Low-level consumers can compose the exported `paginate()` async generator and
+`collectAll()` helper for endpoints without a resource-specific convenience method.
+
+Profile and topic reads are revision-aware: `profiles.list({ latest: true })` delegates revision
+selection to the service, while `topics.list({ latestOnly: true })` groups all pages by topic name
+and returns the highest revision. `getByName()` returns the highest revision for both resources.
+
 ## AI Gateway
 
 `AIGatewayClient` covers the SCM-managed Prisma AIRS **AI Gateway** — runtime telemetry and configuration across two planes behind one credential set: a data plane (`/ai_gw/v2`, telemetry + workspace-scoped config) and an admin plane (`/ai_gw/admin/v2`, organisation-level config). Twelve sub-clients: `telemetry`, `workspaces`, `configs`, `guardrails`, `providers`, `apiKeys` (data plane) and `integrations`, `mcpIntegrations`, `deployments`, `plugins`, `organisations`, `auditLogs` (admin plane).

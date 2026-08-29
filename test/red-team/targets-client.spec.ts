@@ -140,6 +140,27 @@ describe('RedTeamTargetsClient', () => {
       expect(url).not.toContain('sort_by');
       expect(url).not.toContain('sort_direction');
     });
+
+    it('listAll advances skip using total_items until all targets are collected', async () => {
+      const first = targetMock({ uuid: validUuid, name: 'first' });
+      const second = targetMock({ uuid: '660e8400-e29b-41d4-a716-446655440000', name: 'second' });
+      globalThis.fetch = vi
+        .fn()
+        .mockResolvedValueOnce({
+          ok: true,
+          status: 200,
+          text: async () => JSON.stringify({ pagination: { total_items: 2 }, data: [first] }),
+        })
+        .mockResolvedValueOnce({
+          ok: true,
+          status: 200,
+          text: async () => JSON.stringify({ pagination: { total_items: 2 }, data: [second] }),
+        });
+
+      await expect(client.listAll({ limit: 1 })).resolves.toHaveLength(2);
+      const [secondUrl] = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[1];
+      expect(secondUrl).toContain('skip=1');
+    });
   });
 
   describe('get', () => {

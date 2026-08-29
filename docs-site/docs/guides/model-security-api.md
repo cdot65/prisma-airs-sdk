@@ -131,6 +131,13 @@ const page = await client.scans.list({
   eval_outcomes: ['BLOCKED'],
   source_types: ['HUGGING_FACE'],
 });
+
+// Flatten every matching page (10,000-record default safety cap)
+const blockedScans = await client.scans.listAll({
+  eval_outcomes: ['BLOCKED'],
+  limit: 100,
+  max: 2_000,
+});
 ```
 
 ### Get a Scan
@@ -223,17 +230,22 @@ for (const m of models.models) {
   console.log(m.uuid, m.name, m.latest_version_outcome);
 }
 
+// All matching models, without manually advancing skip
+const allModels = await client.models.listAllModels({ search_query: 'llama' });
+
 // Get one model
 const model = await client.models.getModel('model-uuid');
 
 // List a model's versions
 const versions = await client.models.listModelVersions('model-uuid', { sort_order: 'desc' });
+const allVersions = await client.models.listAllModelVersions('model-uuid');
 
 // Get one version (carries an eval summary: rules_passed/rules_failed/total_rules)
 const version = await client.models.getModelVersion('model-version-uuid');
 
 // List the files in a version (same shape as scan files)
 const files = await client.models.listModelVersionFiles('model-version-uuid', { limit: 50 });
+const allFiles = await client.models.listAllModelVersionFiles('model-version-uuid');
 ```
 
 ## Walkthrough: define a security group (your scan policy)
@@ -299,6 +311,12 @@ const filtered = await client.securityGroups.list({
 // Filter by groups with specific rules enabled
 const withRules = await client.securityGroups.list({
   enabled_rules: ['rule-uuid-1', 'rule-uuid-2'],
+});
+
+// Same filters, flattened across every page
+const allProductionGroups = await client.securityGroups.listAll({
+  search_query: 'production',
+  limit: 100,
 });
 ```
 
@@ -374,7 +392,15 @@ const hfRules = await client.securityRules.list({
 const found = await client.securityRules.list({
   search_query: 'pickle',
 });
+
+const allHuggingFaceRules = await client.securityRules.listAll({
+  source_type: 'HUGGING_FACE',
+  max: 5_000,
+});
 ```
+
+All-page helpers preserve filters and return a flat array. Their default `max` is 10,000; use
+`max: 0` only when an unbounded inventory walk is acceptable.
 
 ### Get
 

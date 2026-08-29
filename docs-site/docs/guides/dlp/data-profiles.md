@@ -80,7 +80,15 @@ const page = await client.dlp.dataProfiles.list({
   sort: ['name,asc'],
 });
 for (const p of page.content) console.log(p.id, p.name, p.profile_type);
+
+const allProfiles = await client.dlp.dataProfiles.listAll({
+  size: 100,
+  sort: ['name,asc'],
+});
 ```
+
+`listAll()` combines every Spring page into one flat array. It has a 10,000-record default safety
+cap; set `max` to your application bound or use `max: 0` to remove the cap explicitly.
 
 ### create
 

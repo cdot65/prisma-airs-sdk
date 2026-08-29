@@ -65,7 +65,15 @@ const page = await client.dlp.dataPatterns.list({
   sort: ['name,asc', 'id,desc'],
 });
 for (const p of page.content) console.log(p.id, p.name);
+
+const allPatterns = await client.dlp.dataPatterns.listAll({
+  size: 100,
+  sort: ['name,asc'],
+});
 ```
+
+`listAll()` combines every Spring page into one array and preserves list filters. Collection is
+capped at 10,000 records by default; pass `max: 0` for an intentional unbounded walk.
 
 ### create
 

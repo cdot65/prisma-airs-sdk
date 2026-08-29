@@ -76,6 +76,50 @@ describe('ApiKeysClient', () => {
       expect(url).toContain('offset=10');
       expect(url).toContain('limit=5');
     });
+
+    it('listAll follows next_offset and preserves every record', async () => {
+      globalThis.fetch = vi
+        .fn()
+        .mockResolvedValueOnce({
+          ok: true,
+          status: 200,
+          text: async () =>
+            JSON.stringify({
+              api_keys: [
+                {
+                  api_key_id: 'k1',
+                  api_key_last8: '11111111',
+                  auth_code: 'a',
+                  expiration: '2027-01-01',
+                  revoked: false,
+                },
+              ],
+              next_offset: 1,
+            }),
+        })
+        .mockResolvedValueOnce({
+          ok: true,
+          status: 200,
+          text: async () =>
+            JSON.stringify({
+              api_keys: [
+                {
+                  api_key_id: 'k2',
+                  api_key_last8: '22222222',
+                  auth_code: 'b',
+                  expiration: '2027-01-01',
+                  revoked: false,
+                },
+              ],
+              next_offset: 0,
+            }),
+        });
+
+      const result = await client.listAll({ limit: 1 });
+
+      expect(result.map((key) => key.api_key_id)).toEqual(['k1', 'k2']);
+      expect(globalThis.fetch).toHaveBeenCalledTimes(2);
+    });
   });
 
   describe('delete', () => {

@@ -1,7 +1,12 @@
 import { MODEL_SEC_SECURITY_RULES_PATH } from '../constants.js';
 import { request } from '../http/request.js';
 import type { AuthAdapter } from '../http/types.js';
-import { serializeListing, type ListingOptions } from '../listing.js';
+import {
+  collectSkipPages,
+  serializeListing,
+  type CollectAllOptions,
+  type ListingOptions,
+} from '../listing.js';
 import { assertUuid } from '../validators.js';
 import {
   ListModelSecurityRulesResponseSchema,
@@ -17,6 +22,8 @@ export interface ModelSecurityRuleListOptions extends ListingOptions {
   /** Search term (matches UUID or Name, 3-1000 chars). */
   search_query?: string;
 }
+export interface ModelSecurityRuleListAllOptions
+  extends Omit<ModelSecurityRuleListOptions, 'skip'>, CollectAllOptions {}
 
 /** @internal */
 export interface ModelSecurityRulesClientOptions {
@@ -69,6 +76,16 @@ export class ModelSecurityRulesClient {
       auth: this.auth,
       numRetries: this.numRetries,
     });
+  }
+
+  /** List every security-rule page. @example `const rules = await ms.securityRules.listAll();` */
+  async listAll(
+    opts: ModelSecurityRuleListAllOptions = {},
+  ): Promise<ListModelSecurityRulesResponse['rules']> {
+    return collectSkipPages(async (skip, limit) => {
+      const page = await this.list({ ...opts, skip, limit });
+      return { items: page.rules, total: page.pagination.total_items };
+    }, opts);
   }
 
   /**

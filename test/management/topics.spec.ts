@@ -71,6 +71,78 @@ describe('TopicsClient', () => {
       expect(url).toContain('offset=5');
       expect(url).toContain('limit=5');
     });
+
+    it('latestOnly walks all pages and keeps the highest revision per name', async () => {
+      globalThis.fetch = vi
+        .fn()
+        .mockResolvedValueOnce({
+          ok: true,
+          status: 200,
+          text: async () => JSON.stringify({ custom_topics: [sampleTopic], next_offset: 200 }),
+        })
+        .mockResolvedValueOnce({
+          ok: true,
+          status: 200,
+          text: async () =>
+            JSON.stringify({ custom_topics: [{ ...sampleTopic, topic_id: 'new', revision: 3 }] }),
+        });
+      const result = await client.list({ latestOnly: true });
+      expect(result.custom_topics).toEqual([{ ...sampleTopic, topic_id: 'new', revision: 3 }]);
+      expect(globalThis.fetch).toHaveBeenCalledTimes(2);
+    });
+
+    it('listAll follows next_offset', async () => {
+      globalThis.fetch = vi
+        .fn()
+        .mockResolvedValueOnce({
+          ok: true,
+          status: 200,
+          text: async () => JSON.stringify({ custom_topics: [sampleTopic], next_offset: 100 }),
+        })
+        .mockResolvedValueOnce({
+          ok: true,
+          status: 200,
+          text: async () =>
+            JSON.stringify({ custom_topics: [{ ...sampleTopic, topic_id: 'second' }] }),
+        });
+      await expect(client.listAll()).resolves.toHaveLength(2);
+    });
+  });
+
+  describe('get', () => {
+    it('finds an exact topic UUID across pages', async () => {
+      globalThis.fetch = vi
+        .fn()
+        .mockResolvedValueOnce({
+          ok: true,
+          status: 200,
+          text: async () => JSON.stringify({ custom_topics: [sampleTopic], next_offset: 100 }),
+        })
+        .mockResolvedValueOnce({
+          ok: true,
+          status: 200,
+          text: async () =>
+            JSON.stringify({ custom_topics: [{ ...sampleTopic, topic_id: 'wanted' }] }),
+        });
+      await expect(client.get('wanted')).resolves.toMatchObject({ topic_id: 'wanted' });
+    });
+
+    it('getByName returns the highest revision across pages', async () => {
+      globalThis.fetch = vi
+        .fn()
+        .mockResolvedValueOnce({
+          ok: true,
+          status: 200,
+          text: async () => JSON.stringify({ custom_topics: [sampleTopic], next_offset: 100 }),
+        })
+        .mockResolvedValueOnce({
+          ok: true,
+          status: 200,
+          text: async () =>
+            JSON.stringify({ custom_topics: [{ ...sampleTopic, topic_id: 'new', revision: 2 }] }),
+        });
+      await expect(client.getByName('credit-cards')).resolves.toMatchObject({ revision: 2 });
+    });
   });
 
   describe('update', () => {

@@ -1,6 +1,7 @@
 import { DLP_DICTIONARIES_PATH } from '../../constants.js';
 import { request } from '../../http/request.js';
 import type { AuthAdapter } from '../../http/types.js';
+import { collectSpringPages, type CollectAllOptions } from '../../listing.js';
 import {
   DictionaryResponseSchema,
   PageDictionaryResponseSchema,
@@ -21,6 +22,8 @@ export interface DictionaryListParams {
   /** When true, the API includes the `keywords` array in each response entry. */
   keywords?: boolean;
 }
+export interface DictionaryListAllParams
+  extends Omit<DictionaryListParams, 'page'>, CollectAllOptions {}
 
 /** Parameters accepted by {@link DictionariesClient.get}. */
 export interface DictionaryGetParams {
@@ -111,6 +114,22 @@ export class DictionariesClient {
       auth: this.auth,
       numRetries: this.numRetries,
     });
+  }
+
+  /** List all dictionaries. @example `const dictionaries = await mgmt.dlp.dictionaries.listAll();` */
+  async listAll(params: DictionaryListAllParams = {}): Promise<PageDictionaryResponse['content']> {
+    return collectSpringPages(
+      async (page, size) => {
+        const result = await this.list({ ...params, page, size });
+        const last =
+          result.last ??
+          (result.totalPages !== undefined
+            ? page + 1 >= result.totalPages
+            : result.content.length < size);
+        return { items: result.content, last };
+      },
+      { size: params.size, max: params.max },
+    );
   }
 
   /**

@@ -6,7 +6,7 @@ import {
 } from '../constants.js';
 import { request } from '../http/request.js';
 import type { AuthAdapter } from '../http/types.js';
-import { serializeListing } from '../listing.js';
+import { collectAll, paginate, serializeListing, type CollectAllOptions } from '../listing.js';
 import { assertUuid } from '../validators.js';
 import {
   TargetResponseSchema,
@@ -20,6 +20,7 @@ import {
   type TargetContextUpdate,
   type TargetResponse,
   type TargetList,
+  type TargetListItem,
   type TargetProbeRequest,
   type TargetProfileResponse,
   type TargetAuthValidationRequest,
@@ -34,6 +35,9 @@ export interface TargetListOptions extends RedTeamListOptions {
   target_type?: string;
   status?: string;
 }
+
+/** Options for walking every target page. */
+export interface TargetListAllOptions extends Omit<TargetListOptions, 'skip'>, CollectAllOptions {}
 
 /** Options for target create/update operations. */
 export interface TargetOperationOptions {
@@ -129,6 +133,33 @@ export class RedTeamTargetsClient {
       auth: this.auth,
       numRetries: this.numRetries,
     });
+  }
+
+  /**
+   * List targets across every page while preserving the supplied filters.
+   * @example
+   * ```ts
+   * const targets = await rt.targets.listAll({ limit: 100, status: 'READY' });
+   * ```
+   */
+  async listAll(opts: TargetListAllOptions = {}): Promise<TargetListItem[]> {
+    const limit = opts.limit ?? 50;
+    return collectAll(
+      paginate(async (skip: number) => {
+        const page = await this.list({ ...opts, skip, limit });
+        const items = page.data ?? [];
+        const next = skip + items.length;
+        const total = page.pagination.total_items;
+        return {
+          items,
+          next:
+            items.length > 0 && (total == null ? items.length === limit : next < total)
+              ? next
+              : undefined,
+        };
+      }, 0),
+      { max: opts.max },
+    );
   }
 
   /**

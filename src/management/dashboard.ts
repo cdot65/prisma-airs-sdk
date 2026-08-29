@@ -31,8 +31,8 @@ export interface DashboardClientOptions {
  */
 export interface DashboardAppQuery {
   /**
-   * Customer application UUID. Source it from
-   * {@link import('./customer-apps.js').CustomerAppsClient.list}'s `customer_appId` field.
+   * Customer application UUID. Source it from `CustomerAppsClient.list()`'s
+   * `customer_appId` field.
    */
   appId: string;
   /**

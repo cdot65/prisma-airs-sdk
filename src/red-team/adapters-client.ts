@@ -17,6 +17,10 @@ import {
   type BaseResponse,
 } from '../models/red-team.js';
 import type { RedTeamListOptions } from './scans-client.js';
+import { collectSkipPages, type CollectAllOptions } from '../listing.js';
+
+export interface AdapterListAllOptions
+  extends Omit<RedTeamListOptions, 'skip'>, CollectAllOptions {}
 
 /** Options for adapter create/update operations. */
 export interface AdapterOperationOptions {
@@ -126,6 +130,14 @@ export class RedTeamAdaptersClient {
       auth: this.auth,
       numRetries: this.numRetries,
     });
+  }
+
+  /** List every adapter page. @example `const adapters = await rt.adapters.listAll();` */
+  async listAll(opts: AdapterListAllOptions = {}): Promise<NonNullable<AdapterList['data']>> {
+    return collectSkipPages(async (skip, limit) => {
+      const page = await this.list({ ...opts, skip, limit });
+      return { items: page.data ?? [], total: page.pagination.total_items };
+    }, opts);
   }
 
   /**

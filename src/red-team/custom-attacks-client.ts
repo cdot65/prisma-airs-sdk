@@ -2,7 +2,7 @@ import { RED_TEAM_CUSTOM_ATTACK_PATH, USER_AGENT } from '../constants.js';
 import { AISecSDKException, ErrorType } from '../errors.js';
 import { request } from '../http/request.js';
 import type { AuthAdapter, PreparedRequest } from '../http/types.js';
-import { serializeListing } from '../listing.js';
+import { collectSkipPages, serializeListing, type CollectAllOptions } from '../listing.js';
 import { assertUuid } from '../validators.js';
 import {
   BaseResponseSchema,
@@ -49,6 +49,9 @@ export interface PromptListOptions extends RedTeamListOptions {
   status?: string;
   active?: boolean;
 }
+export interface PromptSetListAllOptions
+  extends Omit<PromptSetListOptions, 'skip'>, CollectAllOptions {}
+export interface PromptListAllOptions extends Omit<PromptListOptions, 'skip'>, CollectAllOptions {}
 
 /** @internal */
 export interface RedTeamCustomAttacksClientOptions {
@@ -131,6 +134,16 @@ export class RedTeamCustomAttacksClient {
       auth: this.auth,
       numRetries: this.numRetries,
     });
+  }
+
+  /** List every custom prompt-set page. @example `const sets = await rt.customAttacks.listAllPromptSets();` */
+  async listAllPromptSets(
+    opts: PromptSetListAllOptions = {},
+  ): Promise<NonNullable<CustomPromptSetList['data']>> {
+    return collectSkipPages(async (skip, limit) => {
+      const page = await this.listPromptSets({ ...opts, skip, limit });
+      return { items: page.data ?? [], total: page.pagination.total_items };
+    }, opts);
   }
 
   /**
@@ -476,6 +489,17 @@ export class RedTeamCustomAttacksClient {
       auth: this.auth,
       numRetries: this.numRetries,
     });
+  }
+
+  /** List every prompt page for a set. @example `const prompts = await rt.customAttacks.listAllPrompts(promptSetUuid);` */
+  async listAllPrompts(
+    promptSetUuid: string,
+    opts: PromptListAllOptions = {},
+  ): Promise<NonNullable<CustomPromptList['data']>> {
+    return collectSkipPages(async (skip, limit) => {
+      const page = await this.listPrompts(promptSetUuid, { ...opts, skip, limit });
+      return { items: page.data ?? [], total: page.pagination.total_items };
+    }, opts);
   }
 
   /**

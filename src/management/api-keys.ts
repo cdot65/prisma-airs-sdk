@@ -1,7 +1,10 @@
 import { MGMT_API_KEY_PATH, MGMT_API_KEYS_TSG_PATH } from '../constants.js';
 import { request } from '../http/request.js';
 import type { AuthAdapter } from '../http/types.js';
+import { collectAll, paginate, type CollectAllOptions } from '../listing.js';
 import type { PaginationOptions } from './profiles.js';
+export interface ApiKeyListAllOptions
+  extends Omit<PaginationOptions, 'offset' | 'latest'>, CollectAllOptions {}
 import {
   ApiKeySchema,
   ApiKeyListResponseSchema,
@@ -100,6 +103,18 @@ export class ApiKeysClient {
       auth: this.auth,
       numRetries: this.numRetries,
     });
+  }
+
+  /** List all API keys. @example `const keys = await mgmt.apiKeys.listAll();` */
+  async listAll(opts: ApiKeyListAllOptions = {}): Promise<ApiKey[]> {
+    const limit = opts.limit ?? 100;
+    return collectAll(
+      paginate(async (offset: number) => {
+        const page = await this.list({ offset, limit });
+        return { items: page.api_keys ?? [], next: page.next_offset || undefined };
+      }, 0),
+      { max: opts.max },
+    );
   }
 
   /**

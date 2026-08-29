@@ -1,7 +1,12 @@
 import { MODEL_SEC_MODELS_PATH, MODEL_SEC_MODEL_VERSIONS_PATH } from '../constants.js';
 import { request } from '../http/request.js';
 import type { AuthAdapter } from '../http/types.js';
-import { serializeListing, type ListingOptions } from '../listing.js';
+import {
+  collectSkipPages,
+  serializeListing,
+  type CollectAllOptions,
+  type ListingOptions,
+} from '../listing.js';
 import { assertUuid } from '../validators.js';
 import {
   ModelResponseSchema,
@@ -46,6 +51,12 @@ export interface ModelSecurityModelVersionListOptions extends ListingOptions {
 
 /** Pagination options for listing a model version's files. */
 export type ModelSecurityModelVersionFileListOptions = ListingOptions;
+export interface ModelSecurityModelListAllOptions
+  extends Omit<ModelSecurityModelListOptions, 'skip'>, CollectAllOptions {}
+export interface ModelSecurityModelVersionListAllOptions
+  extends Omit<ModelSecurityModelVersionListOptions, 'skip'>, CollectAllOptions {}
+export interface ModelSecurityModelVersionFileListAllOptions
+  extends Omit<ModelSecurityModelVersionFileListOptions, 'skip'>, CollectAllOptions {}
 
 /** @internal */
 export interface ModelSecurityModelsClientOptions {
@@ -112,6 +123,14 @@ export class ModelSecurityModelsClient {
     });
   }
 
+  /** List every model page. @example `const models = await ms.models.listAllModels();` */
+  async listAllModels(opts: ModelSecurityModelListAllOptions = {}): Promise<ModelList['models']> {
+    return collectSkipPages(async (skip, limit) => {
+      const page = await this.listModels({ ...opts, skip, limit });
+      return { items: page.models, total: page.pagination.total_items };
+    }, opts);
+  }
+
   /**
    * Get a single model by UUID.
    * @param uuid - Model UUID.
@@ -173,6 +192,17 @@ export class ModelSecurityModelsClient {
     });
   }
 
+  /** List every version of a model. @example `const versions = await ms.models.listAllModelVersions(modelUuid);` */
+  async listAllModelVersions(
+    modelUuid: string,
+    opts: ModelSecurityModelVersionListAllOptions = {},
+  ): Promise<ModelVersionList['model_versions']> {
+    return collectSkipPages(async (skip, limit) => {
+      const page = await this.listModelVersions(modelUuid, { ...opts, skip, limit });
+      return { items: page.model_versions, total: page.pagination.total_items };
+    }, opts);
+  }
+
   /**
    * Get a single model version by UUID.
    * @param uuid - Model version UUID.
@@ -230,5 +260,16 @@ export class ModelSecurityModelsClient {
       auth: this.auth,
       numRetries: this.numRetries,
     });
+  }
+
+  /** List every file in a model version. @example `const files = await ms.models.listAllModelVersionFiles(versionUuid);` */
+  async listAllModelVersionFiles(
+    modelVersionUuid: string,
+    opts: ModelSecurityModelVersionFileListAllOptions = {},
+  ): Promise<FileList['files']> {
+    return collectSkipPages(async (skip, limit) => {
+      const page = await this.listModelVersionFiles(modelVersionUuid, { ...opts, skip, limit });
+      return { items: page.files, total: page.pagination.total_items };
+    }, opts);
   }
 }

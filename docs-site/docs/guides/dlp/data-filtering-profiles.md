@@ -69,7 +69,16 @@ const page = await client.dlp.dataFilteringProfiles.list({
   status: 'enabled',
 });
 console.log(page.totalElements, page.content.length);
+
+const allEnabled = await client.dlp.dataFilteringProfiles.listAll({
+  status: 'enabled',
+  size: 100,
+  max: 2_000,
+});
 ```
+
+`listAll()` advances the zero-indexed `page` until the response is terminal and returns the
+combined `content`. Its default safety cap is 10,000 records; `max: 0` explicitly removes it.
 
 ### get
 
