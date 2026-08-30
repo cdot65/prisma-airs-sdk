@@ -48,6 +48,7 @@ const sidebars: SidebarsConfig = {
       items: [
         'developer/architecture',
         'developer/vocabulary',
+        'developer/development',
         'developer/api-design-versioning',
         'developer/error-handling',
       ],
