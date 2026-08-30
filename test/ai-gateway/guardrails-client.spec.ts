@@ -146,6 +146,26 @@ describe('AIGatewayGuardrailsClient', () => {
     expect((init as RequestInit).method).toBe('DELETE');
   });
 
+  it('PUTs a partial guardrail update to the live-verified resource path', async () => {
+    mockFetch({});
+    await client.update(grId, { name: 'Updated guardrail' });
+
+    const [url, init] = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0];
+    expect(url).toBe(`https://gw.example.com/guardrails/${grId}`);
+    expect((init as RequestInit).method).toBe('PUT');
+    expect(JSON.parse((init as RequestInit).body as string)).toEqual({
+      name: 'Updated guardrail',
+    });
+  });
+
+  it('rejects update with an invalid guardrailId before issuing a request', async () => {
+    globalThis.fetch = vi.fn();
+    await expect(client.update('not-a-uuid', { name: 'Updated' })).rejects.toThrow(
+      AISecSDKException,
+    );
+    expect(globalThis.fetch).not.toHaveBeenCalled();
+  });
+
   it('rejects delete with an invalid guardrailId before issuing a request', async () => {
     globalThis.fetch = vi.fn();
     await expect(client.delete('not-a-uuid')).rejects.toThrow(AISecSDKException);

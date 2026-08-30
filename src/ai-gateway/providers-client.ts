@@ -5,8 +5,12 @@ import { assertUuid } from '../validators.js';
 import {
   ListProvidersResponseSchema,
   GatewayProviderCreateResponseSchema,
+  GatewayProviderDetailSchema,
+  GatewayWriteResponseSchema,
   type ListProvidersResponse,
   type GatewayProviderCreateResponse,
+  type GatewayProviderDetail,
+  type GatewayWriteResponse,
 } from '../models/ai-gateway.js';
 import type { AIGatewaySubClientOptions, AIGatewayWorkspaceScopedListOptions } from './types.js';
 
@@ -21,6 +25,16 @@ export interface GatewayProviderCreateRequest {
   slug: string;
   note?: string;
   expires_at?: string | null;
+}
+
+/** Request body for updating a provider binding. Omitted fields remain unchanged. */
+export interface GatewayProviderUpdateRequest {
+  name?: string;
+  note?: string;
+  usage_limits?: Record<string, unknown> | null;
+  rate_limits?: Record<string, unknown> | null;
+  expires_at?: string | null;
+  reset_usage?: boolean;
 }
 
 /** Client for AI Gateway provider operations (data plane). */
@@ -62,6 +76,33 @@ export class AIGatewayProvidersClient {
   }
 
   /**
+   * Fetch one provider binding. Verified live 2026-08-29.
+   *
+   * @remarks The response can contain provider credential material. Do not log or persist it,
+   * and do not enable SDK debug logging around this call in production.
+   * @param providerId - Provider UUID.
+   * @returns Provider configuration and lifecycle detail.
+   * @example
+   * ```ts
+   * import { AIGatewayClient } from '@cdot65/prisma-airs-sdk';
+   * const gw = new AIGatewayClient();
+   * const provider = await gw.providers.get('f6692544-3265-49be-9711-bbdcebc079e4');
+   * console.log(provider.name);
+   * ```
+   */
+  async get(providerId: string): Promise<GatewayProviderDetail> {
+    assertUuid(providerId, 'providerId');
+    return request({
+      method: 'GET',
+      baseUrl: this.baseUrl,
+      path: `${AI_GW_PROVIDERS_PATH}/${providerId}`,
+      responseSchema: GatewayProviderDetailSchema,
+      auth: this.auth,
+      numRetries: this.numRetries,
+    });
+  }
+
+  /**
    * Create a provider.
    *
    * @remarks
@@ -97,6 +138,37 @@ export class AIGatewayProvidersClient {
       path: AI_GW_PROVIDERS_PATH,
       body,
       responseSchema: GatewayProviderCreateResponseSchema,
+      auth: this.auth,
+      numRetries: this.numRetries,
+    });
+  }
+
+  /**
+   * Update a provider binding. Verified live 2026-08-29.
+   * @param providerId - Provider UUID.
+   * @param body - Fields to update.
+   * @returns The gateway write response.
+   * @example
+   * ```ts
+   * import { AIGatewayClient } from '@cdot65/prisma-airs-sdk';
+   * const gw = new AIGatewayClient();
+   * await gw.providers.update('f6692544-3265-49be-9711-bbdcebc079e4', {
+   *   name: 'Vertex production',
+   *   note: 'Updated by automation',
+   * });
+   * ```
+   */
+  async update(
+    providerId: string,
+    body: GatewayProviderUpdateRequest,
+  ): Promise<GatewayWriteResponse> {
+    assertUuid(providerId, 'providerId');
+    return request({
+      method: 'PUT',
+      baseUrl: this.baseUrl,
+      path: `${AI_GW_PROVIDERS_PATH}/${providerId}`,
+      body,
+      responseSchema: GatewayWriteResponseSchema,
       auth: this.auth,
       numRetries: this.numRetries,
     });

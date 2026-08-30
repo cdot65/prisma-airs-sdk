@@ -5,8 +5,18 @@ import { assertUuid } from '../validators.js';
 import {
   ListMcpIntegrationsResponseSchema,
   GatewayWriteResponseSchema,
+  McpIntegrationDetailSchema,
+  McpIntegrationCapabilitiesResponseSchema,
+  McpIntegrationMetadataSchema,
+  McpIntegrationCapabilitiesUpdateResponseSchema,
+  McpIntegrationWorkspacesUpdateResponseSchema,
   type ListMcpIntegrationsResponse,
   type GatewayWriteResponse,
+  type McpIntegrationDetail,
+  type McpIntegrationCapabilitiesResponse,
+  type McpIntegrationMetadata,
+  type McpIntegrationCapabilitiesUpdateResponse,
+  type McpIntegrationWorkspacesUpdateResponse,
 } from '../models/ai-gateway.js';
 import type { AIGatewaySubClientOptions } from './types.js';
 
@@ -27,14 +37,35 @@ export interface McpIntegrationCreateRequest {
   secret_mappings?: unknown[];
 }
 
+export type McpIntegrationUpdateRequest = Partial<
+  Pick<
+    McpIntegrationCreateRequest,
+    | 'name'
+    | 'description'
+    | 'configurations'
+    | 'url'
+    | 'auth_type'
+    | 'transport'
+    | 'secret_mappings'
+  >
+>;
+
+export interface McpIntegrationCapabilitiesUpdateRequest {
+  capabilities: Array<{
+    name: string;
+    type: 'tool' | 'prompt' | 'resource';
+    enabled: boolean;
+  }>;
+}
+
 /**
  * Workspace-binding payload for `mcp-integrations/{id}/workspaces`.
- * Shape inferred from the sibling `GatewayIntegrationWorkspacesRequest` — not confirmed against a
- * live MCP-integrations tenant.
+ * Verified live against SCM on 2026-08-30.
  */
 export interface McpIntegrationWorkspacesRequest {
-  workspaces?: unknown[];
-  global_workspace_access?: boolean;
+  workspaces?: Array<{ id: string; enabled: boolean }>;
+  global_workspace_access?: { enabled: boolean } | null;
+  override_existing_workspace_access?: boolean;
 }
 
 /** Client for AI Gateway MCP server integrations (admin plane). */
@@ -73,6 +104,78 @@ export class AIGatewayMcpIntegrationsClient {
   }
 
   /**
+   * Fetch one MCP integration. Verified live 2026-08-29.
+   * @param mcpIntegrationId - MCP integration UUID.
+   * @returns Integration detail; unlike list rows, `configurations` is an object.
+   * @example
+   * ```ts
+   * import { AIGatewayClient } from '@cdot65/prisma-airs-sdk';
+   * const gw = new AIGatewayClient();
+   * const integration = await gw.mcpIntegrations.get('2a6f4e2e-6f5a-4a1f-9d0e-9b2b6f6c3a11');
+   * console.log(integration.url);
+   * ```
+   */
+  async get(mcpIntegrationId: string): Promise<McpIntegrationDetail> {
+    assertUuid(mcpIntegrationId, 'mcpIntegrationId');
+    return request({
+      method: 'GET',
+      baseUrl: this.baseUrl,
+      path: `${AI_GW_MCP_INTEGRATIONS_PATH}/${mcpIntegrationId}`,
+      responseSchema: McpIntegrationDetailSchema,
+      auth: this.auth,
+      numRetries: this.numRetries,
+    });
+  }
+
+  /**
+   * List capabilities discovered from an MCP integration. Verified live 2026-08-29.
+   * @param mcpIntegrationId - MCP integration UUID.
+   * @returns Tools, prompts, resources, and resource templates with enablement counts.
+   * @example
+   * ```ts
+   * import { AIGatewayClient } from '@cdot65/prisma-airs-sdk';
+   * const gw = new AIGatewayClient();
+   * const capabilities = await gw.mcpIntegrations.getCapabilities('2a6f4e2e-6f5a-4a1f-9d0e-9b2b6f6c3a11');
+   * console.log(capabilities.data.map((capability) => capability.name));
+   * ```
+   */
+  async getCapabilities(mcpIntegrationId: string): Promise<McpIntegrationCapabilitiesResponse> {
+    assertUuid(mcpIntegrationId, 'mcpIntegrationId');
+    return request({
+      method: 'GET',
+      baseUrl: this.baseUrl,
+      path: `${AI_GW_MCP_INTEGRATIONS_PATH}/${mcpIntegrationId}/capabilities`,
+      responseSchema: McpIntegrationCapabilitiesResponseSchema,
+      auth: this.auth,
+      numRetries: this.numRetries,
+    });
+  }
+
+  /**
+   * Fetch metadata discovered from an MCP server. Verified live 2026-08-29.
+   * @param mcpIntegrationId - MCP integration UUID.
+   * @returns Server identity, protocol, capability flags, and sync state.
+   * @example
+   * ```ts
+   * import { AIGatewayClient } from '@cdot65/prisma-airs-sdk';
+   * const gw = new AIGatewayClient();
+   * const metadata = await gw.mcpIntegrations.getMetadata('2a6f4e2e-6f5a-4a1f-9d0e-9b2b6f6c3a11');
+   * console.log(metadata.sync_status);
+   * ```
+   */
+  async getMetadata(mcpIntegrationId: string): Promise<McpIntegrationMetadata> {
+    assertUuid(mcpIntegrationId, 'mcpIntegrationId');
+    return request({
+      method: 'GET',
+      baseUrl: this.baseUrl,
+      path: `${AI_GW_MCP_INTEGRATIONS_PATH}/${mcpIntegrationId}/metadata`,
+      responseSchema: McpIntegrationMetadataSchema,
+      auth: this.auth,
+      numRetries: this.numRetries,
+    });
+  }
+
+  /**
    * Register an MCP server.
    * @param body - Name, server URL, auth type, transport, and provider-specific configuration.
    * @returns The raw create response. Shape unverified against a live tenant — see the PRD.
@@ -103,32 +206,80 @@ export class AIGatewayMcpIntegrationsClient {
     });
   }
 
+  /** Update an MCP integration. @example `await gw.mcpIntegrations.update(id, { name: 'Docs MCP' });` */
+  async update(
+    mcpIntegrationId: string,
+    body: McpIntegrationUpdateRequest,
+  ): Promise<GatewayWriteResponse> {
+    assertUuid(mcpIntegrationId, 'mcpIntegrationId');
+    return request({
+      method: 'PUT',
+      baseUrl: this.baseUrl,
+      path: `${AI_GW_MCP_INTEGRATIONS_PATH}/${mcpIntegrationId}`,
+      body,
+      responseSchema: GatewayWriteResponseSchema,
+      auth: this.auth,
+      numRetries: this.numRetries,
+    });
+  }
+
+  /** Permanently delete an MCP integration. @example `await gw.mcpIntegrations.delete(id);` */
+  async delete(mcpIntegrationId: string): Promise<void> {
+    assertUuid(mcpIntegrationId, 'mcpIntegrationId');
+    await request({
+      method: 'DELETE',
+      baseUrl: this.baseUrl,
+      path: `${AI_GW_MCP_INTEGRATIONS_PATH}/${mcpIntegrationId}`,
+      auth: this.auth,
+      numRetries: this.numRetries,
+    });
+  }
+
+  /** Replace capability enablement values. @example `await gw.mcpIntegrations.setCapabilities(id, { capabilities: [{ name: 'lookup', type: 'tool', enabled: true }] });` */
+  async setCapabilities(
+    mcpIntegrationId: string,
+    body: McpIntegrationCapabilitiesUpdateRequest,
+  ): Promise<McpIntegrationCapabilitiesUpdateResponse> {
+    assertUuid(mcpIntegrationId, 'mcpIntegrationId');
+    return request({
+      method: 'PUT',
+      baseUrl: this.baseUrl,
+      path: `${AI_GW_MCP_INTEGRATIONS_PATH}/${mcpIntegrationId}/capabilities`,
+      body,
+      responseSchema: McpIntegrationCapabilitiesUpdateResponseSchema,
+      auth: this.auth,
+      numRetries: this.numRetries,
+    });
+  }
+
   /**
    * Replace which workspaces may use this MCP integration.
    * @param mcpIntegrationId - MCP integration UUID.
    * @param body - Workspace bindings or a global-access flag; this is a replace, not a merge.
-   * @returns The raw response. Shape unverified against a live tenant — see the PRD.
+   * @returns An empty object. Verified live 2026-08-30.
    * @example
    * ```ts
    * import { AIGatewayClient } from '@cdot65/prisma-airs-sdk';
    * const gw = new AIGatewayClient();
    *
    * await gw.mcpIntegrations.setWorkspaces('f6692544-3265-49be-9711-bbdcebc079e4', {
-   *   global_workspace_access: true,
+   *   workspaces: [{ id: 'ws-development', enabled: true }],
+   *   global_workspace_access: { enabled: false },
+   *   override_existing_workspace_access: true,
    * });
    * ```
    */
   async setWorkspaces(
     mcpIntegrationId: string,
     body: McpIntegrationWorkspacesRequest,
-  ): Promise<GatewayWriteResponse> {
+  ): Promise<McpIntegrationWorkspacesUpdateResponse> {
     assertUuid(mcpIntegrationId, 'mcpIntegrationId');
     return request({
       method: 'PUT',
       baseUrl: this.baseUrl,
       path: `${AI_GW_MCP_INTEGRATIONS_PATH}/${mcpIntegrationId}/workspaces`,
       body,
-      responseSchema: GatewayWriteResponseSchema,
+      responseSchema: McpIntegrationWorkspacesUpdateResponseSchema,
       auth: this.auth,
       numRetries: this.numRetries,
     });

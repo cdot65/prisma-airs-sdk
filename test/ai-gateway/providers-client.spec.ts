@@ -46,6 +46,42 @@ describe('AIGatewayProvidersClient', () => {
     expect(u.searchParams.get('workspace_id')).toBe(wsId);
   });
 
+  it('fetches one live-verified provider detail', async () => {
+    mockFetch({
+      id: providerId,
+      ai_provider_name: 'Vertex AI',
+      model_config: { vertexRegion: 'us-central1' },
+      key: 'masked-or-sensitive',
+      masked_api_key: '***',
+      slug: 'vertex-prod',
+      name: 'Vertex production',
+      usage_limits: null,
+      status: 'active',
+      note: '',
+      created_at: '2026-07-17T00:42:44.000Z',
+      expires_at: null,
+      last_reset_at: null,
+      rate_limits: [],
+      integration_id: 'de7d7d50-31cd-11ee-b93b-0e06f1aa7f7c',
+      tags: null,
+      secret_mappings: [],
+      object: 'provider',
+    });
+
+    const result = await client.get(providerId);
+
+    expect(result.ai_provider_name).toBe('Vertex AI');
+    const [url, init] = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0];
+    expect(url).toBe(`https://gw.example.com/providers/${providerId}`);
+    expect((init as RequestInit).method).toBe('GET');
+  });
+
+  it('rejects get with an invalid providerId before issuing a request', async () => {
+    globalThis.fetch = vi.fn();
+    await expect(client.get('not-a-uuid')).rejects.toThrow(AISecSDKException);
+    expect(globalThis.fetch).not.toHaveBeenCalled();
+  });
+
   it('POSTs a provider binding to /providers, and parses the create RECEIPT (no version_id)', async () => {
     mockFetch({ id: providerId, slug: 'sdk-verify-delete-me-provider', object: 'provider' });
     const receipt = await client.create({
@@ -66,6 +102,27 @@ describe('AIGatewayProvidersClient', () => {
     expect(receipt.slug).toBe('sdk-verify-delete-me-provider');
     expect((receipt as unknown as { version_id?: string }).version_id).toBeUndefined();
     expect((receipt as unknown as { name?: string }).name).toBeUndefined();
+  });
+
+  it('PUTs a partial provider update to the live-verified resource path', async () => {
+    mockFetch({});
+    await client.update(providerId, { name: 'Updated provider', note: 'E2E verified' });
+
+    const [url, init] = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0];
+    expect(url).toBe(`https://gw.example.com/providers/${providerId}`);
+    expect((init as RequestInit).method).toBe('PUT');
+    expect(JSON.parse((init as RequestInit).body as string)).toEqual({
+      name: 'Updated provider',
+      note: 'E2E verified',
+    });
+  });
+
+  it('rejects update with an invalid providerId before issuing a request', async () => {
+    globalThis.fetch = vi.fn();
+    await expect(client.update('not-a-uuid', { name: 'Updated' })).rejects.toThrow(
+      AISecSDKException,
+    );
+    expect(globalThis.fetch).not.toHaveBeenCalled();
   });
 
   it('DELETEs a provider with no organisation_id param and no responseSchema', async () => {

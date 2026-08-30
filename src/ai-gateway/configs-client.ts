@@ -7,10 +7,12 @@ import {
   GatewayConfigDetailSchema,
   GatewayConfigCreateResponseSchema,
   GatewayWriteResponseSchema,
+  ListConfigVersionsResponseSchema,
   type ListConfigsResponse,
   type GatewayConfigDetail,
   type GatewayConfigCreateResponse,
   type GatewayWriteResponse,
+  type ListConfigVersionsResponse,
 } from '../models/ai-gateway.js';
 import type { AIGatewaySubClientOptions, AIGatewayWorkspaceScopedListOptions } from './types.js';
 
@@ -91,6 +93,30 @@ export class AIGatewayConfigsClient {
       baseUrl: this.baseUrl,
       path: `${AI_GW_CONFIGS_PATH}/${configId}`,
       responseSchema: GatewayConfigDetailSchema,
+      auth: this.auth,
+      numRetries: this.numRetries,
+    });
+  }
+
+  /**
+   * List the immutable version history for one config. Verified live 2026-08-29.
+   * @param configId - Config UUID.
+   * @returns Config versions, including version ownership and creation timestamps.
+   * @example
+   * ```ts
+   * import { AIGatewayClient } from '@cdot65/prisma-airs-sdk';
+   * const gw = new AIGatewayClient();
+   * const versions = await gw.configs.listVersions('764cf9cd-4ebf-449e-b669-08149b0fbbbc');
+   * console.log(versions.data[0].version_id);
+   * ```
+   */
+  async listVersions(configId: string): Promise<ListConfigVersionsResponse> {
+    assertUuid(configId, 'configId');
+    return request({
+      method: 'GET',
+      baseUrl: this.baseUrl,
+      path: `${AI_GW_CONFIGS_PATH}/${configId}/versions`,
+      responseSchema: ListConfigVersionsResponseSchema,
       auth: this.auth,
       numRetries: this.numRetries,
     });

@@ -42,6 +42,12 @@ const sampleConfigDetail = {
   version_id: 'v1',
 };
 
+const sampleConfigVersion = {
+  ...sampleConfigDetail,
+  version_created_at: '2026-07-17T00:42:44.000Z',
+  version_owner_id: 'fad91538-65a9-41f7-8b9c-6e4c0e8b9c5f',
+};
+
 describe('AIGatewayConfigsClient', () => {
   const originalFetch = globalThis.fetch;
   let client: AIGatewayConfigsClient;
@@ -75,6 +81,23 @@ describe('AIGatewayConfigsClient', () => {
     expect(res.config).toBe('{"provider":"@anthropic-prod"}');
     const [url] = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0];
     expect(url).toBe(`https://gw.example.com/configs/${cfgId}`);
+  });
+
+  it('lists the live-verified version history for one config', async () => {
+    mockFetch({ object: 'list', total: 1, data: [sampleConfigVersion] });
+
+    const res = await client.listVersions(cfgId);
+
+    expect(res.data[0].version_created_at).toBe('2026-07-17T00:42:44.000Z');
+    const [url, init] = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0];
+    expect(url).toBe(`https://gw.example.com/configs/${cfgId}/versions`);
+    expect((init as RequestInit).method).toBe('GET');
+  });
+
+  it('rejects listVersions with an invalid configId before issuing a request', async () => {
+    globalThis.fetch = vi.fn();
+    await expect(client.listVersions('not-a-uuid')).rejects.toThrow(AISecSDKException);
+    expect(globalThis.fetch).not.toHaveBeenCalled();
   });
 
   it('POSTs a config with the config body as an OBJECT, and parses the create RECEIPT', async () => {
