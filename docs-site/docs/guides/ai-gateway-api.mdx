@@ -19,7 +19,7 @@ The AI Gateway is configured and provisioned entirely through **Strata Cloud Man
 Both planes share one OAuth2 token; what differs is the **SCM role scope** each plane authorizes against, which is the first thing to get right (see [Authorization](#authorization) below).
 
 :::note[No published OpenAPI spec]
-Unlike most of this SDK's other subsystems, the AI Gateway API has no published OpenAPI spec — endpoint names are bespoke (`user-trends` is plural, `groups/model` is singular, `cache-hits-trend` 404s). Every schema in `src/models/ai-gateway.ts` was verified against a live tenant; see the [Gotchas](#gotchas) section below for the corners that bit us.
+Unlike most of this SDK's other subsystems, the AI Gateway API has no Palo Alto Networks-published OpenAPI spec. Portkey's OpenAPI document is used to identify candidate capabilities, but routes and schemas are only released after verification through SCM. Endpoint names can diverge (`user-trends` is plural, `groups/model` is singular, `cache-hits-trend` 404s); see the [expansion plan](../developer/ai-gateway-expansion-plan.md) and [Gotchas](#gotchas).
 :::
 
 ## Authorization
@@ -236,7 +236,27 @@ List rows are a 12-field subset that omits `config`, `format`, `type`, and `vers
 ```ts
 const detail = await gw.configs.get(configs.data[0].id);
 const routing = JSON.parse(detail.config) as Record<string, unknown>;
+
+// Each history row includes the full JSON-string config and version metadata.
+const versions = await gw.configs.listVersions(detail.id);
+console.log(versions.data[0].version_created_at);
 ```
+:::
+
+Provider detail is also available, but it is secret-bearing:
+
+```ts
+const provider = await gw.providers.get(providers.data[0].id);
+console.log(provider.name, provider.ai_provider_name);
+
+await gw.providers.update(provider.id, {
+  name: 'Vertex production',
+  note: 'Managed by platform automation',
+});
+```
+
+:::danger[providers.get() can return credentials]
+The provider detail response can contain `key`, `model_config` service-account material, and `secret_mappings`. Do not log or persist the complete response, and do not enable `PANW_AI_SEC_DEBUG` around this call in production.
 :::
 
 Guardrails also have a detail read, with the same list/detail split:
@@ -244,6 +264,8 @@ Guardrails also have a detail read, with the same list/detail split:
 ```ts
 const guardrail = await gw.guardrails.get(guardrails.data[0].id);
 console.log(guardrail.checks[0].id); // e.g. 'panw-prisma-airs.intercept'
+
+await gw.guardrails.update(guardrail.id, { name: 'Production AIRS guardrail' });
 ```
 
 :::info[create() returns a receipt, not the record]
@@ -279,6 +301,76 @@ const mcp = await gw.mcpIntegrations.list();
 const plugins = await gw.plugins.list();
 const org = await gw.organisations.getSelf();
 ```
+
+For a self-hosted data plane, register it against only the workspace it may serve. Capture the creation receipt immediately because its `client_auth` and gateway password are returned only once:
+
+```ts
+const registration = await gw.deployments.create({
+  name: 'gcp-ai-dev-calvin',
+  type: 'non_production',
+  organisation_id: process.env.PANW_AI_GW_TSG_ID!,
+  auth_settings: {
+    allow_all_workspaces: false,
+    workspaces_allowed: ['ws-develo-71f8d8'],
+  },
+});
+
+// Store these in a secret manager; never print them.
+const { client_auth, credentials } = registration;
+```
+
+After the separately managed gateway runtime has an HTTPS endpoint reachable by SCM, attach it and optionally run SCM's bidirectional connectivity test:
+
+```ts
+await gw.deployments.update(registration.id, {
+  auth_settings: {
+    gateway_base_url: 'https://gateway.example.com',
+    workspaces_allowed: ['ws-develo-71f8d8'],
+  },
+});
+
+const health = await gw.deployments.ping(registration.id);
+console.log(health.status, health.outbound.status, health.inbound.status);
+```
+
+:::note[Private data planes and `ping()`]
+`deployments.ping()` is not the same signal as the deployment heartbeat. The ping asks SCM to
+initiate a request to the registered gateway and then verify its callback. A private data plane
+that intentionally rejects control-plane-initiated ingress can therefore return an unhealthy ping
+while its outbound heartbeat remains current and `connection_status` is `healthy`. Do not expose a
+private gateway merely to make this optional diagnostic green.
+:::
+
+MCP integration detail, discovered capabilities, and server metadata use separate reads:
+
+```ts
+const mcpId = mcp.data[0].id;
+const detail = await gw.mcpIntegrations.get(mcpId);
+const capabilities = await gw.mcpIntegrations.getCapabilities(mcpId);
+const metadata = await gw.mcpIntegrations.getMetadata(mcpId);
+
+console.log(detail.url);
+console.log(capabilities.data.map((capability) => capability.name));
+console.log(metadata.sync_status);
+```
+
+Unlike MCP list rows, where `configurations` is a JSON-encoded string, `mcpIntegrations.get()` returns `configurations` as an object.
+
+MCP workspace bindings use explicit enablement entries. This call disables an integration in one
+workspace without replacing unrelated bindings or enabling global access:
+
+```ts
+await gw.mcpIntegrations.setWorkspaces(mcpId, {
+  workspaces: [{ id: 'ws-development', enabled: false }],
+  global_workspace_access: { enabled: false },
+  override_existing_workspace_access: false,
+});
+// Verified SCM response: {}
+```
+
+The workspace may be supplied by slug or UUID. Use `override_existing_workspace_access: false`
+for a targeted update; setting it to `true` applies replacement semantics to the supplied binding
+set.
 
 Per-integration model and workspace bindings:
 

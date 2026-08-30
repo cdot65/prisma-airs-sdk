@@ -1,5 +1,35 @@
 # Release Notes
 
+## v0.19.0
+
+### Complete established AI Gateway CRUD
+
+The AI Gateway clients now cover the remaining established-resource operations verified against
+SCM: config versions; guardrail and provider updates; deployment update and connectivity ping; MCP
+integration detail, update, delete, metadata, capabilities, capability enablement, and workspace
+bindings; and API-key detail, delete, and rotation.
+
+Prisma keeps service and user API keys in distinct collections. The SDK therefore exposes
+`getService()` / `getUser()`, `deleteService()` / `deleteUser()`, and `rotateService()` /
+`rotateUser()` instead of the generic Portkey routes that SCM denies through OPA. Rotation returns
+a typed, one-time secret response that applications must capture without logging.
+
+MCP workspace binding now has a live-verified request contract and strict empty response. Binding
+entries use `{ id, enabled }`; `global_workspace_access` is `{ enabled }`, not a boolean. Set
+`override_existing_workspace_access: false` for a targeted change that preserves unrelated
+workspace bindings.
+
+### Live-safe validation and deployment behavior
+
+An opt-in conformance probe and end-to-end read suite exercise candidate routes through the SDK's
+normal SCM OAuth and `x-tsg-id` transport. Mutation validation uses uniquely named disposable
+resources and removes them afterward. Probe evidence recursively redacts credential-shaped fields.
+
+Deployment heartbeats and `deployments.ping()` are intentionally documented as separate signals.
+A private gateway may maintain a healthy outbound heartbeat while rejecting the inbound reachability
+required by the optional bidirectional ping. Applications should not expose a private data plane
+solely to make that diagnostic green.
+
 ## v0.18.0
 
 ### Complete, bounded reads across OAuth services

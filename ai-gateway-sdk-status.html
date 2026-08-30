@@ -1,0 +1,398 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Prisma AIRS SDK — AI Gateway status</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        --bg: #08111f;
+        --panel: #101c2e;
+        --line: #29405f;
+        --text: #e8f0fb;
+        --muted: #9db0c8;
+        --green: #46d69a;
+        --amber: #ffc857;
+        --blue: #62b6ff;
+        --red: #ff7185;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        font:
+          15px/1.5 Inter,
+          system-ui,
+          sans-serif;
+        background: radial-gradient(circle at top right, #142c47, var(--bg) 42%);
+        color: var(--text);
+      }
+      main {
+        width: min(1180px, calc(100% - 32px));
+        margin: auto;
+        padding: 48px 0 80px;
+      }
+      h1 {
+        margin: 0;
+        font-size: clamp(30px, 5vw, 54px);
+        letter-spacing: -0.04em;
+      }
+      h2 {
+        margin: 36px 0 14px;
+      }
+      h3 {
+        margin: 0 0 8px;
+      }
+      p {
+        color: var(--muted);
+      }
+      code {
+        color: #c8e5ff;
+        background: #091423;
+        padding: 2px 5px;
+        border-radius: 5px;
+      }
+      .hero,
+      .card,
+      .task {
+        border: 1px solid var(--line);
+        background: rgba(16, 28, 46, 0.91);
+        border-radius: 16px;
+      }
+      .hero {
+        padding: 28px;
+      }
+      .summary {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 12px;
+        margin-top: 24px;
+      }
+      .metric {
+        padding: 14px;
+        background: #0a1627;
+        border-radius: 10px;
+      }
+      .metric b {
+        display: block;
+        font-size: 24px;
+        color: var(--green);
+      }
+      .legend,
+      .ops {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 7px;
+      }
+      .tag {
+        border: 1px solid;
+        padding: 3px 8px;
+        border-radius: 999px;
+        font-size: 12px;
+        font-weight: 700;
+      }
+      .verified {
+        color: var(--green);
+        border-color: #267b5d;
+        background: #0d2b23;
+      }
+      .partial {
+        color: var(--amber);
+        border-color: #80621f;
+        background: #2a240f;
+      }
+      .planned {
+        color: var(--blue);
+        border-color: #285d88;
+        background: #0d2438;
+      }
+      .blocked {
+        color: var(--red);
+        border-color: #7a3440;
+        background: #2b1218;
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 14px;
+      }
+      .card {
+        padding: 18px;
+      }
+      .card p {
+        margin: 7px 0 12px;
+      }
+      .plane {
+        float: right;
+        color: var(--muted);
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+      }
+      .tree {
+        margin: 16px 0;
+        padding: 20px;
+        white-space: pre-wrap;
+        overflow: auto;
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        background: #07101c;
+        color: #b9d7ef;
+      }
+      .tasks {
+        display: grid;
+        gap: 10px;
+      }
+      .task {
+        padding: 16px 18px;
+      }
+      .task strong {
+        color: var(--amber);
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        background: var(--panel);
+        border-radius: 14px;
+        overflow: hidden;
+      }
+      th,
+      td {
+        padding: 11px 13px;
+        text-align: left;
+        border-bottom: 1px solid var(--line);
+      }
+      th {
+        color: #b9d7ef;
+      }
+      footer {
+        margin-top: 32px;
+        color: var(--muted);
+        font-size: 13px;
+      }
+      @media (max-width: 850px) {
+        .grid {
+          grid-template-columns: 1fr;
+        }
+        .summary {
+          grid-template-columns: repeat(2, 1fr);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <section class="hero">
+        <div class="legend">
+          <span class="tag verified">Live verified</span
+          ><span class="tag partial">Partial/live pending</span
+          ><span class="tag planned">Planned</span>
+        </div>
+        <h1>AI Gateway SDK end-state</h1>
+        <p>
+          Snapshot: 2026-08-30 · <code>@cdot65/prisma-airs-sdk 0.19.0</code> release candidate · SCM
+          OAuth + <code>x-tsg-id</code> · Prisma routes remain authoritative over Portkey research.
+        </p>
+        <div class="summary">
+          <div class="metric"><b>12</b>subclients</div>
+          <div class="metric"><b>1,636</b>tests passing</div>
+          <div class="metric"><b>6</b>core CRUD families complete</div>
+          <div class="metric"><b>0</b>known leaked test resources</div>
+        </div>
+      </section>
+
+      <h2>Client hierarchy</h2>
+      <div class="tree">
+        AIGatewayClient ├── Data plane │ ├── telemetry analytics, trends, grouping, request logs │
+        ├── workspaces list · get · create · update · delete │ ├── configs list · get · versions ·
+        create · update · delete │ ├── guardrails list · get · create · update · delete │ ├──
+        providers list · get · create · update · delete │ └── apiKeys service/user: list · get ·
+        create · update · delete · rotate └── Admin plane ├── integrations CRUD · models · workspace
+        bindings ├── mcpIntegrations list · get · create · update · delete · capabilities · metadata
+        · bindings ├── deployments list · get · create · update · archive · ping ├── plugins list ·
+        create ├── organisations self/auth settings read + update └── auditLogs list
+      </div>
+
+      <h2>Services and operations</h2>
+      <section class="grid">
+        <article class="card">
+          <span class="plane">Data</span>
+          <h3>Telemetry</h3>
+          <p>Cost, requests, latency, tokens, errors, users, cache, feedback, grouping and logs.</p>
+          <div class="ops">
+            <span class="tag verified">Read live</span
+            ><span class="tag planned">Authoring separate</span>
+          </div>
+        </article>
+        <article class="card">
+          <span class="plane">Data/Admin</span>
+          <h3>Workspaces</h3>
+          <p>Full lifecycle with Prisma’s distinct read and write planes.</p>
+          <div class="ops"><span class="tag verified">CRUD</span></div>
+        </article>
+        <article class="card">
+          <span class="plane">Data</span>
+          <h3>Configs</h3>
+          <p>Full lifecycle plus version listing; detail preserves JSON-encoded config strings.</p>
+          <div class="ops"><span class="tag verified">CRUD + versions</span></div>
+        </article>
+        <article class="card">
+          <span class="plane">Data</span>
+          <h3>Guardrails</h3>
+          <p>Full lifecycle, including disposable live update verification.</p>
+          <div class="ops"><span class="tag verified">CRUD</span></div>
+        </article>
+        <article class="card">
+          <span class="plane">Data</span>
+          <h3>Providers</h3>
+          <p>
+            Full lifecycle. Detail responses may contain credential material and must not be logged.
+          </p>
+          <div class="ops"><span class="tag verified">CRUD</span></div>
+        </article>
+        <article class="card">
+          <span class="plane">Data</span>
+          <h3>API keys</h3>
+          <p>
+            Separate service and user collections. Generic Portkey detail routes are OPA-denied.
+          </p>
+          <div class="ops">
+            <span class="tag verified">List/Get/Create/Update/Delete/Rotate</span>
+          </div>
+        </article>
+        <article class="card">
+          <span class="plane">Admin</span>
+          <h3>Integrations</h3>
+          <p>Provider-integration CRUD plus model and workspace replacement operations.</p>
+          <div class="ops"><span class="tag verified">CRUD + bindings</span></div>
+        </article>
+        <article class="card">
+          <span class="plane">Admin</span>
+          <h3>MCP integrations</h3>
+          <p>CRUD, discovery metadata, capability enablement, and workspace bindings.</p>
+          <div class="ops"><span class="tag verified">CRUD + capabilities + bindings</span></div>
+        </article>
+        <article class="card">
+          <span class="plane">Admin</span>
+          <h3>Deployments</h3>
+          <p>Registration, configuration, archive, and bidirectional connectivity checks.</p>
+          <div class="ops">
+            <span class="tag verified">CRUD/archive</span
+            ><span class="tag partial">Ping intentionally blocked by private ingress</span>
+          </div>
+        </article>
+        <article class="card">
+          <span class="plane">Admin</span>
+          <h3>Plugins</h3>
+          <p>Current SDK supports listing and creation only.</p>
+          <div class="ops"><span class="tag partial">No get/update/delete</span></div>
+        </article>
+        <article class="card">
+          <span class="plane">Admin</span>
+          <h3>Organisations</h3>
+          <p>
+            Read/update self and authentication settings; destructive org lifecycle is intentionally
+            absent.
+          </p>
+          <div class="ops"><span class="tag verified">Read/update</span></div>
+        </article>
+        <article class="card">
+          <span class="plane">Admin</span>
+          <h3>Audit logs</h3>
+          <p>Read-only by nature.</p>
+          <div class="ops"><span class="tag verified">List</span></div>
+        </article>
+      </section>
+
+      <h2>Known gaps and live-validation status</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Area</th>
+            <th>Status</th>
+            <th>What remains</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Deployment connectivity</td>
+            <td><span class="tag verified">Healthy heartbeat</span></td>
+            <td>
+              The gateway reports a fresh outbound sync and SCM marks the deployment healthy.
+              On-demand <code>ping()</code> remains unreachable by design because it requires
+              control-plane-initiated ingress to the private data plane.
+            </td>
+          </tr>
+          <tr>
+            <td>MCP workspace binding</td>
+            <td><span class="tag verified">Live verified</span></td>
+            <td>
+              Request shape and strict empty response schema were captured with a disposable
+              integration.
+            </td>
+          </tr>
+          <tr>
+            <td>Other generic writes</td>
+            <td><span class="tag partial">Schema loose</span></td>
+            <td>
+              Some integration, workspace, plugin, and API-key create/update responses still use a
+              permissive passthrough schema until live receipts are recorded.
+            </td>
+          </tr>
+          <tr>
+            <td>Plugins</td>
+            <td><span class="tag partial">Incomplete CRUD</span></td>
+            <td>Probe get/update/delete routes before adding methods.</td>
+          </tr>
+          <tr>
+            <td>Inference</td>
+            <td><span class="tag planned">Not started</span></td>
+            <td>
+              Runtime authentication, streaming, uploads, routing headers, and OpenAI-compatible
+              wire behavior require gateway-level validation.
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h2>Remaining roadmap</h2>
+      <section class="tasks">
+        <div class="task">
+          <strong>1 · Finish private-path validation.</strong> Run a real gateway request from an
+          authorized in-cluster workload, then confirm the resulting request in SCM telemetry. Do
+          not expose the gateway publicly merely to satisfy <code>ping()</code>.
+        </div>
+        <div class="task">
+          <strong>2 · Tighten write schemas.</strong> Record redacted live fixtures and replace
+          remaining <code>GatewayWriteResponse</code> placeholders with resource-specific response
+          types.
+        </div>
+        <div class="task">
+          <strong>3 · Phase 2 administration.</strong> Add MCP servers, usage/rate-limit policies,
+          secret references, users, invitations, and membership operations—only after SCM route
+          probes.
+        </div>
+        <div class="task">
+          <strong>4 · Phase 3 authoring.</strong> Research collections, labels,
+          prompts/versions/partials, feedback, log detail, and exports.
+        </div>
+        <div class="task">
+          <strong>5 · Phase 4 inference.</strong> Design a separate inference client after runtime
+          auth, streaming, binary payload, and compatibility contracts are proven.
+        </div>
+        <div class="task">
+          <strong>6 · Release sequence.</strong> Commit/review SDK changes, publish the SDK, update
+          and install the CLI dependency, validate CLI/docs, then release the CLI.
+        </div>
+      </section>
+
+      <footer>
+        Generated as a review artifact. “Live verified” means exercised against the SCM tenant with
+        disposable resources where mutation was required; it does not imply every possible payload
+        variant has been observed.
+      </footer>
+    </main>
+  </body>
+</html>

@@ -6,9 +6,11 @@ import {
   ListGuardrailsResponseSchema,
   GatewayGuardrailDetailSchema,
   GatewayGuardrailCreateResponseSchema,
+  GatewayWriteResponseSchema,
   type ListGuardrailsResponse,
   type GatewayGuardrailDetail,
   type GatewayGuardrailCreateResponse,
+  type GatewayWriteResponse,
 } from '../models/ai-gateway.js';
 import type { AIGatewaySubClientOptions, AIGatewayWorkspaceScopedListOptions } from './types.js';
 
@@ -27,6 +29,11 @@ export interface GatewayGuardrailCreateRequest {
   checks: GatewayGuardrailCheck[];
   actions: Record<string, unknown>;
 }
+
+/** Request body for updating a guardrail. Omitted fields remain unchanged. */
+export type GatewayGuardrailUpdateRequest = Partial<
+  Pick<GatewayGuardrailCreateRequest, 'name' | 'checks' | 'actions'>
+>;
 
 /** Client for AI Gateway guardrail operations (data plane). */
 export class AIGatewayGuardrailsClient {
@@ -124,6 +131,36 @@ export class AIGatewayGuardrailsClient {
       path: AI_GW_GUARDRAILS_PATH,
       body,
       responseSchema: GatewayGuardrailCreateResponseSchema,
+      auth: this.auth,
+      numRetries: this.numRetries,
+    });
+  }
+
+  /**
+   * Update a guardrail. Verified live 2026-08-29.
+   * @param guardrailId - Guardrail UUID.
+   * @param body - Fields to update.
+   * @returns The gateway write response.
+   * @example
+   * ```ts
+   * import { AIGatewayClient } from '@cdot65/prisma-airs-sdk';
+   * const gw = new AIGatewayClient();
+   * await gw.guardrails.update('9f6c2a8e-2b3d-4e5f-8a9b-0c1d2e3f4a5b', {
+   *   name: 'Updated guardrail',
+   * });
+   * ```
+   */
+  async update(
+    guardrailId: string,
+    body: GatewayGuardrailUpdateRequest,
+  ): Promise<GatewayWriteResponse> {
+    assertUuid(guardrailId, 'guardrailId');
+    return request({
+      method: 'PUT',
+      baseUrl: this.baseUrl,
+      path: `${AI_GW_GUARDRAILS_PATH}/${guardrailId}`,
+      body,
+      responseSchema: GatewayWriteResponseSchema,
       auth: this.auth,
       numRetries: this.numRetries,
     });

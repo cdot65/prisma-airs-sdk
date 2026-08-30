@@ -560,6 +560,15 @@ export const GatewayConfigDetailSchema = GatewayConfigSchema.extend({
 }).passthrough();
 export type GatewayConfigDetail = z.infer<typeof GatewayConfigDetailSchema>;
 
+/** One config version from `GET /configs/{id}/versions`. Verified live 2026-08-29. */
+export const GatewayConfigVersionSchema = GatewayConfigDetailSchema.extend({
+  version_created_at: z.string(),
+  version_owner_id: z.string(),
+}).passthrough();
+export type GatewayConfigVersion = z.infer<typeof GatewayConfigVersionSchema>;
+export const ListConfigVersionsResponseSchema = aiGatewayList(GatewayConfigVersionSchema);
+export type ListConfigVersionsResponse = z.infer<typeof ListConfigVersionsResponseSchema>;
+
 /**
  * `POST /configs` response — a 4-field creation receipt, **not** a {@link GatewayConfig} or
  * {@link GatewayConfigDetail}. Verified live 2026-07-28 (create -> read -> delete cycle).
@@ -635,8 +644,8 @@ export const GatewayGuardrailDetailSchema = GatewayGuardrailSchema.extend({
       async: z.boolean(),
       sequential: z.boolean(),
       /** Absent when the guardrail was created without a pass/fail feedback action. */
-      on_success: guardrailFeedbackActionSchema.optional(),
-      on_fail: guardrailFeedbackActionSchema.optional(),
+      on_success: guardrailFeedbackActionSchema.nullable().optional(),
+      on_fail: guardrailFeedbackActionSchema.nullable().optional(),
     })
     .passthrough(),
   version_id: z.string(),
@@ -675,6 +684,32 @@ export type GatewayProvider = z.infer<typeof GatewayProviderSchema>;
 export const ListProvidersResponseSchema = aiGatewayList(GatewayProviderSchema);
 export type ListProvidersResponse = z.infer<typeof ListProvidersResponseSchema>;
 
+/** Provider detail from `GET /providers/{id}`. Verified live 2026-08-29. */
+export const GatewayProviderDetailSchema = z
+  .object({
+    id: z.string(),
+    ai_provider_name: z.string(),
+    model_config: z.record(z.unknown()),
+    /** Potentially secret-bearing. Never log or persist this field. */
+    key: z.string(),
+    masked_api_key: z.string(),
+    slug: z.string(),
+    name: z.string(),
+    usage_limits: z.unknown().nullable(),
+    status: z.string(),
+    note: z.string().nullable(),
+    created_at: z.string(),
+    expires_at: z.string().nullable(),
+    last_reset_at: z.string().nullable(),
+    rate_limits: z.array(z.unknown()),
+    integration_id: z.string(),
+    tags: z.unknown().nullable(),
+    secret_mappings: z.array(z.unknown()).optional(),
+    object: z.string(),
+  })
+  .passthrough();
+export type GatewayProviderDetail = z.infer<typeof GatewayProviderDetailSchema>;
+
 /**
  * `POST /providers` response — a 3-field creation receipt, **not** a {@link GatewayProvider}.
  * Verified live 2026-07-28. **No `version_id`** — unlike its {@link
@@ -705,6 +740,16 @@ export const GatewayApiKeySchema = z
 export type GatewayApiKey = z.infer<typeof GatewayApiKeySchema>;
 export const ListApiKeysResponseSchema = aiGatewayList(GatewayApiKeySchema);
 export type ListApiKeysResponse = z.infer<typeof ListApiKeysResponseSchema>;
+
+/** One-time response from an explicit API-key rotation. Never log `key`. */
+export const GatewayApiKeyRotateResponseSchema = z
+  .object({
+    id: z.string(),
+    key: z.string(),
+    key_transition_expires_at: z.string(),
+  })
+  .passthrough();
+export type GatewayApiKeyRotateResponse = z.infer<typeof GatewayApiKeyRotateResponseSchema>;
 
 // ---------------------------------------------------------------------------
 // Integrations (admin plane)
@@ -759,7 +804,7 @@ export const GatewayIntegrationWorkspaceSchema = z
     enabled: z.boolean(),
     status: z.string(),
     created_at: z.string(),
-    last_updated_at: z.string(),
+    last_updated_at: z.string().nullable(),
     last_reset_at: z.string().nullable(),
   })
   .passthrough();
@@ -816,6 +861,106 @@ export const McpIntegrationSchema = z
 export type McpIntegration = z.infer<typeof McpIntegrationSchema>;
 export const ListMcpIntegrationsResponseSchema = aiGatewayList(McpIntegrationSchema);
 export type ListMcpIntegrationsResponse = z.infer<typeof ListMcpIntegrationsResponseSchema>;
+
+/** MCP integration detail. Its `configurations` field is an object, unlike list rows. */
+export const McpIntegrationDetailSchema = z
+  .object({
+    id: z.string(),
+    name: z.string(),
+    description: z.string().nullable(),
+    owner_id: z.string(),
+    status: z.string(),
+    created_at: z.string(),
+    last_updated_at: z.string(),
+    configurations: z.record(z.unknown()),
+    global_workspace_access: z.object({ enabled: z.boolean() }).passthrough().nullable(),
+    workspace_id: z.string().nullable(),
+    slug: z.string(),
+    url: z.string(),
+    auth_type: z.string(),
+    transport: z.string(),
+    type: z.string(),
+    secret_mappings: z.array(z.unknown()).nullable(),
+    object: z.string(),
+  })
+  .passthrough();
+export type McpIntegrationDetail = z.infer<typeof McpIntegrationDetailSchema>;
+
+const McpCapabilityCountSchema = z.object({ total: z.number(), enabled: z.number() }).passthrough();
+
+/** One tool, prompt, resource, or resource-template exposed by an MCP integration. */
+export const McpIntegrationCapabilitySchema = z
+  .object({
+    name: z.string(),
+    type: z.string(),
+    title: z.string().nullable(),
+    description: z.string().nullable(),
+    icons: z.unknown().nullable(),
+    enabled: z.boolean(),
+    created_at: z.string(),
+    last_updated_at: z.string(),
+    input_schema: z.record(z.unknown()).nullable(),
+    output_schema: z.record(z.unknown()).nullable(),
+    execution: z.unknown().nullable(),
+    annotations: z.record(z.unknown()).nullable(),
+    object: z.string(),
+  })
+  .passthrough();
+export type McpIntegrationCapability = z.infer<typeof McpIntegrationCapabilitySchema>;
+
+/** Capabilities exposed by one MCP integration. Verified live 2026-08-29. */
+export const McpIntegrationCapabilitiesResponseSchema = z
+  .object({
+    object: z.string(),
+    counts: z
+      .object({
+        tools: McpCapabilityCountSchema.optional(),
+        prompts: McpCapabilityCountSchema.optional(),
+        resources: McpCapabilityCountSchema.optional(),
+        resource_templates: McpCapabilityCountSchema.optional(),
+      })
+      .passthrough(),
+    total: z.number(),
+    has_more: z.boolean(),
+    data: z.array(McpIntegrationCapabilitySchema),
+  })
+  .passthrough();
+export type McpIntegrationCapabilitiesResponse = z.infer<
+  typeof McpIntegrationCapabilitiesResponseSchema
+>;
+
+export const McpIntegrationCapabilitiesUpdateResponseSchema = z
+  .object({ success: z.boolean() })
+  .passthrough();
+export type McpIntegrationCapabilitiesUpdateResponse = z.infer<
+  typeof McpIntegrationCapabilitiesUpdateResponseSchema
+>;
+
+/** Empty response from an MCP workspace-binding replacement. Verified live 2026-08-30. */
+export const McpIntegrationWorkspacesUpdateResponseSchema = z.object({}).strict();
+export type McpIntegrationWorkspacesUpdateResponse = z.infer<
+  typeof McpIntegrationWorkspacesUpdateResponseSchema
+>;
+
+/** Metadata discovered from an MCP server. Verified live 2026-08-29. */
+export const McpIntegrationMetadataSchema = z
+  .object({
+    server_name: z.string(),
+    server_version: z.string(),
+    title: z.string().nullable(),
+    description: z.string().nullable(),
+    website_url: z.string().nullable(),
+    icons: z.unknown().nullable(),
+    protocol_version: z.string().nullable(),
+    capability_flags: z.record(z.unknown()),
+    instructions: z.string().nullable(),
+    sync_status: z.string(),
+    last_synced_at: z.string().nullable(),
+    sync_error: z.string().nullable(),
+    object: z.string(),
+  })
+  .passthrough();
+export type McpIntegrationMetadata = z.infer<typeof McpIntegrationMetadataSchema>;
 
 // ---------------------------------------------------------------------------
 // Deployments (admin plane) — three distinct shapes, verified live
@@ -877,6 +1022,25 @@ export const GatewayDeploymentCreateResponseSchema = z
   })
   .passthrough();
 export type GatewayDeploymentCreateResponse = z.infer<typeof GatewayDeploymentCreateResponseSchema>;
+
+/** Two-way connectivity result for a configured self-hosted deployment. */
+export const GatewayDeploymentPingResponseSchema = z
+  .object({
+    status: z.string(),
+    gateway_base_url: z.string(),
+    outbound: z
+      .object({
+        status: z.string(),
+        status_code: z.number().optional(),
+        version: z.string().optional(),
+        error: z.string().optional(),
+      })
+      .passthrough(),
+    inbound: z.object({ status: z.string(), error: z.string().optional() }).passthrough(),
+    object: z.string(),
+  })
+  .passthrough();
+export type GatewayDeploymentPingResponse = z.infer<typeof GatewayDeploymentPingResponseSchema>;
 
 export const ListDeploymentsResponseSchema = aiGatewayList(GatewayDeploymentSchema);
 export type ListDeploymentsResponse = z.infer<typeof ListDeploymentsResponseSchema>;

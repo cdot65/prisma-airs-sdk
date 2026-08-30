@@ -23,6 +23,11 @@ import {
   GatewayGlobalWorkspaceAccessSchema,
   GatewayUsageLimitSchema,
   GatewayRateLimitSchema,
+  ListConfigVersionsResponseSchema,
+  GatewayProviderDetailSchema,
+  McpIntegrationDetailSchema,
+  McpIntegrationCapabilitiesResponseSchema,
+  McpIntegrationMetadataSchema,
 } from '../../src/models/ai-gateway.js';
 
 describe('AI Gateway telemetry schemas', () => {
@@ -162,6 +167,122 @@ describe('AI Gateway telemetry schemas', () => {
 });
 
 describe('AI Gateway resource schemas', () => {
+  it('parses the live config-version envelope', () => {
+    const result = ListConfigVersionsResponseSchema.parse({
+      object: 'list',
+      total: 1,
+      data: [
+        {
+          id: '764cf9cd-4ebf-449e-b669-08149b0fbbbc',
+          name: 'claude-code',
+          slug: 'pc-claude-e46fe6',
+          organisation_id: '80f1e8db-1efe-49a7-a45b-b45cade4d861',
+          is_default: 0,
+          status: 'active',
+          owner_id: 'fad91538-65a9-41f7-8b9c-6e4c0e8b9c5f',
+          updated_by: 'fad91538-65a9-41f7-8b9c-6e4c0e8b9c5f',
+          created_at: '2026-07-17T00:42:44.000Z',
+          last_updated_at: '2026-07-17T00:42:44.000Z',
+          workspace_id: '16f7e90d-382a-4e78-b577-1b01eb5f8297',
+          config: '{}',
+          format: 'json',
+          type: 'ORG_CONFIG',
+          version_id: 'v1',
+          version_created_at: '2026-07-17T00:42:44.000Z',
+          version_owner_id: 'fad91538-65a9-41f7-8b9c-6e4c0e8b9c5f',
+          object: 'config',
+        },
+      ],
+    });
+    expect(result.data[0].version_id).toBe('v1');
+  });
+
+  it('parses live provider detail while preserving nested model config', () => {
+    const result = GatewayProviderDetailSchema.parse({
+      id: 'f6692544-3265-49be-9711-bbdcebc079e4',
+      ai_provider_name: 'Vertex AI',
+      model_config: { vertexRegion: 'us-central1' },
+      key: 'sensitive',
+      masked_api_key: '***',
+      slug: 'vertex-prod',
+      name: 'Vertex production',
+      usage_limits: null,
+      status: 'active',
+      note: '',
+      created_at: '2026-07-17T00:42:44.000Z',
+      expires_at: null,
+      last_reset_at: null,
+      rate_limits: [],
+      integration_id: 'de7d7d50-31cd-11ee-b93b-0e06f1aa7f7c',
+      tags: null,
+      object: 'provider',
+    });
+    expect(result.model_config.vertexRegion).toBe('us-central1');
+  });
+
+  it('parses live MCP detail, capabilities, and metadata shapes', () => {
+    const detail = McpIntegrationDetailSchema.parse({
+      id: '2a6f4e2e-6f5a-4a1f-9d0e-9b2b6f6c3a11',
+      name: 'Context 7',
+      description: 'Documentation server',
+      owner_id: 'fad91538-65a9-41f7-8b9c-6e4c0e8b9c5f',
+      status: 'active',
+      created_at: '2026-07-17T00:42:44.000Z',
+      last_updated_at: '2026-07-17T00:42:44.000Z',
+      configurations: {},
+      global_workspace_access: { enabled: true },
+      workspace_id: null,
+      slug: 'context-7',
+      url: 'https://mcp.context7.com/mcp',
+      auth_type: 'none',
+      transport: 'http',
+      type: 'MCP_INTEGRATION',
+      secret_mappings: [],
+      object: 'mcp-integration',
+    });
+    const capabilities = McpIntegrationCapabilitiesResponseSchema.parse({
+      object: 'list',
+      counts: { tools: { total: 1, enabled: 1 } },
+      total: 1,
+      has_more: false,
+      data: [
+        {
+          name: 'lookup',
+          type: 'tool',
+          title: null,
+          description: null,
+          icons: null,
+          enabled: true,
+          created_at: '2026-07-17T00:42:44.000Z',
+          last_updated_at: '2026-07-17T00:42:44.000Z',
+          input_schema: {},
+          output_schema: null,
+          execution: null,
+          annotations: null,
+          object: 'mcp-capability',
+        },
+      ],
+    });
+    const metadata = McpIntegrationMetadataSchema.parse({
+      server_name: 'context7',
+      server_version: '1.0.0',
+      title: 'Context 7',
+      description: null,
+      website_url: null,
+      icons: null,
+      protocol_version: null,
+      capability_flags: {},
+      instructions: null,
+      sync_status: 'synced',
+      last_synced_at: null,
+      sync_error: null,
+      object: 'mcp-integration-metadata',
+    });
+    expect(detail.configurations).toEqual({});
+    expect(capabilities.data[0].enabled).toBe(true);
+    expect(metadata.sync_status).toBe('synced');
+  });
+
   it('parses a workspace list', () => {
     const r = ListWorkspacesResponseSchema.parse({
       object: 'list',
@@ -268,6 +389,46 @@ describe('AI Gateway resource schemas', () => {
     expect(r.data[0].slug).toBe('pg-prisma-099a16');
     expect(r.data[0].updated_by).toBeNull();
     expect((r.data[0] as unknown as { checks?: unknown }).checks).toBeUndefined();
+  });
+
+  it('accepts nullable guardrail feedback actions observed live', () => {
+    const result = GatewayGuardrailDetailSchema.parse({
+      id: '9f6c2a8e-2b3d-4e5f-8a9b-0c1d2e3f4a5b',
+      name: 'PrismaAIRS',
+      slug: 'pg-prisma-099a16',
+      organisation_id: '80f1e8db-1efe-49a7-a45b-b45cade4d861',
+      status: 'active',
+      owner_id: 'fad91538-65a9-41f7-8b9c-6e4c0e8b9c5f',
+      updated_by: 'fad91538-65a9-41f7-8b9c-6e4c0e8b9c5f',
+      created_at: '2026-07-17T00:42:44.000Z',
+      last_updated_at: '2026-07-17T00:42:44.000Z',
+      workspace_id: '16f7e90d-382a-4e78-b577-1b01eb5f8297',
+      object: 'guardrail',
+      checks: [],
+      actions: { deny: true, async: false, sequential: false, on_success: null, on_fail: null },
+      version_id: 'v1',
+    });
+    expect(result.actions.on_success).toBeNull();
+  });
+
+  it('accepts nullable integration-workspace last_updated_at observed live', () => {
+    const result = GatewayIntegrationWorkspacesResponseSchema.parse({
+      workspaces: [
+        {
+          id: '16f7e90d-382a-4e78-b577-1b01eb5f8297',
+          usage_limits: null,
+          rate_limits: null,
+          enabled: true,
+          status: 'active',
+          created_at: '2026-07-17T00:42:44.000Z',
+          last_updated_at: null,
+          last_reset_at: null,
+        },
+      ],
+      global_workspace_access: { enabled: false, rate_limits: null, usage_limits: null },
+      object: 'integration-workspaces',
+    });
+    expect(result.workspaces[0].last_updated_at).toBeNull();
   });
 
   it('parses a guardrail DETAIL read, adding checks/actions/version_id', () => {

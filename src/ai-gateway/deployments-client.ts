@@ -6,11 +6,30 @@ import {
   ListDeploymentsResponseSchema,
   GatewayDeploymentDetailSchema,
   GatewayDeploymentCreateResponseSchema,
+  GatewayDeploymentPingResponseSchema,
+  GatewayWriteResponseSchema,
   type ListDeploymentsResponse,
   type GatewayDeploymentDetail,
   type GatewayDeploymentCreateResponse,
+  type GatewayDeploymentPingResponse,
+  type GatewayWriteResponse,
 } from '../models/ai-gateway.js';
 import type { AIGatewaySubClientOptions } from './types.js';
+
+/** SCM settings controlling a self-hosted gateway deployment. */
+export interface GatewayDeploymentAuthSettingsInput {
+  gateway_base_url?: string;
+  mcp_gateway_base_url?: string;
+  is_dataservice_hosted?: 0 | 1;
+  is_playground_proxy_allowed?: 0 | 1;
+  /** Workspace slugs this deployment may serve. */
+  workspaces_allowed?: string[];
+  jwt_subs_allowed?: string[];
+  jwt_sub_workspace_mapping?: Record<string, string>;
+  allow_all_workspaces?: boolean;
+  remove_workspaces_allowed?: string[];
+  remove_subs_allowed?: string[];
+}
 
 /** Request body for creating a deployment. */
 export interface GatewayDeploymentCreateRequest {
@@ -20,7 +39,22 @@ export interface GatewayDeploymentCreateRequest {
   /** The TSG as a numeric string — NOT the organisation UUID returned on reads. */
   organisation_id: string;
   /** Note `allow_all_workspaces` is a real boolean here; reads return it as 0/1. */
-  auth_settings?: { allow_all_workspaces?: boolean; [k: string]: unknown };
+  auth_settings?: GatewayDeploymentAuthSettingsInput;
+  deployment_config?: Record<string, unknown>;
+  is_default?: boolean;
+  slug?: string;
+}
+
+/** Request body for updating a deployment. Omitted fields remain unchanged. */
+export interface GatewayDeploymentUpdateRequest {
+  name?: string;
+  type?: string;
+  status?: string;
+  deployment_config?: Record<string, unknown> | null;
+  is_default?: boolean;
+  rotate_auth?: boolean;
+  override_existing?: boolean;
+  auth_settings?: GatewayDeploymentAuthSettingsInput;
 }
 
 /** Client for AI Gateway deployment operations (admin plane). */
@@ -125,6 +159,63 @@ export class AIGatewayDeploymentsClient {
       path: AI_GW_DEPLOYMENTS_PATH,
       body,
       responseSchema: GatewayDeploymentCreateResponseSchema,
+      auth: this.auth,
+      numRetries: this.numRetries,
+    });
+  }
+
+  /**
+   * Update deployment settings, including its externally deployed gateway URL and workspace scope.
+   * @param deploymentId - Deployment UUID.
+   * @param body - Fields to update.
+   * @returns The gateway write response.
+   * @example
+   * ```ts
+   * import { AIGatewayClient } from '@cdot65/prisma-airs-sdk';
+   * const gw = new AIGatewayClient();
+   * await gw.deployments.update('21414819-485e-4ba3-b3d3-3e1815580e43', {
+   *   auth_settings: {
+   *     gateway_base_url: 'https://gateway.example.com',
+   *     workspaces_allowed: ['ws-develo-71f8d8'],
+   *   },
+   * });
+   * ```
+   */
+  async update(
+    deploymentId: string,
+    body: GatewayDeploymentUpdateRequest,
+  ): Promise<GatewayWriteResponse> {
+    assertUuid(deploymentId, 'deploymentId');
+    return request({
+      method: 'PUT',
+      baseUrl: this.baseUrl,
+      path: `${AI_GW_DEPLOYMENTS_PATH}/${deploymentId}`,
+      body,
+      responseSchema: GatewayWriteResponseSchema,
+      auth: this.auth,
+      numRetries: this.numRetries,
+    });
+  }
+
+  /**
+   * Run SCM's outbound and inbound connectivity checks against a configured gateway.
+   * @param deploymentId - Deployment UUID.
+   * @returns Health of both connectivity directions.
+   * @example
+   * ```ts
+   * import { AIGatewayClient } from '@cdot65/prisma-airs-sdk';
+   * const gw = new AIGatewayClient();
+   * const health = await gw.deployments.ping('21414819-485e-4ba3-b3d3-3e1815580e43');
+   * console.log(health.status, health.outbound.status, health.inbound.status);
+   * ```
+   */
+  async ping(deploymentId: string): Promise<GatewayDeploymentPingResponse> {
+    assertUuid(deploymentId, 'deploymentId');
+    return request({
+      method: 'GET',
+      baseUrl: this.baseUrl,
+      path: `${AI_GW_DEPLOYMENTS_PATH}/${deploymentId}/ping`,
+      responseSchema: GatewayDeploymentPingResponseSchema,
       auth: this.auth,
       numRetries: this.numRetries,
     });

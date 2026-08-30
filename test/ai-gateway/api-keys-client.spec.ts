@@ -110,6 +110,51 @@ describe('AIGatewayApiKeysClient', () => {
     expect((init as RequestInit).method).toBe('PUT');
   });
 
+  it('gets an API key from the service detail route', async () => {
+    const keyId = '11111111-1111-4111-8111-111111111111';
+    mockFetch({ id: keyId, name: 'ci-runner', object: 'api-key' });
+    await expect(client.getService(keyId)).resolves.toMatchObject({ id: keyId, name: 'ci-runner' });
+    expect(globalThis.fetch).toHaveBeenLastCalledWith(
+      `https://gw.example.com/api-keys/service/${keyId}`,
+      expect.objectContaining({ method: 'GET' }),
+    );
+  });
+
+  it('deletes an API key from the user detail route', async () => {
+    const keyId = '11111111-1111-4111-8111-111111111111';
+    globalThis.fetch = vi.fn().mockResolvedValue({ ok: true, status: 200, text: async () => '' });
+    await expect(client.deleteUser(keyId)).resolves.toBeUndefined();
+    expect(globalThis.fetch).toHaveBeenLastCalledWith(
+      `https://gw.example.com/api-keys/user/${keyId}`,
+      expect.objectContaining({ method: 'DELETE' }),
+    );
+  });
+
+  it('rotates an API key and parses the one-time secret response', async () => {
+    const keyId = '11111111-1111-4111-8111-111111111111';
+    mockFetch({ id: keyId, key: 'pk-secret', key_transition_expires_at: '2026-09-01T00:00:00Z' });
+    const result = await client.rotateService(keyId, { key_transition_period_ms: 3_600_000 });
+    expect(result.key).toBe('pk-secret');
+    expect(globalThis.fetch).toHaveBeenLastCalledWith(
+      `https://gw.example.com/api-keys/service/${keyId}/rotate`,
+      expect.objectContaining({
+        method: 'POST',
+        body: JSON.stringify({ key_transition_period_ms: 3_600_000 }),
+      }),
+    );
+  });
+
+  it.each(['getService', 'deleteService', 'rotateService'] as const)(
+    'rejects %s with a non-UUID keyId before issuing a request',
+    async (method) => {
+      globalThis.fetch = vi.fn();
+      const call =
+        method === 'rotateService' ? client.rotateService('bad', {}) : client[method]('bad');
+      await expect(call).rejects.toThrow(AISecSDKException);
+      expect(globalThis.fetch).not.toHaveBeenCalled();
+    },
+  );
+
   it('does not add a combined api-keys list method', () => {
     expect((client as unknown as Record<string, unknown>)['list']).toBeUndefined();
   });

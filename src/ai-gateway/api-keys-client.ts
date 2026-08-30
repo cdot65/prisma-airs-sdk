@@ -5,8 +5,12 @@ import { assertUuid } from '../validators.js';
 import {
   ListApiKeysResponseSchema,
   GatewayWriteResponseSchema,
+  GatewayApiKeySchema,
+  GatewayApiKeyRotateResponseSchema,
   type ListApiKeysResponse,
   type GatewayWriteResponse,
+  type GatewayApiKey,
+  type GatewayApiKeyRotateResponse,
 } from '../models/ai-gateway.js';
 import type { AIGatewaySubClientOptions, AIGatewayWorkspaceScopedListOptions } from './types.js';
 
@@ -26,6 +30,11 @@ export interface GatewayApiKeyCreateRequest {
   rotation_policy?: Record<string, unknown> | null;
   /** Required for user keys only. */
   user_id?: string;
+}
+
+export interface GatewayApiKeyRotateRequest {
+  /** Minimum 30 minutes when supplied. */
+  key_transition_period_ms?: number;
 }
 
 /**
@@ -112,6 +121,77 @@ export class AIGatewayApiKeysClient {
    */
   async listUser(opts: AIGatewayWorkspaceScopedListOptions): Promise<ListApiKeysResponse> {
     return this.listAt(AI_GW_API_KEYS_USER_PATH, opts);
+  }
+
+  private getAt(path: string, keyId: string): Promise<GatewayApiKey> {
+    assertUuid(keyId, 'keyId');
+    return request({
+      method: 'GET',
+      baseUrl: this.baseUrl,
+      path: `${path}/${keyId}`,
+      responseSchema: GatewayApiKeySchema,
+      auth: this.auth,
+      numRetries: this.numRetries,
+    });
+  }
+
+  private async deleteAt(path: string, keyId: string): Promise<void> {
+    assertUuid(keyId, 'keyId');
+    await request({
+      method: 'DELETE',
+      baseUrl: this.baseUrl,
+      path: `${path}/${keyId}`,
+      auth: this.auth,
+      numRetries: this.numRetries,
+    });
+  }
+
+  private rotateAt(
+    path: string,
+    keyId: string,
+    body: GatewayApiKeyRotateRequest = {},
+  ): Promise<GatewayApiKeyRotateResponse> {
+    assertUuid(keyId, 'keyId');
+    return request({
+      method: 'POST',
+      baseUrl: this.baseUrl,
+      path: `${path}/${keyId}/rotate`,
+      body,
+      responseSchema: GatewayApiKeyRotateResponseSchema,
+      auth: this.auth,
+      numRetries: this.numRetries,
+    });
+  }
+
+  /** Get a service key. @example `await gw.apiKeys.getService(keyId);` */
+  async getService(keyId: string): Promise<GatewayApiKey> {
+    return this.getAt(AI_GW_API_KEYS_SERVICE_PATH, keyId);
+  }
+  /** Get a user key. @example `await gw.apiKeys.getUser(keyId);` */
+  async getUser(keyId: string): Promise<GatewayApiKey> {
+    return this.getAt(AI_GW_API_KEYS_USER_PATH, keyId);
+  }
+  /** Permanently delete a service key. @example `await gw.apiKeys.deleteService(keyId);` */
+  async deleteService(keyId: string): Promise<void> {
+    return this.deleteAt(AI_GW_API_KEYS_SERVICE_PATH, keyId);
+  }
+  /** Permanently delete a user key. @example `await gw.apiKeys.deleteUser(keyId);` */
+  async deleteUser(keyId: string): Promise<void> {
+    return this.deleteAt(AI_GW_API_KEYS_USER_PATH, keyId);
+  }
+  /** Rotate a service key; capture the returned secret. @example `const rotated = await gw.apiKeys.rotateService(keyId);` */
+  async rotateService(
+    keyId: string,
+    body: GatewayApiKeyRotateRequest = {},
+  ): Promise<GatewayApiKeyRotateResponse> {
+    return this.rotateAt(AI_GW_API_KEYS_SERVICE_PATH, keyId, body);
+  }
+  /** Rotate a user key; capture the returned secret. @example `const rotated = await gw.apiKeys.rotateUser(keyId);` */
+  async rotateUser(
+    keyId: string,
+    body: GatewayApiKeyRotateRequest = {},
+  ): Promise<GatewayApiKeyRotateResponse> {
+    return this.rotateAt(AI_GW_API_KEYS_USER_PATH, keyId, body);
   }
 
   /**

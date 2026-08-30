@@ -90,6 +90,53 @@ describe('AIGatewayDeploymentsClient', () => {
     expect((res as unknown as { status?: string }).status).toBeUndefined();
   });
 
+  it('PUTs deployment settings including one workspace and gateway URL', async () => {
+    mockFetch({ object: 'deployment' });
+    await client.update(depId, {
+      name: 'gcp-dev-calvin',
+      auth_settings: {
+        gateway_base_url: 'https://gateway.example.com',
+        workspaces_allowed: ['ws-develo-71f8d8'],
+      },
+    });
+
+    const [url, init] = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0];
+    expect(url).toBe(`https://admin.example.com/deployments/${depId}`);
+    expect((init as RequestInit).method).toBe('PUT');
+    expect(JSON.parse((init as RequestInit).body as string)).toMatchObject({
+      auth_settings: { workspaces_allowed: ['ws-develo-71f8d8'] },
+    });
+  });
+
+  it('pings a configured deployment and parses both connectivity checks', async () => {
+    mockFetch({
+      status: 'healthy',
+      gateway_base_url: 'https://gateway.example.com',
+      outbound: { status: 'healthy', status_code: 200, version: '1.2.3' },
+      inbound: { status: 'healthy' },
+      object: 'deployment',
+    });
+
+    const result = await client.ping(depId);
+
+    expect(result.status).toBe('healthy');
+    expect(result.outbound.status).toBe('healthy');
+    expect((globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0][0]).toBe(
+      `https://admin.example.com/deployments/${depId}/ping`,
+    );
+  });
+
+  it.each(['update', 'ping'] as const)(
+    'rejects %s with an invalid deploymentId before issuing a request',
+    async (method) => {
+      globalThis.fetch = vi.fn();
+      const call =
+        method === 'update' ? client.update('not-a-uuid', {}) : client.ping('not-a-uuid');
+      await expect(call).rejects.toThrow(AISecSDKException);
+      expect(globalThis.fetch).not.toHaveBeenCalled();
+    },
+  );
+
   it('tolerates DELETE returning 200 with an empty body', async () => {
     mockFetch(undefined, '');
     await expect(client.delete(depId, '1852583913')).resolves.toBeUndefined();
