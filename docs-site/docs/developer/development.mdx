@@ -1,0 +1,132 @@
+---
+id: development
+title: Development Workflow
+description: Local development, testing, documentation, CI, and release workflow for contributors to the Prisma AIRS SDK.
+---
+
+# Development Workflow
+
+This page describes the repository workflows that are visible in `package.json`, `docs-site/`,
+`scripts/`, and `.github/workflows/`. The SDK source lives in `src/`, tests live in `test/`, and
+the Docusaurus documentation site lives in `docs-site/`.
+
+## Prerequisites
+
+| Tool | Required version | Source |
+| --- | --- | --- |
+| Node.js | `>=18` for the SDK package | Root `package.json` |
+| Node.js | `>=20` for the Docusaurus site | `docs-site/package.json` |
+| npm | Lockfiles are committed for root and docs site | `package-lock.json`, `docs-site/package-lock.json` |
+
+The package is ESM-first (`"type": "module"`) and builds dual ESM/CJS output into `dist/`.
+
+## Install
+
+Install SDK dependencies from the repository root:
+
+```bash
+npm ci
+```
+
+Install docs-site dependencies when you need to build or serve Docusaurus directly:
+
+```bash
+npm --prefix docs-site ci
+```
+
+## Common Commands
+
+Run these from the repository root unless noted otherwise.
+
+| Command | What it does |
+| --- | --- |
+| `npm run build` | Builds CJS, ESM, and type declarations with `tsup`. |
+| `npm run clean` | Removes `dist/`. |
+| `npm run test` | Runs the Vitest suite once. |
+| `npm run test:watch` | Runs Vitest in watch mode. |
+| `npm run test:coverage` | Runs Vitest with V8 coverage. |
+| `npm run lint` | Runs ESLint over the repository. |
+| `npm run typecheck` | Runs `tsc --noEmit`. |
+| `npm run format` | Formats the repository with Prettier. |
+| `npm run format:check` | Checks Prettier formatting. |
+| `npm run docs:api` | Generates TypeDoc markdown into `docs-site/docs/reference/api`. |
+| `npm run docs:serve` | Generates API docs, then starts Docusaurus. |
+| `npm run docs:build` | Generates API docs, then builds the Docusaurus static site. |
+| `npm run docs:check` | Verifies every public method/function has an `@example` JSDoc tag. |
+| `npm run docs:check:warn` | Reports missing examples without failing. |
+| `npm run preflight` | Diffs Zod models against local OpenAPI specs under gitignored `schemas/`. |
+| `npm run preflight:warn` | Reports schema drift without failing. |
+
+Run a single test file:
+
+```bash
+npx vitest run test/scan/scanner.spec.ts
+```
+
+Run tests by name:
+
+```bash
+npx vitest run -t "async scan"
+```
+
+## Documentation Workflow
+
+Docusaurus prose docs live in `docs-site/docs/`. Runnable examples live in `docs-site/examples/`
+and are linked from [Runnable Examples](../guides/examples).
+
+The API reference is generated, not edited by hand:
+
+```bash
+npm run docs:api
+```
+
+That command uses `typedoc.json` with `src/index.ts` as the public entry point and writes to
+`docs-site/docs/reference/api`. The generated directory is ignored by git and regenerated before
+`docs:serve`, `docs:build`, and the docs deploy workflow.
+
+The docs build command is:
+
+```bash
+npm run docs:build
+```
+
+It runs TypeDoc first, then `npm --prefix docs-site run build`.
+
+## Schema Preflight
+
+`scripts/preflight-schemas.ts` compares Zod schemas in `src/models/` with the OpenAPI specs listed
+in its `MODELED_SPECS` array. It expects a local `schemas/` directory, which is intentionally
+gitignored because it points at an external OpenAPI checkout.
+
+Use preflight before releases or after API-side schema changes:
+
+```bash
+npm run preflight
+```
+
+If `schemas/` is not present, the script exits with setup guidance. This is a local/pre-release
+check, not a CI gate.
+
+## Continuous Integration
+
+The repository defines separate GitHub Actions workflows:
+
+| Workflow | Trigger | Checks |
+| --- | --- | --- |
+| `.github/workflows/ci.yml` | Push and pull request to `main` | `npm ci`, format check, ESLint, typecheck on Node 22 |
+| `.github/workflows/test.yml` | Push and pull request to `main` | Tests and build on Node 18, 20, and 22 |
+| `.github/workflows/docs-deploy.yml` | Push to `main` for docs/source changes or manual dispatch | Docs example coverage, TypeDoc generation, Docusaurus build, GitHub Pages deploy |
+| `.github/workflows/publish.yml` | Published GitHub release | Format check, lint, typecheck, tests, build, then `npm publish --access public` on Node 24 |
+
+## Release Notes and Changesets
+
+User-facing changes are tracked in `.changeset/`. Each changeset is a markdown file with frontmatter
+declaring the package bump (`patch`, `minor`, or `major`) followed by a user-facing summary. The
+project is still pre-1.0, so breaking public type changes are documented as minor-version changes.
+
+## Related Pages
+
+- [Architecture & Internals](./architecture)
+- [API Design & Versioning](./api-design-versioning)
+- [Error Handling](./error-handling)
+- [Runnable Examples](../guides/examples)
