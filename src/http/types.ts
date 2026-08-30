@@ -1,4 +1,5 @@
 import type { z } from 'zod';
+import type { AIGatewaySecretOperation } from '../ai-gateway/secret-fields.js';
 
 /** @internal HTTP methods supported by the request pipeline. */
 export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
@@ -36,6 +37,15 @@ export interface RequestSpec<TResponse = void> {
   path: string;
   params?: Record<string, string | string[]>;
   body?: unknown;
+  /**
+   * Optional runtime schema for a JSON request body. Validation occurs before authentication or
+   * transport, and the parsed output is serialized. Validation failures are classified as
+   * USER_REQUEST_PAYLOAD_ERROR.
+   */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  requestSchema?: z.ZodType<unknown, any, any>;
+  /** AI Gateway operation context used to redact marked request/response debug bodies. */
+  secretOperation?: AIGatewaySecretOperation;
   /**
    * Override the request Content-Type when a JSON `body` is sent. Defaults to `application/json`.
    * Used by DLP endpoints that require `application/merge-patch+json` (RFC 7396).

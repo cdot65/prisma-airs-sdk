@@ -18,55 +18,17 @@ import {
   type McpIntegrationCapabilitiesUpdateResponse,
   type McpIntegrationWorkspacesUpdateResponse,
 } from '../models/ai-gateway.js';
+import {
+  McpIntegrationCapabilitiesBulkUpdateRequestSchema,
+  McpIntegrationCreateRequestSchema,
+  McpIntegrationUpdateRequestSchema,
+  McpIntegrationWorkspacesBulkUpdateRequestSchema,
+  type McpIntegrationCapabilitiesBulkUpdateRequest,
+  type McpIntegrationCreateRequest,
+  type McpIntegrationUpdateRequest,
+  type McpIntegrationWorkspacesBulkUpdateRequest,
+} from '../models/ai-gateway-requests.js';
 import type { AIGatewaySubClientOptions } from './types.js';
-
-/** Request body for registering an MCP server. */
-export interface McpIntegrationCreateRequest {
-  name: string;
-  /** The TSG as a numeric string. */
-  organisation_id: string;
-  slug: string;
-  /** MCP server URL. */
-  url: string;
-  /** e.g. `none`, `bearer`. */
-  auth_type: string;
-  /** e.g. `http`, `sse`. */
-  transport: string;
-  description?: string;
-  configurations?: Record<string, unknown>;
-  secret_mappings?: unknown[];
-}
-
-export type McpIntegrationUpdateRequest = Partial<
-  Pick<
-    McpIntegrationCreateRequest,
-    | 'name'
-    | 'description'
-    | 'configurations'
-    | 'url'
-    | 'auth_type'
-    | 'transport'
-    | 'secret_mappings'
-  >
->;
-
-export interface McpIntegrationCapabilitiesUpdateRequest {
-  capabilities: Array<{
-    name: string;
-    type: 'tool' | 'prompt' | 'resource';
-    enabled: boolean;
-  }>;
-}
-
-/**
- * Workspace-binding payload for `mcp-integrations/{id}/workspaces`.
- * Verified live against SCM on 2026-08-30.
- */
-export interface McpIntegrationWorkspacesRequest {
-  workspaces?: Array<{ id: string; enabled: boolean }>;
-  global_workspace_access?: { enabled: boolean } | null;
-  override_existing_workspace_access?: boolean;
-}
 
 /** Client for AI Gateway MCP server integrations (admin plane). */
 export class AIGatewayMcpIntegrationsClient {
@@ -200,6 +162,8 @@ export class AIGatewayMcpIntegrationsClient {
       baseUrl: this.baseUrl,
       path: AI_GW_MCP_INTEGRATIONS_PATH,
       body,
+      requestSchema: McpIntegrationCreateRequestSchema,
+      secretOperation: 'mcpIntegrations.create',
       responseSchema: GatewayWriteResponseSchema,
       auth: this.auth,
       numRetries: this.numRetries,
@@ -217,6 +181,8 @@ export class AIGatewayMcpIntegrationsClient {
       baseUrl: this.baseUrl,
       path: `${AI_GW_MCP_INTEGRATIONS_PATH}/${mcpIntegrationId}`,
       body,
+      requestSchema: McpIntegrationUpdateRequestSchema,
+      secretOperation: 'mcpIntegrations.update',
       responseSchema: GatewayWriteResponseSchema,
       auth: this.auth,
       numRetries: this.numRetries,
@@ -235,10 +201,10 @@ export class AIGatewayMcpIntegrationsClient {
     });
   }
 
-  /** Replace capability enablement values. @example `await gw.mcpIntegrations.setCapabilities(id, { capabilities: [{ name: 'lookup', type: 'tool', enabled: true }] });` */
+  /** Bulk-update capability enablement values. @example `await gw.mcpIntegrations.setCapabilities(id, { capabilities: [{ name: 'lookup', type: 'tool', enabled: true }] });` */
   async setCapabilities(
     mcpIntegrationId: string,
-    body: McpIntegrationCapabilitiesUpdateRequest,
+    body: McpIntegrationCapabilitiesBulkUpdateRequest,
   ): Promise<McpIntegrationCapabilitiesUpdateResponse> {
     assertUuid(mcpIntegrationId, 'mcpIntegrationId');
     return request({
@@ -246,6 +212,7 @@ export class AIGatewayMcpIntegrationsClient {
       baseUrl: this.baseUrl,
       path: `${AI_GW_MCP_INTEGRATIONS_PATH}/${mcpIntegrationId}/capabilities`,
       body,
+      requestSchema: McpIntegrationCapabilitiesBulkUpdateRequestSchema,
       responseSchema: McpIntegrationCapabilitiesUpdateResponseSchema,
       auth: this.auth,
       numRetries: this.numRetries,
@@ -253,9 +220,10 @@ export class AIGatewayMcpIntegrationsClient {
   }
 
   /**
-   * Replace which workspaces may use this MCP integration.
+   * Bulk-update which workspaces may use this MCP integration.
    * @param mcpIntegrationId - MCP integration UUID.
-   * @param body - Workspace bindings or a global-access flag; this is a replace, not a merge.
+   * @param body - Workspace bindings or global-access settings. Use the explicit override flag
+   * to request replacement behavior.
    * @returns An empty object. Verified live 2026-08-30.
    * @example
    * ```ts
@@ -271,7 +239,7 @@ export class AIGatewayMcpIntegrationsClient {
    */
   async setWorkspaces(
     mcpIntegrationId: string,
-    body: McpIntegrationWorkspacesRequest,
+    body: McpIntegrationWorkspacesBulkUpdateRequest,
   ): Promise<McpIntegrationWorkspacesUpdateResponse> {
     assertUuid(mcpIntegrationId, 'mcpIntegrationId');
     return request({
@@ -279,6 +247,7 @@ export class AIGatewayMcpIntegrationsClient {
       baseUrl: this.baseUrl,
       path: `${AI_GW_MCP_INTEGRATIONS_PATH}/${mcpIntegrationId}/workspaces`,
       body,
+      requestSchema: McpIntegrationWorkspacesBulkUpdateRequestSchema,
       responseSchema: McpIntegrationWorkspacesUpdateResponseSchema,
       auth: this.auth,
       numRetries: this.numRetries,

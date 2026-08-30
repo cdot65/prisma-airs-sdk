@@ -12,30 +12,13 @@ import {
   type GatewayProviderDetail,
   type GatewayWriteResponse,
 } from '../models/ai-gateway.js';
+import {
+  GatewayProviderCreateRequestSchema,
+  GatewayProviderUpdateRequestSchema,
+  type GatewayProviderCreateRequest,
+  type GatewayProviderUpdateRequest,
+} from '../models/ai-gateway-requests.js';
 import type { AIGatewaySubClientOptions, AIGatewayWorkspaceScopedListOptions } from './types.js';
-
-/** Request body for binding an org integration into a workspace as a provider. */
-export interface GatewayProviderCreateRequest {
-  workspace_id: string;
-  /** Upstream AI provider id (e.g. the OpenAI or Vertex provider). */
-  ai_provider_id: string;
-  name: string;
-  /** Org-level integration this provider draws credentials from. */
-  integration_id: string;
-  slug: string;
-  note?: string;
-  expires_at?: string | null;
-}
-
-/** Request body for updating a provider binding. Omitted fields remain unchanged. */
-export interface GatewayProviderUpdateRequest {
-  name?: string;
-  note?: string;
-  usage_limits?: Record<string, unknown> | null;
-  rate_limits?: Record<string, unknown> | null;
-  expires_at?: string | null;
-  reset_usage?: boolean;
-}
 
 /** Client for AI Gateway provider operations (data plane). */
 export class AIGatewayProvidersClient {
@@ -79,7 +62,8 @@ export class AIGatewayProvidersClient {
    * Fetch one provider binding. Verified live 2026-08-29.
    *
    * @remarks The response can contain provider credential material. Do not log or persist it,
-   * and do not enable SDK debug logging around this call in production.
+   * and avoid logging the complete returned object. SDK debug logs redact the known credential
+   * fields for this operation.
    * @param providerId - Provider UUID.
    * @returns Provider configuration and lifecycle detail.
    * @example
@@ -96,6 +80,7 @@ export class AIGatewayProvidersClient {
       method: 'GET',
       baseUrl: this.baseUrl,
       path: `${AI_GW_PROVIDERS_PATH}/${providerId}`,
+      secretOperation: 'providers.get',
       responseSchema: GatewayProviderDetailSchema,
       auth: this.auth,
       numRetries: this.numRetries,
@@ -137,6 +122,7 @@ export class AIGatewayProvidersClient {
       baseUrl: this.baseUrl,
       path: AI_GW_PROVIDERS_PATH,
       body,
+      requestSchema: GatewayProviderCreateRequestSchema,
       responseSchema: GatewayProviderCreateResponseSchema,
       auth: this.auth,
       numRetries: this.numRetries,
@@ -168,6 +154,7 @@ export class AIGatewayProvidersClient {
       baseUrl: this.baseUrl,
       path: `${AI_GW_PROVIDERS_PATH}/${providerId}`,
       body,
+      requestSchema: GatewayProviderUpdateRequestSchema,
       responseSchema: GatewayWriteResponseSchema,
       auth: this.auth,
       numRetries: this.numRetries,

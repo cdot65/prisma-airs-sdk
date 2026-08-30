@@ -82,6 +82,12 @@ and returns the highest revision. `getByName()` returns the highest revision for
 
 `AIGatewayClient` covers the SCM-managed Prisma AIRS **AI Gateway** — runtime telemetry and configuration across two planes behind one credential set: a data plane (`/ai_gw/v2`, telemetry + workspace-scoped config) and an admin plane (`/ai_gw/admin/v2`, organisation-level config). Twelve sub-clients: `telemetry`, `workspaces`, `configs`, `guardrails`, `providers`, `apiKeys` (data plane) and `integrations`, `mcpIntegrations`, `deployments`, `plugins`, `organisations`, `auditLogs` (admin plane).
 
+All AI Gateway write bodies have exported Zod schemas and inferred TypeScript types. Validation
+happens before OAuth and network access; partial updates reject empty bodies. The package also
+exports typed routing/provider configuration, deterministic known-value catalogs,
+`buildDottedObject()` / `setDottedValue()` for CLI-style nested settings, and operation-scoped
+secret metadata used by SDK debug redaction.
+
 ### SCM role grants
 
 The two planes authorize against **different SCM role scopes** — a service account needs both, or half the API returns 403:
@@ -113,12 +119,19 @@ export PANW_AI_GW_TSG_ID=1234567890
 `PANW_AI_GW_*` vars fall back to `PANW_MGMT_*` when unset, so existing management credentials work as-is.
 
 ```ts
-import { AIGatewayClient } from '@cdot65/prisma-airs-sdk';
+import { AIGatewayClient, buildDottedObject } from '@cdot65/prisma-airs-sdk';
 
 const gw = new AIGatewayClient();
+const workspace = (await gw.workspaces.list()).data[0];
 
-const cost = await gw.telemetry.cost({ workspaceSlug: 'ws-main-a-349e0e', days: 7 });
+const cost = await gw.telemetry.cost({ workspaceSlug: workspace.slug, days: 7 });
 console.log(`$${(cost.data.total / 100).toFixed(2)}`); // cost is returned in cents
+
+const routing = buildDottedObject([
+  { path: 'retry.attempts', value: 3 },
+  { path: 'strategy.mode', value: 'fallback' },
+]);
+await gw.configs.create({ name: 'vertex-routing', workspace_id: workspace.id, config: routing });
 ```
 
 ## Documentation

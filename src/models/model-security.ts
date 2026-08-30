@@ -367,7 +367,7 @@ export type RuleEvaluationList = z.infer<typeof RuleEvaluationListSchema>;
 export const ViolationRemediationSchema = z
   .object({
     steps: z.array(z.string()),
-    url: z.string(),
+    url: z.string().optional(),
   })
   .passthrough();
 export type ViolationRemediation = z.infer<typeof ViolationRemediationSchema>;
@@ -384,7 +384,7 @@ export const ViolationResponseSchema = z
     rule_name: z.string(),
     rule_description: z.string(),
     rule_instance_state: z.string(),
-    remediation: ViolationRemediationSchema,
+    remediation: ViolationRemediationSchema.optional(),
     file: z.string().nullable().optional(),
     hash: z.string().nullable().optional(),
     module: z.string().nullable().optional(),
@@ -508,12 +508,12 @@ export const ModelSecurityRuleInstanceResponseSchema = z
   .object({
     uuid: z.string(),
     tsg_id: z.string(),
-    created_at: z.string(),
-    updated_at: z.string(),
+    created_at: z.string().optional(),
+    updated_at: z.string().optional(),
     security_group_uuid: z.string(),
-    security_rule_uuid: z.string(),
+    security_rule_uuid: z.string().optional(),
     state: z.string(),
-    rule: ModelSecurityRuleResponseSchema,
+    rule: ModelSecurityRuleResponseSchema.optional(),
     field_values: z.record(z.unknown()).optional(),
   })
   .passthrough();

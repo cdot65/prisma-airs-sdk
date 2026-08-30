@@ -3,7 +3,7 @@
  * @internal
  * AI Gateway live smoke test.
  *
- * Calls every AI Gateway READ method (43 total) against a real tenant and reports which
+ * Calls every AI Gateway read check (48 total) against a real tenant and reports which
  * parse cleanly. Unit tests use recorded fixtures written by the same person who wrote the
  * schemas, so they cannot catch a schema that disagrees with the live API — this is the one
  * mechanism that can. See PRD-ai-gateway-client.md in the Obsidian vault for the schema

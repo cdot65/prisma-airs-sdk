@@ -14,34 +14,17 @@ import {
   type GatewayIntegrationWorkspacesResponse,
   type GatewayWriteResponse,
 } from '../models/ai-gateway.js';
+import {
+  GatewayIntegrationCreateRequestSchema,
+  GatewayIntegrationModelsBulkUpdateRequestSchema,
+  GatewayIntegrationUpdateRequestSchema,
+  GatewayIntegrationWorkspacesBulkUpdateRequestSchema,
+  type GatewayIntegrationCreateRequest,
+  type GatewayIntegrationModelsBulkUpdateRequest,
+  type GatewayIntegrationUpdateRequest,
+  type GatewayIntegrationWorkspacesBulkUpdateRequest,
+} from '../models/ai-gateway-requests.js';
 import type { AIGatewaySubClientOptions } from './types.js';
-
-/** Request body for creating an org-level provider integration. */
-export interface GatewayIntegrationCreateRequest {
-  /** The TSG as a numeric string. */
-  organisation_id: string;
-  /** Upstream AI provider id. */
-  ai_provider_id: string;
-  name: string;
-  slug: string;
-  description?: string;
-  /** Provider-specific settings (e.g. `vertex_auth_type`, `vertex_region`). */
-  configurations?: Record<string, unknown>;
-  /** Provider API key, when the provider authenticates by key. */
-  key?: string;
-  secret_mappings?: unknown[];
-}
-
-/** Per-model enablement payload for `integrations/{id}/models`. */
-export interface GatewayIntegrationModelsRequest {
-  models: { slug: string; enabled: boolean }[];
-}
-
-/** Workspace-binding payload for `integrations/{id}/workspaces`. */
-export interface GatewayIntegrationWorkspacesRequest {
-  workspaces?: unknown[];
-  global_workspace_access?: boolean;
-}
 
 /** Client for AI Gateway organisation-level integrations (admin plane). */
 export class AIGatewayIntegrationsClient {
@@ -107,8 +90,8 @@ export class AIGatewayIntegrationsClient {
    * Create an integration.
    *
    * @remarks
-   * `body.key` (the provider API key) is a live secret. Setting `PANW_AI_SEC_DEBUG` will
-   * print it, unredacted, to the SDK's own debug log.
+   * `body.key` (the provider API key) is a live secret. SDK debug logs replace known
+   * credential fields with `[REDACTED]`, but callers must still avoid logging the input object.
    *
    * @param body - Provider id, name, slug, and provider-specific configuration.
    * @returns The raw create response. Shape unverified against a live tenant — see the PRD.
@@ -133,6 +116,8 @@ export class AIGatewayIntegrationsClient {
       baseUrl: this.baseUrl,
       path: AI_GW_INTEGRATIONS_PATH,
       body,
+      requestSchema: GatewayIntegrationCreateRequestSchema,
+      secretOperation: 'integrations.create',
       responseSchema: GatewayWriteResponseSchema,
       auth: this.auth,
       numRetries: this.numRetries,
@@ -142,7 +127,7 @@ export class AIGatewayIntegrationsClient {
   /**
    * Update an integration.
    * @param integrationId - Integration UUID.
-   * @param body - Replacement fields.
+   * @param body - One or more fields to update.
    * @returns The raw update response. Shape unverified against a live tenant — see the PRD.
    * @example
    * ```ts
@@ -157,15 +142,16 @@ export class AIGatewayIntegrationsClient {
    */
   async update(
     integrationId: string,
-    body: Partial<GatewayIntegrationCreateRequest>,
+    body: GatewayIntegrationUpdateRequest,
   ): Promise<GatewayWriteResponse> {
     assertUuid(integrationId, 'integrationId');
-    if (body.ai_provider_id !== undefined) assertUuid(body.ai_provider_id, 'ai_provider_id');
     return request({
       method: 'PUT',
       baseUrl: this.baseUrl,
       path: `${AI_GW_INTEGRATIONS_PATH}/${integrationId}`,
       body,
+      requestSchema: GatewayIntegrationUpdateRequestSchema,
+      secretOperation: 'integrations.update',
       responseSchema: GatewayWriteResponseSchema,
       auth: this.auth,
       numRetries: this.numRetries,
@@ -227,9 +213,9 @@ export class AIGatewayIntegrationsClient {
   }
 
   /**
-   * Replace which models this integration exposes.
+   * Bulk-update model enablement for this integration.
    * @param integrationId - Integration UUID.
-   * @param body - Full model list; this is a replace, not a merge.
+   * @param body - One or more model entries to update; omission is not documented as deletion.
    * @returns The raw response. Shape unverified against a live tenant — see the PRD.
    * @example
    * ```ts
@@ -243,7 +229,7 @@ export class AIGatewayIntegrationsClient {
    */
   async setModels(
     integrationId: string,
-    body: GatewayIntegrationModelsRequest,
+    body: GatewayIntegrationModelsBulkUpdateRequest,
   ): Promise<GatewayWriteResponse> {
     assertUuid(integrationId, 'integrationId');
     return request({
@@ -251,6 +237,7 @@ export class AIGatewayIntegrationsClient {
       baseUrl: this.baseUrl,
       path: `${AI_GW_INTEGRATIONS_PATH}/${integrationId}/models`,
       body,
+      requestSchema: GatewayIntegrationModelsBulkUpdateRequestSchema,
       responseSchema: GatewayWriteResponseSchema,
       auth: this.auth,
       numRetries: this.numRetries,
@@ -263,7 +250,7 @@ export class AIGatewayIntegrationsClient {
    * @remarks
    * `global_workspace_access` is an **object** on this read, not a boolean, despite the
    * field name — `{ enabled, rate_limits, usage_limits }`. The corresponding write
-   * ({@link setWorkspaces}) DOES send a plain boolean; the two are not symmetric.
+   * ({@link setWorkspaces}) uses the same object shape.
    *
    * @param integrationId - Integration UUID.
    * @returns Bound workspaces plus the `global_workspace_access` object.
@@ -289,9 +276,9 @@ export class AIGatewayIntegrationsClient {
   }
 
   /**
-   * Replace which workspaces may use this integration.
+   * Bulk-update which workspaces may use this integration.
    * @param integrationId - Integration UUID.
-   * @param body - Workspace bindings or a global-access flag.
+   * @param body - Workspace bindings, global-access settings, or explicit override behavior.
    * @returns The raw response. Shape unverified against a live tenant — see the PRD.
    * @example
    * ```ts
@@ -299,13 +286,13 @@ export class AIGatewayIntegrationsClient {
    * const gw = new AIGatewayClient();
    *
    * await gw.integrations.setWorkspaces('f6692544-3265-49be-9711-bbdcebc079e4', {
-   *   global_workspace_access: true,
+   *   global_workspace_access: { enabled: true },
    * });
    * ```
    */
   async setWorkspaces(
     integrationId: string,
-    body: GatewayIntegrationWorkspacesRequest,
+    body: GatewayIntegrationWorkspacesBulkUpdateRequest,
   ): Promise<GatewayWriteResponse> {
     assertUuid(integrationId, 'integrationId');
     return request({
@@ -313,6 +300,7 @@ export class AIGatewayIntegrationsClient {
       baseUrl: this.baseUrl,
       path: `${AI_GW_INTEGRATIONS_PATH}/${integrationId}/workspaces`,
       body,
+      requestSchema: GatewayIntegrationWorkspacesBulkUpdateRequestSchema,
       responseSchema: GatewayWriteResponseSchema,
       auth: this.auth,
       numRetries: this.numRetries,

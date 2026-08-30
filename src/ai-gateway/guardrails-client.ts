@@ -12,28 +12,13 @@ import {
   type GatewayGuardrailCreateResponse,
   type GatewayWriteResponse,
 } from '../models/ai-gateway.js';
+import {
+  GatewayGuardrailCreateRequestSchema,
+  GatewayGuardrailUpdateRequestSchema,
+  type GatewayGuardrailCreateRequest,
+  type GatewayGuardrailUpdateRequest,
+} from '../models/ai-gateway-requests.js';
 import type { AIGatewaySubClientOptions, AIGatewayWorkspaceScopedListOptions } from './types.js';
-
-/** One guardrail check binding. */
-export interface GatewayGuardrailCheck {
-  /** Check id, e.g. the Prisma AIRS intercept check. */
-  id: string;
-  parameters: Record<string, unknown>;
-  is_enabled: boolean;
-}
-
-/** Request body for creating a guardrail. */
-export interface GatewayGuardrailCreateRequest {
-  workspace_id: string;
-  name: string;
-  checks: GatewayGuardrailCheck[];
-  actions: Record<string, unknown>;
-}
-
-/** Request body for updating a guardrail. Omitted fields remain unchanged. */
-export type GatewayGuardrailUpdateRequest = Partial<
-  Pick<GatewayGuardrailCreateRequest, 'name' | 'checks' | 'actions'>
->;
 
 /** Client for AI Gateway guardrail operations (data plane). */
 export class AIGatewayGuardrailsClient {
@@ -130,6 +115,7 @@ export class AIGatewayGuardrailsClient {
       baseUrl: this.baseUrl,
       path: AI_GW_GUARDRAILS_PATH,
       body,
+      requestSchema: GatewayGuardrailCreateRequestSchema,
       responseSchema: GatewayGuardrailCreateResponseSchema,
       auth: this.auth,
       numRetries: this.numRetries,
@@ -160,6 +146,7 @@ export class AIGatewayGuardrailsClient {
       baseUrl: this.baseUrl,
       path: `${AI_GW_GUARDRAILS_PATH}/${guardrailId}`,
       body,
+      requestSchema: GatewayGuardrailUpdateRequestSchema,
       responseSchema: GatewayWriteResponseSchema,
       auth: this.auth,
       numRetries: this.numRetries,

@@ -13,7 +13,7 @@ The SDK has **zero external HTTP dependencies** — it is built on the runtime's
 
 ## Service domains and auth methods
 
-The SDK covers four service domains. They split across exactly two authentication methods:
+The SDK covers five service domains. They split across exactly two authentication methods:
 
 | Domain         | Entry point           | Auth                      | Base URL constant               |
 | -------------- | --------------------- | ------------------------- | ------------------------------- |
@@ -21,12 +21,13 @@ The SDK covers four service domains. They split across exactly two authenticatio
 | Management API | `ManagementClient`    | OAuth2 client_credentials | `DEFAULT_MGMT_ENDPOINT` (+ DLP) |
 | Model Security | `ModelSecurityClient` | OAuth2 client_credentials | `DEFAULT_MODEL_SEC_*_ENDPOINT`  |
 | Red Team       | `RedTeamClient`       | OAuth2 client_credentials | `DEFAULT_RED_TEAM_*_ENDPOINT`   |
+| AI Gateway     | `AIGatewayClient`     | OAuth2 client_credentials | `DEFAULT_AI_GW_*_ENDPOINT`      |
 
 Only the scan service uses `init()` and the `ApiKeyAuth` adapter. It accepts an API key, a
 pre-obtained bearer token, or both; it does not fetch OAuth2 tokens. Everything else (management
-CRUD, DLP, model security, red teaming) authenticates with OAuth2 client_credentials. The Management
-client additionally talks to a separate DLP base URL (`DEFAULT_DLP_ENDPOINT`) reusing the same OAuth
-credentials.
+CRUD, DLP, model security, red teaming, AI Gateway) authenticates with OAuth2 client_credentials.
+The Management client additionally talks to a separate DLP base URL (`DEFAULT_DLP_ENDPOINT`)
+reusing the same OAuth credentials.
 
 All endpoint paths, base URLs, content/batch limits, header names, and retry config live in one
 place:
@@ -69,7 +70,11 @@ A `RequestSpec` (see `src/http/types.ts`) is a plain description of one call: `m
 
 ```mermaid
 flowchart TD
-    A[RequestSpec] --> B[Strip trailing slash;<br/>build URL + query params]
+    A[RequestSpec] --> R{requestSchema set?}
+    R -- yes --> S[safeParse request body]
+    S -- fail --> T[throw USER_REQUEST_PAYLOAD_ERROR]
+    S -- pass --> B
+    R -- no --> B[Strip trailing slash;<br/>build URL + query params]
     B --> C[Set User-Agent;<br/>serialize body to JSON or FormData]
     C --> D[auth.prepare:<br/>inject auth headers]
     D --> E[fetch]
@@ -92,18 +97,22 @@ flowchart TD
 
 Walking it explicitly:
 
-1. **Build URL.** The base URL is right-trimmed of trailing slashes, then joined with `path`. Query
+1. **Validate request.** When a client declares `requestSchema`, the JSON body is parsed before URL
+   construction, authentication, or transport. The parsed value—not the unchecked input—is later
+   serialized. A failure throws `USER_REQUEST_PAYLOAD_ERROR` with the method, path, and invalid field
+   paths, but not rejected values.
+2. **Build URL.** The base URL is right-trimmed of trailing slashes, then joined with `path`. Query
    `params` are appended; array values append once per element (`?id=a&id=b`).
-2. **Build headers + body.** A `User-Agent` of `PAN-AIRS/<version>-typescript-sdk` is always set,
+3. **Build headers + body.** A `User-Agent` of `PAN-AIRS/<version>-typescript-sdk` is always set,
    along with `service-name: api` on every outgoing request — the header is optional in the AIRS
    spec but required by some tenants' downstream services (notably DLP `GET /v2/api/data-patterns/{id}`
    and `/v2/api/data-profiles/{id}`, which 400 without it). Sending it unconditionally avoids a
    per-endpoint workaround. If `formData` is present it is sent as-is (the runtime writes the
    multipart boundary). Otherwise a `body` is JSON-stringified with `Content-Type: application/json`
    — overridable via `contentType` (DLP endpoints use `application/merge-patch+json`).
-3. **Auth.** The `auth.prepare()` adapter mutates the prepared headers (see below).
-4. **Fetch with retry.** The whole attempt runs inside `executeWithRetry` (`src/http-retry.ts`).
-5. **Validate.** On success, the body text is read once. If no `responseSchema` was declared,
+4. **Auth.** The `auth.prepare()` adapter mutates the prepared headers (see below).
+5. **Fetch with retry.** The whole attempt runs inside `executeWithRetry` (`src/http-retry.ts`).
+6. **Validate response.** On success, the body text is read once. If no `responseSchema` was declared,
    `request()` returns `undefined`. Otherwise the body is parsed and validated (next section).
 
 :::note[Empty bodies are hydrated to `{}`]
@@ -212,13 +221,20 @@ const blockedScans = await modelSecurity.scans.listAll({
 const dictionaries = await management.dlp.dictionaries.listAll({ max: 0 });
 ```
 
-## Validation strategy: Zod with `.passthrough()`
+## Validation strategy: strict requests, forward-compatible responses
 
 Validation happens at three distinct boundaries:
 
 - **Content / setters** validate user-supplied values eagerly (e.g. content length, ID length).
 - **Scanner / client methods** validate arguments before building a request.
+- **AI Gateway request schemas** validate complete JSON write bodies in the shared pipeline before
+  OAuth or `fetch`.
 - **Zod response schemas** validate every API response inside `request()`.
+
+Request and response policy intentionally differ. Stable AI Gateway request envelopes use
+`.strict()` and non-empty update refinements so misspelled or empty mutations fail locally. Known
+extension points use recursive finite-JSON schemas. Response schemas remain `.passthrough()` because
+the server may safely add fields that an older SDK has not modeled yet.
 
 The models in `src/models/*.ts` are Zod schemas with inferred TypeScript types. Nearly every object
 schema ends in `.passthrough()`:

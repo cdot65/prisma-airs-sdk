@@ -1,5 +1,38 @@
 # Release Notes
 
+## v0.20.0
+
+### Typed and validated AI Gateway writes
+
+Every AI Gateway create, update, rotation, binding, and bulk mutation now has an exported Zod
+schema with its TypeScript type inferred from that schema. Stable request envelopes are strict,
+partial updates reject empty bodies, and JSON extension points accept only finite serializable
+values. The shared request pipeline validates before OAuth preparation or network access and sends
+the parsed result.
+
+The release also adds typed Portkey-backed routing and provider configuration models,
+forward-compatible known-value catalogs, and explicit `*BulkUpdateRequest` names. Ambiguous 0.19
+request names remain as deprecated compatibility aliases.
+
+Live conformance confirmed that config updates are partial at the envelope level (a name-only
+update does not require `workspace_id` or `config`) while a supplied routing `config` replaces that
+document. Regular integration workspace writes require the object form
+`global_workspace_access: { enabled }`; the previous boolean assumption is no longer accepted.
+
+### CLI builders and secret-safe diagnostics
+
+`buildDottedObject()` and `setDottedValue()` construct immutable nested JSON from dotted paths and
+array indexes while rejecting duplicate/conflicting paths, sparse arrays, malformed escapes, and
+prototype-pollution segments. `AI_GATEWAY_SECRET_FIELDS` exposes operation-scoped request/response
+secret metadata, and `redactAIGatewaySecrets()` applies it without mutating input. SDK debug output
+now uses the same metadata to redact known provider, plugin, auth, API-key, and one-time deployment
+credentials, failing closed when a marked body cannot be parsed.
+
+Schema preflight now follows the current pan.dev Model Security and consolidated DLP spec paths and
+compares recursive components without circular-JSON failures. Existing Model Security violation and
+rule-instance response schemas now preserve fields the current OpenAPI marks optional instead of
+rejecting those valid minimal responses.
+
 ## v0.19.0
 
 ### Complete established AI Gateway CRUD

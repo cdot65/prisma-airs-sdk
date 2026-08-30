@@ -168,7 +168,7 @@ describe('AIGatewayIntegrationsClient', () => {
 
   it('PUTs the workspaces sub-resource', async () => {
     mockFetch({});
-    await client.setWorkspaces(intId, { global_workspace_access: true });
+    await client.setWorkspaces(intId, { global_workspace_access: { enabled: true } });
 
     const [url, init] = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0];
     expect(url).toBe(`https://admin.example.com/integrations/${intId}/workspaces`);

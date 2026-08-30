@@ -14,49 +14,31 @@ export {
   type AIGatewayWorkspaceGetOptions,
   type AIGatewayPlane,
 } from './types.js';
-export {
-  AIGatewayWorkspacesClient,
-  type GatewayWorkspaceCreateRequest,
-  type GatewayWorkspaceUpdateRequest,
-} from './workspaces-client.js';
-export { AIGatewayConfigsClient, type GatewayConfigCreateRequest } from './configs-client.js';
-export {
-  AIGatewayGuardrailsClient,
-  type GatewayGuardrailCheck,
-  type GatewayGuardrailCreateRequest,
-  type GatewayGuardrailUpdateRequest,
-} from './guardrails-client.js';
-export {
-  AIGatewayProvidersClient,
-  type GatewayProviderCreateRequest,
-  type GatewayProviderUpdateRequest,
-} from './providers-client.js';
-export {
-  AIGatewayApiKeysClient,
-  type GatewayApiKeyCreateRequest,
-  type GatewayApiKeyRotateRequest,
-} from './api-keys-client.js';
-export {
-  AIGatewayIntegrationsClient,
-  type GatewayIntegrationCreateRequest,
-  type GatewayIntegrationModelsRequest,
-  type GatewayIntegrationWorkspacesRequest,
-} from './integrations-client.js';
-export {
-  AIGatewayMcpIntegrationsClient,
-  type McpIntegrationCapabilitiesUpdateRequest,
-  type McpIntegrationCreateRequest,
-  type McpIntegrationUpdateRequest,
-  type McpIntegrationWorkspacesRequest,
-} from './mcp-integrations-client.js';
-export {
-  AIGatewayDeploymentsClient,
-  type GatewayDeploymentAuthSettingsInput,
-  type GatewayDeploymentCreateRequest,
-  type GatewayDeploymentUpdateRequest,
-} from './deployments-client.js';
-export { AIGatewayPluginsClient, type GatewayPluginCreateRequest } from './plugins-client.js';
+export { AIGatewayWorkspacesClient } from './workspaces-client.js';
+export { AIGatewayConfigsClient } from './configs-client.js';
+export { AIGatewayGuardrailsClient } from './guardrails-client.js';
+export { AIGatewayProvidersClient } from './providers-client.js';
+export { AIGatewayApiKeysClient } from './api-keys-client.js';
+export { AIGatewayIntegrationsClient } from './integrations-client.js';
+export { AIGatewayMcpIntegrationsClient } from './mcp-integrations-client.js';
+export { AIGatewayDeploymentsClient } from './deployments-client.js';
+export { AIGatewayPluginsClient } from './plugins-client.js';
 export { AIGatewayOrganisationsClient } from './organisations-client.js';
+export {
+  buildDottedObject,
+  setDottedValue,
+  type GatewayDottedValueEntry,
+} from './nested-values.js';
+export {
+  AI_GATEWAY_REDACTED,
+  AI_GATEWAY_SECRET_FIELDS,
+  redactAIGatewaySecrets,
+  type AIGatewaySecretOperation,
+  type GatewaySecretDirection,
+  type GatewaySecretFieldRule,
+  type GatewaySecretOperationMetadata,
+  type GatewaySecretPathSegment,
+} from './secret-fields.js';
 export {
   AIGatewayAuditLogsClient,
   type AIGatewayAuditLogListOptions,

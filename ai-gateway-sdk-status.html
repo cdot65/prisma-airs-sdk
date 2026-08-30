@@ -192,12 +192,12 @@
         </div>
         <h1>AI Gateway SDK end-state</h1>
         <p>
-          Snapshot: 2026-08-30 · <code>@cdot65/prisma-airs-sdk 0.19.0</code> release candidate · SCM
+          Snapshot: 2026-08-30 · <code>@cdot65/prisma-airs-sdk 0.20.0</code> release candidate · SCM
           OAuth + <code>x-tsg-id</code> · Prisma routes remain authoritative over Portkey research.
         </p>
         <div class="summary">
           <div class="metric"><b>12</b>subclients</div>
-          <div class="metric"><b>1,636</b>tests passing</div>
+          <div class="metric"><b>1,747</b>tests passing</div>
           <div class="metric"><b>6</b>core CRUD families complete</div>
           <div class="metric"><b>0</b>known leaked test resources</div>
         </div>
@@ -334,8 +334,17 @@
             </td>
           </tr>
           <tr>
+            <td>Write request contracts</td>
+            <td><span class="tag verified">Live verified</span></td>
+            <td>
+              Every body-taking operation validates an exported Zod schema before OAuth or fetch.
+              Config update semantics, routing round-trip, and regular integration binding shape
+              passed live conformance.
+            </td>
+          </tr>
+          <tr>
             <td>Other generic writes</td>
-            <td><span class="tag partial">Schema loose</span></td>
+            <td><span class="tag partial">Response schema loose</span></td>
             <td>
               Some integration, workspace, plugin, and API-key create/update responses still use a
               permissive passthrough schema until live receipts are recorded.
@@ -365,9 +374,9 @@
           not expose the gateway publicly merely to satisfy <code>ping()</code>.
         </div>
         <div class="task">
-          <strong>2 · Tighten write schemas.</strong> Record redacted live fixtures and replace
-          remaining <code>GatewayWriteResponse</code> placeholders with resource-specific response
-          types.
+          <strong>2 · Tighten write response schemas.</strong> Record redacted live fixtures and
+          replace remaining <code>GatewayWriteResponse</code> placeholders with resource-specific
+          response types.
         </div>
         <div class="task">
           <strong>3 · Phase 2 administration.</strong> Add MCP servers, usage/rate-limit policies,
