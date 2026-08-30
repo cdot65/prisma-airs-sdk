@@ -6,6 +6,7 @@ import {
   sanitizeHeaders,
   logRequest,
   logResponse,
+  sanitizeAIGatewayDebugBody,
 } from '../../src/http/debug.js';
 
 describe('debug — isDebugEnabled', () => {
@@ -103,5 +104,31 @@ describe('debug — logRequest / logResponse', () => {
     expect(out).toContain('[airs-sdk]');
     expect(out).toContain('200');
     expect(out).toContain('143');
+  });
+});
+
+describe('debug — AI Gateway JSON body redaction', () => {
+  it('redacts request and response secrets', () => {
+    const requestBody = sanitizeAIGatewayDebugBody(
+      JSON.stringify({ key: 'provider-secret', name: 'provider' }),
+      'integrations.create',
+      'request',
+    );
+    const responseBody = sanitizeAIGatewayDebugBody(
+      JSON.stringify({ key: 'generated-secret', id: 'key-id' }),
+      'apiKeys.rotateService',
+      'response',
+    );
+
+    expect(requestBody).not.toContain('provider-secret');
+    expect(responseBody).not.toContain('generated-secret');
+    expect(requestBody).toContain('[REDACTED]');
+    expect(responseBody).toContain('[REDACTED]');
+  });
+
+  it('omits an invalid JSON body instead of risking a leak', () => {
+    expect(sanitizeAIGatewayDebugBody('not-json secret', 'integrations.create', 'request')).toBe(
+      '[BODY OMITTED: REDACTION FAILED]',
+    );
   });
 });

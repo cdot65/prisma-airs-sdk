@@ -48,6 +48,7 @@ const sidebars: SidebarsConfig = {
       items: [
         'developer/architecture',
         'developer/ai-gateway-expansion-plan',
+        'developer/sdk-0.20-request-model-plan',
         'developer/vocabulary',
         'developer/api-design-versioning',
         'developer/error-handling',

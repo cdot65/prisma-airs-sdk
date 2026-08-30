@@ -1,5 +1,10 @@
 import { createHash } from 'node:crypto';
 import { HEADER_API_KEY, HEADER_AUTH_TOKEN } from '../constants.js';
+import {
+  redactAIGatewaySecrets,
+  type AIGatewaySecretOperation,
+  type GatewaySecretDirection,
+} from '../ai-gateway/secret-fields.js';
 
 /**
  * @internal
@@ -39,6 +44,19 @@ export function sanitizeHeaders(headers: Record<string, string>): Record<string,
     out[key] = SENSITIVE_HEADERS.has(key.toLowerCase()) ? hashToken(value) : value;
   }
   return out;
+}
+
+/** @internal Redact a JSON debug body; fail closed when a marked body is not valid JSON. */
+export function sanitizeAIGatewayDebugBody(
+  body: string,
+  operation: AIGatewaySecretOperation,
+  direction: GatewaySecretDirection,
+): string {
+  try {
+    return JSON.stringify(redactAIGatewaySecrets(operation, JSON.parse(body), direction));
+  } catch {
+    return '[BODY OMITTED: REDACTION FAILED]';
+  }
 }
 
 /** Log an outbound request. Headers are sanitized here so callers cannot leak a raw token. */

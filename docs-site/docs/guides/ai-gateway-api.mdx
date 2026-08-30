@@ -220,6 +220,56 @@ console.log(blocked.data.records.length);
 
 Workspace-scoped resources: gateway configs, guardrails, provider bindings, and API keys. All list methods take `{ workspaceId }` (the workspace **UUID**, not the slug telemetry uses).
 
+### Structured writes and local validation
+
+Every body-taking AI Gateway method uses an exported Zod schema, and every public request type is
+inferred from that schema. You can parse explicitly when accepting external input; the client also
+parses automatically before OAuth or network access:
+
+```ts
+import {
+  GatewayConfigCreateRequestSchema,
+  type GatewayConfigCreateRequest,
+} from '@cdot65/prisma-airs-sdk';
+
+const request: GatewayConfigCreateRequest = GatewayConfigCreateRequestSchema.parse({
+  name: 'vertex-fallback',
+  workspace_id: workspaceId,
+  config: {
+    strategy: { mode: 'fallback' },
+    retry: { attempts: 3, on_status_codes: [429, 503] },
+    targets: [{ provider: '@vertex-primary' }, { provider: '@vertex-backup' }],
+  },
+});
+await gw.configs.create(request);
+```
+
+Stable request envelopes reject unknown fields. Partial `*UpdateRequest` schemas reject `{}`.
+Provider- and routing-specific extension points accept recursive finite JSON so supported upstream
+options remain usable without permitting `undefined`, functions, `NaN`, or infinities.
+
+For CLI-style repeated settings, build nested JSON without hand-authoring a config file:
+
+```ts
+import { buildDottedObject, setDottedValue } from '@cdot65/prisma-airs-sdk';
+
+const config = buildDottedObject([
+  { path: 'retry.attempts', value: 3 },
+  { path: 'targets[0].provider', value: '@vertex-primary' },
+  { path: 'targets[1].provider', value: '@vertex-backup' },
+]);
+const updated = setDottedValue(config, 'strategy.mode', 'fallback');
+```
+
+Both helpers return new objects. They reject duplicate/conflicting paths, sparse arrays, malformed
+escapes, non-JSON values, and `__proto__` / `constructor` / `prototype` path segments.
+
+Known-value catalogs such as `AI_GATEWAY_DEPLOYMENT_TYPES` and
+`AI_GATEWAY_KNOWN_CONFIG_STRATEGIES` are sorted for deterministic CLI help. Deployment types,
+deployment statuses, and mutable MCP capability kinds are closed schemas. Research-derived values
+such as routing strategy, MCP transport/auth, scopes, and rate-limit units remain open non-empty
+strings so a new SCM value does not require an SDK release first.
+
 ```ts
 const workspaceId = 'a1b2c3d4-0000-4000-8000-000000000000';
 
@@ -256,7 +306,7 @@ await gw.providers.update(provider.id, {
 ```
 
 :::danger[providers.get() can return credentials]
-The provider detail response can contain `key`, `model_config` service-account material, and `secret_mappings`. Do not log or persist the complete response, and do not enable `PANW_AI_SEC_DEBUG` around this call in production.
+The provider detail response can contain `key`, `model_config` service-account material, and `secret_mappings`. Do not log or persist the complete response. SDK debug output redacts the known credential fields for this operation, but unknown future secret fields are a residual risk, so debug logging still belongs outside production.
 :::
 
 Guardrails also have a detail read, with the same list/detail split:
@@ -369,8 +419,8 @@ await gw.mcpIntegrations.setWorkspaces(mcpId, {
 ```
 
 The workspace may be supplied by slug or UUID. Use `override_existing_workspace_access: false`
-for a targeted update; setting it to `true` applies replacement semantics to the supplied binding
-set.
+for a targeted update; use `true` only when you intentionally want SCM to override the existing
+binding set.
 
 Per-integration model and workspace bindings:
 
@@ -380,6 +430,43 @@ const models = await gw.integrations.getModels(id);
 const bound = await gw.integrations.getWorkspaces(id);
 console.log(bound.global_workspace_access.enabled); // an OBJECT on reads — see Gotchas
 ```
+
+Regular integration writes use the same object shape. A plain boolean is rejected by SCM:
+
+```ts
+await gw.integrations.setWorkspaces(id, {
+  global_workspace_access: { enabled: false },
+  workspaces: [{ id: 'ws-develo-71f8d8', enabled: true }],
+  override_existing_workspace_access: false,
+});
+```
+
+The `setModels()`, `setWorkspaces()`, `mcpIntegrations.setCapabilities()`, and
+`mcpIntegrations.setWorkspaces()` inputs are named `*BulkUpdateRequest`: they describe the listed
+children and do not imply deletion by omission. Only an endpoint's explicit override flag requests
+replacement behavior. Ordinary `update()` methods are non-empty partial updates. For configs, the
+outer update is partial, but supplying `config` replaces that routing document rather than merging
+individual nested fields.
+
+### Secret metadata and debug output
+
+`AI_GATEWAY_SECRET_FIELDS` publishes operation-scoped request/response paths for the CLI and other
+diagnostic tooling. `redactAIGatewaySecrets()` returns a redacted clone without mutating its input:
+
+```ts
+import { redactAIGatewaySecrets } from '@cdot65/prisma-airs-sdk';
+
+const safe = redactAIGatewaySecrets('integrations.create', {
+  key: process.env.PROVIDER_API_KEY,
+  configurations: { vertex_region: 'us-central1' },
+});
+// safe.key === '[REDACTED]'
+```
+
+When `PANW_AI_SEC_DEBUG` is enabled, the request pipeline applies the same metadata to known AI
+Gateway secret-bearing operations. Auth headers remain hashed. Unknown fields, audit-log
+`request_body` values, and bodies from other service domains are not automatically classified, so
+captured output still requires review before sharing.
 
 ## Audit Logs
 
@@ -491,12 +578,26 @@ For the complete, per-method list with input/output shapes (`AIGatewayClient` an
 
 ## Testing against a live tenant
 
-Unit tests run against recorded fixtures written by the same person who wrote the schemas, so they can't catch a schema that disagrees with the live API. `scripts/smoke-ai-gateway.ts` exists specifically to catch that class of bug: it calls all 43 read methods across both planes against a real tenant and reports which parse cleanly.
+Unit tests run against recorded fixtures written by the same person who wrote the schemas, so they can't catch a schema that disagrees with the live API. `scripts/smoke-ai-gateway.ts` exists specifically to catch that class of bug: it calls all 48 read checks across both planes against a real tenant and reports which parse cleanly.
 
 It is opt-in, read-only, and **not** part of CI or `npm test` — it needs live credentials and hits a real tenant. It has already caught 3 real schema mismatches before they shipped (a config list/detail shape confusion, an MCP integration field typed as an object when the API returns a JSON string, and an integration's workspace-binding flag typed as a boolean when the API returns an object).
 
 ```bash
 set -a && source .env && set +a && npm run smoke:ai-gateway
 ```
+
+The SDK 0.20 write-conformance suite is separately armed and never runs in CI. It requires both
+write flags plus an explicit workspace. It creates and cleans up one uniquely named config; regular
+integration binding probes resend an existing binding's current state with override disabled:
+
+```bash
+npm run e2e:ai-gateway:writes -- \
+  --execute --allow-mutation \
+  --workspace ws-development
+```
+
+Credentials are read in one request from the configured 1Password item unless `PANW_MGMT_*` is
+already present. Pass `--integration-id <uuid>` to restrict the idempotent binding probe to a
+specific regular integration that is already bound to the workspace.
 
 A runnable, read-only example covering telemetry, config plane, admin plane, audit logs, and error handling end-to-end lives at [`examples/ai-gateway.ts`](https://github.com/cdot65/prisma-airs-sdk/blob/main/examples/ai-gateway.ts) in the repo root — run it directly with `npx tsx examples/ai-gateway.ts`.

@@ -14,19 +14,13 @@ import {
   type GatewayWriteResponse,
   type ListConfigVersionsResponse,
 } from '../models/ai-gateway.js';
+import {
+  GatewayConfigCreateRequestSchema,
+  GatewayConfigUpdateRequestSchema,
+  type GatewayConfigCreateRequest,
+  type GatewayConfigUpdateRequest,
+} from '../models/ai-gateway-requests.js';
 import type { AIGatewaySubClientOptions, AIGatewayWorkspaceScopedListOptions } from './types.js';
-
-/** Request body for creating or updating a config. */
-export interface GatewayConfigCreateRequest {
-  name: string;
-  /** Workspace UUID the config belongs to. */
-  workspace_id: string;
-  /**
-   * The gateway routing config. Sent as an **object**; note the API returns it back as a
-   * JSON-encoded **string** on reads.
-   */
-  config: Record<string, unknown>;
-}
 
 /** Client for AI Gateway config operations (data plane). */
 export class AIGatewayConfigsClient {
@@ -152,6 +146,7 @@ export class AIGatewayConfigsClient {
       baseUrl: this.baseUrl,
       path: AI_GW_CONFIGS_PATH,
       body,
+      requestSchema: GatewayConfigCreateRequestSchema,
       responseSchema: GatewayConfigCreateResponseSchema,
       auth: this.auth,
       numRetries: this.numRetries,
@@ -161,7 +156,7 @@ export class AIGatewayConfigsClient {
   /**
    * Update a config.
    * @param configId - Config UUID.
-   * @param body - Replacement fields.
+   * @param body - One or more fields to update. A supplied `config` replaces the routing document.
    * @returns The raw update response. Shape unverified against a live tenant — see the PRD.
    * @example
    * ```ts
@@ -175,14 +170,14 @@ export class AIGatewayConfigsClient {
    * });
    * ```
    */
-  async update(configId: string, body: GatewayConfigCreateRequest): Promise<GatewayWriteResponse> {
+  async update(configId: string, body: GatewayConfigUpdateRequest): Promise<GatewayWriteResponse> {
     assertUuid(configId, 'configId');
-    assertUuid(body.workspace_id, 'workspace_id');
     return request({
       method: 'PUT',
       baseUrl: this.baseUrl,
       path: `${AI_GW_CONFIGS_PATH}/${configId}`,
       body,
+      requestSchema: GatewayConfigUpdateRequestSchema,
       responseSchema: GatewayWriteResponseSchema,
       auth: this.auth,
       numRetries: this.numRetries,

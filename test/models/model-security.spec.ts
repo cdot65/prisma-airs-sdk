@@ -364,6 +364,26 @@ describe('ViolationResponseSchema', () => {
     const parsed = ViolationResponseSchema.parse(v);
     expect(parsed.threat).toBe('PAIT-PKL-100');
   });
+
+  it('accepts the current OpenAPI minimal shape without remediation details', () => {
+    const v = {
+      uuid: validUuid,
+      tsg_id: '123',
+      created_at: now,
+      updated_at: now,
+      description: 'd',
+      rule_instance_uuid: validUuid,
+      rule_name: 'r',
+      rule_description: 'rd',
+      rule_instance_state: 'BLOCKING',
+    };
+    expect(ViolationResponseSchema.parse(v).remediation).toBeUndefined();
+    expect(ViolationResponseSchema.parse({ ...v, remediation: { steps: [] } }).remediation).toEqual(
+      {
+        steps: [],
+      },
+    );
+  });
 });
 
 describe('ViolationListSchema', () => {
@@ -442,6 +462,16 @@ describe('ModelSecurityRuleInstanceResponseSchema', () => {
       rule: baseRule,
     };
     expect(ModelSecurityRuleInstanceResponseSchema.parse(inst).state).toBe('BLOCKING');
+  });
+
+  it('accepts the current OpenAPI minimal instance shape', () => {
+    const inst = {
+      uuid: validUuid,
+      tsg_id: '123',
+      security_group_uuid: validUuid,
+      state: 'BLOCKING',
+    };
+    expect(ModelSecurityRuleInstanceResponseSchema.parse(inst).rule).toBeUndefined();
   });
 });
 

@@ -133,7 +133,7 @@ If you use the same OAuth2 client for all services, you only need to set `PANW_M
 
 ## Debug Logging
 
-Set `PANW_AI_SEC_DEBUG` to `1`, `true`, `yes`, or `on` to log each HTTP request and response to `stderr`. The SDK hashes `Authorization` and `x-pan-token` values before logging, but request and response bodies are logged verbatim, so keep this disabled in production.
+Set `PANW_AI_SEC_DEBUG` to `1`, `true`, `yes`, or `on` to log each HTTP request and response to `stderr`. The SDK hashes `Authorization` and `x-pan-token` values. For AI Gateway operations with published secret metadata it also redacts known provider credentials, plugin credentials, auth settings, and one-time response secrets. Other body content is logged verbatim, so keep this disabled in production.
 
 ```bash
 PANW_AI_SEC_DEBUG=1 npx tsx --env-file=.env docs-site/examples/red-team-scans.ts

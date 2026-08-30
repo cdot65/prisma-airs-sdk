@@ -94,8 +94,9 @@ Enable it inline for a single run:
 PANW_AI_SEC_DEBUG=1 npx tsx your-script.ts
 ```
 
-> Request and response bodies are logged verbatim. They may contain prompt content — keep debug
-> logging off in production and scrub captured output before sharing.
+> AI Gateway operations redact fields listed in `AI_GATEWAY_SECRET_FIELDS`; unknown fields and
+> other service bodies are logged verbatim and may contain prompt content. Keep debug logging off
+> in production and review captured output before sharing.
 
 ## Example Scripts
 

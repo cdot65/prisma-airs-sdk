@@ -7,6 +7,10 @@ sidebar_position: 5
 
 This document scopes the next AI Gateway SDK additions while Palo Alto Networks does not yet publish an AI Gateway OpenAPI document. It is an implementation plan, not a claim that every endpoint described below is currently available from Strata Cloud Manager (SCM).
 
+The focused implementation design for exported write schemas, structured routing configuration,
+pre-network validation, dotted-value builders, and secret metadata is in the
+[SDK 0.20 request model plan](sdk-0.20-request-model-plan.md).
+
 ## Evidence and authority
 
 The Portkey OpenAPI 2.0.0 document at commit `9d7eca77222db12623c044a862b5873cae758956` is the capability and payload-shape research source. Prisma AIRS uses Portkey technology, so the document is useful for discovering likely resources and relationships. It is not authoritative for Prisma routing, authentication, authorization, or response envelopes.

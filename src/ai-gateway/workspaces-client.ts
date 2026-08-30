@@ -1,5 +1,4 @@
 import { AI_GW_WORKSPACES_PATH } from '../constants.js';
-import { AISecSDKException, ErrorType } from '../errors.js';
 import { request } from '../http/request.js';
 import type { AuthAdapter } from '../http/types.js';
 import { assertWorkspaceRef } from '../validators.js';
@@ -13,52 +12,18 @@ import {
   type GatewayWriteResponse,
   type GatewayWorkspaceCreateResponse,
 } from '../models/ai-gateway.js';
+import {
+  GatewayWorkspaceCreateRequestSchema,
+  GatewayWorkspaceUpdateRequestSchema,
+  type GatewayWorkspaceCreateRequest,
+  type GatewayWorkspaceUpdateRequest,
+} from '../models/ai-gateway-requests.js';
 import type {
   AIGatewayPlane,
   AIGatewayWorkspaceGetOptions,
   AIGatewayWorkspaceListOptions,
   AIGatewayWorkspacesClientOptions,
 } from './types.js';
-
-/** Request body for {@link AIGatewayWorkspacesClient.create}. */
-export interface GatewayWorkspaceCreateRequest {
-  /** Display name. Required. */
-  name: string;
-  /**
-   * SCM role scope granting data-plane access to the new workspace, e.g. `ws_production_bx7qw0`.
-   * Required, and **specific to Prisma AIRS** — upstream Portkey has no such field.
-   *
-   * It is not derived from `name`. A workspace created with a scope nobody holds is invisible to
-   * `list()` on the data plane, though it still appears via `list({ plane: 'admin' })`.
-   */
-  scope_name: string;
-  description?: string;
-  icon?: string;
-  /** Workspace defaults; `metadata` is a flat string map applied to every request. */
-  defaults?: Record<string, unknown>;
-  /** User ids to seed the workspace with. */
-  users?: string[];
-  /** Usage-limit policies. An **array**, not a single object. */
-  usage_limits?: Array<Record<string, unknown>>;
-  /** Rate-limit policies. An **array**, not a single object. */
-  rate_limits?: Array<Record<string, unknown>>;
-}
-
-/**
- * Request body for {@link AIGatewayWorkspacesClient.update}. Partial — send only what changes.
- *
- * The API enumerates the fields it accepts in its own rejection message: `name`, `description`,
- * `icon`, `defaults`, `rate_limits`. `usage_limits` is accepted by upstream Portkey but missing
- * from that message, so it is offered here and may be ignored server-side.
- */
-export interface GatewayWorkspaceUpdateRequest {
-  name?: string;
-  description?: string;
-  icon?: string;
-  defaults?: Record<string, unknown>;
-  usage_limits?: Array<Record<string, unknown>>;
-  rate_limits?: Array<Record<string, unknown>>;
-}
 
 /**
  * Client for AI Gateway workspaces.
@@ -184,17 +149,12 @@ export class AIGatewayWorkspacesClient {
    * ```
    */
   async create(body: GatewayWorkspaceCreateRequest): Promise<GatewayWorkspaceCreateResponse> {
-    if (!body.name) {
-      throw new AISecSDKException('Missing name', ErrorType.USER_REQUEST_PAYLOAD_ERROR);
-    }
-    if (!body.scope_name) {
-      throw new AISecSDKException('Missing scope_name', ErrorType.USER_REQUEST_PAYLOAD_ERROR);
-    }
     return request({
       method: 'POST',
       baseUrl: this.adminBaseUrl,
       path: AI_GW_WORKSPACES_PATH,
       body,
+      requestSchema: GatewayWorkspaceCreateRequestSchema,
       responseSchema: GatewayWorkspaceCreateResponseSchema,
       auth: this.auth,
       numRetries: this.numRetries,
@@ -225,17 +185,12 @@ export class AIGatewayWorkspacesClient {
     body: GatewayWorkspaceUpdateRequest,
   ): Promise<GatewayWriteResponse> {
     assertWorkspaceRef(workspaceRef, 'workspaceRef');
-    if (Object.keys(body).length === 0) {
-      throw new AISecSDKException(
-        'Empty update: provide at least one of name, description, icon, defaults, usage_limits, rate_limits',
-        ErrorType.USER_REQUEST_PAYLOAD_ERROR,
-      );
-    }
     return request({
       method: 'PUT',
       baseUrl: this.adminBaseUrl,
       path: `${AI_GW_WORKSPACES_PATH}/${workspaceRef}`,
       body,
+      requestSchema: GatewayWorkspaceUpdateRequestSchema,
       responseSchema: GatewayWriteResponseSchema,
       auth: this.auth,
       numRetries: this.numRetries,

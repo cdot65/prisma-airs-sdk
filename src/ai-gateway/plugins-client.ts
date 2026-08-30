@@ -8,17 +8,11 @@ import {
   type ListPluginsResponse,
   type GatewayWriteResponse,
 } from '../models/ai-gateway.js';
+import {
+  GatewayPluginCreateRequestSchema,
+  type GatewayPluginCreateRequest,
+} from '../models/ai-gateway-requests.js';
 import type { AIGatewaySubClientOptions } from './types.js';
-
-/** Request body for binding a plugin (e.g. the Prisma AIRS scanner) to the organisation. */
-export interface GatewayPluginCreateRequest {
-  /** The TSG as a numeric string. */
-  organisation_id: string;
-  /** Plugin provider integration id, e.g. the `panw-prisma-airs` provider. */
-  integration_id: string;
-  /** Provider-specific secrets, e.g. `{ AIRS_API_KEY: '...' }`. Never log this. */
-  credentials: Record<string, string>;
-}
 
 /** Client for AI Gateway plugin bindings (admin plane). */
 export class AIGatewayPluginsClient {
@@ -59,8 +53,8 @@ export class AIGatewayPluginsClient {
    * Bind a plugin to the organisation.
    *
    * @remarks
-   * `body.credentials` (e.g. `AIRS_API_KEY`) is a live secret. Setting `PANW_AI_SEC_DEBUG`
-   * will print it, unredacted, to the SDK's own debug log.
+   * `body.credentials` (e.g. `AIRS_API_KEY`) is a live secret. SDK debug logs replace each
+   * credential value with `[REDACTED]`, but callers must still avoid logging the input object.
    *
    * @param body - Integration id and provider-specific credentials.
    * @returns The raw create response. Shape unverified against a live tenant — see the PRD.
@@ -83,6 +77,8 @@ export class AIGatewayPluginsClient {
       baseUrl: this.baseUrl,
       path: AI_GW_PLUGINS_PATH,
       body,
+      requestSchema: GatewayPluginCreateRequestSchema,
+      secretOperation: 'plugins.create',
       responseSchema: GatewayWriteResponseSchema,
       auth: this.auth,
       numRetries: this.numRetries,

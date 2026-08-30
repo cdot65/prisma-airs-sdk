@@ -15,6 +15,7 @@ import { readdir } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join, relative } from 'node:path';
+import { isDeepStrictEqual } from 'node:util';
 import { ZodType } from 'zod';
 import zodToJsonSchema from 'zod-to-json-schema';
 import type { OpenAPIV3 } from 'openapi-types';
@@ -46,12 +47,12 @@ interface ModelSchema {
 const MODELED_SPECS = [
   'prisma-airs/scan/scan-service_latest.yaml',
   'prisma-airs/management/mgmt-service_latest.yaml',
-  'prisma-airs-model-security/dataplane/AIRS-Model-Security-DataPlane-latest.yaml',
-  'prisma-airs-model-security/management/AIRS-Model-Security-Management.yaml',
+  'prisma-airs-model-security/dataplane/data-plane.yml',
+  'prisma-airs-model-security/management/mgmt-plane.yml',
   'prisma-airs-redteam/data-plane/dp-openapi.yaml',
   'prisma-airs-redteam/management/mp-openapi.yaml',
   'prisma-airs-redteam/network-broker/AIRS-Red-Teaming-Network-Broker.yaml',
-  'dlp/DataFilteringProfiles.yaml',
+  'dlp/dlp-api-spec-v2.yaml',
   'dlp/DataPatterns.yaml',
   'dlp/DataProfiles.yaml',
   'dlp/Dictionaries.yaml',
@@ -62,7 +63,7 @@ const MODELED_SPECS = [
  * individually as "unmatched". AI Gateway has no published spec — its schemas are derived
  * from live responses and documented in PRD-ai-gateway-client.md.
  */
-const UNSPECCED_MODEL_FILES = ['ai-gateway.ts'];
+const UNSPECCED_MODEL_FILES = ['ai-gateway.ts', 'ai-gateway-requests.ts', 'ai-gateway-routing.ts'];
 
 function findSpecFiles(): string[] {
   if (!existsSync(SCHEMAS_DIR)) {
@@ -88,9 +89,7 @@ async function loadAllSpecs(): Promise<Map<string, OpenAPIV3.SchemaObject>> {
     const map = await loadSpec(path);
     for (const [name, schema] of map) {
       if (merged.has(name)) {
-        const existing = JSON.stringify(merged.get(name));
-        const incoming = JSON.stringify(schema);
-        if (existing !== incoming) {
+        if (!isDeepStrictEqual(merged.get(name), schema)) {
           collisions.push(`${name} (defined in multiple specs with different shapes)`);
         }
       }

@@ -4,7 +4,7 @@
  * Run the read-only AI Gateway live suite with credentials loaded from 1Password.
  * Credential values remain in process memory and are never printed or written to disk.
  */
-import { execFileSync } from 'node:child_process';
+import { readOnePasswordItemFields } from './onepassword-fields.js';
 
 const vault = process.env.OP_AI_GATEWAY_VAULT ?? 'Prisma AIRS Harness';
 const item = process.env.OP_AI_GATEWAY_ITEM ?? 'Prisma AIRS Runtime Credentials - calvin';
@@ -25,25 +25,24 @@ const credentialFields = {
   PANW_MGMT_TSG_ID: 'PANW_MGMT_TSG_ID',
 } as const;
 
-export function readOnePasswordField(label: string): string {
-  const value = execFileSync(
-    'op',
-    ['item', 'get', item, '--vault', vault, '--fields', `label=${label}`, '--reveal'],
-    { encoding: 'utf8', stdio: ['ignore', 'pipe', 'inherit'] },
-  ).trim();
-  if (!value) throw new Error(`1Password field ${label} is empty`);
-  return value;
-}
-
 async function main(): Promise<void> {
   const logLevel = parseLogLevel(process.argv.slice(2));
   process.env.AI_GATEWAY_E2E_LOG_LEVEL = logLevel;
   if (logLevel !== 'quiet') {
     console.log(`[e2e] Loading SCM credentials from 1Password item "${item}" in "${vault}"`);
   }
+  const missing = Object.entries(credentialFields).filter(([envName]) => !process.env[envName]);
+  const loaded =
+    missing.length > 0
+      ? readOnePasswordItemFields(
+          item,
+          vault,
+          missing.map(([, label]) => label),
+        )
+      : {};
   for (const [envName, label] of Object.entries(credentialFields)) {
     if (!process.env[envName]) {
-      process.env[envName] = readOnePasswordField(label);
+      process.env[envName] = loaded[label];
       if (logLevel === 'verbose') console.log(`[e2e] Loaded ${envName}`);
     } else if (logLevel === 'verbose') {
       console.log(`[e2e] Using existing ${envName}`);

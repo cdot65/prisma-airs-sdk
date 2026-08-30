@@ -9,6 +9,12 @@ import {
   type AuthSettingsResponse,
   type GatewayWriteResponse,
 } from '../models/ai-gateway.js';
+import {
+  GatewayOrganisationAuthSettingsUpdateRequestSchema,
+  GatewayOrganisationUpdateRequestSchema,
+  type GatewayOrganisationAuthSettingsUpdateRequest,
+  type GatewayOrganisationUpdateRequest,
+} from '../models/ai-gateway-requests.js';
 import type { AIGatewaySubClientOptions } from './types.js';
 import { assertNumericId } from '../validators.js';
 
@@ -49,7 +55,7 @@ export class AIGatewayOrganisationsClient {
 
   /**
    * Update the calling organisation's settings.
-   * @param body - Replacement fields.
+   * @param body - One or more fields to update.
    * @returns The raw update response. Shape unverified against a live tenant — see the PRD.
    * @example
    * ```ts
@@ -59,12 +65,13 @@ export class AIGatewayOrganisationsClient {
    * await gw.organisations.updateSelf({ name: 'Acme Corp' });
    * ```
    */
-  async updateSelf(body: Record<string, unknown>): Promise<GatewayWriteResponse> {
+  async updateSelf(body: GatewayOrganisationUpdateRequest): Promise<GatewayWriteResponse> {
     return request({
       method: 'PUT',
       baseUrl: this.baseUrl,
       path: AI_GW_ORGANISATIONS_SELF_PATH,
       body,
+      requestSchema: GatewayOrganisationUpdateRequestSchema,
       responseSchema: GatewayWriteResponseSchema,
       auth: this.auth,
       numRetries: this.numRetries,
@@ -76,8 +83,8 @@ export class AIGatewayOrganisationsClient {
    *
    * @remarks
    * The response includes a `scim_token` — a live secret. Never log the returned object.
-   * Note that setting `PANW_AI_SEC_DEBUG` will print it (unredacted) to the SDK's own debug
-   * log regardless of this warning, since debug logging only sanitizes header values.
+   * SDK debug logs redact `scim_token` and known nested client-secret fields. Callers must
+   * still avoid logging the input object or returned auth settings directly.
    *
    * @param tsgId - The TSG as a numeric string, not a UUID.
    * @returns Auth settings, including domains and the SCIM token.
@@ -96,6 +103,7 @@ export class AIGatewayOrganisationsClient {
       method: 'GET',
       baseUrl: this.baseUrl,
       path: aiGwOrganisationsAuthSettingsPath(tsgId),
+      secretOperation: 'organisations.getAuthSettings',
       responseSchema: AuthSettingsResponseSchema,
       auth: this.auth,
       numRetries: this.numRetries,
@@ -105,7 +113,7 @@ export class AIGatewayOrganisationsClient {
   /**
    * Update an organisation's auth settings.
    * @param tsgId - The TSG as a numeric string, not a UUID.
-   * @param body - Replacement fields.
+   * @param body - One or more auth-setting fields to update.
    * @returns The raw update response. Shape unverified against a live tenant — see the PRD.
    * @example
    * ```ts
@@ -119,7 +127,7 @@ export class AIGatewayOrganisationsClient {
    */
   async updateAuthSettings(
     tsgId: string,
-    body: Record<string, unknown>,
+    body: GatewayOrganisationAuthSettingsUpdateRequest,
   ): Promise<GatewayWriteResponse> {
     assertNumericId(tsgId, 'tsgId');
     return request({
@@ -127,6 +135,8 @@ export class AIGatewayOrganisationsClient {
       baseUrl: this.baseUrl,
       path: aiGwOrganisationsAuthSettingsPath(tsgId),
       body,
+      requestSchema: GatewayOrganisationAuthSettingsUpdateRequestSchema,
+      secretOperation: 'organisations.updateAuthSettings',
       responseSchema: GatewayWriteResponseSchema,
       auth: this.auth,
       numRetries: this.numRetries,

@@ -1,7 +1,7 @@
 import { USER_AGENT } from '../constants.js';
 import { AISecSDKException, ErrorType } from '../errors.js';
 import { executeWithRetry } from '../http-retry.js';
-import { isDebugEnabled, logRequest, logResponse } from './debug.js';
+import { isDebugEnabled, logRequest, logResponse, sanitizeAIGatewayDebugBody } from './debug.js';
 import type { PreparedRequest, RequestSpec } from './types.js';
 
 /**
@@ -17,6 +17,23 @@ import type { PreparedRequest, RequestSpec } from './types.js';
  * - `SERVER_SIDE_ERROR` for 5xx after exhausting retries.
  */
 export async function request<TResponse = void>(spec: RequestSpec<TResponse>): Promise<TResponse> {
+  let validatedBody = spec.body;
+  if (spec.requestSchema !== undefined) {
+    const result = spec.requestSchema.safeParse(spec.body);
+    if (!result.success) {
+      const issues = result.error.issues
+        .map(
+          (issue) => `${issue.path.length > 0 ? issue.path.join('.') : '<root>'}: ${issue.message}`,
+        )
+        .join('; ');
+      throw new AISecSDKException(
+        `Request body for ${spec.method} ${spec.path} did not match schema: ${issues}`,
+        ErrorType.USER_REQUEST_PAYLOAD_ERROR,
+      );
+    }
+    validatedBody = result.data;
+  }
+
   let hasRetriedAuth = false;
   const debug = isDebugEnabled();
 
@@ -43,9 +60,9 @@ export async function request<TResponse = void>(spec: RequestSpec<TResponse>): P
       let bodyForFetch: FormData | string | undefined;
       if (spec.formData !== undefined) {
         bodyForFetch = spec.formData;
-      } else if (spec.body !== undefined) {
+      } else if (validatedBody !== undefined) {
         headers['Content-Type'] = spec.contentType ?? 'application/json';
-        bodyText = JSON.stringify(spec.body);
+        bodyText = JSON.stringify(validatedBody);
         bodyForFetch = bodyText;
       }
 
@@ -54,7 +71,10 @@ export async function request<TResponse = void>(spec: RequestSpec<TResponse>): P
 
       const startedAt = debug ? Date.now() : 0;
       if (debug) {
-        const logBody = spec.formData !== undefined ? '[multipart/form-data]' : final.bodyText;
+        let logBody = spec.formData !== undefined ? '[multipart/form-data]' : final.bodyText;
+        if (logBody !== undefined && spec.secretOperation !== undefined) {
+          logBody = sanitizeAIGatewayDebugBody(logBody, spec.secretOperation, 'request');
+        }
         logRequest(final.method, final.url.toString(), final.headers, logBody);
       }
 
@@ -68,6 +88,9 @@ export async function request<TResponse = void>(spec: RequestSpec<TResponse>): P
         let respBody: string | undefined;
         try {
           respBody = await res.clone().text();
+          if (respBody && spec.secretOperation !== undefined) {
+            respBody = sanitizeAIGatewayDebugBody(respBody, spec.secretOperation, 'response');
+          }
         } catch {
           // Response not cloneable (e.g. a test stub) — log status/timing without the body.
         }

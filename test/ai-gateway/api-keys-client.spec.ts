@@ -83,9 +83,6 @@ describe('AIGatewayApiKeysClient', () => {
     await client.updateService(keyId, {
       name: 'ci-runner',
       scopes: ['completions.write'],
-      organisation_id: '1852583913',
-      workspace_id: wsId,
-      type: 'workspace',
     });
 
     const [url, init] = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0];
@@ -99,10 +96,6 @@ describe('AIGatewayApiKeysClient', () => {
     await client.updateUser(keyId, {
       name: 'calvin-laptop',
       scopes: ['completions.write'],
-      organisation_id: '1852583913',
-      workspace_id: wsId,
-      type: 'workspace',
-      user_id: 'fad91538-65a9-41f7-8b9c-6e4c0e8b9c5f',
     });
 
     const [url, init] = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0];
@@ -187,9 +180,6 @@ describe('AIGatewayApiKeysClient', () => {
       client.updateService('not-a-uuid', {
         name: 'ci-runner',
         scopes: ['completions.write'],
-        organisation_id: '1852583913',
-        workspace_id: wsId,
-        type: 'workspace',
       }),
     ).rejects.toThrow(AISecSDKException);
     expect(globalThis.fetch).not.toHaveBeenCalled();

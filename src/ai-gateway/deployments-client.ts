@@ -14,48 +14,13 @@ import {
   type GatewayDeploymentPingResponse,
   type GatewayWriteResponse,
 } from '../models/ai-gateway.js';
+import {
+  GatewayDeploymentCreateRequestSchema,
+  GatewayDeploymentUpdateRequestSchema,
+  type GatewayDeploymentCreateRequest,
+  type GatewayDeploymentUpdateRequest,
+} from '../models/ai-gateway-requests.js';
 import type { AIGatewaySubClientOptions } from './types.js';
-
-/** SCM settings controlling a self-hosted gateway deployment. */
-export interface GatewayDeploymentAuthSettingsInput {
-  gateway_base_url?: string;
-  mcp_gateway_base_url?: string;
-  is_dataservice_hosted?: 0 | 1;
-  is_playground_proxy_allowed?: 0 | 1;
-  /** Workspace slugs this deployment may serve. */
-  workspaces_allowed?: string[];
-  jwt_subs_allowed?: string[];
-  jwt_sub_workspace_mapping?: Record<string, string>;
-  allow_all_workspaces?: boolean;
-  remove_workspaces_allowed?: string[];
-  remove_subs_allowed?: string[];
-}
-
-/** Request body for creating a deployment. */
-export interface GatewayDeploymentCreateRequest {
-  name: string;
-  /** `production` or `non_production`. */
-  type: string;
-  /** The TSG as a numeric string — NOT the organisation UUID returned on reads. */
-  organisation_id: string;
-  /** Note `allow_all_workspaces` is a real boolean here; reads return it as 0/1. */
-  auth_settings?: GatewayDeploymentAuthSettingsInput;
-  deployment_config?: Record<string, unknown>;
-  is_default?: boolean;
-  slug?: string;
-}
-
-/** Request body for updating a deployment. Omitted fields remain unchanged. */
-export interface GatewayDeploymentUpdateRequest {
-  name?: string;
-  type?: string;
-  status?: string;
-  deployment_config?: Record<string, unknown> | null;
-  is_default?: boolean;
-  rotate_auth?: boolean;
-  override_existing?: boolean;
-  auth_settings?: GatewayDeploymentAuthSettingsInput;
-}
 
 /** Client for AI Gateway deployment operations (admin plane). */
 export class AIGatewayDeploymentsClient {
@@ -132,8 +97,8 @@ export class AIGatewayDeploymentsClient {
    *
    * This is the **only** time `credentials.password` and `client_auth` are readable; the
    * detail read masks them. Capture them here or they are unrecoverable. Never log them.
-   * Note that setting `PANW_AI_SEC_DEBUG` will print the raw request/response, including
-   * `credentials.password`, to the SDK's own debug log regardless of this warning.
+   * SDK debug logs redact returned one-time `client_auth` and registry passwords. Callers
+   * must still capture the create response once and store it securely.
    *
    * @param body - Name, type, TSG, and auth settings.
    * @returns The creation receipt including the deployment's gateway credentials.
@@ -158,6 +123,8 @@ export class AIGatewayDeploymentsClient {
       baseUrl: this.baseUrl,
       path: AI_GW_DEPLOYMENTS_PATH,
       body,
+      requestSchema: GatewayDeploymentCreateRequestSchema,
+      secretOperation: 'deployments.create',
       responseSchema: GatewayDeploymentCreateResponseSchema,
       auth: this.auth,
       numRetries: this.numRetries,
@@ -191,6 +158,8 @@ export class AIGatewayDeploymentsClient {
       baseUrl: this.baseUrl,
       path: `${AI_GW_DEPLOYMENTS_PATH}/${deploymentId}`,
       body,
+      requestSchema: GatewayDeploymentUpdateRequestSchema,
+      secretOperation: 'deployments.update',
       responseSchema: GatewayWriteResponseSchema,
       auth: this.auth,
       numRetries: this.numRetries,

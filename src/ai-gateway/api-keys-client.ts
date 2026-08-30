@@ -12,30 +12,18 @@ import {
   type GatewayApiKey,
   type GatewayApiKeyRotateResponse,
 } from '../models/ai-gateway.js';
+import {
+  GatewayApiKeyRotateRequestSchema,
+  GatewayApiKeyUpdateRequestSchema,
+  GatewayServiceApiKeyCreateRequestSchema,
+  GatewayUserApiKeyCreateRequestSchema,
+  type GatewayApiKeyRotateRequest,
+  type GatewayApiKeyUpdateRequest,
+  type GatewayServiceApiKeyCreateRequest,
+  type GatewayUserApiKeyCreateRequest,
+} from '../models/ai-gateway-requests.js';
+import type { RequestSpec } from '../http/types.js';
 import type { AIGatewaySubClientOptions, AIGatewayWorkspaceScopedListOptions } from './types.js';
-
-/** Request body for creating a service or user API key. */
-export interface GatewayApiKeyCreateRequest {
-  name: string;
-  description?: string;
-  /** e.g. `completions.write`, `mcp.invoke`, `prompts.render`, `agents.invoke`, `logs.write`. */
-  scopes: string[];
-  /** The TSG as a numeric string — NOT the organisation UUID returned on reads. */
-  organisation_id: string;
-  workspace_id: string;
-  /** Usually `workspace`. */
-  type: string;
-  expires_at?: string | null;
-  defaults?: Record<string, unknown> | null;
-  rotation_policy?: Record<string, unknown> | null;
-  /** Required for user keys only. */
-  user_id?: string;
-}
-
-export interface GatewayApiKeyRotateRequest {
-  /** Minimum 30 minutes when supplied. */
-  key_transition_period_ms?: number;
-}
 
 /**
  * Client for AI Gateway API-key operations (data plane).
@@ -75,14 +63,20 @@ export class AIGatewayApiKeysClient {
   private writeAt(
     method: 'POST' | 'PUT',
     path: string,
-    body: GatewayApiKeyCreateRequest,
+    body:
+      | GatewayServiceApiKeyCreateRequest
+      | GatewayUserApiKeyCreateRequest
+      | GatewayApiKeyUpdateRequest,
+    requestSchema: RequestSpec['requestSchema'],
+    secretOperation?: RequestSpec['secretOperation'],
   ): Promise<GatewayWriteResponse> {
-    assertUuid(body.workspace_id, 'workspace_id');
     return request({
       method,
       baseUrl: this.baseUrl,
       path,
       body,
+      requestSchema,
+      secretOperation,
       responseSchema: GatewayWriteResponseSchema,
       auth: this.auth,
       numRetries: this.numRetries,
@@ -149,7 +143,8 @@ export class AIGatewayApiKeysClient {
   private rotateAt(
     path: string,
     keyId: string,
-    body: GatewayApiKeyRotateRequest = {},
+    body: GatewayApiKeyRotateRequest,
+    secretOperation: 'apiKeys.rotateService' | 'apiKeys.rotateUser',
   ): Promise<GatewayApiKeyRotateResponse> {
     assertUuid(keyId, 'keyId');
     return request({
@@ -157,6 +152,8 @@ export class AIGatewayApiKeysClient {
       baseUrl: this.baseUrl,
       path: `${path}/${keyId}/rotate`,
       body,
+      requestSchema: GatewayApiKeyRotateRequestSchema,
+      secretOperation,
       responseSchema: GatewayApiKeyRotateResponseSchema,
       auth: this.auth,
       numRetries: this.numRetries,
@@ -184,14 +181,14 @@ export class AIGatewayApiKeysClient {
     keyId: string,
     body: GatewayApiKeyRotateRequest = {},
   ): Promise<GatewayApiKeyRotateResponse> {
-    return this.rotateAt(AI_GW_API_KEYS_SERVICE_PATH, keyId, body);
+    return this.rotateAt(AI_GW_API_KEYS_SERVICE_PATH, keyId, body, 'apiKeys.rotateService');
   }
   /** Rotate a user key; capture the returned secret. @example `const rotated = await gw.apiKeys.rotateUser(keyId);` */
   async rotateUser(
     keyId: string,
     body: GatewayApiKeyRotateRequest = {},
   ): Promise<GatewayApiKeyRotateResponse> {
-    return this.rotateAt(AI_GW_API_KEYS_USER_PATH, keyId, body);
+    return this.rotateAt(AI_GW_API_KEYS_USER_PATH, keyId, body, 'apiKeys.rotateUser');
   }
 
   /**
@@ -212,8 +209,14 @@ export class AIGatewayApiKeysClient {
    * });
    * ```
    */
-  async createService(body: GatewayApiKeyCreateRequest): Promise<GatewayWriteResponse> {
-    return this.writeAt('POST', AI_GW_API_KEYS_SERVICE_PATH, body);
+  async createService(body: GatewayServiceApiKeyCreateRequest): Promise<GatewayWriteResponse> {
+    return this.writeAt(
+      'POST',
+      AI_GW_API_KEYS_SERVICE_PATH,
+      body,
+      GatewayServiceApiKeyCreateRequestSchema,
+      'apiKeys.createService',
+    );
   }
 
   /**
@@ -235,14 +238,20 @@ export class AIGatewayApiKeysClient {
    * });
    * ```
    */
-  async createUser(body: GatewayApiKeyCreateRequest): Promise<GatewayWriteResponse> {
-    return this.writeAt('POST', AI_GW_API_KEYS_USER_PATH, body);
+  async createUser(body: GatewayUserApiKeyCreateRequest): Promise<GatewayWriteResponse> {
+    return this.writeAt(
+      'POST',
+      AI_GW_API_KEYS_USER_PATH,
+      body,
+      GatewayUserApiKeyCreateRequestSchema,
+      'apiKeys.createUser',
+    );
   }
 
   /**
    * Update a service API key.
    * @param keyId - Key UUID.
-   * @param body - Replacement fields.
+   * @param body - One or more fields to update.
    * @returns The raw update response. Shape unverified against a live tenant — see the PRD.
    * @example
    * ```ts
@@ -260,16 +269,21 @@ export class AIGatewayApiKeysClient {
    */
   async updateService(
     keyId: string,
-    body: GatewayApiKeyCreateRequest,
+    body: GatewayApiKeyUpdateRequest,
   ): Promise<GatewayWriteResponse> {
     assertUuid(keyId, 'keyId');
-    return this.writeAt('PUT', `${AI_GW_API_KEYS_SERVICE_PATH}/${keyId}`, body);
+    return this.writeAt(
+      'PUT',
+      `${AI_GW_API_KEYS_SERVICE_PATH}/${keyId}`,
+      body,
+      GatewayApiKeyUpdateRequestSchema,
+    );
   }
 
   /**
    * Update a user API key.
    * @param keyId - Key UUID.
-   * @param body - Replacement fields.
+   * @param body - One or more fields to update.
    * @returns The raw update response. Shape unverified against a live tenant — see the PRD.
    * @example
    * ```ts
@@ -286,8 +300,13 @@ export class AIGatewayApiKeysClient {
    * });
    * ```
    */
-  async updateUser(keyId: string, body: GatewayApiKeyCreateRequest): Promise<GatewayWriteResponse> {
+  async updateUser(keyId: string, body: GatewayApiKeyUpdateRequest): Promise<GatewayWriteResponse> {
     assertUuid(keyId, 'keyId');
-    return this.writeAt('PUT', `${AI_GW_API_KEYS_USER_PATH}/${keyId}`, body);
+    return this.writeAt(
+      'PUT',
+      `${AI_GW_API_KEYS_USER_PATH}/${keyId}`,
+      body,
+      GatewayApiKeyUpdateRequestSchema,
+    );
   }
 }
