@@ -34,6 +34,8 @@ import type { RedTeamListOptions } from './scans-client.js';
 export interface TargetListOptions extends RedTeamListOptions {
   target_type?: string;
   status?: string;
+  /** Filter to targets that reference a specific custom adapter. */
+  adapter_uuid?: string;
 }
 
 /** Options for walking every target page. */
@@ -123,6 +125,7 @@ export class RedTeamTargetsClient {
     const params = serializeListing(opts);
     if (opts?.target_type !== undefined) params.target_type = opts.target_type;
     if (opts?.status !== undefined) params.status = opts.status;
+    if (opts?.adapter_uuid !== undefined) params.adapter_uuid = opts.adapter_uuid;
 
     return request({
       method: 'GET',

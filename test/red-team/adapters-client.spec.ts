@@ -7,6 +7,7 @@ import {
   adapterMock,
   adapterListItemMock,
   adapterValidateResultMock,
+  adapterConfigMock,
   paginatedListMock,
 } from './_fixtures.js';
 
@@ -217,5 +218,36 @@ describe('RedTeamAdaptersClient', () => {
       const [, init] = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0];
       expect(JSON.parse(init.body as string).adapter_uuid).toBe(VALID_UUID);
     });
+  });
+});
+
+// NOTE: appended by feat/adapter-config-and-target-fields
+describe('getConfig', () => {
+  let client2: RedTeamAdaptersClient;
+  const originalFetch2 = globalThis.fetch;
+
+  beforeEach(() => {
+    client2 = new RedTeamAdaptersClient({
+      baseUrl: 'https://mgmt.example.com',
+      auth: { prepare: async (req: unknown) => req },
+      numRetries: 0,
+    });
+  });
+  afterEach(() => {
+    globalThis.fetch = originalFetch2;
+  });
+
+  it('GETs /v1/adapters/config and returns default script + prompt', async () => {
+    globalThis.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      text: () => Promise.resolve(JSON.stringify(adapterConfigMock())),
+    });
+    const result = await client2.getConfig();
+    expect(result.default_script_b64).toBe('ZGVmIHByZV9wcm9jZXNz');
+    expect(result.default_test_prompt).toBe('What is the capital of France?');
+    const [url, init] = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0];
+    expect(url).toBe('https://mgmt.example.com/v1/adapters/config');
+    expect(init.method).toBe('GET');
   });
 });

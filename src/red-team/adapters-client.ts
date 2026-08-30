@@ -1,4 +1,8 @@
-import { RED_TEAM_ADAPTER_PATH, RED_TEAM_ADAPTER_VALIDATE_PATH } from '../constants.js';
+import {
+  RED_TEAM_ADAPTER_PATH,
+  RED_TEAM_ADAPTER_VALIDATE_PATH,
+  RED_TEAM_ADAPTER_CONFIG_PATH,
+} from '../constants.js';
 import { request } from '../http/request.js';
 import type { AuthAdapter } from '../http/types.js';
 import { serializeListing } from '../listing.js';
@@ -7,6 +11,7 @@ import {
   AdapterResponseSchema,
   AdapterListSchema,
   AdapterValidateResponseSchema,
+  AdapterConfigResponseSchema,
   BaseResponseSchema,
   type AdapterCreateRequest,
   type AdapterUpdateRequest,
@@ -14,6 +19,7 @@ import {
   type AdapterResponse,
   type AdapterList,
   type AdapterValidateResponse,
+  type AdapterConfigResponse,
   type BaseResponse,
 } from '../models/red-team.js';
 import type { RedTeamListOptions } from './scans-client.js';
@@ -251,6 +257,32 @@ export class RedTeamAdaptersClient {
       path: RED_TEAM_ADAPTER_VALIDATE_PATH,
       body,
       responseSchema: AdapterValidateResponseSchema,
+      auth: this.auth,
+      numRetries: this.numRetries,
+    });
+  }
+
+  /**
+   * Get the default adapter configuration — a starter script template and default test prompt
+   * used to prefill the adapter authoring UI.
+   * @returns The base64-encoded starter script and default test prompt.
+   * @example
+   * ```ts
+   * import { RedTeamClient } from '@cdot65/prisma-airs-sdk';
+   * const rt = new RedTeamClient();
+   *
+   * const cfg = await rt.adapters.getConfig();
+   * // Use as a starting point when authoring a new adapter.
+   * const starter = Buffer.from(cfg.default_script_b64, 'base64').toString();
+   * console.log(cfg.default_test_prompt); // e.g. 'What is the capital of France?'
+   * ```
+   */
+  async getConfig(): Promise<AdapterConfigResponse> {
+    return request({
+      method: 'GET',
+      baseUrl: this.baseUrl,
+      path: RED_TEAM_ADAPTER_CONFIG_PATH,
+      responseSchema: AdapterConfigResponseSchema,
       auth: this.auth,
       numRetries: this.numRetries,
     });

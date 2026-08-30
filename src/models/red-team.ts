@@ -1203,6 +1203,15 @@ export const AdapterValidateResponseSchema = z
   .passthrough();
 export type AdapterValidateResponse = z.infer<typeof AdapterValidateResponseSchema>;
 
+/** Response from GET /v1/adapters/config — starter template values for the adapter editor. */
+export const AdapterConfigResponseSchema = z
+  .object({
+    default_script_b64: z.string(),
+    default_test_prompt: z.string(),
+  })
+  .passthrough();
+export type AdapterConfigResponse = z.infer<typeof AdapterConfigResponseSchema>;
+
 // ---------------------------------------------------------------------------
 // Management — Target schemas
 // ---------------------------------------------------------------------------
@@ -1271,6 +1280,8 @@ export const TargetResponseSchema = z
     profiling_status: z.unknown().optional(),
     additional_context: z.unknown().optional(),
     auth_type: z.string().nullable().optional(),
+    adapter_uuid: z.string().nullable().optional(),
+    adapter_secret_version: z.string().nullable().optional(),
   })
   .passthrough();
 export type TargetResponse = z.infer<typeof TargetResponseSchema>;
@@ -1297,6 +1308,7 @@ export const TargetListItemSchema = z
     created_by_user_id: z.unknown().optional(),
     updated_by_user_id: z.unknown().optional(),
     auth_type: z.string().nullable().optional(),
+    adapter_uuid: z.string().nullable().optional(),
   })
   .passthrough();
 export type TargetListItem = z.infer<typeof TargetListItemSchema>;

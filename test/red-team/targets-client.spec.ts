@@ -123,6 +123,14 @@ describe('RedTeamTargetsClient', () => {
       expect(url).toContain('status=ACTIVE');
     });
 
+    it('passes adapter_uuid filter', async () => {
+      mockFetch(targetListMock());
+      await client.list({ adapter_uuid: validUuid });
+
+      const [url] = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0];
+      expect(url).toContain(`adapter_uuid=${validUuid}`);
+    });
+
     it('passes pagination params', async () => {
       mockFetch(targetListMock());
       await client.list({ skip: 5, limit: 10 });
@@ -171,6 +179,19 @@ describe('RedTeamTargetsClient', () => {
       expect(result.uuid).toBe(validUuid);
       const [url] = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0];
       expect(url).toContain(`/v1/target/${validUuid}`);
+    });
+
+    it('parses adapter_uuid and adapter_secret_version on a CUSTOM_TARGET_ADAPTER target', async () => {
+      mockFetch(
+        targetMock({
+          connection_type: 'CUSTOM_TARGET_ADAPTER',
+          adapter_uuid: validUuid,
+          adapter_secret_version: '2',
+        }),
+      );
+      const result = await client.get(validUuid);
+      expect(result.adapter_uuid).toBe(validUuid);
+      expect(result.adapter_secret_version).toBe('2');
     });
 
     it('rejects invalid UUID', async () => {
