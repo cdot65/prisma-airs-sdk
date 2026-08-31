@@ -1,5 +1,14 @@
 # Release Notes
 
+## v0.20.1
+
+### Brand consistency
+
+The README, Docusaurus navbar, home page, favicon, and social preview now use the shared Prisma AIRS
+shield, terminal, beam, and spectrum logo. The previous SDK-specific cloud icon and banner were
+removed in favor of one canonical SVG so GitHub, GitHub Pages, and the npm package README stay in
+sync.
+
 ## v0.20.0
 
 ### Typed and validated AI Gateway writes

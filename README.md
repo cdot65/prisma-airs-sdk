@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="docs-site/static/img/logo-banner.svg" alt="prisma-airs-sdk" width="420" />
+  <img src="https://raw.githubusercontent.com/cdot65/prisma-airs-sdk/main/docs-site/static/img/logo.svg" alt="Prisma AIRS SDK shield with terminal and spectrum" width="320" />
 </p>
 
 # prisma-airs-sdk
