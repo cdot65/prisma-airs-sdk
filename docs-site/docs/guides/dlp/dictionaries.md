@@ -4,9 +4,9 @@ Manage Dictionaries on the DLP service (`/v2/api/dictionaries`).
 
 Subclient lives at `client.dlp.dictionaries` (a `DictionariesClient`). **Full CRUD with a multipart twist**: `create` and `replace` take a metadata object + a keyword file (newline-delimited). PATCH uses JSON Merge Patch. PUT can return 200+body **or** 204+empty — `replace()` returns `DictionaryResponse | undefined`.
 
-Accepted file shapes: `Blob`, `ArrayBuffer`, `Uint8Array`, `string`. The SDK builds the multipart boundary; **do not set `Content-Type` manually**.
+Accepted file shapes: `Blob`, `ArrayBuffer`, `Uint8Array`, `string`. The SDK assembles the `FormData` parts and leaves `Content-Type` unset so the fetch runtime writes the multipart boundary; **do not set `Content-Type` manually**.
 
-Spec source: [`specs/dlp/Dictionaries.yaml`](https://github.com/cdot65/prisma-airs-sdk/blob/main/specs/dlp/Dictionaries.yaml)
+Spec source: `openapi-specs/dlp/Dictionaries.yaml` in the public [pan.dev](https://github.com/PaloAltoNetworks/pan.dev) repository, read through the SDK's gitignored `schemas/` alias (see [API Design & Versioning](../../developer/api-design-versioning.mdx#preflight-catching-zod-vs-openapi-drift)).
 
 ## How it works
 
@@ -25,9 +25,9 @@ Flow: **dictionary → referenced by a data profile rule item (`dictionary` tech
 
 ## Get the most out of it
 
-- **One term per line, trailing newline.** The file is newline-delimited; the SDK reports the parsed count back in `dictionary_metadata.number_of_keywords` — assert against it (see Use case 1) to catch a malformed file before it silently under-matches.
+- **One term per line, trailing newline.** The file is newline-delimited; the API reports the count it parsed back in `dictionary_metadata.number_of_keywords` — assert against it (see Use case 1) to catch a malformed file before it silently under-matches.
 - **Use `is_case_sensitive` intentionally.** Codenames and product names usually want case-insensitive matching; source-code identifiers or env-var names may want case-sensitive. It defaults off — set it at create time.
-- **Pick the right `category`.** It is an enum used for organization and reporting, not free text. Note the literal space in `'Source Code'`; an invalid value is rejected by Zod before the request leaves the process.
+- **Pick the right `category`.** It is an enum used for organization and reporting, not free text. Note the literal space in `'Source Code'`. TypeScript rejects an invalid value at compile time; the SDK does not re-parse dictionary metadata at runtime, so an untyped (`as any`) value reaches the API and comes back as a 4xx.
 - **Re-fetch after `replace()` to confirm state.** PUT can answer 200+body or 204+empty depending on region — don't branch your logic on which you got; GET with `includeKeywords: true` is the definitive read (see Use case 2).
 - **Keep keyword counts manageable.** Dictionaries are loaded and scanned per request; huge lists cost match latency. Split by domain (one dictionary per concern) and OR them in a data profile rather than one mega-list.
 - **Gotcha — never set `Content-Type` yourself.** The runtime must write the multipart boundary; overriding it breaks the upload.
@@ -330,23 +330,31 @@ await client.dlp.dictionaries.create({
 
 ## Error handling
 
+Dictionary metadata is typed (`DictionaryRequest`) but is serialized straight into the multipart
+body without a runtime parse. A body that TypeScript would reject — here `region_name` is missing and
+hidden behind `as any` — is therefore sent to the API, which rejects it with a 4xx that surfaces as
+`CLIENT_SIDE_ERROR`. Parse with the exported `DictionaryRequestSchema` first if the metadata comes
+from untrusted input.
+
 ```ts
-import { AISecSDKException, ErrorType } from '@cdot65/prisma-airs-sdk';
+import { AISecSDKException, DictionaryRequestSchema, ErrorType } from '@cdot65/prisma-airs-sdk';
+
+const metadata = {
+  category: 'Confidential',
+  name: 'broken',
+  original_file_name: 'broken.txt',
+  // region_name is missing
+} as any;
+
+const local = DictionaryRequestSchema.safeParse(metadata);
+if (!local.success) console.error('rejected locally:', local.error.issues[0]?.path.join('.'));
 
 try {
-  await client.dlp.dictionaries.create({
-    metadata: {
-      // Missing required region_name — Zod will catch it before the request.
-      category: 'Confidential',
-      name: 'broken',
-      original_file_name: 'broken.txt',
-    } as any,
-    file: 'foo\n',
-  });
+  await client.dlp.dictionaries.create({ metadata, file: 'foo\n' });
 } catch (err) {
   if (err instanceof AISecSDKException) {
-    if (err.errorType === ErrorType.USER_REQUEST_PAYLOAD_ERROR) {
-      console.error('local validation rejected the metadata:', err.message);
+    if (err.errorType === ErrorType.CLIENT_SIDE_ERROR) {
+      console.error(`API rejected (${err.statusCode}):`, err.message);
     } else {
       console.error(err.errorType, err.message);
     }

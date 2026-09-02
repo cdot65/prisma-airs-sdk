@@ -1,5 +1,12 @@
 # Release Notes
 
+:::note[Historical commands]
+Entries below are kept as written at release time. The `npm run example:*` scripts mentioned in
+older entries were removed when the examples moved to `docs-site/examples/`; the current equivalents
+are `npx tsx docs-site/examples/<name>.ts` (for example `npm run example:profiles-crud` is now
+`npx tsx docs-site/examples/profiles-crud-validation.ts`). See [Runnable Examples](../guides/examples.mdx).
+:::
+
 ## v0.20.1
 
 ### Brand consistency

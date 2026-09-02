@@ -1,6 +1,6 @@
 ---
 title: Prisma AIRS SDK
-description: TypeScript SDK for Palo Alto Networks Prisma AIRS across scanning, management, model security, and red teaming.
+description: TypeScript SDK for Palo Alto Networks Prisma AIRS across scanning, management, model security, red teaming, and AI Gateway.
 slug: /
 hide_title: true
 ---
@@ -21,7 +21,7 @@ import useBaseUrl from '@docusaurus/useBaseUrl';
 
 </div>
 
-Type-safe clients for all four AIRS service domains — real-time content scanning, security configuration management, model security analysis, and AI red teaming. Zero external HTTP dependencies. Native `fetch` + `crypto` for transport, with `zod` for response validation. ESM-first with dual CJS/ESM exports.
+Type-safe clients for all five AIRS service domains — real-time content scanning, security configuration management, model security analysis, AI red teaming, and AI Gateway telemetry/configuration. Zero external HTTP dependencies. Native `fetch` + `crypto` for transport, with `zod` for response validation. ESM-first with dual CJS/ESM exports.
 
 ## Features
 
@@ -29,10 +29,11 @@ Type-safe clients for all four AIRS service domains — real-time content scanni
 - **Security Management** — Manage security profiles, custom topics, API keys, dashboard data, and DLP resources through OAuth2 clients.
 - **Model Security** — Scan ML models for supply chain threats: malicious code execution, backdoors, unapproved file formats. Manage security groups and rule instances; platform security rules are read-only.
 - **AI Red Teaming** — Run automated red team scans against AI targets. Static attack libraries, dynamic agent-based testing, custom prompt sets, and comprehensive reporting.
+- **AI Gateway** — Read telemetry (cost, latency, tokens, blocked requests) and manage workspaces, routing configs, guardrails, providers, API keys, integrations, and deployments for the SCM-managed AI Gateway, with Zod-validated write requests.
 - **Type-Safe Everything** — Exported TypeScript types, enum const objects, Zod schemas with `.passthrough()` for forward compatibility, and JSDoc examples on public symbols.
 - **Zero External HTTP Dependencies** — Native `fetch` + `crypto` for requests. Exponential backoff retry is built in; `zod` validates API responses. ES2022 target, Node 18+.
 
-## Four Independent APIs
+## Five Independent APIs
 
 ```mermaid
 flowchart LR
@@ -41,12 +42,14 @@ flowchart LR
     SDK --> MGMT["Management API"]
     SDK --> MSEC["Model Security API"]
     SDK --> RTAM["Red Team API"]
+    SDK --> AIGW["AI Gateway API"]
 
     SCAN --> S1["syncScan / asyncScan"]
     MGMT --> M1["Profiles / Topics / API Keys"]
     MGMT --> M2["DLP / Dashboard / Logs"]
     MSEC --> MS1["Model Scans / Groups / Rules"]
     RTAM --> RT1["Scans / Reports / Targets"]
+    AIGW --> GW1["Telemetry / Workspaces / Configs"]
 ```
 
 ## Get Started

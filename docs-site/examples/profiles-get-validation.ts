@@ -8,13 +8,13 @@
  *   Phase 3 — getByName() returns highest revision
  *   Phase 4 — getByName() throws for unknown name
  *
- * Run:  npm run example:profiles-get
+ * Run:  npx tsx docs-site/examples/profiles-get-validation.ts
  *
  * No credentials required — uses local mock servers.
  */
 
 import http from 'node:http';
-import { ManagementClient, AISecSDKException } from '../src/index.js';
+import { ManagementClient, AISecSDKException } from '@cdot65/prisma-airs-sdk';
 
 // ── Test Data ────────────────────────────────────────────────────────────────
 

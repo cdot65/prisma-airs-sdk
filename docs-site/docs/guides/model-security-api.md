@@ -10,7 +10,7 @@ Three concepts do the work:
 
 - **Security rules** — the individual checks (e.g. "Pickle Scan", "unapproved format"). These are read-only and provided by the platform. Browse them with `client.securityRules`.
 - **Security groups** — a named bundle of rule _instances_, each set to a posture: `BLOCKING`, `ALLOWING`, or `DISABLED`. A group is the policy you point a scan at. You pick which rules apply and how strict each one is.
-- **Scans** — a single evaluation of one model against one security group. A scan produces an overall **eval outcome** (`ALLOWED` / `BLOCKED` / `PENDING`), plus per-rule **evaluations**, the **files** that were inspected, and any **violations** found.
+- **Scans** — a single evaluation of one model against one security group. A scan produces an overall **eval outcome** (`PENDING` / `ALLOWED` / `BLOCKED` / `ERROR`), plus per-rule **evaluations**, the **files** that were inspected, and any **violations** found.
 
 The flow: define a security group once → run scans against it → read the outcome and drill into violations. Scans run asynchronously, so a fresh scan starts as `PENDING` and you poll `get()` until it settles.
 
@@ -110,7 +110,7 @@ if (result.eval_outcome === 'BLOCKED') {
 }
 ```
 
-`model_uri` accepts source-prefixed URIs (e.g. `hf://org/model` for Hugging Face). `scan_origin` is a free-form label identifying who launched the scan.
+`model_uri` accepts source-prefixed URIs (e.g. `hf://org/model` for Hugging Face). `scan_origin` is optional (the server defaults it) and takes a `ScanOrigin` value — `MODEL_SECURITY_SDK` or `HUGGING_FACE` in the SDK's enum.
 
 ## Scans
 
@@ -168,8 +168,8 @@ const evaluation = await client.scans.getEvaluation('evaluation-uuid');
 
 ```ts
 const files = await client.scans.getFiles('scan-uuid', {
-  type: 'model',
-  result: 'malicious',
+  type: 'FILE', // FileType: DIRECTORY | FILE
+  result: 'SUCCESS', // FileScanResult: SKIPPED | SUCCESS | ERROR | FAILED
   limit: 50,
 });
 ```
@@ -224,7 +224,7 @@ const models = await client.models.listModels({
   search_query: 'llama',
   sort_field: 'created_at',
   sort_order: 'desc',
-  latest_version_outcomes: ['PASSED', 'FAILED'],
+  latest_version_outcomes: ['ALLOWED', 'BLOCKED'], // EvalOutcome values
 });
 for (const m of models.models) {
   console.log(m.uuid, m.name, m.latest_version_outcome);
@@ -263,7 +263,7 @@ const group = await client.securityGroups.create({
 // 2. See which rules are active and how strict each is.
 const { rule_instances } = await client.securityGroups.listRuleInstances(group.uuid);
 for (const ri of rule_instances) {
-  console.log(`${ri.rule.name}: ${ri.state}`); // BLOCKING | ALLOWING | DISABLED
+  console.log(`${ri.rule?.name}: ${ri.state}`); // BLOCKING | ALLOWING | DISABLED
 }
 
 // 3. Tighten a rule from warn-only to blocking.

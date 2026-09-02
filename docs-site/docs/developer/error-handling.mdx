@@ -5,8 +5,11 @@ description: Understand AISecSDKException, ErrorType values, response validation
 
 # Error Handling
 
-All SDK errors throw `AISecSDKException` with a typed `errorType` property. Transport failures also
-carry facts that callers can use without parsing the message:
+Every configuration, transport, and validation failure throws `AISecSDKException` with a typed
+`errorType` property. (The only exceptions are programmer errors in the low-level pagination
+helpers: `paginate()` throws a plain `Error` on a repeated cursor and `collectAll()` throws a
+`RangeError` for a negative `max`.) Transport failures also carry facts that callers can use without
+parsing the message:
 
 | Property       | Meaning                                                                 |
 | -------------- | ----------------------------------------------------------------------- |
@@ -83,7 +86,7 @@ The SDK automatically retries on transient errors:
 - **Max retries**: Configurable 0-5, default 5
 - **Scanner per-call override**: Pass `{ numRetries }` to any Scanner operation; `0` means one total
   fetch attempt, and an omitted value preserves the global setting
-- **401/403 handling**: Management/Model Security/Red Team clients automatically refresh the OAuth token and retry once on 401 or 403 responses
+- **401/403 handling**: the OAuth2 clients (Management, Model Security, Red Team, AI Gateway) automatically refresh the token and retry once on 401 or 403 responses; that retry does not consume the retry budget
 
 For async POSTs, a terminal network error or 5xx response is an ambiguous outcome: AIRS may have
 accepted the request. The SDK does not claim exactly-once submission and does not expose a generic

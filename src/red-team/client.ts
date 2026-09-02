@@ -168,7 +168,7 @@ export class RedTeamClient {
    * import { RedTeamClient } from '@cdot65/prisma-airs-sdk';
    * const rt = new RedTeamClient();
    *
-   * const stats = await rt.getScanStatistics({ date_range: '30d' });
+   * const stats = await rt.getScanStatistics({ date_range: 'LAST_30_DAYS' });
    * // stats =>
    * // { total_scans: 10, targets_scanned: 5 }
    * ```

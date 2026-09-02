@@ -2,32 +2,41 @@
  * OAuth Token Lifecycle Validation Script
  *
  * Spins up a local mock OAuth token server that issues short-lived tokens
- * (5s TTL), then exercises the full OAuthClient lifecycle with real timing:
+ * (5s TTL) plus a mock management API, then exercises the full token lifecycle
+ * with real timing. No live credentials are needed.
  *
- *   Phase 1 — Initial token fetch
- *   Phase 2 — Token valid (cached, no re-fetch)
- *   Phase 3 — Token approaching expiry (within buffer)
- *   Phase 4 — Token expired → automatic refresh
- *   Phase 5 — 401 auto-retry with token refresh
- *   Phase 6 — 403 auto-retry with token refresh
- *   Phase 7 — onTokenRefresh callback validation
- *   Phase 8 — clearToken() → forced re-fetch
+ *   Phase 1  — Pre-fetch state
+ *   Phase 2  — Initial token fetch
+ *   Phase 3  — Token caching (no re-fetch within TTL)
+ *   Phase 4  — Buffer window → proactive refresh
+ *   Phase 5  — Full expiry → refresh
+ *   Phase 6  — 401 auto-retry through ManagementClient (free retry, fresh token)
+ *   Phase 7  — 403 auto-retry through ManagementClient
+ *   Phase 8  — clearToken() → forced re-fetch
+ *   Phase 9  — isTokenExpiringSoon() custom buffer override
+ *   Phase 10 — onTokenRefresh callback audit
  *
- * Run:  npm run example:oauth-lifecycle
+ * Run (from the repository root):  npx tsx docs-site/examples/oauth-lifecycle-validation.ts
  *
- * The script completes in ~20 seconds with 5s tokens and 3s buffer.
+ * The script completes in ~9 seconds with 5s tokens and a 3s buffer.
  */
 
 import http from 'node:http';
-import { OAuthClient, type TokenInfo } from '../src/management/oauth-client.js';
-import { managementHttpRequest } from '../src/management/management-http-client.js';
+import { ManagementClient, OAuthClient, type TokenInfo } from '@cdot65/prisma-airs-sdk';
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
-const TOKEN_TTL_SECONDS = 5; // short-lived tokens for fast validation
-const TOKEN_BUFFER_MS = 3_000; // 3s pre-expiry buffer
+const TOKEN_TTL_SECONDS = 5; // short-lived tokens for the timing phases (standalone client)
+const TOKEN_BUFFER_MS = 3_000; // 3s pre-expiry buffer (standalone client)
+// ManagementClient uses the SDK default 30s buffer, so its tokens must outlive it — the mock
+// issues SCM-like 900s tokens to that client (a buffer larger than the TTL would refetch every call).
+const MANAGED_TOKEN_TTL_SECONDS = 900;
+
+const STANDALONE_CLIENT_ID = 'test-client'; // used by the standalone OAuthClient (phases 1–5, 8–10)
+const MANAGED_CLIENT_ID = 'mgmt-client'; // used by ManagementClient's internal OAuthClient (phases 6–7)
 
 let tokenCounter = 0;
+const fetchesByClient = new Map<string, number>();
 const startTime = Date.now();
 
 function ts(): string {
@@ -72,18 +81,28 @@ function assert(condition: boolean, desc: string, detail?: string): void {
 
 // ── Mock OAuth Server ────────────────────────────────────────────────────────
 
+/** Decode the client_id from the HTTP Basic credentials the SDK sends to the token endpoint. */
+function clientIdFromBasicAuth(header: string | undefined): string {
+  if (!header?.startsWith('Basic ')) return 'unknown';
+  const decoded = Buffer.from(header.slice('Basic '.length), 'base64').toString('utf8');
+  return decoded.split(':')[0] ?? 'unknown';
+}
+
 function createMockTokenServer(): http.Server {
   return http.createServer((req, res) => {
     tokenCounter++;
+    const clientId = clientIdFromBasicAuth(req.headers.authorization);
+    fetchesByClient.set(clientId, (fetchesByClient.get(clientId) ?? 0) + 1);
     const tokenId = `mock-token-${tokenCounter}`;
-    log('  SERVER', `Issued token #${tokenCounter}: ${tokenId} (TTL=${TOKEN_TTL_SECONDS}s)`);
+    const ttl = clientId === MANAGED_CLIENT_ID ? MANAGED_TOKEN_TTL_SECONDS : TOKEN_TTL_SECONDS;
+    log('  SERVER', `Issued token #${tokenCounter}: ${tokenId} to ${clientId} (TTL=${ttl}s)`);
 
     res.writeHead(200, { 'Content-Type': 'application/json' });
     res.end(
       JSON.stringify({
         access_token: tokenId,
         token_type: 'Bearer',
-        expires_in: TOKEN_TTL_SECONDS,
+        expires_in: ttl,
       }),
     );
   });
@@ -91,12 +110,17 @@ function createMockTokenServer(): http.Server {
 
 // ── Mock Management API Server ───────────────────────────────────────────────
 
-function createMockApiServer(): http.Server {
+interface MockApiServer extends http.Server {
+  /** Make the next request fail with the given status (simulates a revoked/expired token). */
+  rejectNext(status: number): void;
+}
+
+function createMockApiServer(): MockApiServer {
   let rejectNext: number | null = null;
 
   const server = http.createServer((req, res) => {
     const auth = req.headers['authorization'] ?? '';
-    log('  API', `${req.method} ${req.url}  auth=${auth}`);
+    log('  API', `${req.method} ${req.url?.split('?')[0]}  auth=${auth}`);
 
     if (rejectNext) {
       const status = rejectNext;
@@ -107,11 +131,12 @@ function createMockApiServer(): http.Server {
       return;
     }
 
+    // A valid (empty) SecurityProfileListResponse so ManagementClient.profiles.list() parses.
     res.writeHead(200, { 'Content-Type': 'application/json' });
-    res.end(JSON.stringify({ status: 'ok', token_received: auth }));
-  });
+    res.end(JSON.stringify({ ai_profiles: [], next_offset: 0 }));
+  }) as MockApiServer;
 
-  (server as unknown as { rejectNext: (status: number) => void }).rejectNext = (status: number) => {
+  server.rejectNext = (status: number) => {
     rejectNext = status;
   };
 
@@ -135,6 +160,7 @@ async function main() {
 
   const tokenPort = (tokenServer.address() as { port: number }).port;
   const apiPort = (apiServer.address() as { port: number }).port;
+  const tokenEndpoint = `http://127.0.0.1:${tokenPort}/oauth2/token`;
 
   log('SETUP', `Mock token server on port ${tokenPort}`);
   log('SETUP', `Mock API server on port ${apiPort}`);
@@ -142,10 +168,10 @@ async function main() {
   const refreshLog: TokenInfo[] = [];
 
   const oauth = new OAuthClient({
-    clientId: 'test-client',
+    clientId: STANDALONE_CLIENT_ID,
     clientSecret: 'test-secret',
     tsgId: '1234567890',
-    tokenEndpoint: `http://127.0.0.1:${tokenPort}/oauth2/token`,
+    tokenEndpoint,
     tokenBufferMs: TOKEN_BUFFER_MS,
     onTokenRefresh: (info) => {
       refreshLog.push(info);
@@ -243,41 +269,45 @@ async function main() {
     assert(token5 === 'mock-token-3', 'Auto-refreshed to mock-token-3 after expiry');
     assert(tokenCounter === 3, 'Third server request');
 
-    // ── Phase 6: 401 auto-retry ──────────────────────────────────────────
+    // ── Phase 6: 401 auto-retry through ManagementClient ─────────────────
     console.log('\n── Phase 6: 401 auto-retry with token refresh ───────────\n');
 
-    const apiServerTyped = apiServer as unknown as { rejectNext: (s: number) => void };
-    apiServerTyped.rejectNext(401);
-
-    const result401 = await managementHttpRequest({
-      method: 'GET',
-      baseUrl: `http://127.0.0.1:${apiPort}`,
-      path: '/v1/test-401',
-      oauthClient: oauth,
-      numRetries: 1,
+    // ManagementClient owns its own OAuthClient; point both its API and token
+    // endpoints at the mocks. numRetries: 0 proves the 401/403 refresh-and-retry
+    // is a *free* retry that does not consume the retry budget.
+    const mgmt = new ManagementClient({
+      clientId: MANAGED_CLIENT_ID,
+      clientSecret: 'mgmt-secret',
+      tsgId: '1234567890',
+      apiEndpoint: `http://127.0.0.1:${apiPort}`,
+      tokenEndpoint,
+      numRetries: 0,
     });
 
-    log('PHASE 6', `401 retry result: status=${result401.status}`);
-    assert(result401.status === 200, '401 auto-retry succeeded with fresh token');
-    assert(tokenCounter >= 4, `Token refreshed after 401 (total fetches: ${tokenCounter})`);
+    const before401 = tokenCounter;
+    apiServer.rejectNext(401);
 
-    // ── Phase 7: 403 auto-retry ──────────────────────────────────────────
+    const page401 = await mgmt.profiles.list();
+    log('PHASE 6', `profiles.list() resolved after a 401: ${page401.ai_profiles.length} profiles`);
+    assert(Array.isArray(page401.ai_profiles), '401 auto-retry succeeded with fresh token');
+    assert(
+      tokenCounter - before401 === 2,
+      `Initial fetch + one refresh after 401 (fetches ${before401} → ${tokenCounter})`,
+    );
+
+    // ── Phase 7: 403 auto-retry through ManagementClient ─────────────────
     console.log('\n── Phase 7: 403 auto-retry with token refresh ───────────\n');
 
-    const preCount = tokenCounter;
-    apiServerTyped.rejectNext(403);
+    const before403 = tokenCounter;
+    apiServer.rejectNext(403);
 
-    const result403 = await managementHttpRequest({
-      method: 'GET',
-      baseUrl: `http://127.0.0.1:${apiPort}`,
-      path: '/v1/test-403',
-      oauthClient: oauth,
-      numRetries: 1,
-    });
-
-    log('PHASE 7', `403 retry result: status=${result403.status}`);
-    assert(result403.status === 200, '403 auto-retry succeeded with fresh token');
-    assert(tokenCounter > preCount, `Token refreshed after 403 (total fetches: ${tokenCounter})`);
+    const page403 = await mgmt.profiles.list();
+    log('PHASE 7', `profiles.list() resolved after a 403: ${page403.ai_profiles.length} profiles`);
+    assert(Array.isArray(page403.ai_profiles), '403 auto-retry succeeded with fresh token');
+    assert(
+      tokenCounter - before403 === 1,
+      `Cached token reused, then exactly one refresh after 403 (fetches ${before403} → ${tokenCounter})`,
+    );
 
     // ── Phase 8: clearToken() forced re-fetch ────────────────────────────
     console.log('\n── Phase 8: clearToken() → forced re-fetch ──────────────\n');
@@ -315,12 +345,14 @@ async function main() {
     // ── Phase 10: onTokenRefresh callback audit ──────────────────────────
     console.log('\n── Phase 10: onTokenRefresh callback audit ──────────────\n');
 
-    log('PHASE 10', `Total onTokenRefresh callbacks: ${refreshLog.length}`);
-    log('PHASE 10', `Total token fetches: ${tokenCounter}`);
+    const standaloneFetches = fetchesByClient.get(STANDALONE_CLIENT_ID) ?? 0;
+    const managedFetches = fetchesByClient.get(MANAGED_CLIENT_ID) ?? 0;
+    log('PHASE 10', `Total onTokenRefresh callbacks (standalone client): ${refreshLog.length}`);
+    log('PHASE 10', `Token fetches — standalone: ${standaloneFetches}, managed: ${managedFetches}`);
 
     assert(
-      refreshLog.length === tokenCounter,
-      `Callback count (${refreshLog.length}) matches fetch count (${tokenCounter})`,
+      refreshLog.length === standaloneFetches,
+      `Callback count (${refreshLog.length}) matches standalone fetch count (${standaloneFetches})`,
     );
 
     for (let i = 0; i < refreshLog.length; i++) {
@@ -334,7 +366,9 @@ async function main() {
     // ── Summary ──────────────────────────────────────────────────────────
     console.log('\n═══════════════════════════════════════════════════════════════');
     console.log('  Validation Complete');
-    console.log(`  Total token fetches: ${tokenCounter}`);
+    console.log(
+      `  Total token fetches: ${tokenCounter} (standalone ${standaloneFetches}, managed ${managedFetches})`,
+    );
     console.log(`  Total callbacks: ${refreshLog.length}`);
     console.log(`  Duration: ${((Date.now() - startTime) / 1000).toFixed(1)}s`);
     console.log(`  Result: ${process.exitCode ? 'FAILED' : 'ALL PASSED'}`);

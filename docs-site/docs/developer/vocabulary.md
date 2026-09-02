@@ -28,12 +28,16 @@ Use these terms exactly when discussing the SDK's design — they have specific 
   prompt properties.
 - **EULA / instance** — Red Teaming management-plane resources for tenant EULA acceptance and
   instance, device, and registry-credential management.
+- **AI Gateway workspace / config / guardrail / provider** — SCM-managed AI Gateway resources exposed
+  under `AIGatewayClient`. Telemetry is keyed by workspace `slug`; config-plane resources by
+  workspace `id`; admin-plane resources (integrations, deployments, plugins, organisations, audit
+  logs) are organisation-wide.
 
 ## Architecture concepts
 
 ### Request spec
 
-A plain data object describing a single endpoint call: HTTP method, base URL, path, query params, request body, expected response schema, retry budget, and auth adapter. Sub-client methods construct a Request spec and hand it to `request()`.
+A plain data object describing a single endpoint call: HTTP method, base URL, path, query params, request body, optional request schema (validated before transport), expected response schema, retry budget, and auth adapter. Sub-client methods construct a Request spec and hand it to `request()`.
 
 ```ts
 interface RequestSpec<TResponse> {
@@ -42,21 +46,24 @@ interface RequestSpec<TResponse> {
   path: string;
   params?: Record<string, string | string[]>;
   body?: unknown;
+  requestSchema?: z.ZodType<unknown, any, any>;
   contentType?: string;
   formData?: FormData;
   responseSchema?: z.ZodType<TResponse, any, any>;
   allowEmptyBody?: boolean;
   numRetries: number;
   auth: AuthAdapter;
+  secretOperation?: AIGatewaySecretOperation;
 }
 ```
 
 ### Auth adapter
 
-The single seam where authentication strategy plugs into the request pipeline. Two implementations exist:
+The single seam where authentication strategy plugs into the request pipeline. Three implementations exist:
 
 - `OAuthAuth` — fetches OAuth2 bearer tokens, owns 401/403 refresh.
 - `ApiKeyAuth` — adds API-key headers and computes HMAC over the request body for the scan service.
+- `TsgHeaderAuth` — wraps `OAuthAuth` for the AI Gateway and adds the `x-tsg-id` header.
 
 ```ts
 interface AuthAdapter {
@@ -82,7 +89,7 @@ interface PreparedRequest {
 
 ### Pre-flight check
 
-A build-time script that diffs Zod schemas in `src/models/` against the authoritative OpenAPI specs in `specs/`. Catches schema drift before it reaches the production parsing path. Runs in CI; failures block merge.
+A local, pre-release script (`npm run preflight`) that diffs Zod schemas in `src/models/` against the Palo Alto Networks OpenAPI specs reached through the gitignored `schemas/` alias. Catches schema drift before it reaches the production parsing path. It is not a CI gate — run it before tagging a release or after API-side changes.
 
 ### Listing
 

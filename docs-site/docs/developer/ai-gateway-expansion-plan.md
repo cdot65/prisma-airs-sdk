@@ -44,10 +44,10 @@ The SDK already exposes telemetry, workspaces, configs, guardrails, providers, A
 | Configs | list, get, list versions, create, update, delete | — | Data | Verified |
 | Guardrails | list, get, create, update, delete | — | Data | Verified |
 | Providers | list, get, create, update, delete | — | Data | Verified |
-| Deployments | list, get, create, delete/archive | update, ping | Admin | High |
+| Deployments | list, get, create, update, ping, delete/archive | — (update and ping delivered 2026-08-30) | Admin | Verified |
 | Integrations | CRUD, models, workspaces | reconcile any missing model/workspace removal semantics | Admin | High |
-| MCP integrations | list, get, create, workspace bindings, capabilities, metadata | update, delete, capability updates | Admin | High |
-| API keys | service/user list, create, update | get, delete, rotate, subject to Prisma's split collections | Data | Medium |
+| MCP integrations | list, get, create, update, delete, workspace bindings, capability reads and updates, metadata | — (delivered 2026-08-30) | Admin | Verified |
+| API keys | service/user list, get, create, update, delete, rotate | — (delivered 2026-08-30; Prisma requires the split `service`/`user` collections) | Data | Verified |
 
 “High” means the resource and plane are already established, not that the candidate operation is confirmed. Every candidate still needs an SCM probe.
 

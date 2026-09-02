@@ -9,7 +9,7 @@ Two distinct rule shapes live under `detection_rules[].rule_type`:
 - `expression_tree` — recursive boolean tree of `DetectionRuleItem` leaves (the leaf carries the detection technique + thresholds)
 - `multi_profile` — composes other data profiles by id, joined by an operator (build "this OR that OR the other")
 
-Spec source: [`specs/dlp/DataProfiles.yaml`](https://github.com/cdot65/prisma-airs-sdk/blob/main/specs/dlp/DataProfiles.yaml)
+Spec source: `openapi-specs/dlp/DataProfiles.yaml` in the public [pan.dev](https://github.com/PaloAltoNetworks/pan.dev) repository, read through the SDK's gitignored `schemas/` alias (see [API Design & Versioning](../../developer/api-design-versioning.mdx#preflight-catching-zod-vs-openapi-drift)).
 
 ## How it works
 
@@ -50,7 +50,7 @@ const client = new ManagementClient();
 
 | Field             | Type                    | Required on POST | Required on PATCH | Notes                                             |
 | ----------------- | ----------------------- | ---------------- | ----------------- | ------------------------------------------------- |
-| `name`            | `string` (1..64)        | ✅               | ✅                |                                                   |
+| `name`            | `string` (1..64)        | ✅               | ✅                | Length bounds are enforced on POST/PUT only       |
 | `detection_rules` | `DetectionRule[]`       | ✅               | nullable          | Either `expression_tree` or `multi_profile` shape |
 | `profile_type`    | `'basic' \| 'advanced'` | —                | ✅                | PATCH requires it even when unchanged             |
 | `description`     | `string`                | —                | nullable          | Omit to leave unchanged on patch; `null` to clear |

@@ -137,15 +137,15 @@ oauth.isTokenExpiringSoon(); // true if within buffer window
 oauth.isTokenExpiringSoon(120_000); // custom buffer override (2 min)
 ```
 
-The `ManagementClient` handles this internally — you only need `OAuthClient` directly for advanced monitoring or custom auth workflows.
+The `ManagementClient` handles this internally with its own private `OAuthClient` — it does not accept `tokenBufferMs` / `onTokenRefresh` and does not expose the instance. Construct a standalone `OAuthClient` only when you need a bearer token for your own HTTP calls or a custom auth workflow; see the [OAuth lifecycle](oauth-lifecycle.md) guide.
 
 ## Security Profiles
 
 :::note[Revision-aware pagination]
 `profiles.list()` returns one API page. Use `profiles.listAll()` when you need the complete revision
 history, or `profiles.list({ latest: true })` to request only the latest profile revision from the
-service. `get()` and `getByName()` walk every page automatically, so their result is not limited to
-the first 100 records.
+service. `get()` and `getByName()` walk pages automatically (up to the all-page helpers' default
+10,000-record cap), so their result is not limited to the first 100 records.
 :::
 
 Full CRUD on AI security profile configurations.
@@ -206,7 +206,7 @@ const { ai_profiles } = await client.profiles.list();
 
 // Paginated
 const page = await client.profiles.list({ offset: 0, limit: 10 });
-console.log(page.next_offset); // undefined if no more pages
+console.log(page.next_offset); // 0 (or absent) on the last page
 
 // Flatten every page. latest is sent to the service on every request.
 const latestProfiles = await client.profiles.listAll({ latest: true, limit: 100 });
@@ -214,8 +214,10 @@ const latestProfiles = await client.profiles.listAll({ latest: true, limit: 100 
 
 ### Update
 
+`profile_id` is optional on the response type (hence the `!`); the API always populates it.
+
 ```ts
-const updated = await client.profiles.update(profile.profile_id, {
+const updated = await client.profiles.update(profile.profile_id!, {
   profile_name: 'my-profile-v2',
   active: true,
   policy: {
@@ -249,7 +251,7 @@ const updated = await client.profiles.update(profile.profile_id, {
 ### Delete
 
 ```ts
-const result = await client.profiles.delete(profile.profile_id);
+const result = await client.profiles.delete(profile.profile_id!);
 ```
 
 If the profile is in use by a policy, the API returns a 409 conflict with the referencing policies.
@@ -259,7 +261,7 @@ If the profile is in use by a policy, the API returns a 409 conflict with the re
 ```ts
 // Force delete removes the profile even if referenced by a policy
 // updatedBy is required for profiles
-const result = await client.profiles.forceDelete(profile.profile_id, 'user@example.com');
+const result = await client.profiles.forceDelete(profile.profile_id!, 'user@example.com');
 ```
 
 ## Custom Topics
@@ -299,7 +301,7 @@ const { custom_topics: latestTopics } = await client.topics.list({ latestOnly: t
 ### Update
 
 ```ts
-const updated = await client.topics.update(topic.topic_id, {
+const updated = await client.topics.update(topic.topic_id!, {
   topic_name: 'credit-card-numbers',
   description: 'Updated description',
   examples: ['4111-1111-1111-1111', 'CVV: 123'],
@@ -310,13 +312,13 @@ const updated = await client.topics.update(topic.topic_id, {
 
 ```ts
 // Standard delete (fails with 409 if referenced by a profile)
-const result = await client.topics.delete(topic.topic_id);
+const result = await client.topics.delete(topic.topic_id!);
 
 // Force delete (removes even if referenced)
 // updatedBy is optional for topics
-const result = await client.topics.forceDelete(topic.topic_id);
+const result = await client.topics.forceDelete(topic.topic_id!);
 // or with updatedBy
-const resultWithUser = await client.topics.forceDelete(topic.topic_id, 'user@example.com');
+const resultWithUser = await client.topics.forceDelete(topic.topic_id!, 'user@example.com');
 ```
 
 ## API Keys
@@ -395,6 +397,7 @@ defaults to 10,000; use a smaller value to bound an inventory read or `max: 0` t
 
 ```ts
 const updated = await client.customerApps.update('customer-app-uuid', {
+  tsg_id: '1234567890', // required by the CustomerApp body
   app_name: 'updated-app',
   cloud_provider: 'aws',
   environment: 'production',
@@ -551,7 +554,7 @@ const results = await client.scanLogs.query({
 });
 
 console.log(results.total_pages);
-console.log(results.scan_results);
+console.log(results.scan_result_for_dashboard?.scan_result_entries);
 
 // Continue pagination with page_token
 const nextPage = await client.scanLogs.query({
@@ -628,17 +631,17 @@ A standard `delete` on a profile or topic that's still referenced by a policy fa
 - `topics.forceDelete(id, updatedBy?)` — `updatedBy` is **optional**.
 :::
 :::note[List endpoints paginate]
-`list()` returns up to 100 items by default. Pass `{ offset, limit }` and follow `next_offset` (or `page_token` for scan logs) until it comes back `undefined` to walk the full set. Don't assume the first page is everything.
+`list()` returns up to 100 items by default. Pass `{ offset, limit }` and follow `next_offset` until it comes back `0` or absent (for scan logs, follow `page_token`) to walk the full set — or call the resource's `listAll()`, which does exactly that. Don't assume the first page is everything.
 :::
 **Look profiles up by name when you can.** `profiles.getByName('my-profile')` saves you a list-then-filter, and returns the highest revision if several exist. Both `get` and `getByName` throw `AISecSDKException` when nothing matches — handle that rather than expecting `null`.
 
-**Rotate keys, don't recreate them.** `apiKeys.regenerate(id, …)` issues a new secret while preserving the key's identity and rotation policy — cleaner than deleting and re-adding.
+**Rotate keys, don't recreate them.** `apiKeys.regenerate(id, …)` issues a new secret under the same key ID (you pass the rotation schedule for the new key) — cleaner than deleting and re-adding.
 
-**Tune profiles from real traffic.** Use `scanLogs.query({ time_interval, time_unit, filter: 'threat' })` to see what a profile actually caught (or missed), then adjust detectors and custom topics. Close the loop instead of guessing.
+**Tune profiles from real traffic.** Use `scanLogs.query({ time_interval, time_unit, pageNumber: 1, pageSize: 50, filter: 'threat' })` to see what a profile actually caught (or missed), then adjust detectors and custom topics. Close the loop instead of guessing.
 
 **Set the right region.** All control-plane calls share one OAuth identity but must target the matching regional endpoint — override `PANW_MGMT_ENDPOINT` (see [Regional Endpoints](#regional-endpoints)) for EU/UK/FedRAMP tenants.
 
-**Retries are automatic.** Like the scan client, management requests retry on transient `5xx` errors with backoff, and refresh-and-retry once on `401`/`403`. Tune attempts with `numRetries` (0–5). See the [OAuth lifecycle](oauth-lifecycle.md) for the token side of this.
+**Retries are automatic.** Like the scan client, management requests retry on `500`/`502`/`503`/`504` with backoff, and refresh-and-retry once on `401`/`403`. Tune attempts with `numRetries` (0–5). See the [OAuth lifecycle](oauth-lifecycle.md) for the token side of this.
 
 ## Full reference
 
@@ -660,7 +663,9 @@ npx tsx --env-file=.env docs-site/examples/mgmt-dlp-data-patterns.ts
 npx tsx --env-file=.env docs-site/examples/mgmt-dlp-data-profiles.ts
 npx tsx --env-file=.env docs-site/examples/mgmt-dlp-dictionaries.ts
 
-# Self-contained validation (no credentials needed — uses mock servers)
-npx tsx --env-file=.env docs-site/examples/profiles-get-validation.ts       # get() and getByName() methods
-npx tsx --env-file=.env docs-site/examples/profiles-crud-validation.ts      # full CRUD lifecycle (create/list/get/update/delete/force-delete)
+# Self-contained validation (no credentials or .env needed — uses local mock servers)
+npx tsx docs-site/examples/profiles-get-validation.ts       # get() and getByName() methods
+npx tsx docs-site/examples/profiles-crud-validation.ts      # full CRUD lifecycle (create/list/get/update/delete/force-delete)
 ```
+
+Run everything from the repository root. `--env-file` needs Node 20.6+ and an existing `.env`; see [Runnable Examples](examples.mdx) for captured output.

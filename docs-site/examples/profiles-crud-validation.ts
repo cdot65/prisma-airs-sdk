@@ -11,13 +11,13 @@
  *   Phase 6 — DELETE: remove a profile
  *   Phase 7 — DELETE (Force): force-delete a profile referenced by policies
  *
- * Run:  npm run example:profiles-crud
+ * Run:  npx tsx docs-site/examples/profiles-crud-validation.ts
  *
  * No credentials required — uses local mock servers.
  */
 
 import http from 'node:http';
-import { ManagementClient, AISecSDKException } from '../src/index.js';
+import { ManagementClient, AISecSDKException } from '@cdot65/prisma-airs-sdk';
 
 // ── Test Data ────────────────────────────────────────────────────────────────
 

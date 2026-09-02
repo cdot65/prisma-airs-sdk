@@ -56,15 +56,17 @@ async create(body: CreateSecurityProfileRequest): Promise<SecurityProfile> {
     path: MGMT_PROFILE_PATH,
     body,
     responseSchema: SecurityProfileSchema,
-    auth: this.auth,        // ApiKeyAuth or OAuthAuth
+    auth: this.auth,        // ApiKeyAuth, OAuthAuth, or TsgHeaderAuth
     numRetries: this.numRetries,
   });
 }
 ```
 
 A `RequestSpec` (see `src/http/types.ts`) is a plain description of one call: `method`, `baseUrl`,
-`path`, optional `params` / `body` / `formData` / `contentType`, an optional `responseSchema`, the
-`numRetries` budget, and an `auth` adapter. The pipeline does the rest.
+`path`, optional `params` / `body` / `formData` / `contentType`, an optional `requestSchema` (validated
+before transport), an optional `responseSchema`, `allowEmptyBody`, an optional `secretOperation` (debug
+redaction context for AI Gateway calls), the `numRetries` budget, and an `auth` adapter. The pipeline
+does the rest.
 
 ### The stages
 
@@ -99,8 +101,9 @@ Walking it explicitly:
 
 1. **Validate request.** When a client declares `requestSchema`, the JSON body is parsed before URL
    construction, authentication, or transport. The parsed value—not the unchecked input—is later
-   serialized. A failure throws `USER_REQUEST_PAYLOAD_ERROR` with the method, path, and invalid field
-   paths, but not rejected values.
+   serialized. A failure throws `USER_REQUEST_PAYLOAD_ERROR` with the method, path, and the Zod issue for each
+   failing field path. Secret string values are never echoed; enum, literal, and unknown-key issues do
+   name the offending value or key.
 2. **Build URL.** The base URL is right-trimmed of trailing slashes, then joined with `path`. Query
    `params` are appended; array values append once per element (`?id=a&id=b`).
 3. **Build headers + body.** A `User-Agent` of `PAN-AIRS/<version>-typescript-sdk` is always set,
@@ -125,8 +128,9 @@ specific path rather than a cryptic root error. Endpoints that legitimately retu
 :::
 ## The AuthAdapter abstraction
 
-Authentication is a single plug-point. Both strategies implement the `AuthAdapter` interface from
-`src/http/types.ts`:
+Authentication is a single plug-point. All three implementations — `ApiKeyAuth`, `OAuthAuth`, and
+`TsgHeaderAuth` (which wraps `OAuthAuth` for the AI Gateway and adds the `x-tsg-id` header) —
+implement the `AuthAdapter` interface from `src/http/types.ts`:
 
 ```ts
 interface AuthAdapter {
@@ -271,7 +275,8 @@ the tooling that keeps these schemas honest (the preflight gate) are covered in
 
 Exhausting the budget on a 5xx throws `SERVER_SIDE_ERROR`; a non-retryable 4xx throws
 `CLIENT_SIDE_ERROR` immediately, with a human-readable message extracted from the response body
-(`error_message` → `message` → `error.message` → fallback).
+(`error_message` → `message` → `data.message` → `error.message` → `msg` → `API error <status>`, with
+`(errorCode: X)` appended when the body carries `data.errorCode`).
 
 ## The error model
 

@@ -1,13 +1,15 @@
 ---
 id: examples
 title: Runnable Examples
-description: How to run the SDK example scripts for scanning, management, DLP, model security, red teaming, and validation workflows.
+description: How to run the SDK example scripts for scanning, management, DLP, model security, red teaming, AI Gateway, and validation workflows — with captured output.
 ---
 
 # Runnable Examples
 
-The repository includes runnable TypeScript examples in `docs-site/examples/`. They exercise the
-same public SDK APIs documented in the guides and can be run with `tsx` from the repository root.
+The repository includes runnable TypeScript examples in `docs-site/examples/` (plus one AI Gateway
+walkthrough in the repo-root `examples/` folder). They exercise the same public SDK APIs documented
+in the guides and are run with `tsx` **from the repository root** — the root `tsconfig.json` maps
+`@cdot65/prisma-airs-sdk` to `src/`, so a fresh clone needs no build step.
 
 ## Setup
 
@@ -21,12 +23,12 @@ cp .env.example .env
 Fill in the credentials required by the workflow you want to run:
 
 - Scan examples require `PANW_AI_SEC_API_KEY` or `PANW_AI_SEC_API_TOKEN`, plus
-  `PANW_AI_SEC_PROFILE_NAME`.
-- Management examples require `PANW_MGMT_CLIENT_ID`, `PANW_MGMT_CLIENT_SECRET`, and
+  `PANW_AI_SEC_PROFILE_NAME` (the name of an existing security profile in your tenant).
+- Management and DLP examples require `PANW_MGMT_CLIENT_ID`, `PANW_MGMT_CLIENT_SECRET`, and
   `PANW_MGMT_TSG_ID`.
-- Model Security and Red Team examples can use their service-specific `PANW_MODEL_SEC_*` /
-  `PANW_RED_TEAM_*` credentials or fall back to `PANW_MGMT_*`.
-- Validation scripts marked as mock-backed do not require live AIRS credentials.
+- Model Security, Red Team, and AI Gateway examples can use their service-specific
+  `PANW_MODEL_SEC_*` / `PANW_RED_TEAM_*` / `PANW_AI_GW_*` credentials or fall back to `PANW_MGMT_*`.
+- Validation scripts marked as mock-backed do not require live AIRS credentials or a `.env` file.
 
 Run examples with:
 
@@ -34,32 +36,83 @@ Run examples with:
 npx tsx --env-file=.env docs-site/examples/<script>.ts
 ```
 
+:::note[`--env-file` needs Node 20.6+ and an existing file]
+`--env-file` is a Node.js flag (20.6+). The SDK itself supports Node 18, so on older runtimes
+`export` the variables in your shell instead. Node also aborts with `.env: not found` if the file is
+missing — which is why the mock-backed commands below omit the flag entirely.
+:::
+
 ## AI Runtime Security Scan Examples
 
-| Script | What it demonstrates |
-| --- | --- |
-| `basic-scan.ts` | Calls `init()`, creates `Content`, and runs `Scanner.syncScan()` with metadata. |
-| `async-scan.ts` | Submits a batch with `Scanner.asyncScan()`; batch size is capped at 20 items. |
-| `query-results.ts` | Fetches async scan results and threat reports by scan ID or report ID. |
+| Script             | What it demonstrates                                                              |
+| ------------------ | --------------------------------------------------------------------------------- |
+| `basic-scan.ts`    | Calls `init()`, creates `Content`, and runs `Scanner.syncScan()` with metadata.   |
+| `async-scan.ts`    | Submits a 2-item batch with `Scanner.asyncScan()` (cap is 20) and polls the rows. |
+| `query-results.ts` | Fetches scan results and threat reports by scan ID / report ID.                   |
 
 ```bash
 npx tsx --env-file=.env docs-site/examples/basic-scan.ts
 npx tsx --env-file=.env docs-site/examples/async-scan.ts
-npx tsx --env-file=.env docs-site/examples/query-results.ts
+SCAN_IDS='uuid-1,uuid-2' REPORT_IDS='Ruuid-1' npx tsx --env-file=.env docs-site/examples/query-results.ts
 ```
+
+Output captured on 2026-09-01 with `PANW_AI_SEC_PROFILE_NAME="AI Gateway - Strict"`:
+
+```text
+$ npx tsx --env-file=.env docs-site/examples/basic-scan.ts
+Category: benign
+Action: allow
+Scan ID: 323521fb-c345-4e49-8033-89eb37b8cb5b
+Report ID: R323521fb-c345-4e49-8033-89eb37b8cb5b
+
+$ npx tsx --env-file=.env docs-site/examples/async-scan.ts
+Received: 2026-09-01T16:20:39.388749169Z
+Batch scan ID: 18dde44e-46ee-4f01-8a61-a6b1b2c7bb46
+18dde44e-46ee-4f01-8a61-a6b1b2c7bb46:1 complete allow
+18dde44e-46ee-4f01-8a61-a6b1b2c7bb46:2 complete allow
+
+$ SCAN_IDS=323521fb-c345-4e49-8033-89eb37b8cb5b,18dde44e-46ee-4f01-8a61-a6b1b2c7bb46 \
+  REPORT_IDS=R323521fb-c345-4e49-8033-89eb37b8cb5b \
+  npx tsx --env-file=.env docs-site/examples/query-results.ts
+Scan 323521fb-c345-4e49-8033-89eb37b8cb5b, request 0: status=complete
+  category=benign action=allow
+Scan 18dde44e-46ee-4f01-8a61-a6b1b2c7bb46, request 1: status=complete
+  category=benign action=allow
+Scan 18dde44e-46ee-4f01-8a61-a6b1b2c7bb46, request 2: status=complete
+  category=benign action=allow
+Report R323521fb-c345-4e49-8033-89eb37b8cb5b, request 0:
+  agent_security: benign -> allow
+  dlp: benign -> allow
+  pi: benign -> allow
+  source_code: benign -> allow
+  tc: benign -> allow
+  uf: benign -> allow
+  dbs: benign -> allow
+  dlp: benign -> allow
+  source_code: benign -> allow
+  tc: benign -> allow
+  uf: benign -> allow
+  malicious_code: benign -> allow
+  malicious_code: benign -> allow
+```
+
+Note how one report lists each detector once per `data_type` (prompt and response), and how the
+sync scan's rows carry `req_id: 0` while the async batch preserves the `req_id` you submitted. Full
+JSON bodies — including a blocked prompt-injection attempt and DLP masking — are in the
+[Scan API guide](./scan-api.md#example-output).
 
 ## Management and DLP Examples
 
-| Script | What it demonstrates |
-| --- | --- |
-| `mgmt-auth.ts` | Constructs `ManagementClient` and triggers OAuth on the first API call. |
-| `mgmt-profiles.ts` | Lists and works with AI security profiles. |
-| `mgmt-topics.ts` | Uses custom topic management APIs. |
-| `mgmt-dashboard.ts` | Reads runtime dashboard application and violation data. |
-| `mgmt-dlp-data-filtering-profiles.ts` | Lists and replaces DLP data filtering profiles. |
-| `mgmt-dlp-data-patterns.ts` | Creates, reads, replaces, patches, and deletes DLP data patterns. |
-| `mgmt-dlp-data-profiles.ts` | Works with DLP data profiles and merge-patch updates. |
-| `mgmt-dlp-dictionaries.ts` | Uses DLP dictionary CRUD with multipart keyword uploads. |
+| Script                                | What it demonstrates                                                    |
+| ------------------------------------- | ----------------------------------------------------------------------- |
+| `mgmt-auth.ts`                        | Constructs `ManagementClient` and triggers OAuth on the first API call. |
+| `mgmt-profiles.ts`                    | Creates, lists, updates, and deletes an AI security profile.            |
+| `mgmt-topics.ts`                      | Creates, lists, updates, and deletes a custom topic.                    |
+| `mgmt-dashboard.ts`                   | Reads runtime dashboard application and violation data.                 |
+| `mgmt-dlp-data-filtering-profiles.ts` | Lists and reads DLP data filtering profiles (replace is commented out). |
+| `mgmt-dlp-data-patterns.ts`           | Creates, reads, patches, and deletes a DLP data pattern.                |
+| `mgmt-dlp-data-profiles.ts`           | Creates, reads, and merge-patches a DLP data profile (no DELETE exists). |
+| `mgmt-dlp-dictionaries.ts`            | Creates (multipart), reads, replaces, and deletes a DLP dictionary.     |
 
 ```bash
 npx tsx --env-file=.env docs-site/examples/mgmt-auth.ts
@@ -72,14 +125,20 @@ npx tsx --env-file=.env docs-site/examples/mgmt-dlp-data-profiles.ts
 npx tsx --env-file=.env docs-site/examples/mgmt-dlp-dictionaries.ts
 ```
 
+The `mgmt-profiles.ts`, `mgmt-topics.ts`, `mgmt-dlp-data-patterns.ts`, and `mgmt-dlp-dictionaries.ts`
+scripts **create real resources** (named `sdk-example-*`) in your tenant and delete them again at
+the end; `mgmt-dlp-data-profiles.ts` creates one it cannot delete. Run them against a non-production
+TSG. With invalid or revoked OAuth credentials every one of them stops at the first call with
+`AISEC_OAUTH_ERROR:Client authentication failed`.
+
 ## Model Security and Red Team Examples
 
-| Script | What it demonstrates |
-| --- | --- |
-| `model-security-scans.ts` | Lists Model Security scans and related data-plane resources. |
-| `red-team-scans.ts` | Lists Red Team scan jobs and categories. |
-| `red-team-targets.ts` | Works with Red Team targets and profile helpers. |
-| `red-team-network-broker.ts` | Lists, reads, and inspects stats for Red Team network broker channels. |
+| Script                       | What it demonstrates                                                       |
+| ---------------------------- | -------------------------------------------------------------------------- |
+| `model-security-scans.ts`    | Lists Model Security scans, evaluations, files, security groups, and rules. |
+| `red-team-scans.ts`          | Lists Red Team scan jobs, categories, targets, quota, and statistics.       |
+| `red-team-targets.ts`        | Reads Red Team targets, a target profile, and custom prompt sets.           |
+| `red-team-network-broker.ts` | Lists, creates, updates, and inspects stats for network broker channels.    |
 
 ```bash
 npx tsx --env-file=.env docs-site/examples/model-security-scans.ts
@@ -88,24 +147,71 @@ npx tsx --env-file=.env docs-site/examples/red-team-targets.ts
 npx tsx --env-file=.env docs-site/examples/red-team-network-broker.ts
 ```
 
-## Mock-Backed Validation Scripts
+`red-team-network-broker.ts` creates a channel named `sdk-example-broker` and does not delete it
+(the network broker API has no delete endpoint in the SDK).
 
-These scripts spin up local mock servers or validate schemas directly, so they can run without live
-tenant credentials:
+## AI Gateway Example
 
-| Script | What it validates |
-| --- | --- |
-| `profiles-get-validation.ts` | `profiles.get()` and `profiles.getByName()` behavior. |
-| `profiles-crud-validation.ts` | Management profile create, list, get, update, delete, and force-delete flow. |
-| `oauth-lifecycle-validation.ts` | OAuth token caching, refresh, 401/403 retry, callbacks, and token state inspection. |
-| `red-team-mgmt-validation.ts` | Red Team target and custom attack schemas plus management-plane workflows. |
+A read-only walkthrough covering telemetry, the config plane, the admin plane, audit logs, and
+error handling lives at [`examples/ai-gateway.ts`](https://github.com/cdot65/prisma-airs-sdk/blob/main/examples/ai-gateway.ts)
+in the repository root:
 
 ```bash
-npx tsx --env-file=.env docs-site/examples/profiles-get-validation.ts
-npx tsx --env-file=.env docs-site/examples/profiles-crud-validation.ts
-npx tsx --env-file=.env docs-site/examples/oauth-lifecycle-validation.ts
-npx tsx --env-file=.env docs-site/examples/red-team-mgmt-validation.ts
+npx tsx --env-file=.env examples/ai-gateway.ts
 ```
+
+It needs the two SCM role grants described in the [AI Gateway guide](./ai-gateway-api.mdx#authorization);
+with only one of them half of the calls return `403`.
+
+## Mock-Backed Validation Scripts
+
+These scripts spin up local mock servers or validate schemas directly, so they run without live
+tenant credentials and without a `.env` file:
+
+| Script                          | What it validates                                                                          |
+| ------------------------------- | ------------------------------------------------------------------------------------------ |
+| `profiles-get-validation.ts`    | `profiles.get()` and `profiles.getByName()` behaviour, including pagination and not-found. |
+| `profiles-crud-validation.ts`   | Management profile create, list, get, update, delete, and force-delete flow (33 checks).    |
+| `oauth-lifecycle-validation.ts` | OAuth token caching, buffer-window refresh, expiry, 401/403 retry, callbacks, `clearToken`. |
+| `red-team-mgmt-validation.ts`   | Red Team target/custom-attack Zod schemas plus `validate` param and CSV upload (37 checks). |
+
+```bash
+npx tsx docs-site/examples/profiles-get-validation.ts
+npx tsx docs-site/examples/profiles-crud-validation.ts
+npx tsx docs-site/examples/oauth-lifecycle-validation.ts
+npx tsx docs-site/examples/red-team-mgmt-validation.ts
+```
+
+Final lines of each run, captured on 2026-09-01:
+
+```text
+$ npx tsx docs-site/examples/profiles-get-validation.ts
+  ...
+  Validation Complete
+  Duration: 0.0s
+  Result: ALL PASSED
+
+$ npx tsx docs-site/examples/profiles-crud-validation.ts
+  ...
+  Validation Complete
+  Duration: 0.1s
+  Passed: 33  |  Failed: 0
+  Result: ALL PASSED
+
+$ npx tsx docs-site/examples/oauth-lifecycle-validation.ts
+  ...
+  Validation Complete
+  Total token fetches: 7 (standalone 4, managed 3)
+  Total callbacks: 4
+  Duration: 8.3s
+  Result: ALL PASSED
+
+$ npx tsx docs-site/examples/red-team-mgmt-validation.ts
+  ...
+  Total: 37  |  Passed: 37  |  Failed: 0
+```
+
+The complete OAuth transcript, phase by phase, is on the [OAuth Token Lifecycle](./oauth-lifecycle.md#validation-output) page.
 
 ## Related Pages
 
@@ -115,3 +221,4 @@ npx tsx --env-file=.env docs-site/examples/red-team-mgmt-validation.ts
 - [Management API](./management-api)
 - [Model Security API](./model-security-api)
 - [Red Team API](./red-team-api)
+- [AI Gateway API](./ai-gateway-api)
