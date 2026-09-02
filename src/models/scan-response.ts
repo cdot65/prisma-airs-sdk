@@ -71,7 +71,10 @@ export type ToolDetectionEntry = z.infer<typeof ToolDetectionEntrySchema>;
  */
 export const IODetectedSchema = z
   .object({
-    detection_entries: z.array(ToolDetectionEntrySchema).optional(),
+    // The API returns null for output_detected.detection_entries when no tool
+    // output was provided (input-only tool_event scans). nullish() accepts both
+    // undefined and null so both input_detected and output_detected parse cleanly.
+    detection_entries: z.array(ToolDetectionEntrySchema).nullish(),
   })
   .passthrough();
 
