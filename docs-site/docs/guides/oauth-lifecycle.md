@@ -4,9 +4,9 @@ The SDK manages OAuth2 `client_credentials` tokens automatically — fetching, c
 
 ## How it works
 
-The Management, Model Security, and Red Team APIs all authenticate with **OAuth2 client credentials**: you present a client ID + secret, the auth server hands back a short-lived bearer token (Strata Cloud Manager issues ~900s tokens), and every API call carries that token. Tokens expire, so something has to fetch, cache, and refresh them.
+The Management, Model Security, Red Team, and AI Gateway APIs all authenticate with **OAuth2 client credentials**: you present a client ID + secret, the auth server hands back a short-lived bearer token (Strata Cloud Manager issues ~900s tokens), and every API call carries that token. Tokens expire, so something has to fetch, cache, and refresh them.
 
-That "something" is `OAuthClient`, and **for normal use you never touch it** — `ManagementClient` (and the other OAuth clients) embed one and handle the whole cycle for you. This page exists for the cases where you _do_ want visibility or control: health checks, monitoring dashboards, custom auth flows, or just understanding what happens under load.
+That "something" is `OAuthClient`, and **for normal use you never touch it** — `ManagementClient` (and the other OAuth clients) embed one and handle the whole cycle for you. This page exists for the cases where you _do_ want visibility or control: health checks, custom auth flows, or just understanding what happens under load. Note that the embedded instance is private — `ManagementClient` does not expose it or accept `tokenBufferMs` / `onTokenRefresh` — so a standalone `OAuthClient` observes its own token cache, not the managed client's.
 
 The model is a small state machine with one knob — the **buffer window**:
 
@@ -38,7 +38,7 @@ stateDiagram-v2
 | **Expiring Soon** | `false`     | `true`           | `false`   | Fetches new token proactively     |
 | **Expired**       | `true`      | `true`           | `false`   | Fetches new token                 |
 
-The **buffer window** determines when a token transitions from Valid to Expiring Soon. With the default 30s buffer and Strata Cloud Manager's 900s token TTL, the SDK refreshes at the 870s mark — well before any API call would fail.
+The **buffer window** determines when a token transitions from Valid to Expiring Soon. With the default 30s buffer and Strata Cloud Manager's 900s token TTL, a token is treated as expiring soon from the 870s mark, and the next `getToken()` (or API call) after that point fetches a fresh one — well before any API call would fail. There is no background timer; refresh is lazy and happens on demand.
 
 ## Inspecting Token State
 
@@ -100,14 +100,14 @@ This handles the case where a token expires between the buffer check and the API
 
 ## Validation Output
 
-The SDK includes a validation script that exercises the full lifecycle with real timing using a local mock OAuth server (5s tokens, 3s buffer). Run it with:
+The SDK includes a validation script that exercises the full lifecycle with real timing using a local mock OAuth server and a local mock management API. A standalone `OAuthClient` gets 5s tokens with a 3s buffer for the timing phases; a `ManagementClient` pointed at the same mocks (with SCM-like 900s tokens, since it uses the default 30s buffer) drives the 401/403 phases through the real request pipeline. No credentials or `.env` file are needed — run it from the repository root:
 
 ```bash
-npx tsx --env-file=.env docs-site/examples/oauth-lifecycle-validation.ts
+npx tsx docs-site/examples/oauth-lifecycle-validation.ts
 ```
 
 <details>
-<summary>Full validation output (click to expand)</summary>
+<summary>Full validation output (captured 2026-09-01 — click to expand)</summary>
 
 ```
 ═══════════════════════════════════════════════════════════════
@@ -115,8 +115,8 @@ npx tsx --env-file=.env docs-site/examples/oauth-lifecycle-validation.ts
   Token TTL: 5s  |  Buffer: 3s
 ═══════════════════════════════════════════════════════════════
 
-[T+  0.0s] SETUP        Mock token server on port 56235
-[T+  0.0s] SETUP        Mock API server on port 56236
+[T+  0.0s] SETUP        Mock token server on port 45593
+[T+  0.0s] SETUP        Mock API server on port 41779
 
 ── Phase 1: Pre-fetch state ──────────────────────────────
 
@@ -134,7 +134,7 @@ npx tsx --env-file=.env docs-site/examples/oauth-lifecycle-validation.ts
 
 ── Phase 2: Initial token fetch ─────────────────────────
 
-[T+  0.0s]   SERVER     Issued token #1: mock-token-1 (TTL=5s)
+[T+  0.0s]   SERVER     Issued token #1: mock-token-1 to test-client (TTL=5s)
 [T+  0.0s]   CALLBACK   onTokenRefresh fired — expiresInMs=5000
 [T+  0.0s] PHASE 2      Got token: mock-token-1
 [T+  0.0s]   INFO       After first fetch:
@@ -143,7 +143,7 @@ npx tsx --env-file=.env docs-site/examples/oauth-lifecycle-validation.ts
 [T+  0.0s]   INFO         isExpired      = false
 [T+  0.0s]   INFO         isExpiringSoon = false
 [T+  0.0s]   INFO         expiresInMs    = 5000
-[T+  0.0s]   INFO         expiresAt      = 2026-03-08T14:31:39.001Z
+[T+  0.0s]   INFO         expiresAt      = 2026-09-01T16:22:19.886Z
 [T+  0.0s]   PASS       ✓ First token is mock-token-1
 [T+  0.0s]   PASS       ✓ hasToken is true
 [T+  0.0s]   PASS       ✓ isValid is true
@@ -167,12 +167,12 @@ npx tsx --env-file=.env docs-site/examples/oauth-lifecycle-validation.ts
 [T+  2.2s]   INFO         isValid        = false
 [T+  2.2s]   INFO         isExpired      = false
 [T+  2.2s]   INFO         isExpiringSoon = true
-[T+  2.2s]   INFO         expiresInMs    = 2799
-[T+  2.2s]   INFO         expiresAt      = 2026-03-08T14:31:39.001Z
+[T+  2.2s]   INFO         expiresInMs    = 2798
+[T+  2.2s]   INFO         expiresAt      = 2026-09-01T16:22:19.886Z
 [T+  2.2s]   PASS       ✓ isTokenExpiringSoon() true in buffer window
 [T+  2.2s]   PASS       ✓ TokenInfo.isExpiringSoon is true
 [T+  2.2s]   PASS       ✓ isValid is false (within buffer)
-[T+  2.2s]   SERVER     Issued token #2: mock-token-2 (TTL=5s)
+[T+  2.2s]   SERVER     Issued token #2: mock-token-2 to test-client (TTL=5s)
 [T+  2.2s]   CALLBACK   onTokenRefresh fired — expiresInMs=5000
 [T+  2.2s] PHASE 4      getToken() after buffer window: mock-token-2
 [T+  2.2s]   PASS       ✓ Auto-refreshed to mock-token-2
@@ -182,8 +182,8 @@ npx tsx --env-file=.env docs-site/examples/oauth-lifecycle-validation.ts
 [T+  2.2s]   INFO         isValid        = true
 [T+  2.2s]   INFO         isExpired      = false
 [T+  2.2s]   INFO         isExpiringSoon = false
-[T+  2.2s]   INFO         expiresInMs    = 4999
-[T+  2.2s]   INFO         expiresAt      = 2026-03-08T14:31:41.204Z
+[T+  2.2s]   INFO         expiresInMs    = 5000
+[T+  2.2s]   INFO         expiresAt      = 2026-09-01T16:22:22.093Z
 [T+  2.2s]   PASS       ✓ Refreshed token is valid
 [T+  2.2s]   PASS       ✓ Refreshed token not expired
 
@@ -196,11 +196,11 @@ npx tsx --env-file=.env docs-site/examples/oauth-lifecycle-validation.ts
 [T+  8.2s]   INFO         isExpired      = true
 [T+  8.2s]   INFO         isExpiringSoon = true
 [T+  8.2s]   INFO         expiresInMs    = 0
-[T+  8.2s]   INFO         expiresAt      = 2026-03-08T14:31:41.204Z
+[T+  8.2s]   INFO         expiresAt      = 2026-09-01T16:22:22.093Z
 [T+  8.2s]   PASS       ✓ isTokenExpired() true after expiry
 [T+  8.2s]   PASS       ✓ TokenInfo.isExpired is true
 [T+  8.2s]   PASS       ✓ expiresInMs is 0 after expiry
-[T+  8.2s]   SERVER     Issued token #3: mock-token-3 (TTL=5s)
+[T+  8.2s]   SERVER     Issued token #3: mock-token-3 to test-client (TTL=5s)
 [T+  8.2s]   CALLBACK   onTokenRefresh fired — expiresInMs=5000
 [T+  8.2s] PHASE 5      getToken() after expiry: mock-token-3
 [T+  8.2s]   PASS       ✓ Auto-refreshed to mock-token-3 after expiry
@@ -208,71 +208,66 @@ npx tsx --env-file=.env docs-site/examples/oauth-lifecycle-validation.ts
 
 ── Phase 6: 401 auto-retry with token refresh ───────────
 
-[T+  8.2s]   API        GET /v1/test-401  auth=Bearer mock-token-3
+[T+  8.2s]   SERVER     Issued token #4: mock-token-4 to mgmt-client (TTL=900s)
+[T+  8.2s]   API        GET /v1/mgmt/profiles/tsg/1234567890  auth=Bearer mock-token-4
 [T+  8.2s]   API        Responding 401 to simulate expired token
-[T+  8.2s]   SERVER     Issued token #4: mock-token-4 (TTL=5s)
-[T+  8.2s]   CALLBACK   onTokenRefresh fired — expiresInMs=5000
-[T+  8.2s]   API        GET /v1/test-401  auth=Bearer mock-token-4
-[T+  8.2s] PHASE 6      401 retry result: status=200
-[T+  8.2s]   PASS       ✓ 401 auto-retry succeeded with fresh token
-[T+  8.2s]   PASS       ✓ Token refreshed after 401 (total fetches: 4)
+[T+  8.3s]   SERVER     Issued token #5: mock-token-5 to mgmt-client (TTL=900s)
+[T+  8.3s]   API        GET /v1/mgmt/profiles/tsg/1234567890  auth=Bearer mock-token-5
+[T+  8.3s] PHASE 6      profiles.list() resolved after a 401: 0 profiles
+[T+  8.3s]   PASS       ✓ 401 auto-retry succeeded with fresh token
+[T+  8.3s]   PASS       ✓ Initial fetch + one refresh after 401 (fetches 3 → 5)
 
 ── Phase 7: 403 auto-retry with token refresh ───────────
 
-[T+  8.2s]   API        GET /v1/test-403  auth=Bearer mock-token-4
-[T+  8.2s]   API        Responding 403 to simulate expired token
-[T+  8.2s]   SERVER     Issued token #5: mock-token-5 (TTL=5s)
-[T+  8.2s]   CALLBACK   onTokenRefresh fired — expiresInMs=5000
-[T+  8.2s]   API        GET /v1/test-403  auth=Bearer mock-token-5
-[T+  8.2s] PHASE 7      403 retry result: status=200
-[T+  8.2s]   PASS       ✓ 403 auto-retry succeeded with fresh token
-[T+  8.2s]   PASS       ✓ Token refreshed after 403 (total fetches: 5)
+[T+  8.3s]   API        GET /v1/mgmt/profiles/tsg/1234567890  auth=Bearer mock-token-5
+[T+  8.3s]   API        Responding 403 to simulate expired token
+[T+  8.3s]   SERVER     Issued token #6: mock-token-6 to mgmt-client (TTL=900s)
+[T+  8.3s]   API        GET /v1/mgmt/profiles/tsg/1234567890  auth=Bearer mock-token-6
+[T+  8.3s] PHASE 7      profiles.list() resolved after a 403: 0 profiles
+[T+  8.3s]   PASS       ✓ 403 auto-retry succeeded with fresh token
+[T+  8.3s]   PASS       ✓ Cached token reused, then exactly one refresh after 403 (fetches 5 → 6)
 
 ── Phase 8: clearToken() → forced re-fetch ──────────────
 
-[T+  8.2s]   INFO       After clearToken():
-[T+  8.2s]   INFO         hasToken       = false
-[T+  8.2s]   INFO         isValid        = false
-[T+  8.2s]   INFO         isExpired      = true
-[T+  8.2s]   INFO         isExpiringSoon = true
-[T+  8.2s]   INFO         expiresInMs    = 0
-[T+  8.2s]   INFO         expiresAt      = N/A
-[T+  8.2s]   PASS       ✓ No token after clearToken()
-[T+  8.2s]   PASS       ✓ isTokenExpired() true after clear
-[T+  8.2s]   SERVER     Issued token #6: mock-token-6 (TTL=5s)
-[T+  8.2s]   CALLBACK   onTokenRefresh fired — expiresInMs=5000
-[T+  8.2s] PHASE 8      getToken() after clearToken(): mock-token-6
-[T+  8.2s]   PASS       ✓ New server request after clearToken()
-[T+  8.2s]   PASS       ✓ Fresh token is valid
+[T+  8.3s]   INFO       After clearToken():
+[T+  8.3s]   INFO         hasToken       = false
+[T+  8.3s]   INFO         isValid        = false
+[T+  8.3s]   INFO         isExpired      = true
+[T+  8.3s]   INFO         isExpiringSoon = true
+[T+  8.3s]   INFO         expiresInMs    = 0
+[T+  8.3s]   INFO         expiresAt      = N/A
+[T+  8.3s]   PASS       ✓ No token after clearToken()
+[T+  8.3s]   PASS       ✓ isTokenExpired() true after clear
+[T+  8.3s]   SERVER     Issued token #7: mock-token-7 to test-client (TTL=5s)
+[T+  8.3s]   CALLBACK   onTokenRefresh fired — expiresInMs=5000
+[T+  8.3s] PHASE 8      getToken() after clearToken(): mock-token-7
+[T+  8.3s]   PASS       ✓ New server request after clearToken()
+[T+  8.3s]   PASS       ✓ Fresh token is valid
 
 ── Phase 9: Custom buffer override ──────────────────────
 
-[T+  8.2s]   PASS       ✓ isTokenExpiringSoon(6000ms) true with large custom buffer
-[T+  8.2s]   PASS       ✓ isTokenExpiringSoon(100ms) false with tiny buffer
+[T+  8.3s]   PASS       ✓ isTokenExpiringSoon(6000ms) true with large custom buffer
+[T+  8.3s]   PASS       ✓ isTokenExpiringSoon(100ms) false with tiny buffer
 
 ── Phase 10: onTokenRefresh callback audit ──────────────
 
-[T+  8.2s] PHASE 10     Total onTokenRefresh callbacks: 6
-[T+  8.2s] PHASE 10     Total token fetches: 6
-[T+  8.2s]   PASS       ✓ Callback count (6) matches fetch count (6)
-[T+  8.2s]   PASS       ✓ Callback #1: hasToken=true
-[T+  8.2s]   PASS       ✓ Callback #1: expiresInMs=5000
-[T+  8.2s]   PASS       ✓ Callback #2: hasToken=true
-[T+  8.2s]   PASS       ✓ Callback #2: expiresInMs=5000
-[T+  8.2s]   PASS       ✓ Callback #3: hasToken=true
-[T+  8.2s]   PASS       ✓ Callback #3: expiresInMs=5000
-[T+  8.2s]   PASS       ✓ Callback #4: hasToken=true
-[T+  8.2s]   PASS       ✓ Callback #4: expiresInMs=5000
-[T+  8.2s]   PASS       ✓ Callback #5: hasToken=true
-[T+  8.2s]   PASS       ✓ Callback #5: expiresInMs=5000
-[T+  8.2s]   PASS       ✓ Callback #6: hasToken=true
-[T+  8.2s]   PASS       ✓ Callback #6: expiresInMs=5000
+[T+  8.3s] PHASE 10     Total onTokenRefresh callbacks (standalone client): 4
+[T+  8.3s] PHASE 10     Token fetches — standalone: 4, managed: 3
+[T+  8.3s]   PASS       ✓ Callback count (4) matches standalone fetch count (4)
+[T+  8.3s]   PASS       ✓ Callback #1: hasToken=true
+[T+  8.3s]   PASS       ✓ Callback #1: expiresInMs=5000
+[T+  8.3s]   PASS       ✓ Callback #2: hasToken=true
+[T+  8.3s]   PASS       ✓ Callback #2: expiresInMs=5000
+[T+  8.3s]   PASS       ✓ Callback #3: hasToken=true
+[T+  8.3s]   PASS       ✓ Callback #3: expiresInMs=5000
+[T+  8.3s]   PASS       ✓ Callback #4: hasToken=true
+[T+  8.3s]   PASS       ✓ Callback #4: expiresInMs=5000
 
 ═══════════════════════════════════════════════════════════════
   Validation Complete
-  Total token fetches: 6
-  Total callbacks: 6
-  Duration: 8.2s
+  Total token fetches: 7 (standalone 4, managed 3)
+  Total callbacks: 4
+  Duration: 8.3s
   Result: ALL PASSED
 ═══════════════════════════════════════════════════════════════
 ```
@@ -287,8 +282,8 @@ npx tsx --env-file=.env docs-site/examples/oauth-lifecycle-validation.ts
 | 3     | Caching — repeated `getToken()` returns cached token, no network                                                       | Yes                      |
 | 4     | Buffer window — after 2.2s of a 5s token with 3s buffer, `isExpiringSoon` flips and `getToken()` proactively refreshes | **Yes (2.2s real wait)** |
 | 5     | Full expiry — after 6s, `isExpired` flips and `getToken()` fetches fresh token                                         | **Yes (6s real wait)**   |
-| 6     | 401 auto-retry — API returns 401, SDK clears token, fetches new one, retries request                                   | Yes (mock API)           |
-| 7     | 403 auto-retry — same as 401 but with 403 status                                                                       | Yes (mock API)           |
+| 6     | 401 auto-retry — `ManagementClient.profiles.list()` gets a 401, the SDK clears the token, fetches a new one, and retries (with `numRetries: 0`, proving the auth retry is free) | Yes (mock API)           |
+| 7     | 403 auto-retry — same path with a 403; the cached token is reused first, then exactly one refresh                       | Yes (mock API)           |
 | 8     | `clearToken()` — invalidates cache, next `getToken()` forces fresh fetch                                               | Yes                      |
 | 9     | Custom buffer — `isTokenExpiringSoon(ms)` respects override                                                            | Yes                      |
 | 10    | Callback audit — `onTokenRefresh` fires exactly once per fetch                                                         | Yes                      |
@@ -296,10 +291,10 @@ npx tsx --env-file=.env docs-site/examples/oauth-lifecycle-validation.ts
 ## Get the most out of it
 
 :::tip[Let the SDK do the work]
-For 99% of use cases you don't need `OAuthClient` at all — just construct a `ManagementClient` and make calls. Fetch, cache, refresh, and 401/403 retry all happen automatically. Reach for `OAuthClient` only when you want to _observe_ or _override_ the cycle.
+For 99% of use cases you don't need `OAuthClient` at all — just construct a `ManagementClient` and make calls. Fetch, cache, refresh, and 401/403 retry all happen automatically. Reach for a standalone `OAuthClient` only when you need a bearer token for your own HTTP calls, want to observe refreshes against your own token source, or are testing a custom auth flow — it does not hook into the instance a `ManagementClient` owns.
 :::
 :::warning[Size the buffer to your token TTL]
-The default 30s buffer suits SCM's ~900s tokens. If you point the SDK at an auth server with **very short** tokens, raise `tokenBufferMs` so refresh fires comfortably before expiry. If you set the buffer _larger than the token TTL_, the token is "expiring soon" the instant it's issued — and you'll refetch on every call. Keep `tokenBufferMs` well under the TTL.
+The default 30s buffer suits SCM's ~900s tokens. Choose a buffer comfortably **below** the token TTL: if you point the SDK at an auth server that issues tokens shorter than about a minute, _reduce_ `tokenBufferMs` (the validation script above uses 3s for 5s tokens). If you set the buffer _larger than the token TTL_, the token is "expiring soon" the instant it's issued — and you'll refetch on every call.
 :::
 :::note[The 401/403 retry happens once]
 On `401`/`403` the SDK clears the token, fetches a fresh one, and retries the request a **single** time. If the retry also fails, the error propagates — a persistent `403` means a real permissions or credentials problem, not an expiry hiccup. Don't wrap calls in your own refresh loop; you'd just duplicate this.

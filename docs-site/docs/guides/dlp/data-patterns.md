@@ -4,7 +4,7 @@ Manage Data Patterns on the DLP service (`/v2/api/data-patterns`).
 
 Subclient lives at `client.dlp.dataPatterns` (a `DataPatternsClient`). **Full CRUD**: list, create, get, replace (PUT), patch (RFC 7396 JSON Merge Patch), delete. DELETE soft-deletes (archives) server-side — the pattern becomes invisible to list but its `id` still resolves on `get()` with `status: 'deleted'`.
 
-Spec source: [`specs/dlp/DataPatterns.yaml`](https://github.com/cdot65/prisma-airs-sdk/blob/main/specs/dlp/DataPatterns.yaml)
+Spec source: `openapi-specs/dlp/DataPatterns.yaml` in the public [pan.dev](https://github.com/PaloAltoNetworks/pan.dev) repository, read through the SDK's gitignored `schemas/` alias (see [API Design & Versioning](../../developer/api-design-versioning.mdx#preflight-catching-zod-vs-openapi-drift)).
 
 ## How it works
 
@@ -264,12 +264,13 @@ const patched = await client.dlp.dataPatterns.patch(id, {
 });
 ```
 
-**Expected output.** Same `DataPatternResponse` shape with `version` bumped, `description` absent (cleared), and the third regex present:
+**Expected output.** Same `DataPatternResponse` shape with `version` bumped, `description` cleared (the live API emits `null`, not an absent key, for unset values), and the third regex present:
 
 ```json
 {
   "id": "pat-7c4a91",
   "name": "cc-numbers-weighted",
+  "description": null,
   "tenant_id": "tnt-001",
   "type": "custom",
   "status": "active",
@@ -305,7 +306,7 @@ const patched = await client.dlp.dataPatterns.patch(id, {
 
 ```ts
 if (patched.id !== id) throw new Error(`id changed unexpectedly: ${patched.id}`);
-if (patched.version === undefined || patched.version < 2) {
+if (patched.version == null || patched.version < 2) {
   throw new Error(`version did not advance past 1: ${patched.version}`);
 }
 const regexes = patched.matching_rules?.regexes ?? [];
@@ -313,7 +314,7 @@ const hasThirteen = regexes.some((r) => r.regex.includes('{13}'));
 if (!hasThirteen) {
   throw new Error('13-digit regex was not persisted');
 }
-if (patched.description !== undefined && patched.description !== '') {
+if (patched.description != null && patched.description !== '') {
   throw new Error(`description not cleared: ${JSON.stringify(patched.description)}`);
 }
 // Tags were omitted from the PATCH body — server should have left them intact.
@@ -325,21 +326,32 @@ console.log(`ok: patched to v${patched.version}, now matches ${regexes.length} r
 
 ## Error handling
 
+DLP request bodies are typed (`DataPatternRequest`, `DataPatternPatchRequest`) but are **not** parsed
+locally before the request is sent — the exported Zod request schemas are available for you to call
+`.parse()` on if you accept external input. An invalid body (for example an empty `name`) is
+rejected by the DLP API and surfaces as a `CLIENT_SIDE_ERROR` with the 4xx `statusCode`:
+
 ```ts
-import { AISecSDKException, ErrorType } from '@cdot65/prisma-airs-sdk';
+import { AISecSDKException, DataPatternRequestSchema, ErrorType } from '@cdot65/prisma-airs-sdk';
+
+const body = {
+  name: '', // violates the schema's min(1)
+  type: 'custom',
+  detection_config: { technique: 'regex' },
+} as const;
+
+// Optional: validate locally first (throws a ZodError, not an AISecSDKException).
+const local = DataPatternRequestSchema.safeParse(body);
+if (!local.success) console.error('rejected locally:', local.error.issues[0]?.message);
 
 try {
-  await client.dlp.dataPatterns.create({
-    name: '', // violates min(1)
-    type: 'custom',
-    detection_config: { technique: 'regex' },
-  });
+  await client.dlp.dataPatterns.create(body);
 } catch (err) {
   if (err instanceof AISecSDKException) {
-    if (err.errorType === ErrorType.USER_REQUEST_PAYLOAD_ERROR) {
-      console.error('local validation rejected the body:', err.message);
-    } else if (err.errorType === ErrorType.CLIENT_SIDE_ERROR) {
-      console.error('API rejected (4xx):', err.message);
+    if (err.errorType === ErrorType.CLIENT_SIDE_ERROR) {
+      console.error(`API rejected (${err.statusCode}):`, err.message);
+    } else if (err.errorType === ErrorType.OAUTH_ERROR) {
+      console.error('check PANW_MGMT_* env vars:', err.message);
     } else {
       console.error(err.errorType, err.message);
     }

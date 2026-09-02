@@ -1,6 +1,6 @@
 ---
 title: Environment Variables
-description: Complete environment-variable reference for scan, management, model security, red team, debug logging, and example scripts.
+description: Complete environment-variable reference for scan, management, model security, red team, AI Gateway, debug logging, and example scripts.
 ---
 
 # Environment Variables
@@ -84,7 +84,7 @@ rotates. The raw token is never written.
 
 ```text
 [airs-sdk] → GET https://api.sase.paloaltonetworks.com/ai-red-teaming/mgmt-plane/v1/custom-attack/list-custom-prompt-sets?limit=1
-[airs-sdk]   headers {"User-Agent":"PAN-AIRS/0.12.0-typescript-sdk","service-name":"api","Authorization":"sha256:6ba877dddebe"}
+[airs-sdk]   headers {"User-Agent":"PAN-AIRS/0.20.1-typescript-sdk","service-name":"api","Authorization":"sha256:6ba877dddebe"}
 [airs-sdk] ← 200 (1397ms) {"pagination":{"total_items":1},"data":[...]}
 ```
 
@@ -102,6 +102,8 @@ PANW_AI_SEC_DEBUG=1 npx tsx your-script.ts
 
 The following variables are **not** consumed by the SDK itself. They are used only by the example scripts in `docs-site/examples/`.
 
-| Variable                   | Used By         | Description                                   |
-| -------------------------- | --------------- | --------------------------------------------- |
-| `PANW_AI_SEC_PROFILE_NAME` | `docs-site/examples/*.ts` | Security profile name passed to scan requests |
+| Variable                   | Used By                                                | Description                                                                 |
+| -------------------------- | ------------------------------------------------------ | --------------------------------------------------------------------------- |
+| `PANW_AI_SEC_PROFILE_NAME` | `basic-scan.ts`, `async-scan.ts`                       | Security profile name passed to scan requests (e.g. `AI Gateway - Strict`)  |
+| `SCAN_IDS`                 | `query-results.ts`                                     | Comma-separated scan IDs to look up (from a previous sync/async scan)       |
+| `REPORT_IDS`               | `query-results.ts`                                     | Comma-separated report IDs to look up (`R` + scan ID for sync scans)        |

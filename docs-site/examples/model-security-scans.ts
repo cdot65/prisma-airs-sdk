@@ -67,7 +67,7 @@ async function main() {
       });
       console.log(`  Found ${instances.pagination?.total_items ?? 0} rule instances`);
       for (const ri of instances.rule_instances) {
-        console.log(`    - ${ri.uuid}: ${ri.rule.name} [${ri.state}]`);
+        console.log(`    - ${ri.uuid}: ${ri.rule?.name} [${ri.state}]`);
       }
 
       // Filter by state

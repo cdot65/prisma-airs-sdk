@@ -4,11 +4,12 @@
  * Validates typed schemas, validate param, uploadPromptsCsv, and CRUD operations
  * against a local mock server. No real credentials needed.
  *
- * Usage: npx tsx examples/red-team-mgmt-validation.ts
+ * Usage: npx tsx docs-site/examples/red-team-mgmt-validation.ts
  */
 
 import * as http from 'node:http';
 import {
+  RedTeamClient,
   // Typed schemas
   MultiTurnStatefulConfigSchema,
   MultiTurnStatelessConfigSchema,
@@ -24,7 +25,7 @@ import {
   TargetMetadataSchema,
   PromptSetStatsSchema,
   CustomPromptSetVersionInfoSchema,
-} from '../src/models/red-team.js';
+} from '@cdot65/prisma-airs-sdk';
 
 let passed = 0;
 let failed = 0;
@@ -265,73 +266,76 @@ const server = http.createServer((req, res) => {
   res.end();
 });
 
-await new Promise<void>((resolve) => server.listen(0, resolve));
-const port = (server.address() as { port: number }).port;
+async function runClientPhase(): Promise<void> {
+  await new Promise<void>((resolve) => server.listen(0, resolve));
+  const port = (server.address() as { port: number }).port;
 
-// Dynamic import of client classes
-const { RedTeamClient } = await import('../src/red-team/client.js');
+  const client = new RedTeamClient({
+    clientId: 'test-id',
+    clientSecret: 'test-secret',
+    tsgId: '123456',
+    mgmtEndpoint: `http://localhost:${port}`,
+    tokenEndpoint: `http://localhost:${port}/oauth2/access_token`,
+  });
 
-const client = new RedTeamClient({
-  clientId: 'test-id',
-  clientSecret: 'test-secret',
-  tsgId: '123456',
-  mgmtEndpoint: `http://localhost:${port}`,
-  tokenEndpoint: `http://localhost:${port}/oauth2/access_token`,
-});
+  // Test validate param on create
+  requests.length = 0;
+  await client.targets.create({ name: 'test-target' }, { validate: true });
+  assert(
+    requests.some((r) => r.url.includes('validate=true')),
+    'create() passes validate=true query param',
+  );
 
-// Test validate param on create
-requests.length = 0;
-await client.targets.create({ name: 'test-target' }, { validate: true });
-assert(
-  requests.some((r) => r.url.includes('validate=true')),
-  'create() passes validate=true query param',
-);
+  // Test validate param on update
+  requests.length = 0;
+  await client.targets.update(validUuid, { name: 'updated' }, { validate: false });
+  assert(
+    requests.some((r) => r.url.includes('validate=false')),
+    'update() passes validate=false query param',
+  );
 
-// Test validate param on update
-requests.length = 0;
-await client.targets.update(validUuid, { name: 'updated' }, { validate: false });
-assert(
-  requests.some((r) => r.url.includes('validate=false')),
-  'update() passes validate=false query param',
-);
+  // Test no validate param when omitted
+  requests.length = 0;
+  await client.targets.create({ name: 'no-validate' });
+  assert(
+    !requests.some((r) => r.url.includes('validate')),
+    'create() omits validate param when not specified',
+  );
 
-// Test no validate param when omitted
-requests.length = 0;
-await client.targets.create({ name: 'no-validate' });
-assert(
-  !requests.some((r) => r.url.includes('validate')),
-  'create() omits validate param when not specified',
-);
+  // Test CSV upload
+  requests.length = 0;
+  const csvContent = 'prompt,goal\n"Inject system prompt","Extract secrets"';
+  const csvBlob = new Blob([csvContent], { type: 'text/csv' });
+  const uploadResult = await client.customAttacks.uploadPromptsCsv(validUuid, csvBlob);
+  assert(uploadResult.message === 'Uploaded 5 prompts', 'uploadPromptsCsv returns parsed response');
+  assert(
+    requests.some((r) => r.url.includes('upload-custom-prompts-csv')),
+    'uploadPromptsCsv hits correct endpoint',
+  );
+  assert(
+    requests.some((r) => r.url.includes(`prompt_set_uuid=${validUuid}`)),
+    'uploadPromptsCsv passes prompt_set_uuid query param',
+  );
+  assert(
+    requests.some((r) => r.contentType?.includes('multipart/form-data')),
+    'uploadPromptsCsv sends multipart/form-data',
+  );
 
-// Test CSV upload
-requests.length = 0;
-const csvContent = 'prompt,goal\n"Inject system prompt","Extract secrets"';
-const csvBlob = new Blob([csvContent], { type: 'text/csv' });
-const uploadResult = await client.customAttacks.uploadPromptsCsv(validUuid, csvBlob);
-assert(uploadResult.message === 'Uploaded 5 prompts', 'uploadPromptsCsv returns parsed response');
-assert(
-  requests.some((r) => r.url.includes('upload-custom-prompts-csv')),
-  'uploadPromptsCsv hits correct endpoint',
-);
-assert(
-  requests.some((r) => r.url.includes(`prompt_set_uuid=${validUuid}`)),
-  'uploadPromptsCsv passes prompt_set_uuid query param',
-);
-assert(
-  requests.some((r) => r.contentType?.includes('multipart/form-data')),
-  'uploadPromptsCsv sends multipart/form-data',
-);
-
-server.close();
+  server.close();
+}
 
 // ---------------------------------------------------------------------------
 // Summary
 // ---------------------------------------------------------------------------
 
-console.log('\n' + '═'.repeat(60));
-console.log(`  Total: ${passed + failed}  |  Passed: ${passed}  |  Failed: ${failed}`);
-console.log('═'.repeat(60));
-
-if (failed > 0) {
-  process.exit(1);
-}
+runClientPhase()
+  .catch((err) => {
+    failed++;
+    console.log(`  ❌ Client phase threw: ${err instanceof Error ? err.message : String(err)}`);
+  })
+  .finally(() => {
+    console.log('\n' + '═'.repeat(60));
+    console.log(`  Total: ${passed + failed}  |  Passed: ${passed}  |  Failed: ${failed}`);
+    console.log('═'.repeat(60));
+    if (failed > 0) process.exit(1);
+  });

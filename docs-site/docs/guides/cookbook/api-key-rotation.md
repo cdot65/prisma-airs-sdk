@@ -49,7 +49,7 @@ console.log(`Next offset: ${page.next_offset}`);
 
 ## Create a Key with Rotation Policy
 
-New keys require an `auth_code` (from SCM), a `cust_app` name, and a rotation schedule. The rotation policy tells the platform when the key should be considered stale.
+New keys require an `auth_code` (from SCM), a `cust_app` name, an `api_key_name`, `created_by`, `revoked: false`, and a rotation schedule. The rotation policy tells the platform when the key should be considered stale.
 
 ```ts
 const newKey = await client.apiKeys.create({
@@ -66,7 +66,7 @@ const newKey = await client.apiKeys.create({
 
 console.log(`Created: ${newKey.api_key_name}`);
 console.log(`Key ID: ${newKey.api_key_id}`);
-console.log(`API Key: ${newKey.api_key}`); // only returned on create
+console.log(`API Key: ${newKey.api_key}`); // only returned on create and regenerate
 console.log(`Expires: ${newKey.expiration}`);
 ```
 
@@ -80,7 +80,9 @@ The full `api_key` value is only returned on creation and regeneration. Store it
 Scan your keys to find any approaching expiration or already expired.
 
 ```ts
-function findKeysNeedingRotation(keys: typeof api_keys, daysThreshold = 14) {
+import type { ApiKey } from '@cdot65/prisma-airs-sdk';
+
+function findKeysNeedingRotation(keys: ApiKey[] | undefined, daysThreshold = 14) {
   const now = Date.now();
   const thresholdMs = daysThreshold * 24 * 60 * 60 * 1000;
 
@@ -108,7 +110,7 @@ if (expiring.length > 0) {
 
 ## Regenerate an Expiring Key
 
-Regeneration issues a new key value for the same key ID. Pass the desired rotation schedule for the new key.
+Regeneration issues a new key value for the same key ID and **revokes the previous value immediately** (per the [Palo Alto Networks documentation](https://docs.paloaltonetworks.com/ai-runtime-security/administration/prevent-network-security-threats/airs-apirs-manage-api-keys-profile-apps): "This revokes the existing API key and creates a new one"). Pass the desired rotation schedule for the new key.
 
 ```ts
 for (const key of expiring) {
@@ -126,8 +128,10 @@ for (const key of expiring) {
 }
 ```
 
-:::tip[Zero-downtime rotation]
-To avoid downtime, update your application's secrets store with the new key value **before** the old key expires. The old key remains valid until its original expiration time.
+:::warning[Regeneration invalidates the old key immediately]
+There is no overlap window: the moment `regenerate()` returns, requests still using the previous value fail. Regenerate only when every consumer can pick up the new `api_key` right away (e.g. a secrets manager your apps read on each request).
+
+A different `api_key_name` alone does **not** buy you an overlap window either: Prisma AIRS allows [one API key per deployment profile](https://pan.dev/prisma-airs/api/airuntimesecurity/airuntimesecurityapi/), and onboarding a new application/key [uses an unused deployment profile](https://docs.paloaltonetworks.com/ai-runtime-security/administration/prevent-network-security-threats/airs-apirs-manage-api-keys-profile-apps) associated with the tenant. If you need overlap, provision a second application/API key backed by a different unused deployment profile and auth code, roll it out, then `delete()` the old key once nothing references it. This SDK does not manage deployment profiles beyond `deploymentProfiles.list()`, and the overlap workflow has not been live-tested here.
 :::
 ---
 
@@ -147,7 +151,7 @@ console.log(result.message);
 Putting it all together — a script that audits, rotates, and reports.
 
 ```ts
-import { ManagementClient, AISecSDKException, ErrorType } from '@cdot65/prisma-airs-sdk';
+import { ManagementClient, AISecSDKException } from '@cdot65/prisma-airs-sdk';
 
 async function rotateKeys() {
   const client = new ManagementClient();
@@ -206,7 +210,9 @@ rotateKeys().catch(console.error);
 
 ## Error Handling
 
-API key operations throw `AISecSDKException` with specific error types:
+API key operations throw `AISecSDKException` with specific error types. Note that `apiKeys.*` does
+not validate IDs or bodies locally — a malformed key ID goes to the API and comes back as a 4xx
+(`CLIENT_SIDE_ERROR` with `statusCode` set), not as `USER_REQUEST_PAYLOAD_ERROR`:
 
 ```ts
 import { AISecSDKException, ErrorType } from '@cdot65/prisma-airs-sdk';
@@ -219,9 +225,6 @@ try {
 } catch (err) {
   if (err instanceof AISecSDKException) {
     switch (err.errorType) {
-      case ErrorType.USER_REQUEST_PAYLOAD_ERROR:
-        console.error('Invalid input:', err.message);
-        break;
       case ErrorType.OAUTH_ERROR:
         console.error('Auth failed — check credentials:', err.message);
         break;

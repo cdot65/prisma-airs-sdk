@@ -21,10 +21,10 @@ Red teaming here is a scanning service, not a manual exercise. You register the 
 Key concepts in plain language:
 
 - **Target** — what you're attacking: an API endpoint, an OpenAI/Bedrock/Databricks model, a streaming endpoint, etc. You describe how to call it (endpoint, request/response shape, auth) and the service handles the rest. Targets can be **profiled** (probed to learn rate limits, multi-turn behavior) and validated before use.
-- **Scan job** — one run of one attack type against one target. It moves through `QUEUED` → `RUNNING` → `COMPLETED` (or `FAILED`/aborted). Each scan consumes **quota** for its type.
+- **Scan job** — one run of one attack type against one target. It moves through `INIT`/`QUEUED` → `RUNNING` → `COMPLETED` (or `PARTIALLY_COMPLETE`, `FAILED`, `ABORTED`). Each scan consumes **quota** for its type.
 - **Report** — the results: which attacks succeeded, severity, a risk score, and **remediation** recommendations (including a suggested runtime security policy you can deploy in AI Runtime Security).
 
-The flow: create a target → run a scan → fetch the report and remediation → iterate. A **data plane** (`scans`, `reports`, `customAttackReports`, dashboards) handles running scans and reading results; a **management plane** (`targets`, `customAttacks`, `eula`, `instances`) handles configuration. One OAuth2 token covers both.
+The flow: create a target → run a scan → fetch the report and remediation → iterate. A **data plane** (`scans`, `reports`, `customAttackReports`, dashboards) handles running scans and reading results; a **management plane** (`targets`, `adapters`, `customAttacks`, `eula`, `instances`) handles configuration. One OAuth2 token covers both.
 
 :::note[Accept the EULA first]
 The Red Team service requires accepting an End User License Agreement before scans will run. Check `client.eula.getStatus()` and accept once per tenant — see [EULA Management](#eula-management).
@@ -88,7 +88,7 @@ Token fetch, caching, and refresh are handled automatically. Retries (up to 5) u
 
 ## Sub-Clients
 
-The `RedTeamClient` exposes eight sub-clients:
+The `RedTeamClient` exposes nine sub-clients:
 
 | Sub-Client            | Plane          | Access                       |
 | --------------------- | -------------- | ---------------------------- |
@@ -96,6 +96,7 @@ The `RedTeamClient` exposes eight sub-clients:
 | `reports`             | Data           | `client.reports`             |
 | `customAttackReports` | Data           | `client.customAttackReports` |
 | `targets`             | Management     | `client.targets`             |
+| `adapters`            | Management     | `client.adapters`            |
 | `customAttacks`       | Management     | `client.customAttacks`       |
 | `eula`                | Management     | `client.eula`                |
 | `instances`           | Management     | `client.instances`           |
@@ -103,7 +104,7 @@ The `RedTeamClient` exposes eight sub-clients:
 
 `networkBroker` talks to a **distinct base URL** — the network broker data plane (`.../ai-red-teaming/data-plane/network-broker`) — while sharing the same Red Team OAuth credentials.
 
-Plus 7 convenience methods directly on `RedTeamClient` for dashboard, quota, error logs, and sentiment.
+Plus 10 convenience methods directly on `RedTeamClient` for dashboard statistics, score trend, quota, error logs (job and target-profile), supported languages, and sentiment.
 
 ## Walkthrough: run a scan and read the report
 
@@ -114,7 +115,7 @@ The core loop — register a target, launch a scan, wait for it, then fetch resu
 const target = await client.targets.create(
   {
     name: 'prod-chatbot',
-    target_type: 'API',
+    target_type: 'APPLICATION', // TargetType: APPLICATION | AGENT | MODEL
     connection_params: {
       api_endpoint: 'https://api.openai.com/v1/responses',
       request_headers: { 'Content-Type': 'application/json' },
@@ -265,7 +266,7 @@ const streams = await client.reports.listGoalStreams('job-uuid', 'goal-uuid', {
 const stream = await client.reports.getStreamDetail('stream-uuid');
 
 // Download report in a given format
-const download = await client.reports.downloadReport('job-uuid', 'pdf');
+const download = await client.reports.downloadReport('job-uuid', 'CSV'); // FileFormat: CSV | JSON | ALL
 
 // Generate partial report for a running scan
 const partial = await client.reports.generatePartialReport('job-uuid');
@@ -306,7 +307,7 @@ const stats = await client.customAttackReports.getPropertyStats('job-uuid');
 CRUD for scan targets, profiling probes, auth validation, and template retrieval (management plane). A target describes how the service calls your AI and how to read its reply.
 
 :::tip[Start from a template]
-Rather than hand-writing `connection_params`, call `client.targets.getTargetTemplates()` to get a working skeleton for each provider type (`OPENAI`, `HUGGING_FACE`, `DATABRICKS`, `BEDROCK`, `REST`, `STREAMING`) and fill in your endpoint and credentials.
+Rather than hand-writing `connection_params`, call `client.targets.getTargetTemplates()` to get a working skeleton for each provider type (`OPENAI`, `HUGGING_FACE`, `DATABRICKS`, `BEDROCK`, `REST`, `STREAMING`, `WEBSOCKET`) and fill in your endpoint and credentials.
 :::
 ### Create
 
@@ -316,7 +317,7 @@ Pass `{ validate: true }` to have the service probe the connection before saving
 const target = await client.targets.create(
   {
     name: 'my-chatbot',
-    target_type: 'API',
+    target_type: 'APPLICATION', // TargetType: APPLICATION | AGENT | MODEL
     connection_params: {
       api_endpoint: 'https://example.com/v1/chat/completions',
       request_headers: { 'Content-Type': 'application/json' },
@@ -334,7 +335,7 @@ const target = await client.targets.create(
 
 ```ts
 const targets = await client.targets.list({
-  target_type: 'API',
+  target_type: 'APPLICATION', // TargetType: APPLICATION | AGENT | MODEL
   status: 'ACTIVE',
   skip: 0,
   limit: 10,
@@ -510,6 +511,49 @@ console.log(stats.online_channels, stats.total_channels);
 
 Channel statuses are `ONLINE`, `OFFLINE`, and `DRAFT` (see the `ChannelStatus` enum).
 
+## Adapters
+
+Custom target adapters let you attack targets whose request/response protocol the built-in connection types can't describe: you upload a script (base64-encoded) that the service runs through a network broker channel, plus the variables it needs. The `adapters` sub-client is management plane and follows the same `skip`/`limit` listing conventions as targets.
+
+```ts
+// Create (validate: true runs the script once before saving; false saves it as DRAFT)
+const adapter = await client.adapters.create(
+  {
+    name: 'my-adapter',
+    script_b64: Buffer.from(script).toString('base64'),
+    network_broker_channel_uuid: channel.uuid!,
+    variables: [{ key: 'endpoint', value: 'http://internal-llm:8080/chat', type: 'VAR' }],
+    prompt: 'Hello',
+  },
+  { validate: true },
+);
+
+// List one page, or every page
+const { data } = await client.adapters.list({ limit: 20 });
+const all = await client.adapters.listAll();
+
+// Get / update / delete — update takes the full adapter body (name, prompt, script_b64, ...)
+const detail = await client.adapters.get(adapter.uuid!);
+await client.adapters.update(adapter.uuid!, {
+  name: 'my-adapter-v2',
+  prompt: 'Hello',
+  script_b64: Buffer.from(script).toString('base64'),
+  network_broker_channel_uuid: channel.uuid!,
+  variables: [{ key: 'endpoint', value: 'http://internal-llm:8080/chat', type: 'VAR' }],
+});
+await client.adapters.delete(adapter.uuid!);
+
+// Dry-run a script + variables without persisting anything
+const check = await client.adapters.validate({
+  script_b64: Buffer.from(script).toString('base64'),
+  network_broker_channel_uuid: channel.uuid!,
+  variables: [{ key: 'endpoint', value: 'http://internal-llm:8080/chat', type: 'VAR' }],
+  prompt: 'Hello',
+});
+```
+
+A target uses an adapter by setting `connection_type: 'CUSTOM_TARGET_ADAPTER'` and passing the adapter's UUID as `adapter_uuid`. Variables are `{ key, value, type }` where `type` is `'VAR'` or `'SECRET'`.
+
 ## Custom Attacks
 
 Author your own attack content when the built-in libraries don't cover a domain-specific risk. The hierarchy is: a **prompt set** holds many **prompts**; **properties** are optional tags (e.g. `severity`, `category`) you can attach for organization. Reference an active prompt set's UUID in a scan's `job_metadata.custom_prompt_sets` to run it.
@@ -604,7 +648,7 @@ const multi = await client.customAttacks.getPropertyValuesMultiple(['severity', 
 // Create a property value
 await client.customAttacks.createPropertyValue({
   property_name: 'severity',
-  value: 'critical',
+  property_value: 'critical',
 });
 ```
 
@@ -615,7 +659,7 @@ These methods live directly on `RedTeamClient` (not on a sub-client).
 ```ts
 // Scan statistics and risk profile
 const stats = await client.getScanStatistics({
-  date_range: '30d',
+  date_range: 'LAST_30_DAYS', // DateRangeFilter: LAST_7_DAYS | LAST_15_DAYS | LAST_30_DAYS | ALL
   target_id: 'target-uuid',
 });
 
@@ -666,7 +710,7 @@ Run **static** scans on every release for fast, repeatable regression coverage. 
 - **Bulk-load custom prompts via CSV.** `uploadPromptsCsv()` is far faster than `createPrompt()` in a loop; grab the shape with `downloadTemplate()`. Mark a prompt set active so it can be referenced by a custom scan.
 - **Accept the EULA once per tenant.** If scans error before running, confirm `eula.getStatus().is_accepted` is `true`.
 
-For the complete, per-method list with input/output shapes (`RedTeamClient` and its eight sub-clients), see the [Full API reference](../reference/api/index.md).
+For the complete, per-method list with input/output shapes (`RedTeamClient` and its nine sub-clients), see the [Full API reference](../reference/api/index.md).
 
 ## Error Handling
 
@@ -698,4 +742,4 @@ try {
 }
 ```
 
-All ID parameters (job IDs, target UUIDs, attack IDs, etc.) are validated as UUIDs before the request is sent. Invalid IDs throw `AISecSDKException` with `ErrorType.USER_REQUEST_PAYLOAD_ERROR`.
+UUID path parameters (job IDs, target UUIDs, attack IDs, prompt-set UUIDs, channel IDs) are validated before the request is sent and throw `AISecSDKException` with `ErrorType.USER_REQUEST_PAYLOAD_ERROR` when malformed. Tenant IDs on `instances.*`, property names, and query filters such as `target_id` are passed through as given.

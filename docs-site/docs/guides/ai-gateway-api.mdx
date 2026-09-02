@@ -40,7 +40,7 @@ Both grants can coexist on one service account. Decode the account's JWT `access
 }
 ```
 
-The first key (empty final segment) is the tenant-root grant; the second, scoped to `main_airs_workspace_<TSG>`, is the workspace grant. You need a role present under **both** keys. The workspace scope's exact name is also returned as `scope_name` on `gw.workspaces.list()` / `gw.workspaces.get()` — use that to confirm you're granting the right scope in SCM.
+The first key (empty final segment) is the tenant-root grant; the second, scoped to `main_airs_workspace_<TSG>`, is the workspace grant. You need a role present under **both** keys. The workspace scope's exact name is also returned as `scope_name` on each `gw.workspaces.list()` row (on `gw.workspaces.get()` it only arrives via `.passthrough()`, untyped) — use that to confirm you're granting the right scope in SCM.
 
 :::warning[SCM's Access Management UI edits, it does not add]
 SCM's Access Management UI **edits an existing role row by default**. If a service account already has a tenant-root role and you need to add the workspace-scope role too, you must explicitly **Add Role** to create a second row — otherwise you will move the existing grant to the new scope instead of adding to it, and the plane you thought you kept will go dark.
@@ -60,7 +60,7 @@ Three different rejections look superficially alike (all `4xx`) but mean complet
 
 ## Configuration
 
-The AI Gateway client uses OAuth2 `client_credentials`, exactly like every other client in this SDK. Each `PANW_AI_GW_*` variable falls back to the corresponding `PANW_MGMT_*` one if unset, so an account already configured for `ManagementClient` needs nothing extra beyond the two SCM grants above.
+The AI Gateway client uses OAuth2 `client_credentials`, exactly like every other client in this SDK. The `PANW_AI_GW_CLIENT_ID` / `_CLIENT_SECRET` / `_TSG_ID` / `_TOKEN_ENDPOINT` variables fall back to the corresponding `PANW_MGMT_*` ones if unset (the two endpoint overrides have no fallback), so an account already configured for `ManagementClient` needs nothing extra beyond the two SCM grants above.
 
 | Env Var | Fallback | Required | Description |
 | --- | --- | --- | --- |
@@ -501,7 +501,7 @@ const summary = audit.records.map((r) => `${r.timestamp} ${r.method} ${r.uri.spl
 
 - **`workspaces.delete()` archives; it does not destroy.** The row survives under `list({ status: 'archived' })`. This matches `deployments.delete()` and contradicts `configs`/`guardrails`/`providers`, which hard delete. There is no hard delete for workspaces. Note that `list` is the only way to see an archived workspace — `get()` returns `404 AB08` for one, on either plane, so a 404 straight after a delete is expected rather than a bug.
 
-- **`workspaces.create()` returns most of the record, not a receipt.** It is the odd one out: the other AI Gateway creates hand back 4-5 field receipts. Even so it omits `status`, `is_default`, `icon`, `usage_limits`, `rate_limits`, and the settings blocks, so follow it with `get()` if you need those. `workspaces.update()` returns an empty `{}` — the write lands, but you must re-read to see it.
+- **`workspaces.create()` returns most of the record, not a receipt.** It is the odd one out: `configs`/`guardrails`/`providers`/`deployments` creates hand back 3-5 field receipts, and `apiKeys.create*()`, `integrations.create()`, `mcpIntegrations.create()`, and `plugins.create()` return an unmodelled passthrough object (`GatewayWriteResponse`). Even so it omits `status`, `is_default`, `icon`, `usage_limits`, `rate_limits`, and the settings blocks, so follow it with `get()` if you need those. `workspaces.update()` returns an empty `{}` — the write lands, but you must re-read to see it.
 
 - **`workspaces.create()` needs a `scope_name`.** It is the SCM role scope granting data-plane access to the new workspace, and it is not derived from `name`. Create one with a scope nobody holds and it simply will not appear in a data-plane `list()` — which is the most common way a freshly created workspace "goes missing".
 
@@ -564,7 +564,7 @@ try {
 
 `AISecSDKException.message` has the API's `errorCode` appended automatically (e.g. `"... (errorCode: AB03)"`), so you can branch on the error codes above by inspecting `message` without parsing the response body yourself.
 
-ID parameters are also validated **before** any network call. UUID-shaped fields (config, workspace, integration, deployment IDs) use `assertUuid`; the TSG/organisation ID field uses `assertNumericId`, since it's a numeric string rather than a UUID. Both throw `AISecSDKException` with `ErrorType.USER_REQUEST_PAYLOAD_ERROR` immediately, without hitting the network:
+ID parameters are also validated **before** any network call. UUID-shaped fields (config, guardrail, provider, integration, deployment IDs, and the `workspaceId` list filter) use `assertUuid`; workspace refs on `workspaces.get/update/delete` use `assertWorkspaceRef`, which accepts a UUID or a slug; the TSG/organisation ID field uses `assertNumericId`, since it's a numeric string rather than a UUID. Both throw `AISecSDKException` with `ErrorType.USER_REQUEST_PAYLOAD_ERROR` immediately, without hitting the network:
 
 ```ts
 try {

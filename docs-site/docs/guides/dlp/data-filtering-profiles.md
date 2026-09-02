@@ -4,7 +4,7 @@ Manage Data Filtering Profiles on the DLP service (`/v2/api/data-filtering-profi
 
 Subclient lives at `client.dlp.dataFilteringProfiles` (a `DataFilteringProfilesClient`). Surface is **read + full-replace only** — the underlying API does not expose create or delete. To onboard a brand-new profile, provision it via the Strata Cloud Manager UI first, then manage it through this SDK.
 
-Spec source: [`specs/dlp/DataFilteringProfiles.yaml`](https://github.com/cdot65/prisma-airs-sdk/blob/main/specs/dlp/DataFilteringProfiles.yaml)
+Spec source: `openapi-specs/dlp/dlp-api-spec-v2.yaml` in the public [pan.dev](https://github.com/PaloAltoNetworks/pan.dev) repository. The SDK reads it through the gitignored `schemas/` alias described in [API Design & Versioning](../../developer/api-design-versioning.mdx#preflight-catching-zod-vs-openapi-drift); nothing is vendored into this repo.
 
 ## How it works
 
@@ -201,10 +201,11 @@ const current = await client.dlp.dataFilteringProfiles.get(id);
 const updated = await client.dlp.dataFilteringProfiles.replace(id, {
   file_based: current.file_based ?? true,
   non_file_based: current.non_file_based ?? true,
-  description: current.description,
+  // Response fields are nullable; the request type only accepts undefined for "unset".
+  description: current.description ?? undefined,
   direction: current.direction as 'BOTH' | 'UPLOAD' | 'DOWNLOAD' | undefined,
   log_severity: 'HIGH',
-  data_profile_id: current.data_profile_id,
+  data_profile_id: current.data_profile_id ?? undefined,
   exception_rules: [
     {
       action: 'BLOCK',
@@ -256,7 +257,7 @@ const updated = await client.dlp.dataFilteringProfiles.replace(id, {
 if (updated.id !== id) {
   throw new Error(`returned id ${updated.id} does not match requested ${id}`);
 }
-if (current.version !== undefined && updated.version !== undefined) {
+if (current.version != null && updated.version != null) {
   if (updated.version <= current.version) {
     throw new Error(`version did not advance: ${current.version} → ${updated.version}`);
   }

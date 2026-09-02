@@ -7,7 +7,12 @@ sidebar_position: 6
 
 ## Status
 
-This plan is implementation-ready. SDK `0.20.0` will make the existing AI Gateway write surface
+**Shipped in SDK `0.20.0`** (the current release is `0.20.1`); this page is retained as design
+history. Everything listed under "Gap before 0.20" below has since been closed, and the live-probe
+questions noted in the contract table have been resolved as described in the info box that follows
+it.
+
+As specified, SDK `0.20.0` makes the existing AI Gateway write surface
 safe and composable enough for structured CLI commands without changing its SCM OAuth, `x-tsg-id`,
 base-URL, or plane-selection behavior.
 
@@ -58,9 +63,9 @@ SDK 0.20 will provide:
   write cycle.
 - Mutating organisation-wide settings during automated E2E tests.
 
-## Current gap
+## Gap before 0.20 (historical)
 
-AI Gateway responses are Zod-validated today, but most write inputs are compile-time interfaces
+Before 0.20, AI Gateway responses were Zod-validated but most write inputs were compile-time interfaces
 declared next to their clients. Clients generally assert only path UUIDs or numeric TSG IDs. As a
 result, empty updates, misspelled fields, invalid nested values, non-serializable values, and invalid
 cross-field combinations can reach SCM.
@@ -178,7 +183,7 @@ server-maintained fields such as `current_usage`; a request must not silently se
 | `workspaces.create` | `GatewayWorkspaceCreateRequestSchema` | Strict create; non-empty name/scope; typed defaults and limit arrays |
 | `workspaces.update` | `GatewayWorkspaceUpdateRequestSchema` | Non-empty partial update |
 | `configs.create` | `GatewayConfigCreateRequestSchema` | Strict create with workspace UUID and `GatewayRoutingConfig` |
-| `configs.update` | `GatewayConfigUpdateRequestSchema` | Non-empty partial envelope; a supplied `config` replaces the routing document. A disposable live probe decides whether SCM requires `workspace_id` before the schema is finalized |
+| `configs.update` | `GatewayConfigUpdateRequestSchema` | Non-empty partial envelope; a supplied `config` replaces the routing document. `workspace_id` is optional (live-verified) |
 | `guardrails.create` | `GatewayGuardrailCreateRequestSchema` | At least one typed check; typed known actions with JSON extension points |
 | `guardrails.update` | `GatewayGuardrailUpdateRequestSchema` | Non-empty partial update; a supplied checks array is non-empty |
 | `providers.create` | `GatewayProviderCreateRequestSchema` | Workspace/integration/provider identifiers validated; typed limit inputs |
@@ -190,11 +195,11 @@ server-maintained fields such as `current_usage`; a request must not silently se
 | `integrations.create` | `GatewayIntegrationCreateRequestSchema` | Strict stable fields; typed provider config or JSON extension; typed secret mappings |
 | `integrations.update` | `GatewayIntegrationUpdateRequestSchema` | Non-empty partial; excludes immutable create-only identity fields unless SCM proves them mutable |
 | `integrations.setModels` | `GatewayIntegrationModelsBulkUpdateRequestSchema` | Non-empty model list with typed model config/pricing fields; compatibility alias retained |
-| `integrations.setWorkspaces` | `GatewayIntegrationWorkspacesBulkUpdateRequestSchema` | Typed workspace/global bindings. A live write capture resolves SCM's current boolean-versus-object global-access divergence and override semantics |
+| `integrations.setWorkspaces` | `GatewayIntegrationWorkspacesBulkUpdateRequestSchema` | Typed workspace/global bindings. `global_workspace_access` is the object form `{ enabled }` (live-verified; a bare boolean is rejected by SCM) |
 | `mcpIntegrations.create` | `McpIntegrationCreateRequestSchema` | URL, known/open auth and transport values, JSON configuration, secret mappings |
 | `mcpIntegrations.update` | `McpIntegrationUpdateRequestSchema` | Non-empty partial update |
 | `mcpIntegrations.setCapabilities` | `McpIntegrationCapabilitiesBulkUpdateRequestSchema` | At least one mutable capability: name/type/enabled |
-| `mcpIntegrations.setWorkspaces` | `McpIntegrationWorkspacesBulkUpdateRequestSchema` | Typed, live-observed workspace binding; requires workspace changes or global access |
+| `mcpIntegrations.setWorkspaces` | `McpIntegrationWorkspacesBulkUpdateRequestSchema` | Typed, live-observed workspace binding; requires a non-empty body |
 | `deployments.create` | `GatewayDeploymentCreateRequestSchema` | Closed deployment type, numeric TSG id, typed auth settings |
 | `deployments.update` | `GatewayDeploymentUpdateRequestSchema` | Non-empty partial; closed status/type; rotate and override flags |
 | `plugins.create` | `GatewayPluginCreateRequestSchema` | Numeric TSG id, integration UUID, non-empty credential string map |
@@ -304,13 +309,16 @@ SDK 0.20 exports operation-scoped metadata rather than treating every field name
 ```ts
 AI_GATEWAY_SECRET_FIELDS['integrations.create'].request;
 // [{ path: ['key'], redact: 'value' },
-//  { path: ['configurations', 'vertex_service_account_json'], redact: 'subtree' }, ...]
+//  { path: ['configurations', 'azure_entra_client_secret'], redact: 'value' },
+//  { path: ['configurations', 'aws_secret_access_key'], redact: 'value' },
+//  { path: ['configurations', 'vertex_service_account_json'], redact: 'subtree' },
+//  { path: ['configurations', 'custom_headers', '*'], redact: 'value' }]
 
 redactAIGatewaySecrets('integrations.create', requestBody);
 ```
 
-Each rule has a segment array, request/response direction, `value` or `subtree` behavior, and an
-optional `oneTime` marker. Wildcard segments cover dynamic credential maps. The redactor returns a
+Rules are grouped under each operation's `request` and `response` lists; each rule has a segment
+array, `value` or `subtree` behavior, and an optional `oneTime` marker. Wildcard segments cover dynamic credential maps. The redactor returns a
 clone and uses the constant string `[REDACTED]`; it never hashes or mutates body values.
 
 Initial coverage includes:
