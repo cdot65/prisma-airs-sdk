@@ -42,6 +42,10 @@ const table = reports
   .join('\n');
 const oauthReads = reports.find((report) => report.name === 'oauth-service-reads');
 assert(oauthReads, 'Missing cross-service OAuth validation report');
+const administration = reports.find(
+  (report) => report.name === 'gateway-administration-availability',
+);
+assert(administration, 'Missing administration route availability revalidation');
 const native = JSON.parse(
   readFileSync(new URL('../../artifacts/cli440-dlp-registry.json', import.meta.url), 'utf8'),
 );
@@ -98,6 +102,8 @@ CLI **4.4.0**, pinning SDK **0.25.0**, passes separate, credential-free native v
 Container minor/latest aliases are read back at **${container.digest}** only after both architectures pass. Registry and frozen production dependency audits are clean; SDK documentation development-dependency advisories remain open. See [actual native output](https://cdot65.github.io/prisma-airs-cli/cli/runtime/dlp/generate/) and [version-specific registry and container evidence](../guides/release-verification.md#cli-440-registry-and-container-verification), including preserved earlier releases. Public WAN and anonymous container access remain separate limitations.
 
 ## Failures and explicit skips
+
+The corrected administration-route check finished at **${administration.finishedAt}** with **${administration.passed} passing controls and ${administration.failed} failing probes**. Required virtual-key pagination, user/invitation pagination casing and both upstream/Prisma-neighbor workspace-member prefixes were explicitly tested on both SCM planes. All route probes were OPA-denied HTTP 403, while the designated workspace authentication controls passed. No IAM, invitation, membership, SCIM or key mutation was attempted; response bodies and member identities were not retained. See [all 24 actual status/header projections](../guides/examples.mdx#administration-route-availability). These failures require a verified Prisma route and authorization contract, not speculative SDK methods or a smaller coverage denominator.
 
 | Check | Status | Evidence / prerequisite |
 | --- | --- | --- |

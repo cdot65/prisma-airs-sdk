@@ -42,6 +42,7 @@ These timestamped reports include pre-release candidate checks and subsequent re
 | gateway-secret-references | 7 | 0 | 0 | 7 | 2026-09-06 19:40:18.695Z |
 | gateway-model-pricing | 3 | 0 | 0 | 3 | 2026-09-07 00:34:56.061Z |
 | gateway-authoring-discovery | 2 | 0 | 0 | 2 | 2026-09-06 19:13:10.764Z |
+| gateway-administration-availability | 2 | 24 | 0 | 26 | 2026-09-07 13:09:51.744Z |
 | gateway-secret-reference-discovery | 6 | 0 | 0 | 6 | 2026-09-06 19:18:59.892Z |
 | gateway-runtime-authoring | 2 | 13 | 0 | 15 | 2026-09-07 00:58:15.702Z |
 | gateway-provider-http | 2 | 9 | 0 | 11 | 2026-09-06 22:06:39.937Z |
@@ -92,6 +93,8 @@ Container minor/latest aliases are read back at **sha256:6134107b600e76491a70bcb
 
 ## Failures and explicit skips
 
+The corrected administration-route check finished at **2026-09-07T13:09:51.744Z** with **2 passing controls and 24 failing probes**. Required virtual-key pagination, user/invitation pagination casing and both upstream/Prisma-neighbor workspace-member prefixes were explicitly tested on both SCM planes. All route probes were OPA-denied HTTP 403, while the designated workspace authentication controls passed. No IAM, invitation, membership, SCIM or key mutation was attempted; response bodies and member identities were not retained. See [all 24 actual status/header projections](../guides/examples.mdx#administration-route-availability). These failures require a verified Prisma route and authorization contract, not speculative SDK methods or a smaller coverage denominator.
+
 | Check | Status | Evidence / prerequisite |
 | --- | --- | --- |
 | management: `customerApps.write-workflow` | SKIP | API-key creation did not register a customer app; existing apps are not modified. |
@@ -106,6 +109,30 @@ Container minor/latest aliases are read back at **sha256:6134107b600e76491a70bcb
 | gateway-mcp-discovery: `mcp.initialize-owned-runtime` | FAIL | Error |
 | gateway-mcp-synthetic: `mcp.initialize-owned-runtime` | FAIL | Error |
 | gateway-owned-writes: `workspaces.create` | FAIL | HTTP 400 |
+| gateway-administration-availability: `data.collections` | FAIL | HTTP 403 |
+| gateway-administration-availability: `data.labels` | FAIL | HTTP 403 |
+| gateway-administration-availability: `data.prompts` | FAIL | HTTP 403 |
+| gateway-administration-availability: `data.partials` | FAIL | HTTP 403 |
+| gateway-administration-availability: `data.virtual-keys` | FAIL | HTTP 403 |
+| gateway-administration-availability: `data.users.scm-prefix` | FAIL | HTTP 403 |
+| gateway-administration-availability: `data.users.upstream-prefix` | FAIL | HTTP 403 |
+| gateway-administration-availability: `data.invites.scm-prefix` | FAIL | HTTP 403 |
+| gateway-administration-availability: `data.invites.upstream-prefix` | FAIL | HTTP 403 |
+| gateway-administration-availability: `data.members.scm-prefix` | FAIL | HTTP 403 |
+| gateway-administration-availability: `data.members.upstream-prefix` | FAIL | HTTP 403 |
+| gateway-administration-availability: `data.scim` | FAIL | HTTP 403 |
+| gateway-administration-availability: `admin.collections` | FAIL | HTTP 403 |
+| gateway-administration-availability: `admin.labels` | FAIL | HTTP 403 |
+| gateway-administration-availability: `admin.prompts` | FAIL | HTTP 403 |
+| gateway-administration-availability: `admin.partials` | FAIL | HTTP 403 |
+| gateway-administration-availability: `admin.virtual-keys` | FAIL | HTTP 403 |
+| gateway-administration-availability: `admin.users.scm-prefix` | FAIL | HTTP 403 |
+| gateway-administration-availability: `admin.users.upstream-prefix` | FAIL | HTTP 403 |
+| gateway-administration-availability: `admin.invites.scm-prefix` | FAIL | HTTP 403 |
+| gateway-administration-availability: `admin.invites.upstream-prefix` | FAIL | HTTP 403 |
+| gateway-administration-availability: `admin.members.scm-prefix` | FAIL | HTTP 403 |
+| gateway-administration-availability: `admin.members.upstream-prefix` | FAIL | HTTP 403 |
+| gateway-administration-availability: `admin.scim` | FAIL | HTTP 403 |
 | gateway-runtime-authoring: `runtime-authoring.collections.id` | FAIL | HTTP 400 |
 | gateway-runtime-authoring: `runtime-authoring.collections.slug` | FAIL | HTTP 400 |
 | gateway-runtime-authoring: `runtime-authoring.collections.provider-boundary` | FAIL | HTTP 404 |

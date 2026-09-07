@@ -322,6 +322,27 @@ try {
         'Analytics query installation mode is absent',
       );
       await assertCapturedJson(analyticsQueryEvidence.evidence);
+      const administration = JSON.parse(
+        readFileSync(
+          new URL(
+            '../artifacts/e2e/gateway-administration-availability-observations.json',
+            import.meta.url,
+          ),
+          'utf8',
+        ),
+      );
+      const administrationSuite = JSON.parse(
+        readFileSync(
+          new URL('../artifacts/e2e/gateway-administration-availability.json', import.meta.url),
+          'utf8',
+        ),
+      );
+      assert(
+        text.includes(administrationSuite.finishedAt),
+        'Administration availability capture is stale',
+      );
+      assert(text.includes('all 24 route probes failed with OPA-denied HTTP 403'));
+      await assertCapturedJson(administration.rows);
       assert(
         text.includes(analyticsGroupEvidence.capturedAt),
         'Grouped analytics capture is stale',

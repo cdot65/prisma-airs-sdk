@@ -30,6 +30,7 @@ export const liveReportSuites = [
   'gateway-secret-references',
   'gateway-model-pricing',
   'gateway-authoring-discovery',
+  'gateway-administration-availability',
   'gateway-secret-reference-discovery',
   'gateway-runtime-authoring',
   'gateway-provider-http',

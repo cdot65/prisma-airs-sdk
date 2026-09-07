@@ -1,7 +1,9 @@
 /** @internal Render captured executable-example evidence, never invent expected output. */
 import assert from 'node:assert/strict';
 import { readFileSync, readdirSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
 import { emitPatch } from '../openapi/emit-patch.js';
+import { administrationReadProbes } from './administration-probes.js';
 import { runtimeDiagnosticSuites } from './report-suites.js';
 
 interface ExampleResult {
@@ -122,6 +124,79 @@ const table = report.output
   )
   .join('\n');
 const page = process.argv.find((arg) => arg.startsWith('--page='))?.slice(7);
+function administrationSection(): string {
+  const suite = JSON.parse(
+    readFileSync(new URL('artifacts/e2e/gateway-administration-availability.json', root), 'utf8'),
+  );
+  const capture = JSON.parse(
+    readFileSync(
+      new URL('artifacts/e2e/gateway-administration-availability-observations.json', root),
+      'utf8',
+    ),
+  );
+  assert.equal(suite.credentialsUnchanged, true);
+  assert.equal(capture.credentialsUnchanged, true);
+  assert.equal(capture.mutations, false);
+  assert.equal(capture.responseBodiesRetained, false);
+  assert.equal(suite.total, 26);
+  assert.equal(suite.passed, 2);
+  assert.equal(suite.failed, 24);
+  assert.equal(suite.skipped, 0);
+  assert.deepEqual(suite.fixtures, []);
+  assert.equal(capture.attempted, 24);
+  assert.equal(capture.available, 0);
+  const probes = administrationReadProbes('11111111-1111-4111-8111-111111111111');
+  assert.deepEqual(
+    capture.rows,
+    ['data', 'admin'].flatMap((plane) =>
+      probes.map((probe) => ({
+        plane,
+        name: probe.name,
+        sourcePath: probe.sourcePath,
+        pathTemplate: probe.pathTemplate,
+        queryNames: Object.keys(probe.query).sort(),
+        status: 403,
+        opaDenied: true,
+        available: false,
+      })),
+    ),
+  );
+  assert.deepEqual(
+    suite.results.map((row: { name: string; status: string; statusCode?: number }) => ({
+      name: row.name,
+      status: row.status,
+      statusCode: row.statusCode,
+    })),
+    ['data', 'admin'].flatMap((plane) => [
+      { name: `${plane}.workspace-auth-control`, status: 'PASS', statusCode: undefined },
+      ...probes.map((probe) => ({
+        name: `${plane}.${probe.name}`,
+        status: 'FAIL',
+        statusCode: 403,
+      })),
+    ]),
+  );
+  assert(Date.parse(capture.checkedAt) >= Date.parse(suite.startedAt));
+  assert(Date.parse(capture.checkedAt) <= Date.parse(suite.finishedAt));
+  return `## Administration route availability
+
+The bounded GET-only revalidation finished at **${suite.finishedAt}**: **2 authentication controls passed; all 24 route probes failed with OPA-denied HTTP 403**. Both Prisma planes can read the designated dev workspace with the same credential source. The additional probes supply virtual-key pagination, preserve camel-case user/invitation pagination, and compare upstream admin prefixes with Prisma's verified workspace-prefix pattern. Neither path variant establishes a usable member-list contract.
+
+These results do not prove the features are absent or that a permission change would enable them. [Palo Alto Networks documents SCM-managed access](https://docs.paloaltonetworks.com/ai-runtime-security/administration/configure-ai-gateway); it does not make these Portkey path hypotheses verified Prisma APIs. No users, invitations, memberships, SCIM mappings or keys were changed. Response bodies were cancelled without retaining member identities or secrets. Credentials remained unchanged.
+
+Actual status/header projection from all 24 requests (workspace IDs are represented only by path templates):
+
+<details>
+<summary>All administration availability results</summary>
+
+${fence(JSON.stringify(capture.rows, null, 2), 'json')}
+
+</details>
+
+Reproduce with \`npx tsx scripts/e2e-gateway-administration-availability.ts\` using the documented process-only service DNS accommodation. The command exits nonzero for these failures. No speculative production SDK method is added from a denied response; direct Gateway coverage remains **138/242 (57.02%)** and the full-scope assessment remains **5/10**.
+
+`;
+}
 if (page === 'examples') {
   const batch = JSON.parse(
     readFileSync(new URL('artifacts/examples/gateway-batch.json', root), 'utf8'),
@@ -585,7 +660,7 @@ ${fence(JSON.stringify(groupFilters.evidence, null, 2), 'json')}
 
 The independently source-hashed user/model/provider fixtures retain all declared upstream query names. The provider specification omits \`trace_id\`; verified SCM \`traceId\` is recorded as an SCM-only extension, not invented upstream coverage. This remains partial adaptation: direct gateway coverage stays **138/242**, and all 22 partial analytics operations and earlier failed workflows remain visible. See the [group contract](./ai-gateway-api.mdx#groupby-byuser-bystatuscode).
 
-## AI Gateway inference output
+${administrationSection()}## AI Gateway inference output
 
 ### Runtime feedback and log ingestion
 
@@ -688,6 +763,24 @@ ${fence('E2E_GATEWAY_IPV4_ONLY=1 npx tsx scripts/e2e-doc-examples.ts --writes', 
 The IPv4 override is a disclosed, process-only workaround for this test host's gateway DNS lookup; it does not disable TLS verification or change SDK defaults. The source reports are \`artifacts/examples/latest.json\` and \`artifacts/e2e/doc-examples.json\`; public pages are generated with \`scripts/e2e/generate-example-docs.ts\`. See [live results](../developer/live-validation-results.md), [contract coverage](../developer/openapi-conformance.md), and the [gateway gap ledger](../developer/gateway-coverage.md).
 `,
   );
+} else if (page === 'administration') {
+  const destination = new URL('docs-site/docs/guides/examples.mdx', root);
+  const original = readFileSync(destination, 'utf8');
+  const start = original.indexOf('## Administration route availability');
+  const anchor = '## AI Gateway inference output';
+  const end = original.indexOf(anchor);
+  assert(end >= 0 && (start < 0 || start < end));
+  const previous = original.slice(start >= 0 ? start : end, end) + anchor;
+  const next = administrationSection() + anchor;
+  console.log(
+    `*** Begin Patch\n*** Update File: ${fileURLToPath(destination)}\n@@\n${previous
+      .split('\n')
+      .map((line) => '-' + line)
+      .join('\n')}\n${next
+      .split('\n')
+      .map((line) => '+' + line)
+      .join('\n')}\n*** End Patch`,
+  );
 } else if (page === 'scan') {
   const destination = 'docs-site/docs/guides/scan-api.md';
   const original = readFileSync(new URL(destination, root), 'utf8');
@@ -716,5 +809,5 @@ The IPv4 override is a disclosed, process-only workaround for this test host's g
       original.slice(end),
   );
 } else {
-  throw new Error('Select --page=examples, --page=scan, or --page=oauth');
+  throw new Error('Select --page=examples, --page=administration, --page=scan, or --page=oauth');
 }

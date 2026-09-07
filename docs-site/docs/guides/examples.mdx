@@ -1542,6 +1542,336 @@ Read-only discovery on existing owned traffic. Every filter requires both a know
 
 The independently source-hashed user/model/provider fixtures retain all declared upstream query names. The provider specification omits `trace_id`; verified SCM `traceId` is recorded as an SCM-only extension, not invented upstream coverage. This remains partial adaptation: direct gateway coverage stays **138/242**, and all 22 partial analytics operations and earlier failed workflows remain visible. See the [group contract](./ai-gateway-api.mdx#groupby-byuser-bystatuscode).
 
+## Administration route availability
+
+The bounded GET-only revalidation finished at **2026-09-07T13:09:51.744Z**: **2 authentication controls passed; all 24 route probes failed with OPA-denied HTTP 403**. Both Prisma planes can read the designated dev workspace with the same credential source. The additional probes supply virtual-key pagination, preserve camel-case user/invitation pagination, and compare upstream admin prefixes with Prisma's verified workspace-prefix pattern. Neither path variant establishes a usable member-list contract.
+
+These results do not prove the features are absent or that a permission change would enable them. [Palo Alto Networks documents SCM-managed access](https://docs.paloaltonetworks.com/ai-runtime-security/administration/configure-ai-gateway); it does not make these Portkey path hypotheses verified Prisma APIs. No users, invitations, memberships, SCIM mappings or keys were changed. Response bodies were cancelled without retaining member identities or secrets. Credentials remained unchanged.
+
+Actual status/header projection from all 24 requests (workspace IDs are represented only by path templates):
+
+<details>
+<summary>All administration availability results</summary>
+
+```json
+[
+  {
+    "plane": "data",
+    "name": "collections",
+    "sourcePath": "/collections",
+    "pathTemplate": "/collections",
+    "queryNames": [
+      "current_page",
+      "page_size",
+      "workspace_id"
+    ],
+    "status": 403,
+    "opaDenied": true,
+    "available": false
+  },
+  {
+    "plane": "data",
+    "name": "labels",
+    "sourcePath": "/labels",
+    "pathTemplate": "/labels",
+    "queryNames": [
+      "current_page",
+      "page_size",
+      "workspace_id"
+    ],
+    "status": 403,
+    "opaDenied": true,
+    "available": false
+  },
+  {
+    "plane": "data",
+    "name": "prompts",
+    "sourcePath": "/prompts",
+    "pathTemplate": "/prompts",
+    "queryNames": [
+      "current_page",
+      "page_size",
+      "workspace_id"
+    ],
+    "status": 403,
+    "opaDenied": true,
+    "available": false
+  },
+  {
+    "plane": "data",
+    "name": "partials",
+    "sourcePath": "/prompts/partials",
+    "pathTemplate": "/prompts/partials",
+    "queryNames": [],
+    "status": 403,
+    "opaDenied": true,
+    "available": false
+  },
+  {
+    "plane": "data",
+    "name": "virtual-keys",
+    "sourcePath": "/virtual-keys",
+    "pathTemplate": "/virtual-keys",
+    "queryNames": [
+      "current_page",
+      "page_size"
+    ],
+    "status": 403,
+    "opaDenied": true,
+    "available": false
+  },
+  {
+    "plane": "data",
+    "name": "users.scm-prefix",
+    "sourcePath": "/admin/users",
+    "pathTemplate": "/users",
+    "queryNames": [
+      "currentPage",
+      "pageSize"
+    ],
+    "status": 403,
+    "opaDenied": true,
+    "available": false
+  },
+  {
+    "plane": "data",
+    "name": "users.upstream-prefix",
+    "sourcePath": "/admin/users",
+    "pathTemplate": "/admin/users",
+    "queryNames": [
+      "currentPage",
+      "pageSize"
+    ],
+    "status": 403,
+    "opaDenied": true,
+    "available": false
+  },
+  {
+    "plane": "data",
+    "name": "invites.scm-prefix",
+    "sourcePath": "/admin/users/invites",
+    "pathTemplate": "/users/invites",
+    "queryNames": [
+      "currentPage",
+      "pageSize"
+    ],
+    "status": 403,
+    "opaDenied": true,
+    "available": false
+  },
+  {
+    "plane": "data",
+    "name": "invites.upstream-prefix",
+    "sourcePath": "/admin/users/invites",
+    "pathTemplate": "/admin/users/invites",
+    "queryNames": [
+      "currentPage",
+      "pageSize"
+    ],
+    "status": 403,
+    "opaDenied": true,
+    "available": false
+  },
+  {
+    "plane": "data",
+    "name": "members.scm-prefix",
+    "sourcePath": "/admin/workspaces/{workspaceId}/users",
+    "pathTemplate": "/workspaces/{workspaceId}/users",
+    "queryNames": [
+      "current_page",
+      "page_size"
+    ],
+    "status": 403,
+    "opaDenied": true,
+    "available": false
+  },
+  {
+    "plane": "data",
+    "name": "members.upstream-prefix",
+    "sourcePath": "/admin/workspaces/{workspaceId}/users",
+    "pathTemplate": "/admin/workspaces/{workspaceId}/users",
+    "queryNames": [
+      "current_page",
+      "page_size"
+    ],
+    "status": 403,
+    "opaDenied": true,
+    "available": false
+  },
+  {
+    "plane": "data",
+    "name": "scim",
+    "sourcePath": "/scim/workspaces",
+    "pathTemplate": "/scim/workspaces",
+    "queryNames": [
+      "workspace_id"
+    ],
+    "status": 403,
+    "opaDenied": true,
+    "available": false
+  },
+  {
+    "plane": "admin",
+    "name": "collections",
+    "sourcePath": "/collections",
+    "pathTemplate": "/collections",
+    "queryNames": [
+      "current_page",
+      "page_size",
+      "workspace_id"
+    ],
+    "status": 403,
+    "opaDenied": true,
+    "available": false
+  },
+  {
+    "plane": "admin",
+    "name": "labels",
+    "sourcePath": "/labels",
+    "pathTemplate": "/labels",
+    "queryNames": [
+      "current_page",
+      "page_size",
+      "workspace_id"
+    ],
+    "status": 403,
+    "opaDenied": true,
+    "available": false
+  },
+  {
+    "plane": "admin",
+    "name": "prompts",
+    "sourcePath": "/prompts",
+    "pathTemplate": "/prompts",
+    "queryNames": [
+      "current_page",
+      "page_size",
+      "workspace_id"
+    ],
+    "status": 403,
+    "opaDenied": true,
+    "available": false
+  },
+  {
+    "plane": "admin",
+    "name": "partials",
+    "sourcePath": "/prompts/partials",
+    "pathTemplate": "/prompts/partials",
+    "queryNames": [],
+    "status": 403,
+    "opaDenied": true,
+    "available": false
+  },
+  {
+    "plane": "admin",
+    "name": "virtual-keys",
+    "sourcePath": "/virtual-keys",
+    "pathTemplate": "/virtual-keys",
+    "queryNames": [
+      "current_page",
+      "page_size"
+    ],
+    "status": 403,
+    "opaDenied": true,
+    "available": false
+  },
+  {
+    "plane": "admin",
+    "name": "users.scm-prefix",
+    "sourcePath": "/admin/users",
+    "pathTemplate": "/users",
+    "queryNames": [
+      "currentPage",
+      "pageSize"
+    ],
+    "status": 403,
+    "opaDenied": true,
+    "available": false
+  },
+  {
+    "plane": "admin",
+    "name": "users.upstream-prefix",
+    "sourcePath": "/admin/users",
+    "pathTemplate": "/admin/users",
+    "queryNames": [
+      "currentPage",
+      "pageSize"
+    ],
+    "status": 403,
+    "opaDenied": true,
+    "available": false
+  },
+  {
+    "plane": "admin",
+    "name": "invites.scm-prefix",
+    "sourcePath": "/admin/users/invites",
+    "pathTemplate": "/users/invites",
+    "queryNames": [
+      "currentPage",
+      "pageSize"
+    ],
+    "status": 403,
+    "opaDenied": true,
+    "available": false
+  },
+  {
+    "plane": "admin",
+    "name": "invites.upstream-prefix",
+    "sourcePath": "/admin/users/invites",
+    "pathTemplate": "/admin/users/invites",
+    "queryNames": [
+      "currentPage",
+      "pageSize"
+    ],
+    "status": 403,
+    "opaDenied": true,
+    "available": false
+  },
+  {
+    "plane": "admin",
+    "name": "members.scm-prefix",
+    "sourcePath": "/admin/workspaces/{workspaceId}/users",
+    "pathTemplate": "/workspaces/{workspaceId}/users",
+    "queryNames": [
+      "current_page",
+      "page_size"
+    ],
+    "status": 403,
+    "opaDenied": true,
+    "available": false
+  },
+  {
+    "plane": "admin",
+    "name": "members.upstream-prefix",
+    "sourcePath": "/admin/workspaces/{workspaceId}/users",
+    "pathTemplate": "/admin/workspaces/{workspaceId}/users",
+    "queryNames": [
+      "current_page",
+      "page_size"
+    ],
+    "status": 403,
+    "opaDenied": true,
+    "available": false
+  },
+  {
+    "plane": "admin",
+    "name": "scim",
+    "sourcePath": "/scim/workspaces",
+    "pathTemplate": "/scim/workspaces",
+    "queryNames": [
+      "workspace_id"
+    ],
+    "status": 403,
+    "opaDenied": true,
+    "available": false
+  }
+]
+```
+
+</details>
+
+Reproduce with `npx tsx scripts/e2e-gateway-administration-availability.ts` using the documented process-only service DNS accommodation. The command exits nonzero for these failures. No speculative production SDK method is added from a denied response; direct Gateway coverage remains **138/242 (57.02%)** and the full-scope assessment remains **5/10**.
+
 ## AI Gateway inference output
 
 ### Runtime feedback and log ingestion
