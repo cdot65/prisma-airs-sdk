@@ -3,12 +3,17 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { cliReleaseSelection } from './cli-consumer.js';
 
 const root = fileURLToPath(new URL('../../', import.meta.url));
-const capture = JSON.parse(
-  readFileSync(resolve(root, 'artifacts/examples/cli-inference.json'), 'utf8'),
-);
-const suite = JSON.parse(readFileSync(resolve(root, 'artifacts/e2e/cli-inference.json'), 'utf8'));
+const selection = cliReleaseSelection();
+const name = `cli-inference${selection.suffix}`;
+const capture = JSON.parse(readFileSync(resolve(root, `artifacts/examples/${name}.json`), 'utf8'));
+const suite = JSON.parse(readFileSync(resolve(root, `artifacts/e2e/${name}.json`), 'utf8'));
+if (selection.suffix) {
+  assert.equal(capture.cliVersion, selection.cliVersion);
+  assert.equal(capture.sdkVersion, selection.sdkVersion);
+}
 assert.equal(capture.capturedAt, suite.finishedAt);
 assert.equal(suite.credentialsUnchanged, true);
 assert.equal(suite.passed, 8);
@@ -34,7 +39,7 @@ const fence = '`'.repeat(
 );
 const replacement = `## Latest verified example output
 
-Captured **${capture.capturedAt}** from actual CLI execution against AI Gateway.
+Captured **${capture.capturedAt}** from actual CLI **${selection.cliVersion}** execution with SDK **${selection.sdkVersion}** against AI Gateway.
 ${capture.disclosure}
 
 The chat command above returned:

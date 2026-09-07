@@ -19,7 +19,7 @@ mkdirSync(directory, { recursive: true });
 const evidence = JSON.parse(
   readFileSync(
     new URL(
-      cli ? '../artifacts/examples/cli-inference.json' : '../artifacts/examples/latest.json',
+      cli ? '../artifacts/examples/cli-inference-v4.4.0.json' : '../artifacts/examples/latest.json',
       import.meta.url,
     ),
     'utf8',
@@ -177,7 +177,7 @@ try {
         'cli/runtime/dlp/generate',
         [nativeEvidence.generatedAt, '4.3.1', '11/11', 'instead of JSON', 'sharp'],
       ],
-      ['cli/aigateway/telemetry', ['null', '0.24.0', '4.3.1', '54/54', '--cost-max']],
+      ['cli/aigateway/telemetry', ['null', '0.25.0', '4.4.0', '103/103', '--cost-max']],
       ['cli/aigateway/workflows', ['400', 'AB01']],
     ])
       await check(`cli.desktop.${path}`, async () => {
@@ -197,7 +197,7 @@ try {
         if (path.endsWith('/telemetry')) {
           const empty = JSON.parse(
             readFileSync(
-              new URL('../artifacts/examples/cli-analytics.json', import.meta.url),
+              new URL('../artifacts/examples/cli-analytics-v4.4.0.json', import.meta.url),
               'utf8',
             ),
           );
@@ -206,7 +206,7 @@ try {
           const filters = JSON.parse(
             readFileSync(
               new URL(
-                '../artifacts/examples/gateway-analytics-query-contracts-cli.json',
+                '../artifacts/examples/gateway-analytics-query-contracts-cli-v4.4.0.json',
                 import.meta.url,
               ),
               'utf8',
@@ -215,6 +215,20 @@ try {
           assert(text.includes(filters.capturedAt), 'Chart-filter capture is stale');
           assert(text.includes(filters.cliVersion) && text.includes(filters.sdkVersion));
           await assertCapturedJson(filters.evidence);
+          const groups = JSON.parse(
+            readFileSync(
+              new URL(
+                '../artifacts/examples/gateway-analytics-group-filters-cli-v4.4.0.json',
+                import.meta.url,
+              ),
+              'utf8',
+            ),
+          );
+          assert.equal(groups.mode, 'installed-cli');
+          assert.deepEqual(groups.suite, { passed: 103, failed: 0, total: 103 });
+          assert.equal(groups.evidence.length, 101);
+          assert(text.includes(groups.capturedAt), 'Grouped-filter capture is stale');
+          await assertCapturedJson(groups.evidence);
         }
       });
     await check('cli.mobile.inference-and-navigation', async () => {
@@ -410,6 +424,43 @@ try {
         });
         assert.equal(response.status(), 200);
         const text = await page.$eval('main', (element) => element.innerText);
+        const registry = JSON.parse(
+          readFileSync(
+            new URL('../artifacts/package/registry-v0.25.0.json', import.meta.url),
+            'utf8',
+          ),
+        );
+        const registryInference = JSON.parse(
+          readFileSync(
+            new URL('../artifacts/e2e/release-sdk-inference-v0.25.0.json', import.meta.url),
+            'utf8',
+          ),
+        );
+        const registryCharts = JSON.parse(
+          readFileSync(
+            new URL(
+              '../artifacts/e2e/gateway-analytics-query-contracts-sdk-v0.25.0.json',
+              import.meta.url,
+            ),
+            'utf8',
+          ),
+        );
+        assert.equal(registry.passed, true);
+        assert.equal(registryInference.failed, 0);
+        assert.equal(registryCharts.failed, 0);
+        for (const value of [
+          registry.checkedAt,
+          registry.payloadCheckedAt,
+          registry.sha256,
+          registryInference.finishedAt,
+          registryCharts.finishedAt,
+          analyticsGroupEvidence.capturedAt,
+          '102/102',
+          '53/53',
+          'SDK 0.25.0 registry verification',
+        ]) {
+          assert(text.includes(value), 'Latest SDK registry evidence is stale or incomplete');
+        }
         for (const value of [releaseEvidence.capturedAt, '10/10', '8/8', '138/242 (57.02%)'])
           assert(text.includes(value), 'Published-package evidence is stale or incomplete');
         await assertCapturedJson(releaseEvidence.chat);

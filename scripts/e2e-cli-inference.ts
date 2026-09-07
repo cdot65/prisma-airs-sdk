@@ -5,6 +5,7 @@ import { fileURLToPath } from 'node:url';
 import { accessSync, constants, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { isAbsolute } from 'node:path';
 import { runtimeSuite } from './e2e/gateway-runtime.js';
+import { cliReleaseSelection, verifyCliConsumer } from './e2e/cli-consumer.js';
 
 let capturedChat: unknown;
 const cli =
@@ -12,7 +13,10 @@ const cli =
 // Installation is a prerequisite, not a live inference failure. Check it before creating a key.
 assert(isAbsolute(cli), 'CLI entry must be absolute');
 accessSync(cli, constants.R_OK);
-await runtimeSuite('cli-inference', async ({ harness, endpoint, apiKey }) => {
+const selection = cliReleaseSelection();
+verifyCliConsumer(cli, selection);
+const suiteName = `cli-inference${selection.suffix}`;
+await runtimeSuite(suiteName, async ({ harness, endpoint, apiKey }) => {
   async function run(args: string[]) {
     return new Promise<{ code: number | null; stdout: string; stderr: string }>(
       (resolve, reject) => {
@@ -139,7 +143,7 @@ await runtimeSuite('cli-inference', async ({ harness, endpoint, apiKey }) => {
     return { exitCode: result.code, emptyStdout: true };
   });
 });
-const suite = JSON.parse(readFileSync('artifacts/e2e/cli-inference.json', 'utf8')) as {
+const suite = JSON.parse(readFileSync(`artifacts/e2e/${suiteName}.json`, 'utf8')) as {
   startedAt: string;
   finishedAt: string;
   passed: number;
@@ -153,10 +157,12 @@ assert(
 );
 mkdirSync('artifacts/examples', { recursive: true });
 writeFileSync(
-  'artifacts/examples/cli-inference.json',
+  `artifacts/examples/${suiteName}.json`,
   JSON.stringify(
     {
       capturedAt: suite.finishedAt,
+      cliVersion: selection.cliVersion,
+      sdkVersion: selection.sdkVersion,
       disclosure:
         'Actual built CLI JSON stdout from the passing live suite; response identifiers are redacted. No runtime key or configuration value is retained.',
       suite: { passed: suite.passed, total: suite.total },

@@ -26,7 +26,8 @@ These timestamped reports include pre-release candidate checks and subsequent re
 | gateway-analytics-query-contracts-sdk | 53 | 0 | 0 | 53 | 2026-09-07 08:56:03.088Z |
 | gateway-analytics-query-contracts-cli | 54 | 0 | 0 | 54 | 2026-09-07 10:32:02.882Z |
 | gateway-analytics-group-filters | 102 | 0 | 0 | 102 | 2026-09-07 11:10:38.954Z |
-| gateway-analytics-group-filters-sdk | 102 | 0 | 0 | 102 | 2026-09-07 11:30:23.092Z |
+| gateway-analytics-group-filters-sdk | 102 | 0 | 0 | 102 | 2026-09-07 11:52:02.500Z |
+| gateway-analytics-query-contracts-sdk-v0.25.0 | 53 | 0 | 0 | 53 | 2026-09-07 11:52:36.044Z |
 | gateway-extensions | 42 | 3 | 2 | 47 | 2026-09-06 16:40:33.284Z |
 | gateway-usage-reset | 8 | 0 | 0 | 8 | 2026-09-07 03:39:07.317Z |
 | gateway-usage-reset-audit | 2 | 0 | 0 | 2 | 2026-09-07 03:39:59.498Z |
@@ -48,6 +49,7 @@ These timestamped reports include pre-release candidate checks and subsequent re
 | cli-analytics | 3 | 0 | 0 | 3 | 2026-09-07 10:31:01.470Z |
 | cli-writes | 12 | 0 | 0 | 12 | 2026-09-06 13:57:20.819Z |
 | gateway-inference | 10 | 0 | 0 | 10 | 2026-09-07 01:59:08.352Z |
+| release-sdk-inference-v0.25.0 | 10 | 0 | 0 | 10 | 2026-09-07 11:51:36.327Z |
 | gateway-observability | 5 | 0 | 0 | 5 | 2026-09-06 19:59:34.826Z |
 | gateway-runtime-observability | 4 | 1 | 0 | 5 | 2026-09-06 19:55:37.502Z |
 | gateway-observability-audit | 5 | 0 | 0 | 5 | 2026-09-07 01:58:59.117Z |
@@ -192,7 +194,7 @@ the corrected token manager. The runnable `mgmt-auth.ts` example additionally
 verifies successful standalone concurrent refresh deduplication and explicit cache clearing;
 its latest sanitized output is on the examples page. No credentials or token values are logged.
 
-The read-only analytics discovery compared known and nonexistent synthetic trace/metadata filters against the same request-count window. Camel-case `traceId` and JSON `metadata` were respected; upstream `trace_id` was ignored and remains a failed diagnostic check. The typed SDK request-chart suite subsequently passed 3/3 using existing owned records, with no new fixtures or mutations. Invalid telemetry options now fail before authentication or network I/O. Only these request-count filters are implemented; this does not establish equivalence across all 22 partially adapted analytics operations. The [examples page](../guides/examples.mdx#verified-request-chart-filters) includes the captured sanitized output.
+The read-only analytics discovery compared known and nonexistent synthetic trace/metadata filters against the same request-count window. Camel-case `traceId` and JSON `metadata` were respected; upstream `trace_id` was ignored and remains a failed diagnostic check. The typed SDK request-chart suite subsequently passed 3/3 using existing owned records, with no new fixtures or mutations. Invalid telemetry options now fail before authentication or network I/O. That initial increment implemented only request-count filters. Subsequent releases extend the shared filters to four charts and six grouped endpoints; all 22 upstream analytics adaptations remain partial. The [examples page](../guides/examples.mdx#verified-request-chart-filters) includes the captured sanitized output.
 
 The latest runtime-authoring check made nine read-only collection/label/prompt/partial requests without a provider header and four more with the prescribed `@openai` provider. The first nine returned 400 with the exact missing-provider/config message; the four header-bearing requests returned 404. Model/authentication and key retirement pass, but all 13 authoring checks fail. Both deployed replicas register a generic provider-proxy GET fallback, not explicit GET handlers for these four collections. A hash-pinned synthetic middleware replay reproduces the missing-header rejection and confirms that a provider reaches its continuation without calling any live client. Adding a provider is not a verified authoring control plane. No authoring/IAM resource was created or changed; the latest sanitized boundary observation is in the examples-page diagnostic JSON.
 

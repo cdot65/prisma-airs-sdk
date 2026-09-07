@@ -7,13 +7,16 @@ import { join, resolve } from 'node:path';
 import { loadLiveCredentials } from './live-credentials.js';
 import { LiveHarness } from './e2e/harness.js';
 import { AIGatewayClient, ManagementClient } from '../src/index.js';
+import { cliReleaseSelection, verifyCliConsumer } from './e2e/cli-consumer.js';
 const run = promisify(execFile);
+const selection = cliReleaseSelection();
 const credentials = loadLiveCredentials();
 const h = new LiveHarness();
 try {
   const directory = process.env.CLI_COMPAT_DIR;
   assert(directory, 'Set CLI_COMPAT_DIR to the isolated CLI checkout');
   const cli = resolve(directory, 'dist/cli/index.js');
+  if (selection.suffix) verifyCliConsumer(cli, selection);
   const workspace = await new AIGatewayClient({ numRetries: 0 }).workspaces.get('ws-develo-71f8d8');
   const profile = (
     await new ManagementClient({ numRetries: 0 }).profiles.listForToken({ limit: 100 })
@@ -91,5 +94,5 @@ try {
   });
 } finally {
   credentials.verifyUnchanged();
-  h.finish('cli', true);
+  h.finish(`cli${selection.suffix}`, true);
 }

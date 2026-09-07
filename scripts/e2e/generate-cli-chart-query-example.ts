@@ -4,10 +4,12 @@ import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import type { LiveResult } from './harness.js';
+import { cliReleaseSelection } from './cli-consumer.js';
 
 const root = fileURLToPath(new URL('../../', import.meta.url));
 const read = (path: string) => JSON.parse(readFileSync(resolve(root, path), 'utf8'));
-const name = 'gateway-analytics-query-contracts-cli';
+const selection = cliReleaseSelection();
+const name = `gateway-analytics-query-contracts-cli${selection.suffix}`;
 const capture = read(`artifacts/examples/${name}.json`);
 const report = read(`artifacts/e2e/${name}.json`);
 assert.equal(capture.capturedAt, report.finishedAt);
@@ -15,9 +17,11 @@ assert.equal(report.credentialsUnchanged, true);
 assert.equal(capture.credentialsUnchanged, true);
 assert.equal(capture.mutations, false);
 assert.equal(capture.mode, 'installed-cli');
-assert.equal(capture.cliVersion, '4.3.1');
-assert.equal(capture.sdkVersion, '0.24.0');
-const installation = read('artifacts/cli-431-registry-verification.json');
+assert.equal(capture.cliVersion, selection.cliVersion);
+assert.equal(capture.sdkVersion, selection.sdkVersion);
+const installation = read(
+  process.env.CLI_EVIDENCE_INSTALLATION ?? 'artifacts/cli-431-registry-verification.json',
+);
 assert.equal(installation.passed, true);
 assert.equal(installation.version, capture.cliVersion);
 assert(Date.parse(capture.capturedAt) >= Date.parse(installation.checkedAt));

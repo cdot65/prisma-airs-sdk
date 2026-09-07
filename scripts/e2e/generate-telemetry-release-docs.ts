@@ -56,7 +56,7 @@ assert(cliChartCapture.evidence.every((row: { respected: boolean }) => row.respe
 const chat = read('artifacts/examples/cli-inference.json');
 assert.equal(chat.capturedAt, cli.finishedAt);
 for (const [path, version] of [
-  ['artifacts/package/verification.json', '0.24.0'],
+  ['artifacts/package/verification-registry-0.24.0.log', '0.24.0'],
   ['artifacts/cli-431-registry-verification.json', '4.3.1'],
   ['artifacts/cli-431-installed-verification.json', '4.3.1'],
 ]) {

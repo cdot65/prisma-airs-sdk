@@ -805,7 +805,7 @@ The first discovery run compared upstream snake-case names with SCM camel-case n
 
 ## Verified grouped analytics filters
 
-The SDK **0.25.0** installed-package check passes **102/102** at **2026-09-07T11:30:23.092Z**, using **installed-sdk**. The independent raw SCM run passes **102/102** at **2026-09-07T11:10:38.954Z**. Both use existing owned positive traffic, with no new inference, keys, logs or configuration changes. These are installed-package checks; registry publication is a separate release gate.
+The SDK **0.25.0** installed-package check passes **102/102** at **2026-09-07T11:52:02.500Z**, using **installed-sdk**. The independent raw SCM run passes **102/102** at **2026-09-07T11:10:38.954Z**. Both use existing owned positive traffic, with no new inference, keys, logs or configuration changes. These are installed-package checks; registry publication is a separate release gate.
 
 All six group endpoints verify trace and metadata filters, singleton/CSV-OR lists, inclusive token/cost bounds, equal-bound ranges and intersections. The five non-user groups additionally check that filtered cost and total-token columns match the owned source record. The user endpoint retains its distinct response envelope and does not gain column options. The raw and SDK runs produce the same sanitized result matrix below.
 

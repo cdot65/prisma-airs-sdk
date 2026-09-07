@@ -1,9 +1,11 @@
 /** @internal Read-only grouped analytics discovery against historically owned traffic. */
 import assert from 'node:assert/strict';
+import { execFile } from 'node:child_process';
 import { randomUUID } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import { isAbsolute } from 'node:path';
 import { pathToFileURL } from 'node:url';
+import { promisify } from 'node:util';
 import {
   AIGatewayClient,
   AISecSDKException,
@@ -17,12 +19,56 @@ import { serializeWindow } from '../src/ai-gateway/window.js';
 import { OAuthClient } from '../src/management/oauth-client.js';
 import { loadLiveCredentials } from './live-credentials.js';
 import { LiveHarness, writePrivateReport } from './e2e/harness.js';
+import { cliReleaseSelection, verifyCliConsumer } from './e2e/cli-consumer.js';
 
 const credentials = loadLiveCredentials();
 const harness = new LiveHarness();
 const sdk = process.argv.includes('--sdk');
+const cli = process.argv.includes('--cli');
+const selection = cliReleaseSelection();
+const cliEntry = process.env.E2E_CLI_ENTRY;
+const run = promisify(execFile);
 const installedEntry = process.env.E2E_ANALYTICS_SDK_ENTRY;
-const suite = sdk ? 'gateway-analytics-group-filters-sdk' : 'gateway-analytics-group-filters';
+const suite = cli
+  ? `gateway-analytics-group-filters-cli${selection.suffix}`
+  : sdk
+    ? 'gateway-analytics-group-filters-sdk'
+    : 'gateway-analytics-group-filters';
+async function cliCommand(args: string[]): Promise<string> {
+  assert(cliEntry && isAbsolute(cliEntry));
+  try {
+    const result = await run(process.execPath, [cliEntry, ...args], {
+      env: {
+        ...process.env,
+        NO_COLOR: '1',
+        PANW_AI_SEC_NUM_RETRIES: '0',
+        PANW_AI_SEC_TIMEOUT_MS: '20000',
+      },
+      timeout: 30_000,
+      maxBuffer: 1_048_576,
+    });
+    assert.equal(result.stderr, '', 'Grouped analytics emitted unexpected stderr');
+    assert(result.stdout.trim().length > 0);
+    return result.stdout;
+  } catch (error) {
+    const code = (error as { code?: unknown }).code;
+    const stderr = (error as { stderr?: unknown }).stderr;
+    const status =
+      typeof stderr === 'string'
+        ? stderr.match(/(?:^|\n)\s*HTTP ([1-5]\d{2})\s*(?:\n|$)/)?.[1]
+        : undefined;
+    if (status) {
+      throw new AISecSDKException(
+        'CLI grouped analytics returned an HTTP failure',
+        Number(status) >= 500 ? ErrorType.SERVER_SIDE_ERROR : ErrorType.CLIENT_SIDE_ERROR,
+        { statusCode: Number(status) },
+      );
+    }
+    throw new Error(
+      `CLI group check failed; exit code ${typeof code === 'number' ? code : 'unknown'}`,
+    );
+  }
+}
 const evidence: {
   dimension: string;
   filter: string;
@@ -32,6 +78,14 @@ const evidence: {
 }[] = [];
 
 try {
+  assert(!(sdk && cli), 'Choose one consumer mode');
+  if (cli) {
+    assert(cliEntry && !installedEntry);
+    verifyCliConsumer(cliEntry, selection);
+    await harness.check('analytics-groups.installed-cli-version', async () => {
+      assert.equal((await cliCommand(['--version'])).trim(), selection.cliVersion);
+    });
+  }
   let GatewayClient = AIGatewayClient;
   if (installedEntry) {
     assert(sdk && isAbsolute(installedEntry));
@@ -77,13 +131,14 @@ try {
     return record;
   });
   assert(control);
-  const token = sdk
-    ? undefined
-    : await new OAuthClient({
-        clientId: process.env.PANW_MGMT_CLIENT_ID!,
-        clientSecret: process.env.PANW_MGMT_CLIENT_SECRET!,
-        tsgId: process.env.PANW_MGMT_TSG_ID!,
-      }).getToken();
+  const token =
+    sdk || cli
+      ? undefined
+      : await new OAuthClient({
+          clientId: process.env.PANW_MGMT_CLIENT_ID!,
+          clientSecret: process.env.PANW_MGMT_CLIENT_SECRET!,
+          tsgId: process.env.PANW_MGMT_TSG_ID!,
+        }).getToken();
   harness.protect(token);
   const params = serializeWindow(process.env.PANW_MGMT_TSG_ID!, window);
   const absentId = randomUUID();
@@ -173,6 +228,28 @@ try {
     'users',
   ] as const) {
     async function group(extra: Record<string, string>): Promise<unknown> {
+      if (cli) {
+        const args = [
+          'aigateway',
+          'telemetry',
+          'group-by',
+          dimension,
+          '--workspace',
+          window.workspaceSlug,
+          '--start',
+          window.start.toISOString(),
+          '--end',
+          window.end.toISOString(),
+          '--output',
+          'json',
+        ];
+        for (const [key, value] of Object.entries(extra)) {
+          const sdkKey =
+            key === 'statusCode' ? 'statusCodes' : key === 'aiOrgModel' ? 'aiOrgModels' : key;
+          args.push('--' + sdkKey.replace(/[A-Z]/g, (letter) => '-' + letter.toLowerCase()), value);
+        }
+        return JSON.parse(await cliCommand(args)) as unknown;
+      }
       if (sdk) {
         const options = {
           ...window,
@@ -236,7 +313,10 @@ try {
     }
     async function count(extra: Record<string, string>): Promise<number> {
       const body = await group(extra);
-      harness.captureResponseShape(`analytics-groups.${dimension}.${sdk ? 'sdk' : 'raw'}`, body);
+      harness.captureResponseShape(
+        `analytics-groups.${dimension}.${cli ? 'cli' : sdk ? 'sdk' : 'raw'}`,
+        body,
+      );
       const counts =
         dimension === 'users'
           ? UserGroupResponseSchema.parse(body).data.records.map((item) => item.count)
@@ -303,8 +383,15 @@ try {
   };
   writePrivateReport(`artifacts/examples/${suite}.json`, {
     capturedAt: report.finishedAt,
-    mode: sdk ? (installedEntry ? 'installed-sdk' : 'source-sdk') : 'raw-scm',
-    sdkVersion: sdk ? SDK_VERSION : undefined,
+    mode: cli
+      ? 'installed-cli'
+      : sdk
+        ? installedEntry
+          ? 'installed-sdk'
+          : 'source-sdk'
+        : 'raw-scm',
+    sdkVersion: cli ? selection.sdkVersion : sdk ? SDK_VERSION : undefined,
+    cliVersion: cli ? selection.cliVersion : undefined,
     suite: { passed: report.passed, failed: report.failed, total: report.total },
     credentialsUnchanged: true,
     mutations: false,

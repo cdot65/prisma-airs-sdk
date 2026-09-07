@@ -4,6 +4,25 @@ title: Published-package examples
 
 # Published-package examples
 
+## SDK 0.25.0 registry verification
+
+[SDK 0.25.0](https://github.com/cdot65/prisma-airs-sdk/releases/tag/v0.25.0) is published from `9dc8690c24fd11fb0abc51a1233e1ecb7968fe6b`, after passing CI, the full Node 18/20/22/24 test matrix and Docusaurus deployment. The [npm workflow](https://github.com/cdot65/prisma-airs-sdk/actions/runs/34118335579) passes. The release has **11,263 tests in 142 files**, with 99.71% lines/statements, 100% functions and 96.67% branches.
+
+Fresh registry-installed verification passes:
+
+- **102/102 grouped-filter checks**, **2026-09-07T11:52:02.500Z**.
+- **53/53 existing chart contracts**, **2026-09-07T11:52:36.044Z**.
+- **10/10 inference checks**, **2026-09-07T11:51:36.327Z**.
+- **33/33 historical release keys absent**, independently checked at **2026-09-07T11:52:17.226Z**.
+- Payload, source-map, ESM/CommonJS, strict tracked consumer types, native WebSocket and OAuth deadline/recovery checks at **2026-09-07T11:52:23.865Z**.
+- Exact installed lockfile/archive/npm integrity agreement at **2026-09-07T11:58:25.132Z**.
+
+The archive is **1,287,407 bytes**, SHA-256 **`bed2bd1779703beb88820b46b4866b7af68cb053a83d1dfd91cba4f1747a34a4`**. All nine payload files, 126 source-map sources and 1,304 runtime exports match the tested candidate. No credential settings changed. Analytics reuses historical owned traffic; only the separate inference suite creates and retires a temporary dev key. The prescribed chat and embedding models, TLS verification and documented process-only LAN DNS handling remain unchanged.
+
+The [full captured grouped-filter output](./examples.mdx#verified-grouped-analytics-filters) contains all 101 positive/absent result pairs, including the five non-user column checks. User groups retain their distinct envelope and reject unsupported columns. Provider `traceId` is an observed SCM extension, not a declaration in the supplied provider schema. The serializer also uses validated copies, eliminating repeated reads of caller-owned getters.
+
+CLI 4.4.0 pins this published SDK and is undergoing its own candidate verification; its publication is not yet claimed. The prior CLI 4.3.1 evidence below remains version-specific. Direct Gateway coverage remains **138/242 (57.02%)**, all 22 analytics adapters remain partial, and the full-project assessment remains **5/10**. Existing failed service/provider/entitlement workflows, SDK documentation dependency advisories and WAN limits remain open.
+
 ## SDK 0.24.0 and CLI 4.3.1 registry verification
 
 Both releases are published, installed independently from npm and payload-verified. CLI 4.3.1 pins SDK 0.24.0 exactly. The local user-prefix CLI is upgraded and independently checked. SDK publication preceded the CLI dependency update; existing runtime settings and the read-only credential configuration are unchanged.

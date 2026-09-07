@@ -11,6 +11,8 @@ describe('release inference history inventory', () => {
     'release-sdk-inference-v0.25.0',
     'release-sdk-inference-v1.120.34',
     'cli-inference',
+    'cli-inference-v4.4.0',
+    'cli-inference-v5.12.2',
   ])('includes %s without a per-release allowlist change', (suite) => {
     expect(isReleaseInferenceHistoryFile(`${suite}-${timestamp}`)).toBe(true);
   });
@@ -20,6 +22,8 @@ describe('release inference history inventory', () => {
     'release-sdk-inference-025',
     'release-sdk-inference-v0.25.0-beta.1',
     'release-sdk-inference-v0.25',
+    'cli-inference-v4.4.0-beta',
+    'cli-inference-v4.4',
   ])('does not broaden the audit to an unknown suite: %s', (suite) => {
     expect(isReleaseInferenceHistoryFile(`${suite}-${timestamp}`)).toBe(false);
   });

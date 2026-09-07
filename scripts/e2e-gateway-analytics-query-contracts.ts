@@ -3,8 +3,7 @@ import assert from 'node:assert/strict';
 import { execFile } from 'node:child_process';
 import { randomUUID } from 'node:crypto';
 import { readFileSync } from 'node:fs';
-import { createRequire } from 'node:module';
-import { dirname, isAbsolute, resolve } from 'node:path';
+import { isAbsolute } from 'node:path';
 import { promisify } from 'node:util';
 import { pathToFileURL } from 'node:url';
 import {
@@ -23,6 +22,7 @@ import { OAuthClient } from '../src/management/oauth-client.js';
 import { serializeWindow } from '../src/ai-gateway/window.js';
 import { loadLiveCredentials } from './live-credentials.js';
 import { LiveHarness, writePrivateReport } from './e2e/harness.js';
+import { cliReleaseSelection, verifyCliConsumer } from './e2e/cli-consumer.js';
 
 type Filters = Omit<AIGatewayChartFilters, 'traceId' | 'metadata'>;
 type ChartData = {
@@ -37,8 +37,9 @@ const harness = new LiveHarness();
 const sdk = process.argv.includes('--sdk');
 const cli = process.argv.includes('--cli');
 const versioned = process.argv.includes('--versioned');
+const selection = cliReleaseSelection();
 const suite = cli
-  ? 'gateway-analytics-query-contracts-cli'
+  ? `gateway-analytics-query-contracts-cli${selection.suffix}`
   : sdk
     ? `gateway-analytics-query-contracts-sdk${versioned ? `-v${SDK_VERSION}` : ''}`
     : 'gateway-analytics-query-contracts';
@@ -81,15 +82,8 @@ try {
   assert(!versioned || (sdk && !cli), 'Versioned report names require SDK consumer mode');
   if (cli) {
     assert(cliEntry && isAbsolute(cliEntry) && !installedEntry);
-    const packageFile = resolve(dirname(cliEntry), '../../package.json');
-    const pkg = JSON.parse(readFileSync(packageFile, 'utf8')) as {
-      version: string;
-      dependencies: Record<string, string>;
-    };
-    assert.equal(pkg.version, '4.3.1');
-    assert.equal(pkg.dependencies['@cdot65/prisma-airs-sdk'], SDK_VERSION);
-    assert.equal(createRequire(packageFile)('@cdot65/prisma-airs-sdk').SDK_VERSION, SDK_VERSION);
-    cliVersion = pkg.version;
+    verifyCliConsumer(cliEntry, selection);
+    cliVersion = selection.cliVersion;
     await harness.check('analytics-query.installed-cli-version', async () => {
       assert.equal((await cliCommand(['--version'])).trim(), cliVersion);
     });
@@ -377,7 +371,7 @@ try {
           : 'source-sdk'
         : 'raw-scm',
     cliVersion,
-    sdkVersion: sdk || cli ? SDK_VERSION : undefined,
+    sdkVersion: cli ? selection.sdkVersion : sdk ? SDK_VERSION : undefined,
     suite: { passed: report.passed, failed: report.failed, total: report.total },
     credentialsUnchanged: true,
     mutations: false,
