@@ -11,6 +11,8 @@ export const liveReportSuites = [
   'gateway-extensions',
   'gateway-usage-reset',
   'gateway-usage-reset-audit',
+  'gateway-mcp-discovery',
+  'gateway-mcp-discovery-audit',
   'gateway-owned-writes',
   'gateway-secret-references',
   'gateway-model-pricing',

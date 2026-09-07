@@ -79,6 +79,27 @@ Re-run the bounded workflow with `npx tsx scripts/e2e-gateway-usage-reset.ts --w
 
 SDK 0.21.0's published experimental annotation is unchanged. This new verification removes the missing-entity prerequisite; it does not add another implemented OpenAPI operation or imply that other policy/provider workflows passed.
 
+## Post-release MCP discovery verification
+
+The owned-server discovery run finished at **2026-09-07T04:15:58.219Z** with **9 passing checks and 1 failing check**. This is not a passing MCP lifecycle: initialization returned **HTTP 401**, reporting a missing caller-authentication header required by the copied integration configuration. Tool listing and capability updates could not run. Earlier minimal clones returned HTTP 500; the deployed gateway handler's narrowly scoped diagnostic showed an upstream `unauthorized` response. Keeping the source integration's JWT, identity-forwarding and header-passthrough configuration made the authentication prerequisite explicit.
+
+Actual bounded-run observations:
+
+```json
+{
+  "initializeStatus": 401,
+  "capabilitiesBefore": 0,
+  "toolsInvoked": 0,
+  "sessionIssued": false
+}
+```
+
+The harness uses the separately verified MCP ingress over HTTPS, an owned server slug, and a one-hour dev-workspace service key narrowed to the already established `mcp.invoke` permission. It never invokes tools, follows redirects, forwards its key to another endpoint, or substitutes SCM credentials for the missing upstream authentication. The official MCP client is an exact-pinned test-only dependency, not part of the SDK's runtime dependencies. Discovery requests have cancellation, a 20-second deadline and an 8 MiB response limit.
+
+A separate read-only audit passed **19/19** at **2026-09-07T04:16:47.605Z**: every journaled key, explicit server and integration from all seven attempts was absent, and the complete dev server inventory contained no implicit server associated with those owned integrations. The attempts include two harness corrections, an unavailable HTTPS source variant, and the retained authentication failures. Existing integrations, servers, IAM grants and credentials were not changed. No session ID was issued. The first 400 and subsequent ownership-assertion failure remain in the historical reports; neither was reclassified as a pass.
+
+Reproduce with `npx tsx scripts/e2e-gateway-mcp-discovery.ts --writes` and audit all recorded attempts with `npx tsx scripts/e2e-gateway-mcp-discovery-audit.ts`. These source-checkout checks require the documented process-only DNS accommodation, including a separately verified `E2E_MCP_GATEWAY_IPV4_ADDRESS` for the exact MCP hostname. With the currently available credential source, expect the documented authentication failure. A correctly provisioned caller identity is still needed before capability-update behavior can be verified; changing existing authentication policies is not an SDK fix.
+
 ## Limits remain explicit
 
 The registry checks used the documented test-process-only DNS accommodation and TLS-verified LAN ingress; they do not certify WAN reachability. No production DNS, gateway storage, model/provider selection or existing credentials were changed.

@@ -320,6 +320,21 @@ try {
           counterBefore: usageEvidence.counterBefore,
           counterAfter: usageEvidence.counterAfter,
         });
+        const mcpEvidence = JSON.parse(
+          readFileSync(
+            new URL('../artifacts/e2e/gateway-mcp-discovery-observations.json', import.meta.url),
+            'utf8',
+          ),
+        );
+        assert(text.includes(mcpEvidence.finishedAt), 'MCP discovery capture is stale');
+        assert.equal(mcpEvidence.passed, false);
+        await assertCapturedJson({
+          initializeStatus: mcpEvidence.http.find((item) => item.rpcMethods.includes('initialize'))
+            ?.status,
+          capabilitiesBefore: mcpEvidence.capabilitiesBefore,
+          toolsInvoked: mcpEvidence.toolsInvoked,
+          sessionIssued: mcpEvidence.sessionIssued,
+        });
         await page.screenshot({ path: `${directory}published-package-examples.png` });
       });
     }

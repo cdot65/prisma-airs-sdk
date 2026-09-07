@@ -6,6 +6,7 @@ const sources = [
   'gateway-owned-writes',
   'gateway-secret-references',
   'gateway-usage-reset',
+  'gateway-mcp-discovery',
 ];
 const reports = sources.map(
   (name) =>

@@ -5,7 +5,8 @@
     "2026-09-06T16:40:33.285Z",
     "2026-09-06T13:58:07.890Z",
     "2026-09-06T19:40:18.694Z",
-    "2026-09-07T03:39:07.318Z"
+    "2026-09-07T03:39:07.318Z",
+    "2026-09-07T04:15:58.219Z"
   ],
   "fixtures": [
     {
@@ -364,8 +365,8 @@
       "body": {}
     },
     {
-      "method": "PUT",
-      "path": "/providers/{providerId}",
+      "method": "POST",
+      "path": "/mcp-integrations",
       "validator": "GatewayWriteResponseSchema",
       "body": {
         "id": "550e8400-e29b-41d4-a716-446655440000",
@@ -421,7 +422,7 @@
     },
     {
       "method": "GET",
-      "path": "/mcp-servers/{encodeURIComponent(mcpServerId)}",
+      "path": "/mcp-servers/{gatewayPathSegment(mcpServerId)}",
       "validator": "GatewayMcpServersClientGetResponseSchema",
       "body": {
         "id": "550e8400-e29b-41d4-a716-446655440000",
@@ -448,7 +449,7 @@
     },
     {
       "method": "GET",
-      "path": "/mcp-servers/{encodeURIComponent(mcpServerId)}/capabilities",
+      "path": "/mcp-servers/{gatewayPathSegment(mcpServerId)}/capabilities",
       "validator": "GatewayMcpServersClientGetCapabilitiesResponseSchema",
       "body": {
         "object": "list",
@@ -640,7 +641,7 @@
     },
     {
       "method": "DELETE",
-      "path": "/mcp-servers/{encodeURIComponent(mcpServerId)}",
+      "path": "/mcp-servers/{gatewayPathSegment(mcpServerId)}",
       "validator": "GatewayMcpServersClientDeleteResponseSchema",
       "body": {}
     },
@@ -1390,6 +1391,345 @@
         "created_at": "2026-09-06T00:00:00Z",
         "last_updated_at": "2026-09-06T00:00:00Z",
         "created_by": "synthetic-redacted-value",
+        "object": "synthetic-redacted-value"
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/api-keys/service",
+      "validator": "ListApiKeysResponseSchema",
+      "body": {
+        "object": "list",
+        "total": 0,
+        "data": [
+          {
+            "id": "550e8400-e29b-41d4-a716-446655440000",
+            "key": "[REDACTED]",
+            "name": "synthetic-redacted-value",
+            "description": "synthetic-redacted-value",
+            "type": "synthetic-redacted-value",
+            "organisation_id": "550e8400-e29b-41d4-a716-446655440000",
+            "workspace_id": "550e8400-e29b-41d4-a716-446655440000",
+            "user_id": null,
+            "status": "active",
+            "created_at": "2026-09-06T00:00:00Z",
+            "last_updated_at": "2026-09-06T00:00:00Z",
+            "creation_mode": "synthetic-redacted-value",
+            "rate_limits": [],
+            "usage_limits": null,
+            "reset_usage": null,
+            "expires_at": null,
+            "last_reset_at": null,
+            "alert_emails": null,
+            "expiry_enforced": 0,
+            "allow_config_override": null,
+            "api_key_defaults_id": null,
+            "created_by": "synthetic-redacted-value",
+            "last_updated_by": "synthetic-redacted-value",
+            "scopes": ["synthetic-redacted-value"],
+            "defaults": {
+              "metadata": null,
+              "config_id": null
+            },
+            "object": "synthetic-redacted-value"
+          },
+          {
+            "id": "550e8400-e29b-41d4-a716-446655440000",
+            "key": "[REDACTED]",
+            "name": "synthetic-redacted-value",
+            "description": null,
+            "type": "synthetic-redacted-value",
+            "organisation_id": "550e8400-e29b-41d4-a716-446655440000",
+            "workspace_id": "550e8400-e29b-41d4-a716-446655440000",
+            "user_id": null,
+            "status": "active",
+            "created_at": "2026-09-06T00:00:00Z",
+            "last_updated_at": "2026-09-06T00:00:00Z",
+            "creation_mode": "synthetic-redacted-value",
+            "rate_limits": [],
+            "usage_limits": null,
+            "reset_usage": null,
+            "expires_at": null,
+            "last_reset_at": null,
+            "alert_emails": null,
+            "expiry_enforced": 0,
+            "allow_config_override": 0,
+            "api_key_defaults_id": "[REDACTED]",
+            "created_by": "synthetic-redacted-value",
+            "last_updated_by": "synthetic-redacted-value",
+            "scopes": ["synthetic-redacted-value", "synthetic-redacted-value"],
+            "defaults": {
+              "metadata": {
+                "app": "synthetic-redacted-value",
+                "auth_mode": "synthetic-redacted-value"
+              },
+              "config_id": "550e8400-e29b-41d4-a716-446655440000"
+            },
+            "object": "synthetic-redacted-value"
+          }
+        ]
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/mcp-integrations",
+      "validator": "ListMcpIntegrationsResponseSchema",
+      "body": {
+        "object": "list",
+        "total": 0,
+        "has_more": false,
+        "data": [
+          {
+            "id": "550e8400-e29b-41d4-a716-446655440000",
+            "organisation_id": "550e8400-e29b-41d4-a716-446655440000",
+            "name": "synthetic-redacted-value",
+            "owner_id": "550e8400-e29b-41d4-a716-446655440000",
+            "status": "active",
+            "type": "synthetic-redacted-value",
+            "url": "https://example.invalid",
+            "auth_type": "synthetic-redacted-value",
+            "transport": "synthetic-redacted-value",
+            "configurations": "synthetic-redacted-value",
+            "created_at": "2026-09-06T00:00:00Z",
+            "last_updated_at": "2026-09-06T00:00:00Z",
+            "slug": "synthetic-redacted-value",
+            "description": null,
+            "workspaces_count": 1,
+            "workspace_id": null,
+            "metadata": {
+              "title": null,
+              "description": null,
+              "icons": null,
+              "server_name": "synthetic-redacted-value",
+              "server_version": "synthetic-redacted-value",
+              "protocol_version": null,
+              "sync_status": "synthetic-redacted-value",
+              "last_synced_at": "2026-09-06T00:00:00Z"
+            },
+            "object": "synthetic-redacted-value"
+          },
+          {
+            "id": "550e8400-e29b-41d4-a716-446655440000",
+            "organisation_id": "550e8400-e29b-41d4-a716-446655440000",
+            "name": "synthetic-redacted-value",
+            "owner_id": "550e8400-e29b-41d4-a716-446655440000",
+            "status": "active",
+            "type": "synthetic-redacted-value",
+            "url": "https://example.invalid",
+            "auth_type": "synthetic-redacted-value",
+            "transport": "synthetic-redacted-value",
+            "configurations": "synthetic-redacted-value",
+            "created_at": "2026-09-06T00:00:00Z",
+            "last_updated_at": "2026-09-06T00:00:00Z",
+            "slug": "synthetic-redacted-value",
+            "description": "synthetic-redacted-value",
+            "workspaces_count": 1,
+            "workspace_id": null,
+            "metadata": {
+              "title": "synthetic-redacted-value",
+              "description": "synthetic-redacted-value",
+              "icons": null,
+              "server_name": "synthetic-redacted-value",
+              "server_version": "synthetic-redacted-value",
+              "protocol_version": null,
+              "sync_status": "synthetic-redacted-value",
+              "last_synced_at": "2026-09-06T00:00:00Z"
+            },
+            "object": "synthetic-redacted-value"
+          }
+        ]
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/mcp-integrations/{mcpIntegrationId}",
+      "validator": "McpIntegrationDetailSchema",
+      "body": {
+        "id": "550e8400-e29b-41d4-a716-446655440000",
+        "name": "synthetic-redacted-value",
+        "description": "synthetic-redacted-value",
+        "owner_id": "550e8400-e29b-41d4-a716-446655440000",
+        "status": "active",
+        "created_at": "2026-09-06T00:00:00Z",
+        "last_updated_at": "2026-09-06T00:00:00Z",
+        "configurations": {
+          "jwt_validation": {
+            "headerKey": "[REDACTED]",
+            "jwksUri": "synthetic-redacted-value",
+            "algorithms": ["synthetic-redacted-value"],
+            "requiredClaims": ["synthetic-redacted-value", "synthetic-redacted-value"],
+            "claimValues": {
+              "iss": {
+                "values": "synthetic-redacted-value",
+                "matchType": "synthetic-redacted-value"
+              },
+              "aud": {
+                "values": "synthetic-redacted-value",
+                "matchType": "synthetic-redacted-value"
+              },
+              "azp": {
+                "values": "synthetic-redacted-value",
+                "matchType": "synthetic-redacted-value"
+              },
+              "scope": {
+                "values": ["synthetic-redacted-value"],
+                "matchType": "synthetic-redacted-value"
+              },
+              "portkey_workspace": {
+                "values": "synthetic-redacted-value",
+                "matchType": "synthetic-redacted-value"
+              }
+            }
+          },
+          "user_identity_forwarding": {
+            "method": "synthetic-redacted-value"
+          },
+          "passthrough_headers": {
+            "x-api-key": "[REDACTED]"
+          }
+        },
+        "global_workspace_access": null,
+        "workspace_id": null,
+        "slug": "synthetic-redacted-value",
+        "url": "https://example.invalid",
+        "auth_type": "synthetic-redacted-value",
+        "transport": "synthetic-redacted-value",
+        "type": "synthetic-redacted-value",
+        "secret_mappings": null,
+        "object": "synthetic-redacted-value"
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/mcp-servers",
+      "validator": "GatewayMcpServersClientListResponseSchema",
+      "body": {
+        "object": "list",
+        "total": 0,
+        "data": [
+          {
+            "id": "550e8400-e29b-41d4-a716-446655440000",
+            "organisation_id": "550e8400-e29b-41d4-a716-446655440000",
+            "name": "synthetic-redacted-value",
+            "description": null,
+            "status": "active",
+            "created_at": "2026-09-06T00:00:00Z",
+            "last_updated_at": "2026-09-06T00:00:00Z",
+            "owner_id": "550e8400-e29b-41d4-a716-446655440000",
+            "slug": "synthetic-redacted-value",
+            "workspace_id": "550e8400-e29b-41d4-a716-446655440000",
+            "mcp_integration_id": "550e8400-e29b-41d4-a716-446655440000",
+            "mcp_integration_slug": "synthetic-redacted-value",
+            "auth_type": "synthetic-redacted-value",
+            "mcp_integration_url": "https://example.invalid",
+            "workspace_name": "synthetic-redacted-value",
+            "workspace_slug": "synthetic-redacted-value",
+            "url": "https://example.invalid",
+            "metadata": {
+              "title": null,
+              "description": null,
+              "icons": null,
+              "server_name": null,
+              "server_version": null,
+              "protocol_version": null,
+              "sync_status": "synthetic-redacted-value",
+              "last_synced_at": null,
+              "website_url": null
+            },
+            "object": "synthetic-redacted-value"
+          },
+          {
+            "id": "550e8400-e29b-41d4-a716-446655440000",
+            "organisation_id": "550e8400-e29b-41d4-a716-446655440000",
+            "name": "synthetic-redacted-value",
+            "description": "synthetic-redacted-value",
+            "status": "active",
+            "created_at": "2026-09-06T00:00:00Z",
+            "last_updated_at": "2026-09-06T00:00:00Z",
+            "owner_id": "550e8400-e29b-41d4-a716-446655440000",
+            "slug": "synthetic-redacted-value",
+            "workspace_id": "550e8400-e29b-41d4-a716-446655440000",
+            "mcp_integration_id": "550e8400-e29b-41d4-a716-446655440000",
+            "mcp_integration_slug": "synthetic-redacted-value",
+            "auth_type": "synthetic-redacted-value",
+            "mcp_integration_url": "https://example.invalid",
+            "workspace_name": "synthetic-redacted-value",
+            "workspace_slug": "synthetic-redacted-value",
+            "url": "https://example.invalid",
+            "metadata": {
+              "title": null,
+              "description": null,
+              "icons": null,
+              "server_name": null,
+              "server_version": null,
+              "protocol_version": null,
+              "sync_status": "synthetic-redacted-value",
+              "last_synced_at": null,
+              "website_url": null
+            },
+            "object": "synthetic-redacted-value"
+          }
+        ]
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/mcp-integrations/{mcpIntegrationId}",
+      "validator": "McpIntegrationDetailSchema",
+      "body": {
+        "id": "550e8400-e29b-41d4-a716-446655440000",
+        "name": "synthetic-redacted-value",
+        "description": null,
+        "owner_id": "550e8400-e29b-41d4-a716-446655440000",
+        "status": "active",
+        "created_at": "2026-09-06T00:00:00Z",
+        "last_updated_at": "2026-09-06T00:00:00Z",
+        "configurations": {
+          "jwt_validation": {
+            "headerKey": "[REDACTED]",
+            "jwksUri": "synthetic-redacted-value",
+            "algorithms": ["synthetic-redacted-value"],
+            "requiredClaims": ["synthetic-redacted-value", "synthetic-redacted-value"],
+            "claimValues": {
+              "iss": {
+                "values": "synthetic-redacted-value",
+                "matchType": "synthetic-redacted-value"
+              },
+              "aud": {
+                "values": "synthetic-redacted-value",
+                "matchType": "synthetic-redacted-value"
+              },
+              "azp": {
+                "values": "synthetic-redacted-value",
+                "matchType": "synthetic-redacted-value"
+              },
+              "scope": {
+                "values": ["synthetic-redacted-value"],
+                "matchType": "synthetic-redacted-value"
+              },
+              "portkey_workspace": {
+                "values": "synthetic-redacted-value",
+                "matchType": "synthetic-redacted-value"
+              }
+            }
+          },
+          "user_identity_forwarding": {
+            "method": "synthetic-redacted-value"
+          },
+          "passthrough_headers": {
+            "x-api-key": "[REDACTED]"
+          }
+        },
+        "global_workspace_access": {
+          "enabled": false
+        },
+        "workspace_id": null,
+        "slug": "synthetic-redacted-value",
+        "url": "https://example.invalid",
+        "auth_type": "synthetic-redacted-value",
+        "transport": "synthetic-redacted-value",
+        "type": "synthetic-redacted-value",
+        "secret_mappings": null,
         "object": "synthetic-redacted-value"
       }
     }

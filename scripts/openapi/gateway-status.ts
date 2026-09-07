@@ -32,7 +32,7 @@ export const gatewayExperimental: Record<string, string> = {
   'mcpServers.deleteConnections':
     'SCM returned HTTP 403 on an owned server; authorization remains unverified.',
   'mcpServers.updateCapabilities':
-    'No discovered tool was available on the owned server; contract-tested only.',
+    'Owned MCP discovery remains blocked before tool listing: the faithful source-configuration clone returned HTTP 401 for a required caller authentication header (2026-09-07). Earlier minimal clones returned gateway HTTP 500 after an upstream unauthorized response. No tool was invoked; updateCapabilities remains contract-tested only.',
   'usageLimits.resetEntity':
     'Post-release owned traffic/reset lifecycle passes 8/8 with an independent 2/2 retirement audit (2026-09-07). This supersedes the earlier missing-entity prerequisite. SDK 0.21.0 still labels the method experimental; its published stability guarantee is unchanged.',
   'logExports.start':

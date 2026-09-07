@@ -51,5 +51,18 @@ describe('opt-in test-only DNS accommodation', () => {
   });
   it.each(['', 'not-an-ip', '::1'])('rejects malformed explicit addresses: %s', (address) => {
     expect(() => serviceDnsLookup(vi.fn(), address)).toThrow('verified IPv4');
+    expect(() => serviceDnsLookup(vi.fn(), undefined, address)).toThrow('verified IPv4');
+  });
+  it('keeps the MCP and LLM gateway overrides independent and exact', async () => {
+    const original = vi.fn();
+    const callback = vi.fn();
+    const lookup = serviceDnsLookup(original, '192.0.2.1', '192.0.2.2');
+    lookup('mcp-airs.cdot.io', { all: true }, callback);
+    lookup('other.mcp-airs.cdot.io', callback);
+    await Promise.resolve();
+    expect(callback).toHaveBeenCalledWith(null, [{ address: '192.0.2.2', family: 4 }]);
+    expect(original).toHaveBeenCalledWith('other.mcp-airs.cdot.io', callback);
+    serviceDnsLookup(original, '192.0.2.1')('mcp-airs.cdot.io', callback);
+    expect(original).toHaveBeenLastCalledWith('mcp-airs.cdot.io', callback);
   });
 });

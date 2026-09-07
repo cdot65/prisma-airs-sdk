@@ -6,6 +6,21 @@ import { loadLiveCredentials } from '../live-credentials.js';
 import { LiveHarness } from './harness.js';
 import { gatewayIpv4Lookup } from './gateway-network.js';
 
+/** Select established permissions without granting any new workspace scope. */
+export function selectRuntimeKey<T extends Record<string, unknown>>(
+  keys: readonly T[],
+  requiredScopes: readonly string[] = [],
+): T | undefined {
+  return keys.find((key) => {
+    const scopes = key.scopes;
+    return (
+      Array.isArray(scopes) &&
+      scopes.length > 0 &&
+      requiredScopes.every((scope) => scopes.includes(scope))
+    );
+  });
+}
+
 export async function runtimeSuite(
   name: string,
   run: (context: {
@@ -16,6 +31,7 @@ export async function runtimeSuite(
     workspaceId: string;
     tag: string;
   }) => Promise<void>,
+  options: { requiredScopes?: readonly string[] } = {},
 ): Promise<void> {
   const credentials = loadLiveCredentials();
   const harness = new LiveHarness();
@@ -33,9 +49,7 @@ export async function runtimeSuite(
     );
     const sourceKeys = await management.apiKeys.listService({ workspaceId: workspace.id });
     sourceKeys.data.forEach((key) => harness.protect(key));
-    const source = sourceKeys.data.find(
-      (key) => Array.isArray(key.scopes) && key.scopes.length > 0,
-    );
+    const source = selectRuntimeKey(sourceKeys.data, options.requiredScopes);
     assert(source, 'No established runtime service-key scopes in the requested workspace');
     const created = await management.apiKeys.createService(
       GatewayServiceApiKeyCreateRequestSchema.parse({
@@ -43,7 +57,7 @@ export async function runtimeSuite(
         workspace_id: workspace.id,
         name: tag,
         type: source.type,
-        scopes: source.scopes,
+        scopes: options.requiredScopes?.length ? [...options.requiredScopes] : source.scopes,
         expires_at: new Date(Date.now() + 60 * 60_000).toISOString(),
       }),
     );
