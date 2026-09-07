@@ -1,5 +1,17 @@
 # Release Notes
 
+## v0.27.0 (2026-09-07) — Red Team dashboard quota retrieval
+
+- Add `RedTeamClient.getQuotaSummary()` for the verified GET quota route, reusing OAuth,
+  configured endpoints and the existing forward-compatible quota schema.
+- Preserve the published OpenAPI POST `getQuota()` contract; neither method silently changes verbs.
+- Validate seven Red Team dashboard feeds, both quota hosts and complete scan pagination in
+  a read-only E2E workflow. Retain aggregate-only evidence and real SDK examples.
+- Support the CLI 5.1.0 Red Team environment dashboard. Unlimited zero allocation is not exhaustion;
+  server-default statistics are not relabeled as daily totals.
+
+See [dashboard feed evidence](../guides/red-team-api.md#dashboard-data-feeds--september-7-validation).
+
 ## v0.26.0 (2026-09-07) — SCM Runtime dashboard and session retrieval
 
 - Support all eleven supplied undocumented SCM dashboard/report routes, with raw feasibility methods and forward-compatible Zod-validated typed methods. Add application rankings/trends, identity pairs, session chart/inventory/detail, transaction metadata and explicit stored scan content.

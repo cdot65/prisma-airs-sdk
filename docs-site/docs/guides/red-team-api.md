@@ -14,8 +14,85 @@ legal acceptance and infrastructure provisioning are not part of unattended disp
 Custom prompt template downloads are CSV; uploads now include the `prompts.csv` filename.
 Request schemas validate documented UUIDs, language catalogs, enum values and size constraints
 before submission. Bounded benign custom jobs, reports, CSV round-trips, draft targets and adapters
-were exercised live. The tenant still returns 403 for quota and 500 for prompt-set version
-information; see the [validation report](../developer/openapi-conformance.md).
+were exercised live. Historical checks returned 403 for the documented **POST** quota operation
+and 500 for prompt-set version information; those failures remain in the
+[validation report](../developer/openapi-conformance.md). The newly verified **GET** quota route
+is covered separately below; a rejected POST does not establish that quota reads are unavailable.
+
+## Dashboard data feeds — September 7 validation
+
+The supplied Red Team dashboard requests use the existing OAuth `client_credentials` workflow.
+All seven response examples validate against existing SDK Zod schemas; six request methods
+were already implemented. The additive **SDK 0.27.0** `getQuotaSummary()` method issues
+`GET /v1/metering/quota`. `getQuota()` retains the POST operation from the published OpenAPI
+contract for compatibility. Neither method silently falls back to the other HTTP verb.
+
+| Feed | SDK method | Reporting use |
+| --- | --- | --- |
+| Management `/v1/dashboard/overview` | `getDashboardOverview()` | Target count and type distribution |
+| Data `/v1/dashboard/scan-statistics` | `getScanStatistics()` | Scan status, target coverage and risk distribution |
+| Management `/v1/target?skip=0&limit=15` | `targets.list({ skip: 0, limit: 15 })` | Current target configuration; paginate before claiming a full inventory |
+| Data `GET /v1/metering/quota` | `getQuotaSummary()` (new) | Static/dynamic/custom allocation and consumption |
+| Data `/v1/scan?skip=0&limit=15` | `scans.list({ skip: 0, limit: 15 })` | Scan inventory; distinguish queued, partial, failed and completed jobs |
+| Network broker `/v1/channels/stats` | `networkBroker.getChannelStats()` | Online versus configured channel counts |
+| Management `/v1/adapters?include_target_count=true` | `adapters.list({ include_target_count: true })` | Adapter configuration and target dependencies |
+
+The live verification uses the supplied `https://api.apps.paloaltonetworks.com/ai-red-teaming`
+host with separate `/mgmt-plane`, `/data-plane`, and `/data-plane/network-broker` bases.
+The new quota GET also succeeds on the SDK's existing `api.sase.paloaltonetworks.com` default
+data-plane base. No browser bearer token, cookie, Origin or Referer header is copied from curl.
+Existing endpoint defaults and credential configuration are unchanged.
+
+```ts
+const client = new RedTeamClient({ numRetries: 0 });
+const overview = await client.getDashboardOverview();
+const statistics = await client.getScanStatistics();
+const quota = await client.getQuotaSummary(); // Added in SDK 0.27.0
+const channels = await client.networkBroker.getChannelStats();
+```
+
+### Actual SDK verification output
+
+`scripts/e2e-redteam-dashboard.ts` passed **9/9** read-only checks at
+**2026-09-07T23:00:50.167Z**: the seven feeds, default-host quota GET, and a bounded scan-page
+walk. This is an allowlisted projection of live SDK responses, **not CLI stdout or a synthetic
+response**. Configuration, identities, scan text, credentials and raw errors are not retained.
+
+```json
+{
+  "overview": { "totalTargets": 8, "targetTypes": 3 },
+  "scanStatistics": { "totalScans": 19, "targetsScanned": 8, "statusGroups": 2, "riskGroups": 4 },
+  "targets": { "returned": 8, "total": 8 },
+  "quotaGet": {
+    "static": { "allocated": 0, "unlimited": true, "consumed": 0 },
+    "dynamic": { "allocated": 50, "unlimited": false, "consumed": 0 },
+    "custom": { "allocated": 50, "unlimited": false, "consumed": 5 }
+  },
+  "scans": { "returned": 15, "total": 23 },
+  "brokerStats": { "totalChannels": 7, "onlineChannels": 1 },
+  "adapters": { "returned": 3, "total": 3, "targetCountsPresent": true },
+  "quotaDefaultEndpoint": { "quotaTypes": 3 },
+  "scanPagination": { "pages": 2, "returned": 23, "total": 23, "complete": true }
+}
+```
+
+### Dashboard interpretation and CLI integration
+
+These calls do **not** establish a daily aggregate: the supplied statistics query has no explicit
+time filter, and configuration/quota/channel readings are current snapshots. The API's 19-scan
+statistics and 23-scan inventory are independent measurements; their difference has no verified
+cause yet and must not be silently reconciled. A first page of 15 is not the total of 23.
+
+An unlimited quota with zero allocated is not exhausted. One online channel out of seven
+configured channels warrants checking which channels are expected to run; it is not itself
+proof of six outages. Adapter `target_count` denotes dependencies, not unique tenant-wide
+target coverage. Keep target configuration details, connection information, job metadata,
+prompts, tokens and error strings out of a human deliverable unless explicitly requested.
+
+CLI 5.1.0 consumes these feeds in `airs redteam dashboard`, producing private HTML/Markdown
+deliverables with explicit source completeness and a local 24-hour scan-creation window.
+See the [CLI dashboard and actual command output](https://cdot65.github.io/prisma-airs-cli/cli/redteam/dashboard/).
+The existing `airs redteam report <jobId>` remains the individual scan report.
 
 :::tip[Complete inventories]
 Red Team `list()` methods return one native `skip`/`limit` page. Use the corresponding all-page

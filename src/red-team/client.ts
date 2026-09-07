@@ -265,7 +265,9 @@ export class RedTeamClient {
   }
 
   /**
-   * Get quota summary.
+   * Query quota using the POST operation in the published OpenAPI contract.
+   * @remarks For the observed read-only SCM dashboard route, use {@link getQuotaSummary}.
+   * Some deployments deny this POST while accepting GET; no automatic method fallback occurs.
    * @returns The quota summary.
    * @example
    * ```ts
@@ -280,6 +282,31 @@ export class RedTeamClient {
   async getQuota(): Promise<QuotaSummary> {
     return request({
       method: 'POST',
+      baseUrl: this.dataEndpoint,
+      path: RED_TEAM_QUOTA_PATH,
+      responseSchema: QuotaSummarySchema,
+      auth: this.auth,
+      numRetries: this.numRetries,
+    });
+  }
+
+  /**
+   * Read quota using the SCM dashboard's GET route on the configured data plane.
+   * @remarks Verified against the September 2026 dashboard workflow. This additive operation
+   * reuses the existing quota schema and OAuth transport without changing {@link getQuota}'s
+   * published POST contract. An unlimited quota with zero allocated is not exhausted.
+   * @returns Current static, dynamic and custom quota allocation and consumption.
+   * @example
+   * ```ts
+   * import { RedTeamClient } from '@cdot65/prisma-airs-sdk';
+   * const client = new RedTeamClient({ numRetries: 0 });
+   * const quota = await client.getQuotaSummary();
+   * console.log(quota.custom.consumed, quota.custom.allocated, quota.custom.unlimited);
+   * ```
+   */
+  async getQuotaSummary(): Promise<QuotaSummary> {
+    return request({
+      method: 'GET',
       baseUrl: this.dataEndpoint,
       path: RED_TEAM_QUOTA_PATH,
       responseSchema: QuotaSummarySchema,

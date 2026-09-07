@@ -269,6 +269,63 @@ describe('RedTeamClient', () => {
     });
   });
 
+  describe('getQuotaSummary', () => {
+    const quota = {
+      static: { allocated: 0, unlimited: true, consumed: 0 },
+      dynamic: { allocated: 50, unlimited: false, consumed: 0 },
+      custom: { allocated: 50, unlimited: false, consumed: 5 },
+    };
+
+    it('GETs the configured data-plane quota with OAuth and no body', async () => {
+      mockTwoFetches(quota);
+      const client = new RedTeamClient({
+        clientId: 'cid',
+        clientSecret: 'sec',
+        tsgId: '1',
+        numRetries: 0,
+        dataEndpoint: 'https://data.example.com/redteam',
+        mgmtEndpoint: 'https://mgmt.example.com/redteam',
+      });
+      expect(await client.getQuotaSummary()).toEqual(quota);
+      const calls = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls;
+      expect(calls).toHaveLength(2);
+      expect(calls[1][0]).toBe('https://data.example.com/redteam/v1/metering/quota');
+      expect(calls[1][1]).toMatchObject({
+        method: 'GET',
+        headers: { Authorization: 'Bearer tok' },
+      });
+      expect(calls[1][1].body).toBeUndefined();
+    });
+
+    it('preserves additive response fields and an unlimited zero allocation', async () => {
+      const body = { ...quota, static: { ...quota.static, next_reset: null }, extra: 'future' };
+      mockTwoFetches(body);
+      expect(await makeClient().getQuotaSummary()).toEqual(body);
+    });
+
+    it('validates the response using the existing quota schema', async () => {
+      mockTwoFetches({ ...quota, custom: { ...quota.custom, consumed: '5' } });
+      await expect(makeClient().getQuotaSummary()).rejects.toBeInstanceOf(AISecSDKException);
+    });
+
+    it('does not fall back to POST or refresh OAuth on an explicit policy denial', async () => {
+      globalThis.fetch = vi
+        .fn()
+        .mockResolvedValueOnce(
+          new Response(
+            JSON.stringify({ access_token: 'tok', token_type: 'bearer', expires_in: 3600 }),
+          ),
+        )
+        .mockResolvedValueOnce(
+          new Response('{}', { status: 403, headers: { 'x-opa-decision': 'false' } }),
+        );
+      await expect(makeClient().getQuotaSummary()).rejects.toMatchObject({ statusCode: 403 });
+      const calls = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls;
+      expect(calls).toHaveLength(2);
+      expect(calls[1][1].method).toBe('GET');
+    });
+  });
+
   describe('getErrorLogs', () => {
     it('GETs /v1/error-log/job/:jobId', async () => {
       mockTwoFetches({ pagination: { total_items: 0 }, data: [] });
