@@ -26,6 +26,7 @@ npm run docs:check     # verify every public symbol has example coverage (CI gat
 npm run docs:check:warn # same, exit 0 even on gaps
 npm run preflight      # frozen OpenAPI operation/field/validation contract gate (offline CI)
 npm run openapi:audit  # fresh local source audit; records specification hashes
+npm run openapi:acceptance # same audit, also requires >=99% operations per supplied source
 npm run preflight:legacy # historical component-name comparison (not a coverage measure)
 npm run preflight:warn # historical comparison, warning-only
 ```

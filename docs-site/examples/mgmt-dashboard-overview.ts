@@ -10,11 +10,13 @@ async function main() {
   const query = { timeInterval: 1, timeUnit: 'day', limit: 25, offset: 0 } as const;
   const raw: unknown = await client.dashboard.applicationsOverviewRaw(query);
   const parsed = DashboardApplicationsOverviewSchema.parse(raw);
-  console.log({ receivedItems: parsed.items.length, pagination: parsed.pagination });
+  console.log(
+    JSON.stringify({ receivedItems: parsed.items.length, pagination: parsed.pagination }),
+  );
 
   // Normal CLI/library consumers can use the typed method directly instead.
   const typed = await client.dashboard.applicationsOverview(query);
-  console.log({ typedItems: typed.items.length });
+  console.log(JSON.stringify({ typedItems: typed.items.length }));
 }
 
 main().catch(reportExampleError);

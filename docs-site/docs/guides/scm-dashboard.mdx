@@ -6,18 +6,34 @@ description: OAuth dashboard summaries and session-to-scan drill-down in SDK 0.2
 # SCM dashboard extensions
 
 These undocumented routes were verified with service-account OAuth on 2026-09-07 and are
-included in SDK **0.26.0**. CLI **5.0.0** exposes them through `runtime dashboard` and
+included in SDK **0.26.0**. CLI **5.0.1** exposes them through `runtime dashboard` and
 `runtime sessions`, and uses daily telemetry for `runtime report`. Use a dashboard-only host
 override; all other management resources retain their configured endpoint.
 
-:::warning Latest release validation
+:::info Latest installed milestone
+
+CLI **5.0.1**, using SDK **0.26.0**, passed its final globally installed live suite **8/8** at
+**19:32 UTC on 2026-09-07**. The workflow covered all eleven routes, 822 unique sessions across
+33 pages, all seven report sources, HTML/Markdown delivery, private debug output and no-clobber
+behavior. This does not promise uninterrupted service availability. A preceding candidate
+pagination failure remains documented with an unknown cause; its unchanged full rerun passed.
+See the [complete installed evidence](https://cdot65.github.io/prisma-airs-cli/runtime/daily-report/#validated-live-output).
+
+For session lists, CLI 5.0.1 accepts `hour`, `hours`, `day` and `days`. Unsupported `week` fails
+before authentication with a hint to use `--interval 7 --unit days`. The SDK's discovery options
+remain unchanged. The two actual SDK dashboard examples also have
+[separate source-bound live captures](./examples.mdx#scm-dashboard-executable-examples).
+
+:::
+
+:::warning Historical 5.0.0 availability failure
 
 SDK 0.26.0 and CLI 5.0.0 are published with passing regression, package-consumer and documentation
 checks. The earlier successful live captures below remain dated. At **18:15 UTC on 2026-09-07**,
 the full installed CLI suite returned **2 passed / 6 failed**: fresh OAuth requests timed out
 before HTTP, also reproduced with SDK 0.25.0 and curl from this environment. One dependent check
-could not complete because its Markdown artifact was not generated. This is not a passing latest
-live run or a claim that service availability has recovered. See the
+could not complete because its Markdown artifact was not generated. That run remains a failure,
+not reclassified by the later successful 5.0.1 run. See the
 [CLI live evidence](https://cdot65.github.io/prisma-airs-cli/runtime/daily-report/#validated-live-output).
 
 The strict-mode request within that suite did succeed with all seven sources complete and

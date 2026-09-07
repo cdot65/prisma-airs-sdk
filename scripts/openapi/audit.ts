@@ -8,6 +8,7 @@ import { queryConformance } from './query-conformance.js';
 import { gatewayInventory } from './gateway-inventory.js';
 import { gatewayDisposition, gatewayExperimental } from './gateway-status.js';
 import { compatibilityCorrections } from './compatibility.js';
+import { fullOperationAcceptance } from './acceptance.js';
 
 const domains = await inventory();
 const gateway = await gatewayInventory();
@@ -45,6 +46,7 @@ const report = {
   generatedAt: new Date().toISOString(),
   scope:
     'AIRS corrected operation contracts; Portkey exact-route typed fields only. Classification is not implementation coverage.',
+  fullOperationAcceptance: fullOperationAcceptance([...domains, gateway]),
   sources: domains.map((d) => ({
     plane: d.plane,
     file: d.file,
@@ -98,6 +100,7 @@ console.log(
 );
 if (
   report.sources.some((d) => d.implemented !== d.operations) ||
+  (process.argv.includes('--require-full-coverage') && !report.fullOperationAcceptance.passed) ||
   [requests, responses, gatewayRequests, gatewayResponses].some((r) => r.percentage < 99) ||
   [...positiveRequest, ...positiveResponse, ...negative, ...query].some((r) => !r.ok)
 )

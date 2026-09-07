@@ -59,6 +59,7 @@
     "preflight:legacy": "tsx scripts/preflight-schemas.ts",
     "openapi:check": "vitest run test/openapi",
     "openapi:audit": "tsx scripts/openapi/audit.ts",
+    "openapi:acceptance": "tsx scripts/openapi/audit.ts --require-full-coverage",
     "e2e:scan": "tsx scripts/e2e-scan.ts",
     "e2e:management": "tsx scripts/e2e-management.ts",
     "e2e:model-security": "tsx scripts/e2e-model-security.ts",

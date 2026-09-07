@@ -4,6 +4,10 @@
 
 Review checkpoint: September 7, 2026 UTC. Supersedes the [archived OAuth checkpoint](artifacts/assessments/2026-09-07T01-43-oauth.md); earlier findings and reports remain retained. Baseline SDK commit: `ecd87f265e6261dea01b675af3da7850c39d6235`.
 
+The resumed original-goal audit is recorded separately in
+[SDK-GOAL-AUDIT-2026-09-07.md](SDK-GOAL-AUDIT-2026-09-07.md). It distinguishes SDK 0.26.0 / CLI 5.0.1
+delivery from the still-unmet full Gateway target and retains fresh failing acceptance evidence.
+
 ## Outcome and acceptance
 
 **The entire requested scope is not complete.** AIRS contract coverage is 149/149 operations with 100% of measured request/response properties. Direct full-spec Portkey coverage is **137/242 (56.61%)**, not 99%. Passing source tests do not turn failed or unexecuted service workflows into certified integrations.

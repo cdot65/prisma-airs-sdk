@@ -1570,9 +1570,40 @@ Read-only discovery on existing owned traffic. Every filter requires both a know
 
 The independently source-hashed user/model/provider fixtures retain all declared upstream query names. The provider specification omits `trace_id`; verified SCM `traceId` is recorded as an SCM-only extension, not invented upstream coverage. This remains partial adaptation: direct gateway coverage stays **138/242**, and all 22 partial analytics operations and earlier failed workflows remain visible. See the [group contract](./ai-gateway-api.mdx#groupby-byuser-bystatuscode).
 
+## SCM dashboard executable examples
+
+The two new dashboard scripts were executed separately from the historical primary batch,
+against this source checkout: **2/2 passed** at **2026-09-07T20:44:15.796Z**.
+Each capture is bound to the exact example's SHA-256. OAuth credentials were loaded from the
+read-only CLI config; no browser bearer token, system DNS change, mutation or scan-content read
+was used. This is first-page discovery and one transaction drill-down, not an exhaustive inventory.
+The independently installed CLI's complete pagination/report evidence is linked in the
+[dashboard guide](./scm-dashboard.mdx).
+
+Actual JSON-line output from the runnable scripts (separate requests need not share a snapshot):
+
+### mgmt-dashboard-overview.ts
+
+```json
+{"receivedItems":6,"pagination":{"limit":25,"skip":0,"total_items":6}}
+{"typedItems":6}
+```
+
+### mgmt-dashboard-sessions.ts
+
+```json
+{"rankedApps":4,"trendBuckets":10,"sessionBuckets":10,"returnedApps":25,"sessionPageItems":25,"totalSessions":892}
+{"sessionActions":2,"transactionStatus":"passed","tokens":72}
+```
+
+
+Reproduce from the SDK checkout with `node --import tsx scripts/e2e-dashboard-examples.ts`.
+The runner bounds each process to 90 seconds, validates an explicit non-sensitive output shape,
+and preserves failed runs. Stored content requires a separate explicit opt-in and is not fetched here.
+
 ## Administration route availability
 
-The bounded GET-only revalidation finished at **2026-09-07T13:09:51.744Z**: **2 authentication controls passed; all 24 route probes failed with OPA-denied HTTP 403**. Both Prisma planes can read the designated dev workspace with the same credential source. The additional probes supply virtual-key pagination, preserve camel-case user/invitation pagination, and compare upstream admin prefixes with Prisma's verified workspace-prefix pattern. Neither path variant establishes a usable member-list contract.
+The bounded GET-only revalidation finished at **2026-09-07T20:34:56.105Z**: **2 authentication controls passed; all 24 route probes failed with OPA-denied HTTP 403**. Both Prisma planes can read the designated dev workspace with the same credential source. The additional probes supply virtual-key pagination, preserve camel-case user/invitation pagination, and compare upstream admin prefixes with Prisma's verified workspace-prefix pattern. Neither path variant establishes a usable member-list contract.
 
 These results do not prove the features are absent or that a permission change would enable them. [Palo Alto Networks documents SCM-managed access](https://docs.paloaltonetworks.com/ai-runtime-security/administration/configure-ai-gateway); it does not make these Portkey path hypotheses verified Prisma APIs. No users, invitations, memberships, SCIM mappings or keys were changed. Response bodies were cancelled without retaining member identities or secrets. Credentials remained unchanged.
 

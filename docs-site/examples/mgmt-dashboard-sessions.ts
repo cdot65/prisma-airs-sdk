@@ -13,14 +13,16 @@ async function main() {
   const chart = await mgmt.dashboard.sessionsChart(daily);
   const apps = await mgmt.dashboard.appsList();
   const page = await mgmt.dashboard.sessionsOverview({ ...daily, limit: 25, offset: 0 });
-  console.log({
-    rankedApps: top.applications.length,
-    trendBuckets: trend.violations.length,
-    sessionBuckets: chart.buckets.length,
-    returnedApps: apps.applications.length,
-    sessionPageItems: page.items.length,
-    totalSessions: page.pagination.total_items,
-  });
+  console.log(
+    JSON.stringify({
+      rankedApps: top.applications.length,
+      trendBuckets: trend.violations.length,
+      sessionBuckets: chart.buckets.length,
+      returnedApps: apps.applications.length,
+      sessionPageItems: page.items.length,
+      totalSessions: page.pagination.total_items,
+    }),
+  );
   const item = page.items[0];
   if (!item) return;
   const identity = {
@@ -33,14 +35,16 @@ async function main() {
   if (!action) return;
   const scan = { scanId: action.scan_id, scanSubReqId: action.scan_sub_req_id };
   const transaction = await mgmt.dashboard.sessionTransaction({ ...identity, ...scan });
-  console.log({
-    sessionActions: session.session_actions.length,
-    transactionStatus: transaction.status,
-    tokens: transaction.tokens,
-  });
+  console.log(
+    JSON.stringify({
+      sessionActions: session.session_actions.length,
+      transactionStatus: transaction.status,
+      tokens: transaction.tokens,
+    }),
+  );
   if (process.argv.includes('--include-content')) {
     const report = await mgmt.dashboard.scanContent(scan);
-    console.log({ contentAvailable: report.scan_contents !== null }); // Never print the content.
+    console.log(JSON.stringify({ contentAvailable: report.scan_contents !== null })); // Never print the content.
   }
 }
 

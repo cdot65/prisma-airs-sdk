@@ -4,7 +4,35 @@ title: OpenAPI conformance and live validation
 
 # OpenAPI conformance and live validation
 
-The latest verification-only checkout passes **11,349 tests in 146 files**, with **99.71% lines/statements, 100% functions and 96.67% branches**. Its 86 additional harness regressions cover versioned package preflight/history, secret-safe subprocess failures, bounded administration route plans and non-executing MCP metadata safeguards; the published 0.25.0 runtime is unchanged. The live inventory preserves **73 timestamped suites**, including separate registry CLI 4.4.0 runs and all previously recorded failures; these are workflow-check counts, not unique covered operations.
+## Current milestone and full-goal status
+
+SDK **0.26.0** and CLI **5.0.1** are published. The SDK release passed **11,541 tests in 148 files**;
+CLI 5.0.1 passed **1,375 regression tests** and its final globally installed live suite passed
+**8/8** at **2026-09-07 19:32 UTC**, including 822 sessions across 33 pages and all seven report
+sources. The earlier candidate pagination failure and intermittent OAuth failures remain in the
+[dated CLI assessment](https://github.com/cdot65/prisma-airs-cli/blob/main/RUNTIME-REPORT-RELEASE-ASSESSMENT-2026-09-07.md).
+These are milestone results, not certification of every product API. See the
+[SCM dashboard guide](../guides/scm-dashboard.mdx) and
+[installed report output](https://cdot65.github.io/prisma-airs-cli/runtime/daily-report/#validated-live-output).
+
+The fresh source audit at **2026-09-07T20:37:38.366Z** still finds **149/149 AIRS operations**,
+**791/791 request properties** and **3,242/3,242 response properties**, under the recorded compatibility
+corrections. Gateway remains **138/242 (57.02%) direct matches**. The new
+`npm run openapi:acceptance` command exits **1** for that shortfall: at least **240/242** matches
+are required for 99%, leaving **102 additional matches required**. It does not count a disposition,
+an adapted path or an authorization failure as a direct implementation. Passing this future
+contract gate would still not establish complete live workflow acceptance.
+
+The read-only availability rerun finished at **2026-09-07T20:34:56.105Z** with **2 passing SCM
+authentication controls and 24 HTTP 403 failures**, all explicitly OPA-denied. No credentials,
+IAM settings, gateway storage, provider or model were changed; no response bodies were retained.
+See [actual output](../guides/examples.mdx#administration-route-availability).
+The original full-project target remains unmet; its **5/10** assessment is not raised by another
+passing release or by this verification safeguard. All 242 operations remain in scope.
+
+## Historical verification checkpoints
+
+The earlier verification-only checkout passed **11,349 tests in 146 files**, with **99.71% lines/statements, 100% functions and 96.67% branches**. Its 86 additional harness regressions cover versioned package preflight/history, secret-safe subprocess failures, bounded administration route plans and non-executing MCP metadata safeguards; the published 0.25.0 runtime was unchanged. That live inventory preserved **73 timestamped suites**, including separate registry CLI 4.4.0 runs and all previously recorded failures; these are workflow-check counts, not unique covered operations.
 
 At **2026-09-07T13:43:30.660Z**, the MCP metadata suite records **18 pass / 2 fail**: prompt disable/re-enable works in SCM and runtime (6/5/6 visible prompts), but resource discovery fails required-name validation and runtime templates do not synchronize into SCM. Both hash-bound Gateway 2.20.0 replicas contain the corresponding response mapping and template pass-through. All metadata/public/synthetic fixtures pass the independent **23/23** retirement audit at **2026-09-07T13:45:12.107Z**. No tools, prompts or resource contents were executed/read, and no gateway policy/image was changed. See [actual output and field-level diagnostics](../guides/examples.mdx#mcp-prompt-resource-and-template-verification). This validates the prompt variant, not a resource lifecycle or another upstream operation.
 
@@ -132,6 +160,15 @@ npm run openapi:audit
 ```
 
 The audit fails for missing AIRS operations, property coverage below 99%, rejected valid variants, accepted invalid requests, or incorrect query values/serialization. Gateway field checks apply only to exact route matches, not to unimplemented APIs. Review every hash change and compatibility correction before regenerating frozen fixtures with the scripts under `scripts/openapi/`.
+
+For the original full-source operation target, use the same source variables with
+`npm run openapi:acceptance`. This additionally requires at least 99% direct operation matches
+in **each** of the seven AIRS source files and the complete Gateway document; missing, repeated
+or empty source inventories cannot pass. The regular audit also includes the explicit
+`fullOperationAcceptance` result but retains its implemented-subset exit policy for compatibility.
+Neither command certifies unavailable live workflows. No denominator or release CI gate was reduced.
+The originally supplied `prisma-airs-ai-redteam` directory is absent in this checkout;
+the actual upstream directory is `prisma-airs-redteam`, containing the three source-hashed Red Team files.
 
 ## Live validation and safety boundaries
 

@@ -6,6 +6,10 @@ import { emitPatch } from '../openapi/emit-patch.js';
 import { administrationReadProbes } from './administration-probes.js';
 import { mcpMetadataSection } from './generate-mcp-metadata-docs.js';
 import { runtimeDiagnosticSuites } from './report-suites.js';
+import {
+  dashboardExampleEvidence,
+  dashboardExamplesSection,
+} from './generate-dashboard-example-docs.js';
 
 interface ExampleResult {
   script: string;
@@ -66,6 +70,7 @@ const executableExamples = readdirSync(new URL('docs-site/examples/', root))
 assert.deepEqual(
   [
     ...report.output.map((item) => item.script),
+    ...dashboardExampleEvidence().capture.output.map((item: { script: string }) => item.script),
     ...(report.output.some((item) => item.script === 'gateway-realtime')
       ? []
       : ['gateway-realtime']),
@@ -661,7 +666,7 @@ ${fence(JSON.stringify(groupFilters.evidence, null, 2), 'json')}
 
 The independently source-hashed user/model/provider fixtures retain all declared upstream query names. The provider specification omits \`trace_id\`; verified SCM \`traceId\` is recorded as an SCM-only extension, not invented upstream coverage. This remains partial adaptation: direct gateway coverage stays **138/242**, and all 22 partial analytics operations and earlier failed workflows remain visible. See the [group contract](./ai-gateway-api.mdx#groupby-byuser-bystatuscode).
 
-${administrationSection()}${mcpMetadataSection()}## AI Gateway inference output
+${dashboardExamplesSection()}${administrationSection()}${mcpMetadataSection()}## AI Gateway inference output
 
 ### Runtime feedback and log ingestion
 

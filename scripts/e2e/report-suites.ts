@@ -67,6 +67,7 @@ export const liveReportSuites = [
   'cli-analytics-v4.4.0',
   'cli-v4.4.0',
   'doc-examples',
+  'dashboard-examples',
   'doc-gateway-key',
   'recover-interrupted',
   'dlp-recovery',
