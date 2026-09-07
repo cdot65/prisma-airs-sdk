@@ -308,6 +308,18 @@ try {
         for (const value of [releaseEvidence.capturedAt, '10/10', '8/8', '137/242 (56.61%)'])
           assert(text.includes(value), 'Published-package evidence is stale or incomplete');
         await assertCapturedJson(releaseEvidence.chat);
+        const usageEvidence = JSON.parse(
+          readFileSync(
+            new URL('../artifacts/e2e/gateway-usage-reset-observations.json', import.meta.url),
+            'utf8',
+          ),
+        );
+        assert.equal(usageEvidence.passed, true);
+        assert(text.includes(usageEvidence.finishedAt), 'Usage-reset capture is stale');
+        await assertCapturedJson({
+          counterBefore: usageEvidence.counterBefore,
+          counterAfter: usageEvidence.counterAfter,
+        });
         await page.screenshot({ path: `${directory}published-package-examples.png` });
       });
     }

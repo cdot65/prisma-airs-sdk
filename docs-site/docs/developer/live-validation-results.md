@@ -21,6 +21,8 @@ These timestamped reports include pre-release candidate checks and subsequent re
 | gateway-analytics-filters | 4 | 1 | 0 | 5 | 2026-09-06 21:09:03.183Z |
 | gateway-analytics-request-filters | 3 | 0 | 0 | 3 | 2026-09-06 21:21:10.314Z |
 | gateway-extensions | 42 | 3 | 2 | 47 | 2026-09-06 16:40:33.284Z |
+| gateway-usage-reset | 8 | 0 | 0 | 8 | 2026-09-07 03:39:07.317Z |
+| gateway-usage-reset-audit | 2 | 0 | 0 | 2 | 2026-09-07 03:39:59.498Z |
 | gateway-owned-writes | 26 | 1 | 0 | 27 | 2026-09-06 13:58:07.890Z |
 | gateway-secret-references | 7 | 0 | 0 | 7 | 2026-09-06 19:40:18.695Z |
 | gateway-model-pricing | 3 | 0 | 0 | 3 | 2026-09-07 00:34:56.061Z |
@@ -197,7 +199,7 @@ The host's default Node DNS lookup failed for the gateway while IPv4 resolution 
 
 On September 7, the workspace resolver additionally failed ordinary service-host lookups and the configured primary split-DNS server refused gateway queries. The secondary split-DNS resolver supplied the existing LAN ingress address; an exact HTTPS route read and a keyless 401 verified the same gateway boundary. Current reruns use the opt-in `service-dns-bootstrap.mjs` for fully qualified service lookups and an explicitly verified gateway address. The request URL/SNI and certificate checks remain unchanged; no system DNS, ingress or service configuration is modified. The public WAN address timed out from this workspace, so these LAN-path results are not external-WAN reachability certification. The separate `artifacts/e2e/network-preflight.json` records verification and infrastructure hashes.
 
-Some dependent operations have no runnable prerequisite and are not in the executed-check denominator: export cancellation/download after failed export start, capability updates without a discovered owned tool, and resets without an owned traffic entity. The gateway ledger marks these explicitly. No acceptance of legal terms, IAM/organisation-authentication changes, instance provisioning, interactive Copilot authorization, or mutation/rotation of existing credentials was performed. Network-broker draft creation and get succeeded, but update returned HTTP 403, including when both name and description were supplied. Three owned drafts remain disconnected and journaled; repeat runs reuse a draft rather than create additional records.
+Some dependent operations have no runnable prerequisite and are not in the executed-check denominator: export cancellation/download after failed export start and capability updates without a discovered owned tool. Usage-policy reset was subsequently verified with an isolated traffic-derived entity; the earlier extension-suite skip remains historical evidence, while the separate usage-reset and retirement-audit suites record the completed workflow. See [published-package and post-release examples](../guides/release-verification.md). The gateway ledger retains version-specific experimental annotations. No acceptance of legal terms, IAM/organisation-authentication changes, instance provisioning, interactive Copilot authorization, or mutation/rotation of existing credentials was performed. Network-broker draft creation and get succeeded, but update returned HTTP 403, including when both name and description were supplied. Three owned drafts remain disconnected and journaled; repeat runs reuse a draft rather than create additional records.
 
 ## Cleanup and retained footprint
 

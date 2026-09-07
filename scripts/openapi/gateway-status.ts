@@ -34,7 +34,7 @@ export const gatewayExperimental: Record<string, string> = {
   'mcpServers.updateCapabilities':
     'No discovered tool was available on the owned server; contract-tested only.',
   'usageLimits.resetEntity':
-    'No traffic-derived entity existed on the isolated policy; existing counters were not reset.',
+    'Post-release owned traffic/reset lifecycle passes 8/8 with an independent 2/2 retirement audit (2026-09-07). This supersedes the earlier missing-entity prerequisite. SDK 0.21.0 still labels the method experimental; its published stability guarantee is unchanged.',
   'logExports.start':
     'SCM returned HTTP 500 (AB04) for an isolated export; successful execution is unverified.',
   'logExports.cancel': 'No running owned export was available; contract-tested only.',
