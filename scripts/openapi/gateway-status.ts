@@ -1,5 +1,7 @@
 /** @internal Verification is deliberately separate from upstream operation coverage. */
 export const gatewayExperimental: Record<string, string> = {
+  'inference.connectRealtime':
+    'Explicit caller-owned WebSocket adapter, bounded JSON events and deterministic cancellation. The prescribed-model live probe upgrades with HTTP 101, then receives invalid_model before session readiness. A successful provider session/generation remains unverified; an upgrade is not a successful realtime workflow.',
   'inference.updateFeedback':
     'Confirmed runtime handler; owned-record PUT returns HTTP 500 because feedback lookup requires uninitialized ClickHouse in control-plane storage mode. Typed contracts are experimental, not a successful live update.',
   'inference.getLog':

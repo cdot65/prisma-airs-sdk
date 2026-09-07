@@ -1,6 +1,6 @@
 {
   "name": "@cdot65/prisma-airs-sdk",
-  "version": "0.21.0",
+  "version": "0.22.0",
   "description": "TypeScript SDK for Palo Alto Networks Prisma AIRS — scanning, management, model security, red teaming, and AI Gateway APIs",
   "author": "Calvin Remsburg <cremsburg.dev@gmail.com>",
   "license": "MIT",
@@ -78,6 +78,7 @@
     "@apidevtools/swagger-parser": "^12.1.0",
     "@modelcontextprotocol/sdk": "1.30.0",
     "@types/node": "^25.3.3",
+    "@types/ws": "8.18.1",
     "@typescript-eslint/eslint-plugin": "^8.18.2",
     "@typescript-eslint/parser": "^8.18.2",
     "@vitest/coverage-v8": "^3.2.4",
@@ -90,6 +91,7 @@
     "typedoc-plugin-markdown": "^4.11.0",
     "typescript": "^5.3.3",
     "vitest": "^3.0.0",
+    "ws": "8.21.3",
     "yaml": "^2.9.0",
     "zod-to-json-schema": "^3.25.2"
   }

@@ -1,0 +1,143 @@
+{
+  "source": "ai-gateway-openapi/openapi.yaml",
+  "sha256": "de7a1bd98bdb2edb7428a33054d9f6000b9568d1cd5b603d1a8302c053d094d9",
+  "method": "GET",
+  "path": "/realtime",
+  "operationId": "connectRealtime",
+  "tags": ["Realtime"],
+  "summary": "Realtime",
+  "description": "Connect to the Realtime API endpoint.",
+  "parameters": [
+    {
+      "in": "header",
+      "name": "x-portkey-trace-id",
+      "schema": {
+        "type": "string"
+      },
+      "description": "An ID you can pass to refer to one or more requests later on. If not provided, Portkey generates a trace ID automatically for each request. [Docs](https://portkey.ai/docs/product/observability/traces)",
+      "required": false
+    },
+    {
+      "in": "header",
+      "name": "x-portkey-span-id",
+      "schema": {
+        "type": "string"
+      },
+      "description": "An ID you can pass to refer to a span under a trace.",
+      "required": false
+    },
+    {
+      "in": "header",
+      "name": "x-portkey-parent-span-id",
+      "schema": {
+        "type": "string"
+      },
+      "description": "Link a child span to a parent span",
+      "required": false
+    },
+    {
+      "in": "header",
+      "name": "x-portkey-span-name",
+      "schema": {
+        "type": "string"
+      },
+      "description": "Name for the Span ID",
+      "required": false
+    },
+    {
+      "in": "header",
+      "name": "x-portkey-metadata",
+      "schema": {
+        "type": "object"
+      },
+      "description": "Pass any arbitrary metadata along with your request",
+      "required": false
+    },
+    {
+      "in": "header",
+      "name": "x-portkey-cache-namespace",
+      "schema": {
+        "type": "string"
+      },
+      "description": "Partition your Portkey cache store based on custom strings, ignoring metadata and other headers"
+    },
+    {
+      "in": "header",
+      "name": "x-portkey-cache-force-refresh",
+      "schema": {
+        "type": "boolean"
+      },
+      "description": "Forces a cache refresh for your request by making a new API call and storing the updated value"
+    },
+    {
+      "name": "model",
+      "in": "query",
+      "required": false,
+      "schema": {
+        "type": "string"
+      },
+      "description": "Often required for OpenAI-style realtime; other query params pass through unchanged."
+    }
+  ],
+  "responses": {
+    "101": {
+      "description": "WebSocket upgrade."
+    },
+    "default": {
+      "description": "Error"
+    }
+  },
+  "security": [
+    {
+      "Portkey-Key": [],
+      "Virtual-Key": []
+    },
+    {
+      "Portkey-Key": [],
+      "Provider-Auth": [],
+      "Provider-Name": []
+    },
+    {
+      "Portkey-Key": [],
+      "Config": []
+    },
+    {
+      "Portkey-Key": [],
+      "Provider-Auth": [],
+      "Provider-Name": [],
+      "Custom-Host": []
+    }
+  ],
+  "x-code-samples": [
+    {
+      "lang": "cURL",
+      "label": "Default",
+      "source": "curl -sS -D - -o /dev/null \\\n  -H \"x-portkey-api-key: $PORTKEY_API_KEY\" \\\n  -H \"x-portkey-virtual-key: $PORTKEY_PROVIDER_VIRTUAL_KEY\" \\\n  \"https://api.portkey.ai/v1/realtime?model=gpt-4o-realtime-preview\"\n"
+    },
+    {
+      "lang": "cURL",
+      "label": "Self-Hosted",
+      "source": "curl -sS -D - -o /dev/null \\\n  -H \"x-portkey-api-key: $PORTKEY_API_KEY\" \\\n  -H \"x-portkey-virtual-key: $PORTKEY_PROVIDER_VIRTUAL_KEY\" \\\n  \"SELF_HOSTED_GATEWAY_URL/realtime?model=gpt-4o-realtime-preview\"\n"
+    },
+    {
+      "lang": "javascript",
+      "label": "Default",
+      "source": "import WebSocket from 'ws';\n\nconst ws = new WebSocket(\n  'wss://api.portkey.ai/v1/realtime?model=gpt-4o-realtime-preview',\n  {\n    headers: {\n      'x-portkey-api-key': process.env.PORTKEY_API_KEY,\n      'x-portkey-virtual-key': process.env.PORTKEY_PROVIDER_VIRTUAL_KEY,\n    },\n  }\n);\n"
+    },
+    {
+      "lang": "javascript",
+      "label": "Self-Hosted",
+      "source": "import WebSocket from 'ws';\n\nconst u = new URL(process.env.SELF_HOSTED_GATEWAY_URL);\nu.protocol = u.protocol === 'https:' ? 'wss:' : 'ws:';\nu.pathname = `${u.pathname.replace(/\\/$/, '')}/realtime`;\nu.searchParams.set('model', 'gpt-4o-realtime-preview');\nnew WebSocket(u.toString(), {\n  headers: {\n    'x-portkey-api-key': process.env.PORTKEY_API_KEY,\n    'x-portkey-virtual-key': process.env.PORTKEY_PROVIDER_VIRTUAL_KEY,\n  },\n});\n"
+    },
+    {
+      "lang": "python",
+      "label": "Default",
+      "source": "import os\nimport asyncio\nimport websockets\n\nasync def main():\n    uri = \"wss://api.portkey.ai/v1/realtime?model=gpt-4o-realtime-preview\"\n    headers = {\n        \"x-portkey-api-key\": os.environ[\"PORTKEY_API_KEY\"],\n        \"x-portkey-virtual-key\": os.environ[\"PORTKEY_PROVIDER_VIRTUAL_KEY\"],\n    }\n    async with websockets.connect(uri, extra_headers=headers):\n        pass\n\nasyncio.run(main())\n"
+    },
+    {
+      "lang": "python",
+      "label": "Self-Hosted",
+      "source": "import os\nimport asyncio\nfrom urllib.parse import urlparse, urlunparse\nimport websockets\n\nasync def main():\n    p = urlparse(os.environ[\"SELF_HOSTED_GATEWAY_URL\"])\n    scheme = \"wss\" if p.scheme == \"https\" else \"ws\"\n    path = p.path.rstrip(\"/\") + \"/realtime\"\n    uri = urlunparse((scheme, p.netloc, path, \"\", \"model=gpt-4o-realtime-preview\", \"\"))\n    headers = {\n        \"x-portkey-api-key\": os.environ[\"PORTKEY_API_KEY\"],\n        \"x-portkey-virtual-key\": os.environ[\"PORTKEY_PROVIDER_VIRTUAL_KEY\"],\n    }\n    async with websockets.connect(uri, extra_headers=headers):\n        pass\n\nasyncio.run(main())\n"
+    }
+  ]
+}

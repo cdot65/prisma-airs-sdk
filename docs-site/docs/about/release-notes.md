@@ -1,5 +1,14 @@
 # Release Notes
 
+## v0.22.0 (2026-09-07) — Experimental realtime transport
+
+- Add `AIGatewayInferenceClient.connectRealtime()` with an explicit caller-owned Node WebSocket adapter. No new production dependency; runtime keys and SCM OAuth remain separate.
+- Bound handshake/session waits, message size, incoming/outgoing queues and socket cleanup. Validate before authentication, preserve additive JSON events, disable redirects/compression/retries, and distinguish HTTP upgrade from provider readiness.
+- Add a separately frozen OpenAPI upgrade fixture and real loopback WebSocket tests, including credential-safe redirect rejection. Retain the required model and actual failed live result: HTTP 101 followed by `invalid_model`, with no generation sent.
+- Update the [runnable examples](../guides/examples.mdx) with the typed SDK result, separately executed example output and independent temporary-key retirement audit. Improve test-key selection so an MCP-only key cannot be chosen for inference checks.
+
+Direct AI Gateway contract coverage is now **138/242 (57.02%)**, with **29 experimental methods**. AIRS remains **149/149**; this release does not certify 99% of all gateway APIs or fix existing service/model/entitlement failures. See the [experimental realtime guide](../guides/ai-gateway-inference.md#experimental-realtime-websocket) for dependency, auth, limits and cancellation requirements.
+
 ## v0.21.0 (2026-09-07) — AI Gateway runtime and SDK conformance
 
 - Add separately authenticated AI Gateway chat, Responses and embeddings, cancellable SSE, native multipart/binary resources, public model pricing, secret-reference CRUD and runtime observability. Keep SCM OAuth and runtime API keys separate.

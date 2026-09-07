@@ -85,6 +85,6 @@ describe('pinned operation inventory', () => {
       );
       expect(gatewayDisposition(op.method, op.path, direct).status).toBe(op.status);
     }
-    expect(gateway.operations.filter((o) => o.status === 'direct-contract')).toHaveLength(137);
+    expect(gateway.operations.filter((o) => o.status === 'direct-contract')).toHaveLength(138);
   });
 });

@@ -67,7 +67,7 @@ async function run(script: string, mode: 'mock' | 'live', env: NodeJS.ProcessEnv
       [
         '--import',
         'tsx',
-        ...(script === 'gateway-inference'
+        ...(script === 'gateway-inference' || script === 'gateway-realtime'
           ? [
               '--import',
               fileURLToPath(new URL('./e2e/gateway-child-bootstrap.mjs', import.meta.url)),
@@ -183,6 +183,11 @@ try {
     await run(script, 'live');
   await runtimeSuite('doc-gateway-key', async ({ apiKey, endpoint }) => {
     await run('gateway-inference', 'live', {
+      ...process.env,
+      PANW_AI_GW_INFERENCE_ENDPOINT: endpoint,
+      PANW_AI_GW_INFERENCE_API_KEY: apiKey,
+    });
+    await run('gateway-realtime', 'live', {
       ...process.env,
       PANW_AI_GW_INFERENCE_ENDPOINT: endpoint,
       PANW_AI_GW_INFERENCE_API_KEY: apiKey,

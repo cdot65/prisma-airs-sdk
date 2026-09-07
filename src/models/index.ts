@@ -8,6 +8,7 @@ export {
 } from './enums.js';
 export * from './ai-gateway-extensions.js';
 export * from './ai-gateway-model-pricing.js';
+export * from './ai-gateway-realtime.js';
 export type {
   Verdict as VerdictType,
   Action as ActionType,

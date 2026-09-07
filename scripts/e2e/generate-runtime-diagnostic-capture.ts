@@ -106,6 +106,40 @@ const evidence = runtimeDiagnosticSuites.map((suite) => {
     assert.equal(report.failed, 1);
     assert.equal(report.total, 4);
   }
+  if (suite === 'gateway-realtime-sdk') {
+    const observation = JSON.parse(
+      readFileSync(
+        new URL('../../artifacts/e2e/gateway-realtime-sdk-observations.json', import.meta.url),
+        'utf8',
+      ),
+    ) as Record<string, unknown>;
+    assert.equal(observation.finishedAt, report.finishedAt);
+    transport = Object.fromEntries(
+      [
+        'statusCode',
+        'sessionCreated',
+        'socketClosed',
+        'eventTypes',
+        'clientEventsSent',
+        'errorCode',
+      ].map((key) => [key, observation[key]]),
+    );
+    assert.deepEqual(
+      transport,
+      {
+        statusCode: 101,
+        sessionCreated: false,
+        socketClosed: true,
+        eventTypes: ['error'],
+        clientEventsSent: 0,
+        errorCode: 'invalid_model',
+      },
+      'Review typed realtime prose if the provider result changes',
+    );
+    assert.equal(report.passed, 4);
+    assert.equal(report.failed, 1);
+    assert.equal(report.total, 5);
+  }
   return {
     suite,
     finishedAt: report.finishedAt,
@@ -116,7 +150,7 @@ const evidence = runtimeDiagnosticSuites.map((suite) => {
     ...(transport ? { transport } : {}),
     results: report.results.map(({ name, status, statusCode }) => {
       assert(
-        /^(observability-details\.|observability-sdk\.|legacy-completions\.|prompt-runtime\.|realtime\.|runtime-authoring\.|provider-http\.|deployment-diagnostics\.|cleanup\.runtime-key\.retired)[a-z0-9.-]*$/.test(
+        /^(observability-details\.|observability-sdk\.|legacy-completions\.|prompt-runtime\.|realtime\.|realtime-sdk\.|runtime-authoring\.|provider-http\.|deployment-diagnostics\.|cleanup\.realtime-sdk\.|cleanup\.runtime-key\.retired)[a-z0-9.-]*$/.test(
           name,
         ),
       );

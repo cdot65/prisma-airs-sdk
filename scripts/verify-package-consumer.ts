@@ -6,6 +6,9 @@ import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
+import WebSocket, { WebSocketServer } from 'ws';
+import { once } from 'node:events';
+import type { AIGatewayInferenceClient } from '../src/index.js';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
 assert(process.argv[2], 'Pass the installed package root, not a source checkout');
@@ -165,6 +168,47 @@ async function verifyOAuthDeadline(module: Record<string, unknown>): Promise<voi
 }
 for (const module of [esm, cjs]) {
   await verifyOAuthDeadline(module);
+  const RealtimeClient = module.AIGatewayInferenceClient as typeof AIGatewayInferenceClient;
+  const server = new WebSocketServer({ port: 0, host: '127.0.0.1', perMessageDeflate: false });
+  await once(server, 'listening');
+  const address = server.address();
+  assert(address && typeof address !== 'string');
+  let verifiedUpgrade = false;
+  server.on('connection', (socket, request) => {
+    verifiedUpgrade =
+      request.url === '/v1/realtime?model=%40openai%2Fgpt-5.6-terra' &&
+      request.headers['x-portkey-api-key'] === 'offline-runtime-key' &&
+      request.headers.authorization === undefined;
+    socket.send(JSON.stringify({ type: 'session.created', session: { id: 'offline-session' } }));
+    socket.on('message', (data) =>
+      socket.send(JSON.stringify({ type: 'session.updated', echoed: JSON.parse(String(data)) })),
+    );
+  });
+  try {
+    const realtime = await new RealtimeClient({
+      endpoint: `http://127.0.0.1:${address.port}/v1`,
+      apiKey: 'offline-runtime-key',
+    }).connectRealtime(
+      { model: '@openai/gpt-5.6-terra' },
+      { timeoutMs: 3000, webSocketFactory: (url, options) => new WebSocket(url, options) },
+    );
+    try {
+      assert(verifiedUpgrade);
+      assert.equal((await realtime.next()).value.type, 'session.created');
+      realtime.send({
+        type: 'session.update',
+        session: { instructions: 'Synthetic loopback only' },
+      });
+      assert.equal((await realtime.next()).value.type, 'session.updated');
+    } finally {
+      await realtime.cancel();
+    }
+  } finally {
+    for (const socket of server.clients) socket.terminate();
+    await new Promise<void>((resolve, reject) =>
+      server.close((error) => (error ? reject(error) : resolve())),
+    );
+  }
   const Pricing = module.AIGatewayModelPricingClient as new (options: object) => {
     get(provider: string, model: string): Promise<unknown>;
   };
@@ -520,6 +564,7 @@ const report = {
   publicPricingNoAuthAndTypesPassed: true,
   oauthDeadlineAndRecoveryPassed: true,
   observabilityDetailsContractsPassed: true,
+  realtimeNativeWebSocketBothFormatsPassed: true,
   passed: true,
 };
 mkdirSync(resolve(root, 'artifacts/package'), { recursive: true });

@@ -2,7 +2,7 @@
   "source": "ai-gateway-openapi/openapi.yaml",
   "sha256": "de7a1bd98bdb2edb7428a33054d9f6000b9568d1cd5b603d1a8302c053d094d9",
   "total": 242,
-  "directOperations": 137,
+  "directOperations": 138,
   "requests": {
     "modeled": 1358,
     "total": 1358,
@@ -16,6 +16,7 @@
     "missing": []
   },
   "experimental": {
+    "inference.connectRealtime": "Explicit caller-owned WebSocket adapter, bounded JSON events and deterministic cancellation. The prescribed-model live probe upgrades with HTTP 101, then receives invalid_model before session readiness. A successful provider session/generation remains unverified; an upgrade is not a successful realtime workflow.",
     "inference.updateFeedback": "Confirmed runtime handler; owned-record PUT returns HTTP 500 because feedback lookup requires uninitialized ClickHouse in control-plane storage mode. Typed contracts are experimental, not a successful live update.",
     "inference.getLog": "Confirmed runtime handler; owned-log reads return HTTP 500 because the deployed handler has no control-plane storage branch. Typed contracts and v2 timestamp validation are experimental, not successful live retrieval.",
     "inference.createCompletion": "Deployed route confirmed; prescribed-model legacy completion returns HTTP 404. Typed JSON/SSE contracts are experimental, not live certification.",
@@ -63,9 +64,14 @@
       "method": "GET",
       "path": "/realtime",
       "operationId": "connectRealtime",
-      "status": "runtime-unimplemented",
-      "reason": "Realtime is not implemented. A bounded live WebSocket probe completed HTTP 101, then received invalid_model before session creation with the prescribed model. Same-key authentication and socket/key cleanup passed. No alternate model or successful realtime lifecycle is claimed.",
-      "implementations": []
+      "status": "direct-contract",
+      "reason": "SDK route exists. Typed field coverage does not imply successful live execution; consult the method verification table.",
+      "implementations": [
+        {
+          "source": "src/ai-gateway/inference-client.ts",
+          "member": "connectRealtime"
+        }
+      ]
     },
     {
       "method": "POST",

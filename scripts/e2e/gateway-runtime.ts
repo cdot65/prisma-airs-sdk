@@ -9,7 +9,7 @@ import { gatewayIpv4Lookup } from './gateway-network.js';
 /** Select established permissions without granting any new workspace scope. */
 export function selectRuntimeKey<T extends Record<string, unknown>>(
   keys: readonly T[],
-  requiredScopes: readonly string[] = [],
+  requiredScopes: readonly string[] = ['completions.write'],
 ): T | undefined {
   return keys.find((key) => {
     const scopes = key.scopes;

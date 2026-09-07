@@ -228,6 +228,16 @@ try {
         ),
       );
       await assertCapturedJson(runtimeDiagnostics);
+      const realtimeExample = JSON.parse(
+        readFileSync(
+          new URL('../artifacts/examples/gateway-realtime.json', import.meta.url),
+          'utf8',
+        ),
+      );
+      await assertCapturedJson(realtimeExample);
+      assert(
+        text.includes(realtimeExample.finishedAt) && text.includes('inference.connectRealtime()'),
+      );
       assert(text.includes('inference.getLog()') && text.includes('inference.updateFeedback()'));
       assert(
         text.includes(deploymentEvidence.checkedAt),
@@ -305,7 +315,7 @@ try {
         });
         assert.equal(response.status(), 200);
         const text = await page.$eval('main', (element) => element.innerText);
-        for (const value of [releaseEvidence.capturedAt, '10/10', '8/8', '137/242 (56.61%)'])
+        for (const value of [releaseEvidence.capturedAt, '10/10', '8/8', '138/242 (57.02%)'])
           assert(text.includes(value), 'Published-package evidence is stale or incomplete');
         await assertCapturedJson(releaseEvidence.chat);
         const usageEvidence = JSON.parse(

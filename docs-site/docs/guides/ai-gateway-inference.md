@@ -220,7 +220,7 @@ HTTP 500, followed by two failed assertions that the batch and file had been can
 are three failing checks of one unsuccessful cancellation workflow, not three independent API
 defects. The owned parent store and both files were removed afterward. Unverified methods are
 not release-ready claims. Nine additional provider HTTP methods are experimental as described below.
-WebSocket realtime remains a runtime gap. Legacy completions and prompt completion/rendering are now experimental, as described below. Consult the full [operation ledger](../developer/gateway-coverage.md);
+WebSocket realtime, legacy completions and prompt completion/rendering are experimental, as described below. Consult the full [operation ledger](../developer/gateway-coverage.md);
 implemented-route field coverage is not 99% coverage of all 242 Portkey operations.
 
 ### Experimental provider HTTP methods
@@ -285,17 +285,50 @@ E2E_GATEWAY_IPV4_ONLY=1 npx tsx scripts/e2e-gateway-prompt-runtime.ts --writes
 E2E_GATEWAY_IPV4_ONLY=1 npx tsx scripts/e2e-gateway-prompt-runtime.ts --writes --sdk
 ```
 
-### Realtime discovery: model rejection after upgrade
+### Experimental realtime WebSocket
 
 The bounded realtime probe completed a valid HTTP 101 WebSocket upgrade, then received an `error` event with code `invalid_model` before a session was created. It used only `@openai/gpt-5.6-terra`; no alternative model, audio, client event or generation request was sent. Same-key model lookup, socket closure and temporary-key retirement passed (3 passes / 1 failed session workflow). The [examples page](./examples.mdx#latest-runtime-diagnostics-failures-remain-visible) contains the actual sanitized transport observation.
 
-The test-only probe uses the isolated browser-verification installation of `ws@8.21.3`; it fails before provisioning a key if that prerequisite is absent or changed. TLS remains enabled, redirects/compression/retries are disabled, and the probe bounds handshake time, message size, event count and cleanup. The SDK package gains no WebSocket dependency and no realtime method from this diagnostic.
+SDK 0.22.0 adds experimental `connectRealtime()` on the explicit runtime client. The typed live run at **2026-09-07T06:04:42.282Z** passes four controls, including HTTP 101, but fails provider-session creation with the same `invalid_model`. Its actual runnable example also fails, as shown on the examples page. A model catalog entry does not imply realtime compatibility.
+
+The Node-only API requires an explicit caller-owned WebSocket factory. Install `ws` in your application (and `@types/ws` for TypeScript); the SDK itself still has only Zod as a production dependency. Browser-native WebSocket cannot attach this server-side runtime key: never put a service key into a browser or a query-string workaround.
+
+```typescript
+import { AIGatewayInferenceClient } from '@cdot65/prisma-airs-sdk';
+import WebSocket from 'ws';
+
+const inference = new AIGatewayInferenceClient(); // explicit runtime endpoint/key via environment
+const connection = await inference.connectRealtime(
+  { model: '@openai/gpt-5.6-terra' },
+  {
+    timeoutMs: 15_000,
+    maxBufferedEvents: 16,
+    headers: { 'x-portkey-provider': '@openai' },
+    webSocketFactory: (url, options) => new WebSocket(url, options),
+  },
+);
+try {
+  for await (const event of connection) {
+    if (event.type === 'error') throw new Error('Provider rejected the session');
+    if (event.type === 'session.created') break;
+  }
+} finally {
+  await connection.cancel();
+}
+```
+
+Resolving `connectRealtime()` verifies the HTTP upgrade, not provider readiness. Provider JSON `error` events remain data because some are recoverable; applications decide whether to continue. `send()` validates and queues a finite JSON event without replay or delivery guarantees. The upstream OpenAPI does not declare the provider event catalog, so the SDK preserves additive event fields rather than promising every audio/event variant is supported.
+
+TLS verification stays enabled; redirects, compression and reconnect/retries are disabled. The default overall deadline is 60 seconds, with a 15-second handshake cap. Defaults bound each event to 1 MiB, queued events to 256, and incoming/outgoing buffering to 4 MiB; all are explicitly configurable. Breaking iteration or calling `cancel()` closes the socket; an abort signal or deadline also terminates it. Cleanup is bounded and reports unconfirmed closure instead of silently claiming success. The reviewed adapter must honor the supplied options. Native `ws` loopback tests verify actual frames, header preservation, HTTP 101 and redirect rejection against a separately frozen source contract.
 
 ```bash
 E2E_GATEWAY_IPV4_ONLY=1 npx tsx scripts/e2e-gateway-realtime.ts --writes
+E2E_GATEWAY_IPV4_ONLY=1 npx tsx scripts/e2e-gateway-realtime-sdk.ts --writes
+E2E_GATEWAY_IPV4_ONLY=1 npx tsx scripts/e2e-gateway-realtime-example.ts --writes
+npx tsx scripts/e2e-gateway-realtime-audit.ts
 ```
 
-[Official OpenAI documentation](https://developers.openai.com/api/docs/guides/realtime-websocket) describes WebSocket authentication and JSON events, but does not certify this deployment's model compatibility. Both deployed gateway replicas register the route and remove the provider prefix before forwarding. Their upstream-open promise has no error/close rejection; a synthetic reproduction confirms that potential stalled-handshake path. It is not the cause of this observed failure, which upgraded successfully. A successful realtime session remains unverified, and the operation remains an implementation gap.
+[Official OpenAI documentation](https://developers.openai.com/api/docs/guides/realtime-websocket) describes WebSocket authentication and JSON events, while the [session guide](https://developers.openai.com/api/docs/guides/realtime-conversations) establishes the `session.created` readiness boundary. Neither certifies this deployment's model compatibility. Prisma's actual hostname and `x-portkey-api-key` authentication remain authoritative. Both deployed gateway replicas register the route and remove the provider prefix before forwarding. Their upstream-open promise has no error/close rejection; a synthetic reproduction confirms that potential stalled-handshake path. It is not the cause of this observed failure, which upgraded successfully. The operation now has an experimental SDK implementation, but a successful live realtime session remains unverified.
 
 ## CLI
 

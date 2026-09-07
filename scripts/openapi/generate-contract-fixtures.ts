@@ -70,6 +70,8 @@ const cases = domain.operations.flatMap((operation) => {
   const item = spec.paths?.[operation.path] as Record<string, unknown>;
   const op = item[operation.method.toLowerCase()] as Operation;
   const parameters = [...((item as Operation).parameters ?? []), ...(op.parameters ?? [])];
+  // Upgrade contracts are exercised by independent real WebSocket tests, never a fake HTTP 204.
+  if (operation.implementations.every((call) => call.transport === 'websocket')) return [];
   // Gateway multipart has dedicated native FormData + exact-byte contract tests. AIRS
   // CSV uploads are exercised by this transport harness and must stay in its inventory.
   if (

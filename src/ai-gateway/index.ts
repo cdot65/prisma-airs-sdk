@@ -8,6 +8,7 @@ export {
   AIGatewayInferenceClient,
   type AIGatewayInferenceClientOptions,
   type GatewayInferenceRequestOptions,
+  type GatewayRealtimeOptions,
   type GatewayChatCompletionRequest,
   type GatewayChatCompletion,
   type GatewayChatCompletionChunk,
@@ -15,6 +16,11 @@ export {
   type GatewayEmbeddingResponse,
 } from './inference-client.js';
 export type { GatewayStream } from '../http/event-stream.js';
+export type {
+  GatewayWebSocket,
+  GatewayWebSocketFactory,
+  GatewayRealtimeConnection,
+} from '../http/realtime.js';
 export {
   AIGatewayTelemetryClient,
   type AIGatewayTelemetryClientOptions,

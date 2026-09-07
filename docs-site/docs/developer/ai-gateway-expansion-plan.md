@@ -22,7 +22,7 @@ This document scopes the next AI Gateway SDK additions while Palo Alto Networks 
 
 The later runtime increment adds experimental image/audio/moderation/rerank/OCR and legacy/prompt completion/rendering contracts. Both exact deployed gateway replicas register the three completion/render routes; prompt completion dispatches to the ordinary chat/legacy handlers. The pinned prompt schema's educational hyperparameter nesting is corrected to its explicitly documented root-level wire format. Successful provider/template workflows remain unverified, so these additions do not satisfy the release-ready gate below.
 
-A subsequent bounded realtime probe completed the WebSocket upgrade but received `invalid_model` before session creation using the prescribed model. Same-key authentication and socket/key cleanup passed; no generation was requested or alternate model selected. The route is registered on both deployed replicas, but no successful realtime lifecycle or SDK implementation is claimed. Test-only WebSocket discovery does not add a production dependency or count as implementation coverage.
+A subsequent bounded realtime probe completed the WebSocket upgrade but received `invalid_model` before session creation using the prescribed model. Same-key authentication and socket/key cleanup passed; no generation was requested or alternate model selected. The route is registered on both deployed replicas, and the 0.22.0 increment now implements an experimental caller-owned Node WebSocket transport. A separate source-hashed upgrade fixture and real loopback tests cover the contract; the typed live run reaches HTTP 101 but still fails provider readiness. No production WebSocket dependency or successful live session is claimed.
 
 The focused implementation design for exported write schemas, structured routing configuration,
 pre-network validation, dotted-value builders, and secret metadata is in the
@@ -162,7 +162,7 @@ use native multipart uploads and byte-preserving downloads. These contracts are 
 with native fetch, strict inputs, additive response fields, bounded cancellable SSE, and zero
 automatic retries by default (generation can be billable). No runtime hostname or model is
 silently selected by the SDK. See [runtime inference](../guides/ai-gateway-inference.md) for
-verification results and explicit compatibility corrections. WebSocket realtime and the retired
+verification results and explicit compatibility corrections. Experimental WebSocket transport is now implemented separately; the retired
 Assistants/Threads surface remain gaps. The newly modeled provider HTTP and legacy/prompt
 methods are experimental, not successful tenant-verification claims.
 

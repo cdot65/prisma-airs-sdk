@@ -24,18 +24,55 @@ const report = JSON.parse(
   readFileSync(new URL('artifacts/examples/latest.json', root), 'utf8'),
 ) as Report;
 assert.equal(report.credentialsUnchanged, true);
+const realtimeExample = JSON.parse(
+  readFileSync(new URL('artifacts/examples/gateway-realtime.json', root), 'utf8'),
+) as {
+  script: string;
+  finishedAt: string;
+  exitCode: number;
+  stderr: string;
+  model: string;
+  clientEventsSent: number;
+};
+const realtimeExampleSuite = JSON.parse(
+  readFileSync(new URL('artifacts/e2e/gateway-realtime-example.json', root), 'utf8'),
+);
+assert.equal(realtimeExample.script, 'gateway-realtime.ts');
+assert.equal(realtimeExample.model, '@openai/gpt-5.6-terra');
+assert.equal(realtimeExample.clientEventsSent, 0);
+assert.equal(
+  realtimeExample.exitCode,
+  1,
+  'Review the example prose if the provider result changes',
+);
+assert.equal(realtimeExample.stderr, 'Example failed: Error');
+assert.equal(realtimeExample.finishedAt, realtimeExampleSuite.finishedAt);
+assert.equal(realtimeExampleSuite.credentialsUnchanged, true);
+assert.equal(realtimeExampleSuite.failed, 1);
+assert.equal(realtimeExampleSuite.passed, 1);
+const realtimeAudit = JSON.parse(
+  readFileSync(new URL('artifacts/e2e/gateway-realtime-audit.json', root), 'utf8'),
+);
+assert.equal(realtimeAudit.credentialsUnchanged, true);
+assert.equal(realtimeAudit.failed, 0);
+assert.equal(realtimeAudit.passed, realtimeAudit.total);
 const executableExamples = readdirSync(new URL('docs-site/examples/', root))
   .filter((name) => name.endsWith('.ts') && name !== 'example-support.ts')
   .map((name) => name.slice(0, -3))
   .sort();
 assert.deepEqual(
-  report.output.map((item) => item.script).sort(),
+  [
+    ...report.output.map((item) => item.script),
+    ...(report.output.some((item) => item.script === 'gateway-realtime')
+      ? []
+      : ['gateway-realtime']),
+  ].sort(),
   executableExamples,
   'Every executable documentation script must run exactly once',
 );
 const live = JSON.parse(readFileSync(new URL('artifacts/e2e/doc-examples.json', root), 'utf8'));
 assert.equal(live.startedAt, report.startedAt, 'Example transcripts and suite counters differ');
-assert.equal(live.total, executableExamples.length + 3);
+assert.equal(live.total, report.output.length + 3);
 const uuid = /(?:R|pan_)?[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/gi;
 function fence(text: string, language = 'text'): string {
   const safe = text.replace(uuid, '<resource-id>').trimEnd();
@@ -366,7 +403,13 @@ Both exact deployed replicas register legacy completion, prompt completion and p
 
 ${fence('E2E_GATEWAY_IPV4_ONLY=1 npx tsx scripts/e2e-gateway-legacy-completions.ts --writes --sdk\nE2E_GATEWAY_IPV4_ONLY=1 npx tsx scripts/e2e-gateway-prompt-runtime.ts --writes\nE2E_GATEWAY_IPV4_ONLY=1 npx tsx scripts/e2e-gateway-prompt-runtime.ts --writes --sdk', 'bash')}
 
-The realtime diagnostic completed a valid HTTP 101 WebSocket upgrade, then received an \`error\` event with allowlisted code \`invalid_model\` before any session was created. The JSON below includes the actual sanitized transport observation. Same-key model lookup, socket closure and temporary-key retirement pass; the session workflow fails. No audio or client/generation event was sent, and no alternate model was selected. The probe uses isolated \`ws@8.21.3\` with TLS verification, no redirects/compression/retries, a 15-second deadline and bounded payload/event counts. This test-only dependency is not added to the SDK package. Realtime remains an unimplemented operation, not a successful integration.
+The experimental typed \`inference.connectRealtime()\` run finishes at **${runtimeDiagnostics.find((row) => row.suite === 'gateway-realtime-sdk')!.finishedAt}** with **4 pass / 1 fail**. The HTTP 101 upgrade passes, but the prescribed model returns \`invalid_model\` before \`session.created\`. Same-key authentication and socket/key cleanup pass. No audio, client event or generation request was sent. The actual sanitized events are in the diagnostic JSON above. Passing transport contracts are not successful provider-session certification.
+
+The new [runnable realtime example](https://github.com/cdot65/prisma-airs-sdk/blob/main/docs-site/examples/gateway-realtime.ts) was executed separately from the earlier 21-script batch, at **${realtimeExample.finishedAt}**, against the built candidate. Its actual failed output is below; no successful transcript is substituted. This brings the executed script inventory to ${executableExamples.length}, with timestamps kept separate. An independent read-only audit at **${realtimeAudit.finishedAt}** passes **${realtimeAudit.passed}/${realtimeAudit.total}** key-absence checks across all journaled realtime attempts, including earlier failures.
+
+${fence(JSON.stringify(realtimeExample, null, 2), 'json')}
+
+Use the [experimental realtime guide](./ai-gateway-inference.md#experimental-realtime-websocket) for the explicit Node adapter, authentication, event and cancellation boundaries. The SDK adds no production dependency; \`ws\` is development-only here and an explicit dependency in the caller's application.
 
 ${fence('E2E_GATEWAY_IPV4_ONLY=1 npx tsx scripts/e2e-gateway-realtime.ts --writes', 'bash')}
 

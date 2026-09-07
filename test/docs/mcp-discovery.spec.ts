@@ -10,11 +10,22 @@ const request = (method: string) => ({
 
 describe('owned MCP discovery safeguards', () => {
   it('selects only established scopes and never falls back to an unrelated permission', () => {
-    const keys = [{ scopes: [] }, { scopes: ['inference'] }, { scopes: ['mcp.invoke', 'read'] }];
+    const keys = [
+      { scopes: [] },
+      { scopes: ['completions.write'] },
+      { scopes: ['mcp.invoke', 'read'] },
+    ];
     expect(selectRuntimeKey(keys)).toBe(keys[1]);
     expect(selectRuntimeKey(keys, ['mcp.invoke'])).toBe(keys[2]);
     expect(selectRuntimeKey(keys, ['mcp.invoke', 'missing'])).toBeUndefined();
     expect(selectRuntimeKey([{ scopes: null }], ['mcp.invoke'])).toBeUndefined();
+  });
+  it('does not clone an MCP-only key for the default inference workflow', () => {
+    const mcp = { scopes: ['mcp.invoke'] };
+    const inference = { scopes: ['completions.write', 'logs.write'] };
+    expect(selectRuntimeKey([mcp, inference])).toBe(inference);
+    expect(selectRuntimeKey([mcp])).toBeUndefined();
+    expect(selectRuntimeKey([inference, mcp], ['mcp.invoke'])).toBe(mcp);
   });
   it.each(['tools/call', 'resources/read', 'prompts/get', 'unknown'])(
     'prohibits %s before I/O',

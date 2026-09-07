@@ -31,6 +31,7 @@ export interface CallSite {
   queryType?: string;
   className?: string;
   parameters?: { name: string; type: string }[];
+  transport?: 'websocket';
 }
 export interface DomainInventory {
   plane: string;
@@ -136,7 +137,7 @@ export function collectCallSites(): CallSite[] {
       }
       if (
         ts.isCallExpression(node) &&
-        node.expression.getText(tree) === 'request' &&
+        ['request', 'openRealtime'].includes(node.expression.getText(tree)) &&
         node.arguments[0] &&
         ts.isObjectLiteralExpression(node.arguments[0])
       ) {
@@ -180,6 +181,9 @@ export function collectCallSites(): CallSite[] {
                       ? 'gateway'
                       : 'other';
           result.push({
+            ...(node.expression.getText(tree) === 'openRealtime'
+              ? { transport: 'websocket' as const }
+              : {}),
             method: expression(methodNode, bindings),
             path: expression(pathNode, bindings),
             source,

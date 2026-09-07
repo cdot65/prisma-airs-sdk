@@ -1,6 +1,15 @@
 import { AISecSDKException, ErrorType } from '../errors.js';
 import { request } from '../http/request.js';
 import { createEventStream, type GatewayStream } from '../http/event-stream.js';
+import {
+  openRealtime,
+  type GatewayWebSocketFactory,
+  type GatewayRealtimeConnection,
+} from '../http/realtime.js';
+import {
+  GatewayRealtimeConnectRequestSchema,
+  type GatewayRealtimeConnectRequest,
+} from '../models/ai-gateway-realtime.js';
 import type { AuthAdapter } from '../http/types.js';
 import { AIGatewayRuntimeResourcesClient } from './runtime-resources-client.js';
 import { gatewayPathSegment } from './runtime-wire.js';
@@ -86,6 +95,17 @@ export interface GatewayInferenceRequestOptions {
   numRetries?: number;
   /** x-portkey-* routing/observability headers or OpenAI-Beta; authentication cannot be overridden. */
   headers?: Record<string, string>;
+}
+
+/** Explicit WebSocket transport and resource bounds. Realtime never inherits HTTP retries.
+ * @example `const options: GatewayRealtimeOptions = { webSocketFactory: (url, options) => new WebSocket(url, options) };`
+ */
+export interface GatewayRealtimeOptions extends Omit<GatewayInferenceRequestOptions, 'numRetries'> {
+  webSocketFactory: GatewayWebSocketFactory;
+  handshakeTimeoutMs?: number;
+  maxEventBytes?: number;
+  maxBufferedEvents?: number;
+  maxBufferedBytes?: number;
 }
 
 function positiveInteger(value: number, name: string): number {
@@ -205,6 +225,49 @@ export class AIGatewayInferenceClient extends AIGatewayRuntimeResourcesClient {
       redirect: 'error' as const,
       omitDebugBody: true,
     };
+  }
+
+  /** Open a bounded realtime WebSocket on the explicitly configured gateway.
+   * HTTP 101 proves an upgrade, not provider session readiness. Provider errors remain events.
+   * @experimental The prescribed-model live probe upgrades, then returns invalid_model.
+   * @example
+   * ```ts
+   * const connection = await inference.connectRealtime({ model: '@provider/model' }, {
+   *   webSocketFactory: (url, options) => new WebSocket(url, options),
+   * });
+   * try { for await (const event of connection) console.log(event.type); }
+   * finally { await connection.cancel(); }
+   * ```
+   */
+  async connectRealtime(
+    opts: GatewayRealtimeConnectRequest,
+    options: GatewayRealtimeOptions,
+  ): Promise<GatewayRealtimeConnection> {
+    let params: GatewayRealtimeConnectRequest;
+    try {
+      params = GatewayRealtimeConnectRequestSchema.parse(opts);
+    } catch {
+      throw new AISecSDKException(
+        'Invalid realtime query parameters',
+        ErrorType.USER_REQUEST_PAYLOAD_ERROR,
+      );
+    }
+    if (!options || typeof options.webSocketFactory !== 'function')
+      throw new AISecSDKException(
+        'Realtime requires an explicit webSocketFactory',
+        ErrorType.USER_REQUEST_PAYLOAD_ERROR,
+      );
+    return openRealtime({
+      ...this.runtimeRequestOptions(options),
+      method: 'GET',
+      path: '/realtime',
+      params,
+      webSocketFactory: options.webSocketFactory,
+      handshakeTimeoutMs: options.handshakeTimeoutMs,
+      maxEventBytes: options.maxEventBytes ?? this.defaults.maxEventBytes,
+      maxBufferedEvents: options.maxBufferedEvents,
+      maxBufferedBytes: options.maxBufferedBytes,
+    });
   }
 
   /** Create a legacy text completion; stream=true returns a cancellable iterator.
