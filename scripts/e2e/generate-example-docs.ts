@@ -4,6 +4,7 @@ import { readFileSync, readdirSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { emitPatch } from '../openapi/emit-patch.js';
 import { administrationReadProbes } from './administration-probes.js';
+import { mcpMetadataSection } from './generate-mcp-metadata-docs.js';
 import { runtimeDiagnosticSuites } from './report-suites.js';
 
 interface ExampleResult {
@@ -660,7 +661,7 @@ ${fence(JSON.stringify(groupFilters.evidence, null, 2), 'json')}
 
 The independently source-hashed user/model/provider fixtures retain all declared upstream query names. The provider specification omits \`trace_id\`; verified SCM \`traceId\` is recorded as an SCM-only extension, not invented upstream coverage. This remains partial adaptation: direct gateway coverage stays **138/242**, and all 22 partial analytics operations and earlier failed workflows remain visible. See the [group contract](./ai-gateway-api.mdx#groupby-byuser-bystatuscode).
 
-${administrationSection()}## AI Gateway inference output
+${administrationSection()}${mcpMetadataSection()}## AI Gateway inference output
 
 ### Runtime feedback and log ingestion
 
@@ -767,7 +768,9 @@ The IPv4 override is a disclosed, process-only workaround for this test host's g
   const destination = new URL('docs-site/docs/guides/examples.mdx', root);
   const original = readFileSync(destination, 'utf8');
   const start = original.indexOf('## Administration route availability');
-  const anchor = '## AI Gateway inference output';
+  const anchor = original.includes('## MCP prompt, resource and template verification')
+    ? '## MCP prompt, resource and template verification'
+    : '## AI Gateway inference output';
   const end = original.indexOf(anchor);
   assert(end >= 0 && (start < 0 || start < end));
   const previous = original.slice(start >= 0 ? start : end, end) + anchor;

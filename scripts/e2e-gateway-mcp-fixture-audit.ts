@@ -8,7 +8,7 @@ import { getSyntheticKubeObject, syntheticKubeKind } from './e2e/synthetic-mcp-k
 
 type Fixture = { resource: string; id: string; name: string };
 const reports = readdirSync('artifacts/e2e/history').filter((name) =>
-  /^gateway-mcp-(?:public|synthetic)-\d{4}-.*\.json$/.test(name),
+  /^gateway-mcp-(?:public|synthetic|metadata)-\d{4}-.*\.json$/.test(name),
 );
 assert(reports.length > 0);
 const fixtures = new Map<string, Fixture>();

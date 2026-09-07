@@ -25,6 +25,7 @@ export const liveReportSuites = [
   'gateway-mcp-discovery-audit',
   'gateway-mcp-synthetic',
   'gateway-mcp-public',
+  'gateway-mcp-metadata',
   'gateway-mcp-fixture-audit',
   'gateway-owned-writes',
   'gateway-secret-references',

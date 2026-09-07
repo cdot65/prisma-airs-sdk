@@ -6,12 +6,14 @@ import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/
 import { AISecSDKException, McpIntegrationCreateRequestSchema } from '../../src/index.js';
 import { runtimeSuite } from './gateway-runtime.js';
 import { discoveryFetch, type McpHttpObservation } from './mcp-discovery-fetch.js';
+import { exerciseMcpMetadata } from './mcp-metadata.js';
 type Context = Parameters<Parameters<typeof runtimeSuite>[1]>[0];
 export async function exerciseOwnedMcp(
   { harness: h, management: gw, apiKey, workspaceId, tag }: Context,
   source: { url: string; configurations: Record<string, unknown> },
   observations: Record<string, unknown>,
   http: McpHttpObservation[],
+  options: { metadataVariants?: boolean } = {},
 ): Promise<void> {
   const slug = `${tag}-mcp`;
   const integrationSlug = `${tag}-integration`;
@@ -132,6 +134,17 @@ export async function exerciseOwnedMcp(
     return true;
   });
   if (!connected) return;
+  if (options.metadataVariants) {
+    await exerciseMcpMetadata({
+      harness: h,
+      management: gw,
+      client,
+      serverId,
+      assertOwned,
+      observations,
+    });
+    return;
+  }
   const names = await h.check('mcp.list-tools-without-invocation', async () => {
     const result = await client.listTools({}, { timeout: 20_000, maxTotalTimeout: 20_000 });
     assert(result.tools.length > 0, 'Owned server advertised no tools');

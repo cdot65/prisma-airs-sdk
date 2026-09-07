@@ -188,8 +188,9 @@ export class AIGatewayMcpServersClient {
   }
 
   /** Bulk Update MCP Server Capabilities.
-   * @experimental Owned tool-capability updates and eventual runtime visibility were verified
-   * on 2026-09-07. Prompt/resource variants and authenticated upstreams remain unverified.
+   * @experimental Owned tool/prompt updates and eventual runtime visibility were verified
+   * on 2026-09-07. Deployed resource discovery omits required names; resource templates do not
+   * synchronize into SCM. Resource variants and authenticated upstreams remain unverified.
    * @example `await gw.mcpServers.updateCapabilities('resource-id', body);`
    */
   async updateCapabilities(

@@ -343,6 +343,62 @@ try {
       );
       assert(text.includes('all 24 route probes failed with OPA-denied HTTP 403'));
       await assertCapturedJson(administration.rows);
+      const metadata = JSON.parse(
+        readFileSync(
+          new URL('../artifacts/e2e/gateway-mcp-metadata-observations.json', import.meta.url),
+          'utf8',
+        ),
+      );
+      assert.equal(metadata.passed, false);
+      assert(text.includes(metadata.finishedAt), 'MCP metadata capture is stale');
+      assert(text.includes('18 pass / 2 fail / 0 skip'), 'MCP metadata failures are missing');
+      const metadataSuite = JSON.parse(
+        readFileSync(
+          new URL('../artifacts/e2e/gateway-mcp-metadata.json', import.meta.url),
+          'utf8',
+        ),
+      );
+      const metadataAudit = JSON.parse(
+        readFileSync(
+          new URL('../artifacts/e2e/gateway-mcp-fixture-audit.json', import.meta.url),
+          'utf8',
+        ),
+      );
+      const metadataRuntime = JSON.parse(
+        readFileSync(
+          new URL('../artifacts/e2e/gateway-mcp-runtime-diagnostics.json', import.meta.url),
+          'utf8',
+        ),
+      );
+      // The page renders one complete envelope, not separate discovery/variant blocks.
+      // Compare that exact envelope independently, including failures and cleanup evidence.
+      await assertCapturedJson({
+        finishedAt: metadataSuite.finishedAt,
+        passed: metadataSuite.passed,
+        failed: metadataSuite.failed,
+        skipped: metadataSuite.skipped,
+        credentialsUnchanged: metadataSuite.credentialsUnchanged,
+        anonymousPreflight: {
+          finishedAt: metadata.preflight.finishedAt,
+          prompt: metadata.preflight.prompt,
+          resource: metadata.preflight.resource,
+          resource_template: metadata.preflight.resource_template,
+          sessionTerminationStatus: metadata.preflight.sessionTerminationStatus,
+          sessionRetirement: metadata.preflight.sessionRetirement,
+        },
+        discovery: metadata.discovery,
+        selectedKinds: metadata.selectedKinds,
+        variants: metadata.variants,
+        toolsInvoked: metadata.toolsInvoked,
+        promptsRetrieved: metadata.promptsRetrieved,
+        resourcesRead: metadata.resourcesRead,
+        independentFixtureAudit: {
+          finishedAt: metadataAudit.finishedAt,
+          passed: metadataAudit.passed,
+          failed: metadataAudit.failed,
+        },
+        runtimeDiagnosis: metadataRuntime,
+      });
       assert(
         text.includes(analyticsGroupEvidence.capturedAt),
         'Grouped analytics capture is stale',

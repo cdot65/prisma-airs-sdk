@@ -27,6 +27,34 @@ describe('owned MCP discovery safeguards', () => {
     expect(selectRuntimeKey([mcp])).toBeUndefined();
     expect(selectRuntimeKey([inference, mcp], ['mcp.invoke'])).toBe(mcp);
   });
+  it.each(['prompts/list', 'resources/list', 'resources/templates/list'])(
+    'permits metadata discovery with %s without invoking or reading a capability',
+    async (method) => {
+      const network = vi.fn().mockResolvedValue(new Response('{}'));
+      const observations: McpHttpObservation[] = [];
+      const response = await discoveryFetch(
+        endpoint,
+        observations,
+        network,
+      )(endpoint, request(method));
+      expect(await response.text()).toBe('{}');
+      expect(observations).toEqual([{ method: 'POST', rpcMethods: [method], status: 200 }]);
+    },
+  );
+  it.each(['resources/read', 'prompts/get'])(
+    'rejects a discovery batch containing %s before any network request',
+    async (method) => {
+      const network = vi.fn();
+      const body = JSON.stringify([
+        { jsonrpc: '2.0', id: 1, method: 'resources/list' },
+        { jsonrpc: '2.0', id: 2, method },
+      ]);
+      await expect(
+        discoveryFetch(endpoint, [], network)(endpoint, { method: 'POST', body }),
+      ).rejects.toThrow('discovery only');
+      expect(network).not.toHaveBeenCalled();
+    },
+  );
   it.each(['tools/call', 'resources/read', 'prompts/get', 'unknown'])(
     'prohibits %s before I/O',
     async (method) => {

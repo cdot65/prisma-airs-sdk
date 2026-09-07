@@ -37,7 +37,8 @@ These timestamped reports include pre-release candidate checks and subsequent re
 | gateway-mcp-discovery-audit | 19 | 0 | 0 | 19 | 2026-09-07 04:16:47.605Z |
 | gateway-mcp-synthetic | 15 | 1 | 0 | 16 | 2026-09-07 04:50:42.788Z |
 | gateway-mcp-public | 16 | 0 | 0 | 16 | 2026-09-07 05:03:17.184Z |
-| gateway-mcp-fixture-audit | 17 | 0 | 0 | 17 | 2026-09-07 05:05:16.697Z |
+| gateway-mcp-metadata | 18 | 2 | 0 | 20 | 2026-09-07 13:43:30.660Z |
+| gateway-mcp-fixture-audit | 23 | 0 | 0 | 23 | 2026-09-07 13:45:12.107Z |
 | gateway-owned-writes | 26 | 1 | 0 | 27 | 2026-09-06 13:58:07.890Z |
 | gateway-secret-references | 7 | 0 | 0 | 7 | 2026-09-06 19:40:18.695Z |
 | gateway-model-pricing | 3 | 0 | 0 | 3 | 2026-09-07 00:34:56.061Z |
@@ -108,6 +109,8 @@ The corrected administration-route check finished at **2026-09-07T13:09:51.744Z*
 | gateway-extensions: `logExports.start` | FAIL | HTTP 500 |
 | gateway-mcp-discovery: `mcp.initialize-owned-runtime` | FAIL | Error |
 | gateway-mcp-synthetic: `mcp.initialize-owned-runtime` | FAIL | Error |
+| gateway-mcp-metadata: `mcp.metadata.resource.list-without-execution` | FAIL | $ZodError |
+| gateway-mcp-metadata: `mcp.metadata.resource_template.match-populated-SCM-capability` | FAIL | Error |
 | gateway-owned-writes: `workspaces.create` | FAIL | HTTP 400 |
 | gateway-administration-availability: `data.collections` | FAIL | HTTP 403 |
 | gateway-administration-availability: `data.labels` | FAIL | HTTP 403 |
@@ -208,6 +211,8 @@ The corrected administration-route check finished at **2026-09-07T13:09:51.744Z*
 Gateway workspace creation was also tested with explicit defaults and a wire-level metadata variant; SCM still returned 400 AB01. The probes used synthetic scope names. An unused SCM-provisioned scope or a known-good creation request is needed to separate missing provisioning from an API contract change. Existing workspace/IAM settings were not changed to bypass the failure.
 
 The authenticated-source MCP discovery attempt retains its HTTP 401 prerequisite. A subsequent owned public-reference upstream passes the complete 16/16 lifecycle, including eventual runtime visibility after capability disable/re-enable. A private synthetic fixture was rejected by unchanged SSRF protection; it is not counted as successful discovery. No tools were invoked. The independent fixture audit includes all synthetic/public attempts and implicit servers. See the [exact positive and negative observations](../guides/release-verification.md#public-upstream-capability-lifecycle), including observed propagation delays. Published experimental stability is retained.
+
+The later metadata-variant suite retains **18 passes and 2 failures**. Prompt capability disable/re-enable passes in SCM and runtime (6/5/6 visible prompts); resource discovery fails official MCP validation because the deployed filter strips required names, while resource-template discovery is forwarded without SCM synchronization. The independent audit now includes every metadata attempt and confirms all 22 owned resources plus the implicit-server inventory check. No tools, prompts or resource contents were executed/read. See [actual metadata diagnostics](../guides/examples.mdx#mcp-prompt-resource-and-template-verification); these are not new covered operations or a successful resource lifecycle.
 
 Gateway log-detail reads returned 500 even with an existing log's real storage metadata. SCM denies log ingestion and feedback creation, but the explicit runtime endpoint accepts both with a runtime key. The typed SDK observability suite passes 5/5, including single/batch log ingestion; a separate 5/5 SCM read audit confirms both owned feedback records and both journaled synthetic log traces. Experimental `getLog` and `updateFeedback` methods now implement both confirmed detail routes. Their typed E2E suite reproduces both HTTP 500 failures with passing ownership/authentication/key-cleanup controls; no new log or feedback is created. These routing differences are not grounds to use runtime credentials on SCM or to classify the entire family as unsupported. Passing offline contracts are not passing live retrieval/update workflows.
 

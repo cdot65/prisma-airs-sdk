@@ -1872,6 +1872,213 @@ Actual status/header projection from all 24 requests (workspace IDs are represen
 
 Reproduce with `npx tsx scripts/e2e-gateway-administration-availability.ts` using the documented process-only service DNS accommodation. The command exits nonzero for these failures. No speculative production SDK method is added from a denied response; direct Gateway coverage remains **138/242 (57.02%)** and the full-scope assessment remains **5/10**.
 
+## MCP prompt, resource and template verification
+
+Captured **2026-09-07T13:43:30.660Z**: **18 pass / 2 fail / 0 skip**, with unchanged credentials. This source-checkout test uses one disposable dev-only integration/server and service key. The [World Monitor upstream](https://github.com/koala73/worldmonitor/blob/main/public/mcp-server.md) allows anonymous metadata discovery; no upstream account, identity forwarding, model call, tool execution, prompt retrieval or resource-content read is involved.
+
+Prompt capability updates pass: SCM and runtime both observe disable/re-enable, with **6 → 5 → 6** visible prompts and unrelated prompts preserved. The test allows the Gateway's natural cache expiry rather than flushing shared caches. Resource discovery fails official MCP validation because all eleven returned resources lack their required `name`; SCM separately contains eleven resource capabilities. All three resource templates are visible at runtime, but SCM remains empty after ten bounded inventory reads. Neither resource variant is live-certified.
+
+A read-only inspection of both deployed **2.20.0** replicas ties these observations to the same hashed bundle: the resource-filter response mapping removes `name`, and template discovery directly forwards upstream without the capability synchronization used for prompts/resources. No gateway image, policy, cache or infrastructure configuration was changed. The SDK does not fabricate missing names or infer template-update support from a successful list response.
+
+The anonymous upstream returns **HTTP 405** for session DELETE. That is allowed by the [MCP session-management specification](https://modelcontextprotocol.io/specification/2025-06-18/basic/transports#session-management); the report records **server-controlled** retirement, not confirmed deletion. The first preflight incorrectly required 2xx and stopped before loading SCM credentials; that failed attempt is retained. Local transports are closed. Gateway-owned fixture cleanup and the later independent **23/23** inventory audit pass, including prior public/synthetic/metadata attempts and implicit servers.
+
+<details>
+<summary>Actual MCP metadata results and field-level diagnostics</summary>
+
+```json
+{
+  "finishedAt": "2026-09-07T13:43:30.660Z",
+  "passed": 18,
+  "failed": 2,
+  "skipped": 0,
+  "credentialsUnchanged": true,
+  "anonymousPreflight": {
+    "finishedAt": "2026-09-07T13:41:47.901Z",
+    "prompt": 6,
+    "resource": 11,
+    "resource_template": 3,
+    "sessionTerminationStatus": 405,
+    "sessionRetirement": "server-controlled"
+  },
+  "discovery": {
+    "prompt": {
+      "runtimeCount": 6,
+      "scmTotal": 6,
+      "scmAttempts": 1
+    },
+    "resource": {
+      "validationIssues": [
+        {
+          "path": [
+            "resources",
+            0,
+            "name"
+          ],
+          "code": "invalid_type",
+          "expected": "string"
+        },
+        {
+          "path": [
+            "resources",
+            1,
+            "name"
+          ],
+          "code": "invalid_type",
+          "expected": "string"
+        },
+        {
+          "path": [
+            "resources",
+            2,
+            "name"
+          ],
+          "code": "invalid_type",
+          "expected": "string"
+        },
+        {
+          "path": [
+            "resources",
+            3,
+            "name"
+          ],
+          "code": "invalid_type",
+          "expected": "string"
+        },
+        {
+          "path": [
+            "resources",
+            4,
+            "name"
+          ],
+          "code": "invalid_type",
+          "expected": "string"
+        },
+        {
+          "path": [
+            "resources",
+            5,
+            "name"
+          ],
+          "code": "invalid_type",
+          "expected": "string"
+        },
+        {
+          "path": [
+            "resources",
+            6,
+            "name"
+          ],
+          "code": "invalid_type",
+          "expected": "string"
+        },
+        {
+          "path": [
+            "resources",
+            7,
+            "name"
+          ],
+          "code": "invalid_type",
+          "expected": "string"
+        },
+        {
+          "path": [
+            "resources",
+            8,
+            "name"
+          ],
+          "code": "invalid_type",
+          "expected": "string"
+        },
+        {
+          "path": [
+            "resources",
+            9,
+            "name"
+          ],
+          "code": "invalid_type",
+          "expected": "string"
+        },
+        {
+          "path": [
+            "resources",
+            10,
+            "name"
+          ],
+          "code": "invalid_type",
+          "expected": "string"
+        }
+      ],
+      "scmTotal": 11
+    },
+    "resource_template": {
+      "runtimeCount": 3,
+      "scmTotal": 0,
+      "scmAttempts": 10
+    }
+  },
+  "selectedKinds": [
+    "prompt"
+  ],
+  "variants": {
+    "prompt": {
+      "runtimeBaseline": 6,
+      "scmTotal": 6,
+      "scmStates": [
+        false,
+        true
+      ],
+      "runtimeStates": [
+        false,
+        true
+      ],
+      "runtimeCounts": [
+        6,
+        5,
+        6
+      ]
+    }
+  },
+  "toolsInvoked": 0,
+  "promptsRetrieved": 0,
+  "resourcesRead": 0,
+  "independentFixtureAudit": {
+    "finishedAt": "2026-09-07T13:45:12.107Z",
+    "passed": 23,
+    "failed": 0
+  },
+  "runtimeDiagnosis": {
+    "checkedAt": "2026-09-07T13:45:19.841Z",
+    "mutations": false,
+    "credentialsLoaded": false,
+    "rawSourceRetained": false,
+    "replicas": [
+      {
+        "replica": 1,
+        "imageVersion": "2.20.0",
+        "sha256": "b2710c4f6a580a5a1bb525695f942175e4698d61a0c90ba066c48f93490f6331",
+        "resourceFilterReplacesNameWithUri": true,
+        "resourceResultRemovesName": true,
+        "resourceTemplateDirectPassthrough": true,
+        "resourceTemplateSyncTypeLiteralPresent": false
+      },
+      {
+        "replica": 2,
+        "imageVersion": "2.20.0",
+        "sha256": "b2710c4f6a580a5a1bb525695f942175e4698d61a0c90ba066c48f93490f6331",
+        "resourceFilterReplacesNameWithUri": true,
+        "resourceResultRemovesName": true,
+        "resourceTemplateDirectPassthrough": true,
+        "resourceTemplateSyncTypeLiteralPresent": false
+      }
+    ]
+  }
+}
+```
+
+</details>
+
+Reproduce with `npx tsx scripts/e2e-gateway-mcp-metadata.ts --writes`, followed by `npx tsx scripts/e2e-gateway-mcp-fixture-audit.ts`, using the documented process-only DNS accommodation. The metadata command exits nonzero for the two failures. `scripts/e2e-gateway-mcp-runtime-diagnostics.ts` performs the hash-bound, read-only deployment inspection. These are verification tools, not new OpenAPI operations; SDK **0.25.0**, CLI **4.4.0**, direct Gateway **138/242** and the full-scope **5/10** assessment are unchanged.
+
 ## AI Gateway inference output
 
 ### Runtime feedback and log ingestion
