@@ -26,6 +26,9 @@ const evidence = JSON.parse(
   ),
 );
 const capturedAt = cli ? evidence.capturedAt : evidence.finishedAt;
+const nativeEvidence = JSON.parse(
+  readFileSync(new URL('../artifacts/cli431-dlp-registry.json', import.meta.url), 'utf8'),
+);
 const batchEvidence = cli
   ? undefined
   : JSON.parse(
@@ -158,9 +161,15 @@ try {
       ['cli/aigateway/inference', [capturedAt, 'gpt-5.6-terra', 'READY', 'response-id']],
       ['runtime/dlp/profiles', ['500', '501']],
       ['cli/runtime/dlp/profiles', ['not live-verified', '501']],
-      ['runtime/dlp/generate', ['five valid PNG', 'human-readable summary', 'sharp']],
-      ['cli/runtime/dlp/generate', ['2026-09-07T09:24:03.285Z', 'instead of JSON', 'sharp']],
-      ['cli/aigateway/telemetry', ['null', '0.24.0', '4.3.0', '54/54', '--cost-max']],
+      [
+        'runtime/dlp/generate',
+        [nativeEvidence.generatedAt, '4.3.1', '11/11', '26 file signatures', 'sharp'],
+      ],
+      [
+        'cli/runtime/dlp/generate',
+        [nativeEvidence.generatedAt, '4.3.1', '11/11', 'instead of JSON', 'sharp'],
+      ],
+      ['cli/aigateway/telemetry', ['null', '0.24.0', '4.3.1', '54/54', '--cost-max']],
       ['cli/aigateway/workflows', ['400', 'AB01']],
     ])
       await check(`cli.desktop.${path}`, async () => {
@@ -172,6 +181,7 @@ try {
         const text = await page.$eval('main', (element) => element.innerText);
         for (const value of required)
           assert(text.includes(value), `Stale or missing CLI documentation: ${path}`);
+        if (path === 'cli/runtime/dlp/generate') await assertCapturedJson(nativeEvidence.summary);
         if (path.endsWith('/inference')) {
           await assertCapturedJson(evidence.chat);
           await page.screenshot({ path: `${directory}cli-inference-desktop.png` });
@@ -389,6 +399,8 @@ try {
         );
         assert(text.includes(empty.capturedAt), 'Registry CLI analytics capture is stale');
         await assertCapturedJson(empty.output);
+        assert(text.includes(nativeEvidence.generatedAt), 'Registry native CLI capture is stale');
+        await assertCapturedJson(nativeEvidence.summary);
         const usageEvidence = JSON.parse(
           readFileSync(
             new URL('../artifacts/e2e/gateway-usage-reset-observations.json', import.meta.url),

@@ -18,7 +18,7 @@ try {
   assert(entry && isAbsolute(entry), 'Pass the absolute installed CLI entry');
   const packageFile = resolve(dirname(entry), '../../package.json');
   const pkg = JSON.parse(readFileSync(packageFile, 'utf8')) as { version: string };
-  assert.equal(pkg.version, '4.3.0');
+  assert.equal(pkg.version, '4.3.1');
   const installedSdk = createRequire(packageFile)('@cdot65/prisma-airs-sdk') as {
     SDK_VERSION: string;
   };

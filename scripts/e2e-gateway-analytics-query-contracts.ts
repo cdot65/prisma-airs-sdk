@@ -84,7 +84,7 @@ try {
       version: string;
       dependencies: Record<string, string>;
     };
-    assert.equal(pkg.version, '4.3.0');
+    assert.equal(pkg.version, '4.3.1');
     assert.equal(pkg.dependencies['@cdot65/prisma-airs-sdk'], SDK_VERSION);
     assert.equal(createRequire(packageFile)('@cdot65/prisma-airs-sdk').SDK_VERSION, SDK_VERSION);
     cliVersion = pkg.version;

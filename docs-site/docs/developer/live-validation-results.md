@@ -24,7 +24,7 @@ These timestamped reports include pre-release candidate checks and subsequent re
 | gateway-analytics-chart-filters-sdk | 13 | 0 | 0 | 13 | 2026-09-07 07:28:54.307Z |
 | gateway-analytics-query-contracts | 53 | 0 | 0 | 53 | 2026-09-07 08:12:49.467Z |
 | gateway-analytics-query-contracts-sdk | 53 | 0 | 0 | 53 | 2026-09-07 08:56:03.088Z |
-| gateway-analytics-query-contracts-cli | 54 | 0 | 0 | 54 | 2026-09-07 09:20:57.909Z |
+| gateway-analytics-query-contracts-cli | 54 | 0 | 0 | 54 | 2026-09-07 10:32:02.882Z |
 | gateway-extensions | 42 | 3 | 2 | 47 | 2026-09-06 16:40:33.284Z |
 | gateway-usage-reset | 8 | 0 | 0 | 8 | 2026-09-07 03:39:07.317Z |
 | gateway-usage-reset-audit | 2 | 0 | 0 | 2 | 2026-09-07 03:39:59.498Z |
@@ -42,8 +42,8 @@ These timestamped reports include pre-release candidate checks and subsequent re
 | gateway-provider-http | 2 | 9 | 0 | 11 | 2026-09-06 22:06:39.937Z |
 | gateway-provider-http-sdk | 2 | 9 | 0 | 11 | 2026-09-06 22:07:31.983Z |
 | gateway-deployment-diagnostics | 5 | 0 | 0 | 5 | 2026-09-07 00:57:51.238Z |
-| cli | 12 | 0 | 0 | 12 | 2026-09-07 09:21:00.488Z |
-| cli-analytics | 3 | 0 | 0 | 3 | 2026-09-07 09:19:46.233Z |
+| cli | 12 | 0 | 0 | 12 | 2026-09-07 10:32:01.368Z |
+| cli-analytics | 3 | 0 | 0 | 3 | 2026-09-07 10:31:01.470Z |
 | cli-writes | 12 | 0 | 0 | 12 | 2026-09-06 13:57:20.819Z |
 | gateway-inference | 10 | 0 | 0 | 10 | 2026-09-07 01:59:08.352Z |
 | gateway-observability | 5 | 0 | 0 | 5 | 2026-09-06 19:59:34.826Z |
@@ -66,7 +66,7 @@ These timestamped reports include pre-release candidate checks and subsequent re
 | gateway-vector-batches | 12 | 3 | 0 | 15 | 2026-09-06 18:08:18.294Z |
 | gateway-vector-batches-json | 12 | 3 | 0 | 15 | 2026-09-06 18:17:23.385Z |
 | gateway-vector-batches-beta | 12 | 3 | 0 | 15 | 2026-09-06 18:18:30.106Z |
-| cli-inference | 8 | 0 | 0 | 8 | 2026-09-07 09:19:53.288Z |
+| cli-inference | 8 | 0 | 0 | 8 | 2026-09-07 10:30:56.976Z |
 | doc-examples | 21 | 3 | 0 | 24 | 2026-09-07 02:00:36.853Z |
 | doc-gateway-key | 1 | 0 | 0 | 1 | 2026-09-07 02:00:35.691Z |
 | recover-interrupted | 11 | 0 | 0 | 11 | 2026-09-06 16:37:05.866Z |
@@ -74,6 +74,12 @@ These timestamped reports include pre-release candidate checks and subsequent re
 | dlp-dictionary-wire | 0 | 4 | 0 | 4 | 2026-09-06 17:02:36.364Z |
 | cleanup-runtime-audit | 53 | 0 | 0 | 53 | 2026-09-06 22:11:51.994Z |
 | cleanup-audit | 341 | 1 | 0 | 342 | 2026-09-07 02:02:57.662Z |
+
+## Native CLI release verification
+
+CLI **4.3.1** adds separate, credential-free native validation: **11/11** independently registry-installed checks at **2026-09-07T10:29:23.947Z**, and **11/11 on each actual container architecture** in the [release workflow](https://github.com/cdot65/prisma-airs-cli/actions/runs/34110815270). Container processes have no runtime network access. The tests validate all five DLP formats, 26 signatures, manifest counts, JSON stdout, output precedence and invalid-input preflight. Temporary fixtures are removed before success is recorded. These are repeated consumer checks, not additional OpenAPI operations or replacements for the failures below.
+
+Container minor/latest aliases are read back at **sha256:c113c58d457e0152b5f51c1cab850d771b7ddeac9ca88d8020b74442791cfadf** only after both architectures pass. Registry and frozen production dependency audits are clean; SDK documentation development-dependency advisories remain open. See [actual native output](https://cdot65.github.io/prisma-airs-cli/cli/runtime/dlp/generate/) and [version-specific registry and container evidence](../guides/release-verification.md#sdk-0240-and-cli-431-registry-verification). Public WAN and anonymous container access remain separate limitations.
 
 ## Failures and explicit skips
 
