@@ -1,9 +1,10 @@
 import assert from 'node:assert/strict';
+import { webcrypto } from 'node:crypto';
 import { once } from 'node:events';
 import { request as httpRequest } from 'node:http';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/streamableHttp.js';
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { syntheticMcpServer } from '../../scripts/e2e/synthetic-mcp-server.js';
 import {
   syntheticMcpManifests,
@@ -13,6 +14,7 @@ import { discoveryFetch } from '../../scripts/e2e/mcp-discovery-fetch.js';
 
 const name = 'sdk-e2e-mcp-1234abcd';
 describe('synthetic MCP fixture boundaries', () => {
+  afterEach(() => vi.unstubAllGlobals());
   it.each(['airs-gw', 'sdk-e2e-mcp-1234abcd.extra', '../sdk-e2e-mcp-1234abcd', ''])(
     'rejects an unowned Kubernetes name: %s',
     (value) => {
@@ -89,57 +91,66 @@ describe('synthetic MCP fixture boundaries', () => {
       expect(() => assertSyntheticKubeIdentity(object, 'ConfigMap', name, uid)).toThrow();
     },
   );
-  it('initializes and lists through the official client plus bounded discovery transport', async () => {
-    const server = syntheticMcpServer('127.0.0.1');
-    server.listen(0, '127.0.0.1');
-    await once(server, 'listening');
-    const address = server.address();
-    assert(address && typeof address === 'object');
-    const endpoint = new URL(`http://127.0.0.1:${address.port}/mcp`);
-    const client = new Client({ name: 'fixture-test', version: '1' }, { capabilities: {} });
-    const transport = new StreamableHTTPClientTransport(endpoint, {
-      fetch: discoveryFetch(endpoint, []),
-    });
-    try {
-      await client.connect(transport, { timeout: 2000 });
-      const result = await client.listTools({}, { timeout: 2000 });
-      expect(result.tools.map((item) => item.name)).toEqual(['sdk_e2e_discovery_probe']);
-      expect(transport.sessionId).toBeUndefined();
-      const health = await (await fetch(new URL('/healthz', endpoint))).json();
-      expect(health).toEqual({ initialize: 1, toolsList: 1, forbiddenToolCalls: 0 });
-      const rejected = await fetch(endpoint, {
-        method: 'POST',
-        headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({
-          jsonrpc: '2.0',
-          id: 2,
-          method: 'tools/call',
-          params: { name: 'sdk_e2e_discovery_probe', arguments: {} },
-        }),
+  it.each(['existing', 'absent'])(
+    'initializes and lists through the official client with %s global Web Crypto',
+    async (availability) => {
+      // A distinct object detects accidental replacement of a provided implementation.
+      const existingCrypto = { randomUUID: () => webcrypto.randomUUID() };
+      vi.stubGlobal('crypto', availability === 'existing' ? existingCrypto : undefined);
+      const server = syntheticMcpServer('127.0.0.1');
+      expect(globalThis.crypto).toBe(availability === 'existing' ? existingCrypto : webcrypto);
+      server.listen(0, '127.0.0.1');
+      await once(server, 'listening');
+      const address = server.address();
+      assert(address && typeof address === 'object');
+      const endpoint = new URL(`http://127.0.0.1:${address.port}/mcp`);
+      const client = new Client({ name: 'fixture-test', version: '1' }, { capabilities: {} });
+      const transport = new StreamableHTTPClientTransport(endpoint, {
+        fetch: discoveryFetch(endpoint, []),
       });
-      expect(rejected.status).toBe(403);
-      await rejected.body?.cancel();
-      // Native fetch may normalize Host; issue the hostile header on the actual wire.
-      const wrongHost = await new Promise<number | undefined>((resolve, reject) => {
-        const request = httpRequest(
-          endpoint,
-          { headers: { host: 'unrelated.example' } },
-          (response) => {
-            response.resume();
-            resolve(response.statusCode);
-          },
+      try {
+        await client.connect(transport, { timeout: 2000 });
+        const result = await client.listTools({}, { timeout: 2000 });
+        expect(result.tools.map((item) => item.name)).toEqual(['sdk_e2e_discovery_probe']);
+        expect(transport.sessionId).toBeUndefined();
+        const health = await (await fetch(new URL('/healthz', endpoint))).json();
+        expect(health).toEqual({ initialize: 1, toolsList: 1, forbiddenToolCalls: 0 });
+        const rejected = await fetch(endpoint, {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({
+            jsonrpc: '2.0',
+            id: 2,
+            method: 'tools/call',
+            params: { name: 'sdk_e2e_discovery_probe', arguments: {} },
+          }),
+        });
+        expect(rejected.status).toBe(403);
+        await rejected.body?.cancel();
+        // Native fetch may normalize Host; issue the hostile header on the actual wire.
+        const wrongHost = await new Promise<number | undefined>((resolve, reject) => {
+          const request = httpRequest(
+            endpoint,
+            { headers: { host: 'unrelated.example' } },
+            (response) => {
+              response.resume();
+              resolve(response.statusCode);
+            },
+          );
+          request.on('error', reject);
+          request.setTimeout(1000, () =>
+            request.destroy(new Error('Host guard request timed out')),
+          );
+          request.end();
+        });
+        expect(wrongHost).toBe(403);
+      } finally {
+        await client.close();
+        server.closeAllConnections();
+        await new Promise<void>((resolve, reject) =>
+          server.close((error) => (error ? reject(error) : resolve())),
         );
-        request.on('error', reject);
-        request.setTimeout(1000, () => request.destroy(new Error('Host guard request timed out')));
-        request.end();
-      });
-      expect(wrongHost).toBe(403);
-    } finally {
-      await client.close();
-      server.closeAllConnections();
-      await new Promise<void>((resolve, reject) =>
-        server.close((error) => (error ? reject(error) : resolve())),
-      );
-    }
-  });
+      }
+    },
+  );
 });
