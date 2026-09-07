@@ -273,7 +273,7 @@ ${disclosure}
 
 ## Latest execution results
 
-All ${executableExamples.length} documentation scripts were executed: ${report.output.filter((r) => r.exitCode === 0).length} passed and ${report.output.filter((r) => r.exitCode !== 0).length} failed. Three additional real scan-response captures bring the example suite to ${live.passed}/${live.total} passing checks. A successful walkthrough is not an operation-level guarantee: Red Team's optional quota/statistics calls may report unavailability; their independent checks remain visible in the [complete live results](../developer/live-validation-results.md).
+All ${report.output.length} documentation scripts were executed in the primary batch: ${report.output.filter((r) => r.exitCode === 0).length} passed and ${report.output.filter((r) => r.exitCode !== 0).length} failed. Three additional real scan-response captures bring the example suite to ${live.passed}/${live.total} passing checks. A successful walkthrough is not an operation-level guarantee: Red Team's optional quota/statistics calls may report unavailability; their independent checks remain visible in the [complete live results](../developer/live-validation-results.md).
 
 | Script | Backend | Result | Workflow |
 | --- | --- | --- | --- |
@@ -349,7 +349,7 @@ The Model Security walkthrough uses an existing scan, not a new proprietary-engi
 
 ## Secret-reference management lifecycle
 
-The separate repository E2E example passed **7/7** at **${secretReferences.capturedAt}**. This admin-plane CRUD workflow uses SCM OAuth, not a runtime gateway key. It creates an unbound reference with invalid synthetic AWS credentials, limits its allowed workspace to dev, exercises filtered listing and slug retrieval, then deletes it and confirms HTTP 404. It does not test secret resolution or a live AWS/Azure/Vault integration. It is additional lifecycle evidence, not another script in the ${executableExamples.length}-script table.
+The separate repository E2E example passed **7/7** at **${secretReferences.capturedAt}**. This admin-plane CRUD workflow uses SCM OAuth, not a runtime gateway key. It creates an unbound reference with invalid synthetic AWS credentials, limits its allowed workspace to dev, exercises filtered listing and slug retrieval, then deletes it and confirms HTTP 404. It does not test secret resolution or a live AWS/Azure/Vault integration. It is additional lifecycle evidence, not another script in the ${report.output.length}-script table.
 
 ${fence('npx tsx scripts/e2e-gateway-secret-references.ts --writes', 'bash')}
 
@@ -377,7 +377,7 @@ Use camel-case \`traceId\` and string-valued metadata on \`telemetry.requests\` 
 
 ### Runtime feedback and log ingestion
 
-The additional typed SDK observability example passed **5/5** at **${observability.capturedAt}**. It uses the explicit runtime endpoint and a short-lived runtime key, not SCM OAuth. The designated inference model generates one owned trace; feedback has zero value/weight and logs contain synthetic data only. Single and array log submissions preserve the gateway's plain-text acknowledgement. An independent SCM read audit confirms the retained records; the pinned API has no deletion operation. This is separate from the ${executableExamples.length} primary scripts above. Feedback update and log-detail retrieval are now experimental typed methods; their live storage failures remain visible below and are not passing workflows.
+The additional typed SDK observability example passed **5/5** at **${observability.capturedAt}**. It uses the explicit runtime endpoint and a short-lived runtime key, not SCM OAuth. The designated inference model generates one owned trace; feedback has zero value/weight and logs contain synthetic data only. Single and array log submissions preserve the gateway's plain-text acknowledgement. An independent SCM read audit confirms the retained records; the pinned API has no deletion operation. This is separate from the ${report.output.length} primary scripts above. Feedback update and log-detail retrieval are now experimental typed methods; their live storage failures remain visible below and are not passing workflows.
 
 ${fence('E2E_GATEWAY_IPV4_ONLY=1 npx tsx scripts/e2e-gateway-runtime-observability.ts --writes --sdk\nnpx tsx scripts/e2e-gateway-observability-audit.ts', 'bash')}
 
@@ -405,7 +405,7 @@ ${fence('E2E_GATEWAY_IPV4_ONLY=1 npx tsx scripts/e2e-gateway-legacy-completions.
 
 The experimental typed \`inference.connectRealtime()\` run finishes at **${runtimeDiagnostics.find((row) => row.suite === 'gateway-realtime-sdk')!.finishedAt}** with **4 pass / 1 fail**. The HTTP 101 upgrade passes, but the prescribed model returns \`invalid_model\` before \`session.created\`. Same-key authentication and socket/key cleanup pass. No audio, client event or generation request was sent. The actual sanitized events are in the diagnostic JSON above. Passing transport contracts are not successful provider-session certification.
 
-The new [runnable realtime example](https://github.com/cdot65/prisma-airs-sdk/blob/main/docs-site/examples/gateway-realtime.ts) was executed separately from the earlier 21-script batch, at **${realtimeExample.finishedAt}**, against the built candidate. Its actual failed output is below; no successful transcript is substituted. This brings the executed script inventory to ${executableExamples.length}, with timestamps kept separate. An independent read-only audit at **${realtimeAudit.finishedAt}** passes **${realtimeAudit.passed}/${realtimeAudit.total}** key-absence checks across all journaled realtime attempts, including earlier failures.
+The new [runnable realtime example](https://github.com/cdot65/prisma-airs-sdk/blob/main/docs-site/examples/gateway-realtime.ts) was executed separately from the earlier 21-script batch, at **${realtimeExample.finishedAt}**, against the source checkout, as resolved by the repository TypeScript configuration. Its actual failed output is below; no successful transcript is substituted. This brings the executed script inventory to ${executableExamples.length}, with timestamps kept separate. An independent read-only audit at **${realtimeAudit.finishedAt}** passes **${realtimeAudit.passed}/${realtimeAudit.total}** key-absence checks across all journaled realtime attempts, including earlier failures.
 
 ${fence(JSON.stringify(realtimeExample, null, 2), 'json')}
 
@@ -433,7 +433,7 @@ For JSON/SSE Responses and CLI commands, see [gateway inference](./ai-gateway-in
 
 ## Validated batch inference output
 
-Captured **${batch.capturedAt}** by the separate batch E2E workflow, which passed ${batch.suite.passed}/${batch.suite.total} checks. This is additional runtime evidence, not an extra script in the ${executableExamples.length}-script table above.
+Captured **${batch.capturedAt}** by the separate batch E2E workflow, which passed ${batch.suite.passed}/${batch.suite.total} checks. This is additional runtime evidence, not an extra script in the ${report.output.length}-script table above.
 
 ${batch.disclosure}
 

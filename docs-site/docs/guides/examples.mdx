@@ -10,7 +10,7 @@ Captured **2026-09-07T02:00:36.854Z**, from the actual runnable files against th
 
 ## Latest execution results
 
-All 22 documentation scripts were executed: 18 passed and 3 failed. Three additional real scan-response captures bring the example suite to 21/24 passing checks. A successful walkthrough is not an operation-level guarantee: Red Team's optional quota/statistics calls may report unavailability; their independent checks remain visible in the [complete live results](../developer/live-validation-results.md).
+All 21 documentation scripts were executed in the primary batch: 18 passed and 3 failed. Three additional real scan-response captures bring the example suite to 21/24 passing checks. A successful walkthrough is not an operation-level guarantee: Red Team's optional quota/statistics calls may report unavailability; their independent checks remain visible in the [complete live results](../developer/live-validation-results.md).
 
 | Script | Backend | Result | Workflow |
 | --- | --- | --- | --- |
@@ -190,7 +190,7 @@ The Model Security walkthrough uses an existing scan, not a new proprietary-engi
 
 ## Secret-reference management lifecycle
 
-The separate repository E2E example passed **7/7** at **2026-09-06T19:40:18.695Z**. This admin-plane CRUD workflow uses SCM OAuth, not a runtime gateway key. It creates an unbound reference with invalid synthetic AWS credentials, limits its allowed workspace to dev, exercises filtered listing and slug retrieval, then deletes it and confirms HTTP 404. It does not test secret resolution or a live AWS/Azure/Vault integration. It is additional lifecycle evidence, not another script in the 22-script table.
+The separate repository E2E example passed **7/7** at **2026-09-06T19:40:18.695Z**. This admin-plane CRUD workflow uses SCM OAuth, not a runtime gateway key. It creates an unbound reference with invalid synthetic AWS credentials, limits its allowed workspace to dev, exercises filtered listing and slug retrieval, then deletes it and confirms HTTP 404. It does not test secret resolution or a live AWS/Azure/Vault integration. It is additional lifecycle evidence, not another script in the 21-script table.
 
 ```bash
 npx tsx scripts/e2e-gateway-secret-references.ts --writes
@@ -265,7 +265,7 @@ Use camel-case `traceId` and string-valued metadata on `telemetry.requests` only
 
 ### Runtime feedback and log ingestion
 
-The additional typed SDK observability example passed **5/5** at **2026-09-06T19:59:34.826Z**. It uses the explicit runtime endpoint and a short-lived runtime key, not SCM OAuth. The designated inference model generates one owned trace; feedback has zero value/weight and logs contain synthetic data only. Single and array log submissions preserve the gateway's plain-text acknowledgement. An independent SCM read audit confirms the retained records; the pinned API has no deletion operation. This is separate from the 22 primary scripts above. Feedback update and log-detail retrieval are now experimental typed methods; their live storage failures remain visible below and are not passing workflows.
+The additional typed SDK observability example passed **5/5** at **2026-09-06T19:59:34.826Z**. It uses the explicit runtime endpoint and a short-lived runtime key, not SCM OAuth. The designated inference model generates one owned trace; feedback has zero value/weight and logs contain synthetic data only. Single and array log submissions preserve the gateway's plain-text acknowledgement. An independent SCM read audit confirms the retained records; the pinned API has no deletion operation. This is separate from the 21 primary scripts above. Feedback update and log-detail retrieval are now experimental typed methods; their live storage failures remain visible below and are not passing workflows.
 
 ```bash
 E2E_GATEWAY_IPV4_ONLY=1 npx tsx scripts/e2e-gateway-runtime-observability.ts --writes --sdk
@@ -826,7 +826,7 @@ E2E_GATEWAY_IPV4_ONLY=1 npx tsx scripts/e2e-gateway-prompt-runtime.ts --writes -
 
 The experimental typed `inference.connectRealtime()` run finishes at **2026-09-07T06:04:42.282Z** with **4 pass / 1 fail**. The HTTP 101 upgrade passes, but the prescribed model returns `invalid_model` before `session.created`. Same-key authentication and socket/key cleanup pass. No audio, client event or generation request was sent. The actual sanitized events are in the diagnostic JSON above. Passing transport contracts are not successful provider-session certification.
 
-The new [runnable realtime example](https://github.com/cdot65/prisma-airs-sdk/blob/main/docs-site/examples/gateway-realtime.ts) was executed separately from the earlier 21-script batch, at **2026-09-07T06:12:26.528Z**, against the built candidate. Its actual failed output is below; no successful transcript is substituted. This brings the executed script inventory to 22, with timestamps kept separate. An independent read-only audit at **2026-09-07T06:13:23.127Z** passes **6/6** key-absence checks across all journaled realtime attempts, including earlier failures.
+The new [runnable realtime example](https://github.com/cdot65/prisma-airs-sdk/blob/main/docs-site/examples/gateway-realtime.ts) was executed separately from the earlier 21-script batch, at **2026-09-07T06:12:26.528Z**, against the source checkout, as resolved by the repository TypeScript configuration. Its actual failed output is below; no successful transcript is substituted. This brings the executed script inventory to 22, with timestamps kept separate. An independent read-only audit at **2026-09-07T06:13:23.127Z** passes **6/6** key-absence checks across all journaled realtime attempts, including earlier failures.
 
 ```json
 {
@@ -895,7 +895,7 @@ For JSON/SSE Responses and CLI commands, see [gateway inference](./ai-gateway-in
 
 ## Validated batch inference output
 
-Captured **2026-09-06T18:51:22.545Z** by the separate batch E2E workflow, which passed 9/9 checks. This is additional runtime evidence, not an extra script in the 22-script table above.
+Captured **2026-09-06T18:51:22.545Z** by the separate batch E2E workflow, which passed 9/9 checks. This is additional runtime evidence, not an extra script in the 21-script table above.
 
 Actual output from one synthetic gpt-5.6-terra batch request through the dev gateway. Resource and request IDs are redacted. Input/output files and the temporary key were deleted; the terminal batch audit record has no deletion API.
 

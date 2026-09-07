@@ -4,6 +4,67 @@ title: Published-package examples
 
 # Published-package examples
 
+## SDK 0.22.0 and CLI 4.2.1 registry verification
+
+Both packages are published and installed from npm, with CLI 4.2.1 pinning SDK 0.22.0 exactly. Registry payloads match the reviewed release candidates: nine SDK files and seven CLI files, including all five CLI distribution files. ESM/CommonJS SDK consumers also pass strict types, source-map integrity, real OAuth deadline recovery and native loopback WebSocket exchanges. This is separate from live provider-session certification.
+
+- SDK registry inference: **10/10**, finished **2026-09-07T06:30:31.639Z**.
+- CLI registry inference: **8/8**, finished **2026-09-07T06:38:15.012Z**.
+- Installed local CLI cross-service reads and benign runtime scan: **12/12**, finished **2026-09-07T06:38:12.859Z**.
+- Independent read-only key audit: **22/22**, finished **2026-09-07T06:39:30.865Z**, covering all journaled SDK/CLI release-inference attempts, not just the newest keys. Credentials remained unchanged.
+
+The local user-prefix `airs` installation reports 4.2.1 with SDK 0.22.0; its payload, version, library exports and inference help pass independent checks. Runtime endpoint/key settings were not written into the read-only config. The harness supplies and retires short-lived dev-workspace keys. The CLI still exposes chat, Responses and embeddings, not a realtime command.
+
+Actual CLI 4.2.1 registry-run output, with response IDs redacted:
+
+```json
+{
+  "id": "<response-id>",
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "content": "READY",
+        "role": "assistant",
+        "refusal": null,
+        "annotations": []
+      }
+    }
+  ],
+  "created": 1788763087,
+  "model": "gpt-5.6-terra",
+  "system_fingerprint": null,
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 4,
+    "prompt_tokens": 10,
+    "total_tokens": 14,
+    "completion_tokens_details": {
+      "reasoning_tokens": 0,
+      "accepted_prediction_tokens": 0,
+      "rejected_prediction_tokens": 0,
+      "audio_tokens": 0
+    },
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+      "cache_write_tokens": 0,
+      "audio_tokens": 0
+    }
+  },
+  "service_tier": "default"
+}
+```
+
+The same passing inference suite covers JSON/JSONL chat and Responses, float/base64 embeddings, invalid-input exit 2 and key retirement. The prescribed models, TLS verification and disclosed process-only LAN DNS accommodation are unchanged; WAN reachability is not certified.
+
+SDK 0.22.0 adds experimental realtime transport, raising direct gateway coverage to **138/242 (57.02%)**, with **29 experimental methods**. Its separate live run passes HTTP 101 but fails provider readiness with `invalid_model`; no alternate model, audio or generation was used. The [actual failed runnable example](./examples.mdx#latest-runtime-diagnostics-failures-remain-visible) and all earlier service failures remain visible. Successful release checks do not satisfy the original 99% full gateway target.
+
+The historical results below retain their own versions and timestamps; they are not reruns of the new release.
+
+## Original 0.21.0 / 4.2.0 checkpoint
+
+
 The release-inference checks exercise the published SDK **0.21.0** and CLI **4.2.0**, installed from npm without a development link. The subsequent source-checkout usage-policy checks are identified separately below. The complete earlier [21-script walkthrough run](./examples.mdx) remains separately timestamped, with its three failures visible. Publication was explicitly authorized with incomplete AI Gateway coverage.
 
 ## Registry-install verification
@@ -125,7 +186,7 @@ The prior synthetic-upstream attempt is also retained: **15 pass / 1 fail** at *
 
 An independent read-only audit passed **17/17** at **2026-09-07T05:05:16.697Z** across the synthetic run and all three public-upstream attempts. All 16 journaled resources were absent; a complete dev-workspace inventory also confirmed no implicit server remained attached to an owned integration. Credentials were unchanged. The public upstream itself was not created or modified by the test.
 
-Run `npx tsx scripts/e2e-gateway-mcp-public.ts --writes`, then `npx tsx scripts/e2e-gateway-mcp-fixture-audit.ts`. These are source-checkout verification tools. A local regression using the official MCP client found and fixed the test transport's empty-202 cancellation ordering; the production SDK transport was not affected. The source API comments now reflect both the verified MCP tool-capability lifecycle and usage-counter reset, while retaining experimental stability. The published SDK remains 0.21.0; prompt/resource capability variants and the authenticated upstreams are not certified by this result.
+Run `npx tsx scripts/e2e-gateway-mcp-public.ts --writes`, then `npx tsx scripts/e2e-gateway-mcp-fixture-audit.ts`. These are source-checkout verification tools. A local regression using the official MCP client found and fixed the test transport's empty-202 cancellation ordering; the production SDK transport was not affected. The source API comments now reflect both the verified MCP tool-capability lifecycle and usage-counter reset, while retaining experimental stability. At that checkpoint the published SDK was 0.21.0; prompt/resource capability variants and the authenticated upstreams are not certified by this result.
 
 ## Limits remain explicit
 

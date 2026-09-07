@@ -1,4 +1,4 @@
-/** @internal Execute the actual documentation script against the built candidate; no generation. */
+/** @internal Execute the actual documentation script against the source checkout; no generation. */
 import assert from 'node:assert/strict';
 import { execFile } from 'node:child_process';
 import { readFileSync } from 'node:fs';

@@ -37,7 +37,7 @@ These timestamped reports include pre-release candidate checks and subsequent re
 | gateway-provider-http | 2 | 9 | 0 | 11 | 2026-09-06 22:06:39.937Z |
 | gateway-provider-http-sdk | 2 | 9 | 0 | 11 | 2026-09-06 22:07:31.983Z |
 | gateway-deployment-diagnostics | 5 | 0 | 0 | 5 | 2026-09-07 00:57:51.238Z |
-| cli | 12 | 0 | 0 | 12 | 2026-09-07 02:02:10.481Z |
+| cli | 12 | 0 | 0 | 12 | 2026-09-07 06:38:12.859Z |
 | cli-writes | 12 | 0 | 0 | 12 | 2026-09-06 13:57:20.819Z |
 | gateway-inference | 10 | 0 | 0 | 10 | 2026-09-07 01:59:08.352Z |
 | gateway-observability | 5 | 0 | 0 | 5 | 2026-09-06 19:59:34.826Z |
@@ -60,7 +60,7 @@ These timestamped reports include pre-release candidate checks and subsequent re
 | gateway-vector-batches | 12 | 3 | 0 | 15 | 2026-09-06 18:08:18.294Z |
 | gateway-vector-batches-json | 12 | 3 | 0 | 15 | 2026-09-06 18:17:23.385Z |
 | gateway-vector-batches-beta | 12 | 3 | 0 | 15 | 2026-09-06 18:18:30.106Z |
-| cli-inference | 8 | 0 | 0 | 8 | 2026-09-07 02:52:01.411Z |
+| cli-inference | 8 | 0 | 0 | 8 | 2026-09-07 06:38:15.012Z |
 | doc-examples | 21 | 3 | 0 | 24 | 2026-09-07 02:00:36.853Z |
 | doc-gateway-key | 1 | 0 | 0 | 1 | 2026-09-07 02:00:35.691Z |
 | recover-interrupted | 11 | 0 | 0 | 11 | 2026-09-06 16:37:05.866Z |
@@ -207,7 +207,7 @@ The realtime probe passes same-key model lookup, socket closure and temporary-ke
 - Runtime resources: model and fine-tuning-job listing, multipart file upload/retrieve/download, vector-store CRUD/file indexing and stored Responses retrieval/input-items/deletion. Batch inference now passes creation, retrieval, terminal completion, gateway/native-file output and cleanup (9/9); a separate typed cancellation lifecycle reaches cancelled and passes cleanup (8/8). Live validating batches exposed null output IDs/timestamps, now accepted without relaxing other known fields. Actual sanitized batch JSON is included in the examples page. The separate vector-file-batch suite validates creation, completed retrieval and file listing after correcting its live object discriminator. Vector-file-batch cancellation returned HTTP 500 and its two dependent cancelled-state assertions failed; all owned stores/files were removed. Separate empty-JSON and beta-header diagnostics also returned 500 and did not justify changing the SDK wire contract. Model deletion and fine-tuning job lifecycle remain offline-only. No training job was started, and the designated inference/embedding models were not changed.
 - CLI: JSON reads across domains, a benign runtime scan, and separate profile/topic flag-builder lifecycles against the packed SDK. This additional test found and drove the fix to the legacy SDK topic force-delete URL. The separate CLI live Vitest suite also passed 4/4 at 13:57 UTC, recorded in the SDK checkout's artifacts/cli-live-tests.json; it is not folded into the SDK suite counters above.
 - Public model pricing: both required models succeed through the explicitly configured, unauthenticated public Portkey host without /v1. The client preserves catalog data and does not select an inference model, evaluate formulas or report effective tenant billing. SCM denial on the same relative path was not evidence about this distinct public service.
-- Executable documentation: 22 runnable scripts (excluding the shared helper): 21 in the retained primary batch, including 4 explicitly mock-backed scripts, plus the new realtime script executed separately against the built candidate. The primary batch also includes 3 live sanitized scan-response captures. Separate timestamps and the realtime failure are preserved. Real outputs, failures, and mock/live distinctions appear on the examples, Scan API, and OAuth lifecycle pages.
+- Executable documentation: 22 runnable scripts (excluding the shared helper): 21 in the retained primary batch, including 4 explicitly mock-backed scripts, plus the new realtime script executed separately against the source checkout. The primary batch also includes 3 live sanitized scan-response captures. Separate timestamps and the realtime failure are preserved. Real outputs, failures, and mock/live distinctions appear on the examples, Scan API, and OAuth lifecycle pages.
 
 The host's default Node DNS lookup failed for the gateway while IPv4 resolution and curl succeeded. Runtime E2E uses the opt-in `E2E_GATEWAY_IPV4_ONLY=1` process-only, gateway-host-only lookup override; it retains native fetch and TLS certificate verification. This is disclosed test-environment accommodation, not a DNS change or SDK default.
 
