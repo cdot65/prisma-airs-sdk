@@ -256,6 +256,36 @@ const tagged = await gw.telemetry.requests({
 
 An empty latency cohort returns `null` for `data.total`, `p50`, `p90` and `p99`, with zero-valued time buckets. SDK 0.23.0 preserves those nulls instead of rejecting the response. Callers must handle `number | null`; null is an undefined aggregate, not measured zero latency. These four methods remain partial SCM adapters: the remaining upstream filters, envelopes and aggregations are not fully equivalent.
 
+SDK 0.24.0 adds the following verified filters to those same four methods:
+
+| SDK option | SCM query | Contract |
+| --- | --- | --- |
+| `statusCodes: number[]` | `statusCode` | Nonempty CSV list; members match with OR |
+| `apiKeyIds: string[]` | `apiKeyIds` | Nonempty CSV list of API-key UUIDs; members match with OR |
+| `aiOrgModels: string[]` | `aiOrgModel` | Nonempty CSV list of `provider__model` pairs; members match with OR |
+| `totalUnitsMin: number` | `totalUnitsMin` | Inclusive lower total-token bound; nonnegative safe integer |
+| `totalUnitsMax: number` | `totalUnitsMax` | Inclusive upper total-token bound; zero is preserved |
+| `costMin: number` | `costMin` | Inclusive lower bound in cents, including fractional cents |
+| `costMax: number` | `costMax` | Inclusive upper bound in cents; zero is preserved |
+
+Distinct filters combine with AND. Equal minimum/maximum values select an exact range; reversed ranges are rejected before authentication. Provider/model analytics identifiers use double underscores, not the `@provider/model` inference-routing syntax. Elements cannot contain commas or whitespace. Empty arrays and pre-serialized list strings are rejected.
+
+`AIGatewayChartFiltersSchema` and its inferred `AIGatewayChartFilters` type expose the same filter validation independently of workspace/time-window fields. CLI or application adapters can parse a filter object before resolving a workspace or creating an authenticated client; validation returns a copied, typed value. The transport reuses those field and range definitions.
+
+```ts
+const selectedCost = await gw.telemetry.cost({
+  workspaceSlug: 'ws-develo-71f8d8',
+  days: 1,
+  statusCodes: [200, 446],
+  aiOrgModels: ['openai__gpt-5.6-terra'],
+  totalUnitsMin: 1,
+  costMax: 1, // one cent, not one dollar
+});
+console.log(selectedCost.data.total); // cents
+```
+
+Read-only tests checked singleton/CSV alternatives, inclusive bounds and combined filters against one existing owned inference trace on each chart. The corresponding upstream snake-case filter names were silently ignored by SCM. Prompt/completion-token bound probes did not establish the complete promised semantics, so those options remain unexposed. See the [actual captured query-contract output](./examples.mdx#verified-chart-query-contracts). No additional operation is counted as directly covered by these partial adapters, and the CLI does not yet add filter flags for these SDK options.
+
 Telemetry options are validated before authentication/network I/O. Unknown fields, invalid dates, non-finite days, reversed windows, malformed log options and unsupported grouping dimensions/columns raise `USER_REQUEST_PAYLOAD_ERROR` without including rejected values. Fractional days remain valid; explicit `start` overrides finite `days`. Dates retain numeric UTC offsets required by SCM. A zero-length explicit window is allowed; no unverified server maximum is imposed.
 
 ### groupBy, byUser, byStatusCode

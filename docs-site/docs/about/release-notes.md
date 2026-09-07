@@ -1,5 +1,15 @@
 # Release Notes
 
+## v0.24.0 (2026-09-07) — Verified analytics query contracts
+
+- Add `statusCodes`, `apiKeyIds`, `aiOrgModels`, `totalUnitsMin`, `totalUnitsMax`, `costMin` and `costMax` to the shared request/cost/token/latency chart options.
+- Export `AIGatewayChartFiltersSchema` and its inferred type for standalone validation before workspace resolution or authentication; the transport shares those same definitions.
+- Preserve exact SCM casing and CSV serialization. Lists use OR; distinct filters use AND. Token/cost ranges are inclusive, preserve zero and reject reversed bounds before authentication. Cost values remain cents.
+- Verify all four charts against existing owned traffic with 53 live checks, including inclusive boundaries, CSV alternatives and empty negative cohorts. Add 248 failing-first SDK regression cases, 15 standalone-schema checks and expanded independently source-hashed adapter contracts.
+- Keep prompt/completion-token filters, other charts and grouping options strict. The original request-options interface and nullable latency types remain compatible. CLI filter flags are not implied.
+
+These are still partial SCM adapters, not wire-equivalent upstream operations: direct gateway coverage remains **138/242 (57.02%)**. The release does not resolve recorded service/provider/entitlement failures or satisfy the full 99% target.
+
 ## v0.23.0 (2026-09-07) — Verified telemetry filtering and empty latency
 
 - Fix valid empty latency responses: period mean and percentiles are nullable, while bucket values remain numeric. Strict TypeScript consumers must account for `number | null`; the SDK does not turn missing measurements into zero.

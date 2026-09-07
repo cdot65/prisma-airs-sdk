@@ -89,7 +89,7 @@ export function gatewayDisposition(method: string, path: string, direct: boolean
     return {
       status: 'scm-adapted-partial',
       reason:
-        'The corresponding SCM /logs/charts route has live-verified traceId and string-valued metadata filters, separately and together, using positive owned traffic and absent cohorts. Empty latency aggregates are null. Upstream query names/envelopes and the remaining filters are not fully equivalent; this remains outside direct operation coverage.',
+        'The corresponding SCM /logs/charts route has live-verified trace/metadata filters, status/API-key/provider-model CSV-OR lists and inclusive total-token/cost bounds, separately and combined, using positive owned traffic and absent cohorts. Empty latency aggregates are null. Upstream query names/envelopes and remaining filters are not fully equivalent; this stays outside direct operation coverage.',
     };
   if (path.startsWith('/analytics/'))
     return {

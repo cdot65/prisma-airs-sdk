@@ -160,7 +160,7 @@ describe('telemetry rejects invalid options before authentication or network I/O
         ['metadata', { constructor: 'unsafe' }],
         ['metadata', JSON.parse('{"__proto__":"unsafe"}')],
         ['trace_id', 'ignored'],
-        ['costMin', 0],
+        ['cost_min', 0],
         ['statusCode', 200],
         ['pageSize', 1],
       ])('rejects invalid or unverified %s=%j before I/O', async (key, value) => {

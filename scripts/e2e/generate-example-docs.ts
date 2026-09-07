@@ -209,6 +209,73 @@ if (page === 'examples') {
       })),
     ),
   );
+  const queryFilters = JSON.parse(
+    readFileSync(
+      new URL('artifacts/examples/gateway-analytics-query-contracts-sdk.json', root),
+      'utf8',
+    ),
+  );
+  const querySuite = JSON.parse(
+    readFileSync(new URL('artifacts/e2e/gateway-analytics-query-contracts-sdk.json', root), 'utf8'),
+  );
+  assert.equal(queryFilters.capturedAt, querySuite.finishedAt);
+  assert.equal(queryFilters.credentialsUnchanged, true);
+  assert.equal(queryFilters.mutations, false);
+  assert.equal(queryFilters.sdkVersion, '0.24.0');
+  assert.equal(queryFilters.mode, 'installed-sdk');
+  assert.equal(querySuite.credentialsUnchanged, true);
+  assert.equal(querySuite.passed, 53);
+  assert.equal(querySuite.failed, 0);
+  assert.equal(querySuite.total, 53);
+  assert.equal(querySuite.skipped, 0);
+  const discovery = JSON.parse(
+    readFileSync(new URL('artifacts/e2e/analytics-filter-discovery.json', root), 'utf8'),
+  );
+  assert.equal(discovery.credentialsUnchanged, true);
+  assert.equal(discovery.passed, 11);
+  assert.equal(discovery.failed, 14);
+  assert.equal(discovery.total, 25);
+  assert.deepEqual(discovery.fixtures, []);
+  assert.deepEqual(queryFilters.suite, { passed: 53, failed: 0, total: 53 });
+  const queryCases = [
+    'statusCodes.single',
+    'statusCodes.csv-or',
+    'apiKeyIds.single',
+    'apiKeyIds.csv-or',
+    'aiOrgModels.single',
+    'aiOrgModels.csv-or',
+    'totalUnitsMin.inclusive',
+    'totalUnitsMax.inclusive',
+    'costMin.inclusive',
+    'costMax.inclusive',
+    'totalUnits.exact-range',
+    'cost.exact-range',
+    'all.intersection',
+  ];
+  const expectedQueries = ['requests', 'cost', 'tokens', 'latency'].flatMap((metric) =>
+    queryCases.map((filter) => ({
+      metric,
+      filter,
+      knownPositive: true,
+      absentEmpty: true,
+      absentAggregate: metric === 'latency' ? null : 0,
+      respected: true,
+    })),
+  );
+  assert.deepEqual(queryFilters.evidence, expectedQueries);
+  assert.deepEqual(
+    querySuite.results.map((result: { name: string; status: string }) => ({
+      name: result.name,
+      status: result.status,
+    })),
+    [
+      { name: 'analytics-query.owned-positive-control', status: 'PASS' },
+      ...expectedQueries.map(({ metric, filter }) => ({
+        name: `analytics-query.${metric}.${filter}`,
+        status: 'PASS',
+      })),
+    ],
+  );
   const runtimeDiagnostics = JSON.parse(
     readFileSync(new URL('artifacts/examples/gateway-runtime-diagnostics.json', root), 'utf8'),
   ) as { suite: string; finishedAt: string; passed: number; failed: number; total: number }[];
@@ -412,6 +479,18 @@ ${chartFilters.disclosure}
 ${fence(JSON.stringify(chartFilters.evidence, null, 2), 'json')}
 
 Empty latency period aggregates are genuinely \`null\`; the SDK now preserves them while time buckets remain numeric zero. The first raw run exposed the previous schema rejection, which a failing-first regression reproduced. Known/nonexistent trace and metadata filters pass separately and together after correction. Invalid dates, non-finite/reversed windows, unknown query fields, unsupported grouping dimensions/columns and malformed filters still fail locally before authentication. Other chart/group methods do not gain unverified filters. All 22 analytics operations remain partially adapted and outside **138/242** direct coverage. See [telemetry contracts](./ai-gateway-api.mdx#telemetry).
+
+## Verified chart query contracts
+
+The SDK 0.24.0 installed-package check passes **53/53** at **${queryFilters.capturedAt}**, using **${queryFilters.mode}** version **${queryFilters.sdkVersion}**. Its sanitized captured output follows. These checks cover status/API-key/provider-model singleton and CSV-OR filters, inclusive token/cost bounds, exact ranges and combined-filter intersections on requests, cost, tokens and latency. The [telemetry guide](./ai-gateway-api.mdx#charts) lists every SDK-to-SCM query mapping and the cents unit.
+
+${fence('npx tsx scripts/e2e-gateway-analytics-query-contracts.ts --sdk', 'bash')}
+
+${queryFilters.disclosure}
+
+${fence(JSON.stringify(queryFilters.evidence, null, 2), 'json')}
+
+The first discovery run compared upstream snake-case names with SCM camel-case names. It retained **11 passing / 14 failing checks** across controls and 22 hypotheses; it is not an all-green API suite. Upstream names were ignored, and several prompt/completion-token bounds failed their known/absent controls. Only the seven additional options verified by the full 53-check contract run are exposed. This adds no directly matched upstream operation: **138/242**, the 22 partial analytics adaptations and the other live failures remain unchanged. This is separate from the ${report.output.length} primary runnable examples and the realtime example above. No CLI filter flags are implied.
 
 ## AI Gateway inference output
 

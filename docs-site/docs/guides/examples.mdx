@@ -370,6 +370,439 @@ Read-only checks of existing owned traffic. Positive/empty cohort booleans and a
 
 Empty latency period aggregates are genuinely `null`; the SDK now preserves them while time buckets remain numeric zero. The first raw run exposed the previous schema rejection, which a failing-first regression reproduced. Known/nonexistent trace and metadata filters pass separately and together after correction. Invalid dates, non-finite/reversed windows, unknown query fields, unsupported grouping dimensions/columns and malformed filters still fail locally before authentication. Other chart/group methods do not gain unverified filters. All 22 analytics operations remain partially adapted and outside **138/242** direct coverage. See [telemetry contracts](./ai-gateway-api.mdx#telemetry).
 
+## Verified chart query contracts
+
+The SDK 0.24.0 installed-package check passes **53/53** at **2026-09-07T08:36:44.862Z**, using **installed-sdk** version **0.24.0**. Its sanitized captured output follows. These checks cover status/API-key/provider-model singleton and CSV-OR filters, inclusive token/cost bounds, exact ranges and combined-filter intersections on requests, cost, tokens and latency. The [telemetry guide](./ai-gateway-api.mdx#charts) lists every SDK-to-SCM query mapping and the cents unit.
+
+```bash
+npx tsx scripts/e2e-gateway-analytics-query-contracts.ts --sdk
+```
+
+Existing owned positive traffic only. Inclusive bounds, singleton/CSV-OR alternatives and combined filters are checked on each chart with an empty negative cohort. No trace IDs, keys, metadata values or tenant counts are published. This does not establish full upstream analytics equivalence.
+
+```json
+[
+  {
+    "metric": "requests",
+    "filter": "statusCodes.single",
+    "knownPositive": true,
+    "absentEmpty": true,
+    "absentAggregate": 0,
+    "respected": true
+  },
+  {
+    "metric": "requests",
+    "filter": "statusCodes.csv-or",
+    "knownPositive": true,
+    "absentEmpty": true,
+    "absentAggregate": 0,
+    "respected": true
+  },
+  {
+    "metric": "requests",
+    "filter": "apiKeyIds.single",
+    "knownPositive": true,
+    "absentEmpty": true,
+    "absentAggregate": 0,
+    "respected": true
+  },
+  {
+    "metric": "requests",
+    "filter": "apiKeyIds.csv-or",
+    "knownPositive": true,
+    "absentEmpty": true,
+    "absentAggregate": 0,
+    "respected": true
+  },
+  {
+    "metric": "requests",
+    "filter": "aiOrgModels.single",
+    "knownPositive": true,
+    "absentEmpty": true,
+    "absentAggregate": 0,
+    "respected": true
+  },
+  {
+    "metric": "requests",
+    "filter": "aiOrgModels.csv-or",
+    "knownPositive": true,
+    "absentEmpty": true,
+    "absentAggregate": 0,
+    "respected": true
+  },
+  {
+    "metric": "requests",
+    "filter": "totalUnitsMin.inclusive",
+    "knownPositive": true,
+    "absentEmpty": true,
+    "absentAggregate": 0,
+    "respected": true
+  },
+  {
+    "metric": "requests",
+    "filter": "totalUnitsMax.inclusive",
+    "knownPositive": true,
+    "absentEmpty": true,
+    "absentAggregate": 0,
+    "respected": true
+  },
+  {
+    "metric": "requests",
+    "filter": "costMin.inclusive",
+    "knownPositive": true,
+    "absentEmpty": true,
+    "absentAggregate": 0,
+    "respected": true
+  },
+  {
+    "metric": "requests",
+    "filter": "costMax.inclusive",
+    "knownPositive": true,
+    "absentEmpty": true,
+    "absentAggregate": 0,
+    "respected": true
+  },
+  {
+    "metric": "requests",
+    "filter": "totalUnits.exact-range",
+    "knownPositive": true,
+    "absentEmpty": true,
+    "absentAggregate": 0,
+    "respected": true
+  },
+  {
+    "metric": "requests",
+    "filter": "cost.exact-range",
+    "knownPositive": true,
+    "absentEmpty": true,
+    "absentAggregate": 0,
+    "respected": true
+  },
+  {
+    "metric": "requests",
+    "filter": "all.intersection",
+    "knownPositive": true,
+    "absentEmpty": true,
+    "absentAggregate": 0,
+    "respected": true
+  },
+  {
+    "metric": "cost",
+    "filter": "statusCodes.single",
+    "knownPositive": true,
+    "absentEmpty": true,
+    "absentAggregate": 0,
+    "respected": true
+  },
+  {
+    "metric": "cost",
+    "filter": "statusCodes.csv-or",
+    "knownPositive": true,
+    "absentEmpty": true,
+    "absentAggregate": 0,
+    "respected": true
+  },
+  {
+    "metric": "cost",
+    "filter": "apiKeyIds.single",
+    "knownPositive": true,
+    "absentEmpty": true,
+    "absentAggregate": 0,
+    "respected": true
+  },
+  {
+    "metric": "cost",
+    "filter": "apiKeyIds.csv-or",
+    "knownPositive": true,
+    "absentEmpty": true,
+    "absentAggregate": 0,
+    "respected": true
+  },
+  {
+    "metric": "cost",
+    "filter": "aiOrgModels.single",
+    "knownPositive": true,
+    "absentEmpty": true,
+    "absentAggregate": 0,
+    "respected": true
+  },
+  {
+    "metric": "cost",
+    "filter": "aiOrgModels.csv-or",
+    "knownPositive": true,
+    "absentEmpty": true,
+    "absentAggregate": 0,
+    "respected": true
+  },
+  {
+    "metric": "cost",
+    "filter": "totalUnitsMin.inclusive",
+    "knownPositive": true,
+    "absentEmpty": true,
+    "absentAggregate": 0,
+    "respected": true
+  },
+  {
+    "metric": "cost",
+    "filter": "totalUnitsMax.inclusive",
+    "knownPositive": true,
+    "absentEmpty": true,
+    "absentAggregate": 0,
+    "respected": true
+  },
+  {
+    "metric": "cost",
+    "filter": "costMin.inclusive",
+    "knownPositive": true,
+    "absentEmpty": true,
+    "absentAggregate": 0,
+    "respected": true
+  },
+  {
+    "metric": "cost",
+    "filter": "costMax.inclusive",
+    "knownPositive": true,
+    "absentEmpty": true,
+    "absentAggregate": 0,
+    "respected": true
+  },
+  {
+    "metric": "cost",
+    "filter": "totalUnits.exact-range",
+    "knownPositive": true,
+    "absentEmpty": true,
+    "absentAggregate": 0,
+    "respected": true
+  },
+  {
+    "metric": "cost",
+    "filter": "cost.exact-range",
+    "knownPositive": true,
+    "absentEmpty": true,
+    "absentAggregate": 0,
+    "respected": true
+  },
+  {
+    "metric": "cost",
+    "filter": "all.intersection",
+    "knownPositive": true,
+    "absentEmpty": true,
+    "absentAggregate": 0,
+    "respected": true
+  },
+  {
+    "metric": "tokens",
+    "filter": "statusCodes.single",
+    "knownPositive": true,
+    "absentEmpty": true,
+    "absentAggregate": 0,
+    "respected": true
+  },
+  {
+    "metric": "tokens",
+    "filter": "statusCodes.csv-or",
+    "knownPositive": true,
+    "absentEmpty": true,
+    "absentAggregate": 0,
+    "respected": true
+  },
+  {
+    "metric": "tokens",
+    "filter": "apiKeyIds.single",
+    "knownPositive": true,
+    "absentEmpty": true,
+    "absentAggregate": 0,
+    "respected": true
+  },
+  {
+    "metric": "tokens",
+    "filter": "apiKeyIds.csv-or",
+    "knownPositive": true,
+    "absentEmpty": true,
+    "absentAggregate": 0,
+    "respected": true
+  },
+  {
+    "metric": "tokens",
+    "filter": "aiOrgModels.single",
+    "knownPositive": true,
+    "absentEmpty": true,
+    "absentAggregate": 0,
+    "respected": true
+  },
+  {
+    "metric": "tokens",
+    "filter": "aiOrgModels.csv-or",
+    "knownPositive": true,
+    "absentEmpty": true,
+    "absentAggregate": 0,
+    "respected": true
+  },
+  {
+    "metric": "tokens",
+    "filter": "totalUnitsMin.inclusive",
+    "knownPositive": true,
+    "absentEmpty": true,
+    "absentAggregate": 0,
+    "respected": true
+  },
+  {
+    "metric": "tokens",
+    "filter": "totalUnitsMax.inclusive",
+    "knownPositive": true,
+    "absentEmpty": true,
+    "absentAggregate": 0,
+    "respected": true
+  },
+  {
+    "metric": "tokens",
+    "filter": "costMin.inclusive",
+    "knownPositive": true,
+    "absentEmpty": true,
+    "absentAggregate": 0,
+    "respected": true
+  },
+  {
+    "metric": "tokens",
+    "filter": "costMax.inclusive",
+    "knownPositive": true,
+    "absentEmpty": true,
+    "absentAggregate": 0,
+    "respected": true
+  },
+  {
+    "metric": "tokens",
+    "filter": "totalUnits.exact-range",
+    "knownPositive": true,
+    "absentEmpty": true,
+    "absentAggregate": 0,
+    "respected": true
+  },
+  {
+    "metric": "tokens",
+    "filter": "cost.exact-range",
+    "knownPositive": true,
+    "absentEmpty": true,
+    "absentAggregate": 0,
+    "respected": true
+  },
+  {
+    "metric": "tokens",
+    "filter": "all.intersection",
+    "knownPositive": true,
+    "absentEmpty": true,
+    "absentAggregate": 0,
+    "respected": true
+  },
+  {
+    "metric": "latency",
+    "filter": "statusCodes.single",
+    "knownPositive": true,
+    "absentEmpty": true,
+    "absentAggregate": null,
+    "respected": true
+  },
+  {
+    "metric": "latency",
+    "filter": "statusCodes.csv-or",
+    "knownPositive": true,
+    "absentEmpty": true,
+    "absentAggregate": null,
+    "respected": true
+  },
+  {
+    "metric": "latency",
+    "filter": "apiKeyIds.single",
+    "knownPositive": true,
+    "absentEmpty": true,
+    "absentAggregate": null,
+    "respected": true
+  },
+  {
+    "metric": "latency",
+    "filter": "apiKeyIds.csv-or",
+    "knownPositive": true,
+    "absentEmpty": true,
+    "absentAggregate": null,
+    "respected": true
+  },
+  {
+    "metric": "latency",
+    "filter": "aiOrgModels.single",
+    "knownPositive": true,
+    "absentEmpty": true,
+    "absentAggregate": null,
+    "respected": true
+  },
+  {
+    "metric": "latency",
+    "filter": "aiOrgModels.csv-or",
+    "knownPositive": true,
+    "absentEmpty": true,
+    "absentAggregate": null,
+    "respected": true
+  },
+  {
+    "metric": "latency",
+    "filter": "totalUnitsMin.inclusive",
+    "knownPositive": true,
+    "absentEmpty": true,
+    "absentAggregate": null,
+    "respected": true
+  },
+  {
+    "metric": "latency",
+    "filter": "totalUnitsMax.inclusive",
+    "knownPositive": true,
+    "absentEmpty": true,
+    "absentAggregate": null,
+    "respected": true
+  },
+  {
+    "metric": "latency",
+    "filter": "costMin.inclusive",
+    "knownPositive": true,
+    "absentEmpty": true,
+    "absentAggregate": null,
+    "respected": true
+  },
+  {
+    "metric": "latency",
+    "filter": "costMax.inclusive",
+    "knownPositive": true,
+    "absentEmpty": true,
+    "absentAggregate": null,
+    "respected": true
+  },
+  {
+    "metric": "latency",
+    "filter": "totalUnits.exact-range",
+    "knownPositive": true,
+    "absentEmpty": true,
+    "absentAggregate": null,
+    "respected": true
+  },
+  {
+    "metric": "latency",
+    "filter": "cost.exact-range",
+    "knownPositive": true,
+    "absentEmpty": true,
+    "absentAggregate": null,
+    "respected": true
+  },
+  {
+    "metric": "latency",
+    "filter": "all.intersection",
+    "knownPositive": true,
+    "absentEmpty": true,
+    "absentAggregate": null,
+    "respected": true
+  }
+]
+```
+
+The first discovery run compared upstream snake-case names with SCM camel-case names. It retained **11 passing / 14 failing checks** across controls and 22 hypotheses; it is not an all-green API suite. Upstream names were ignored, and several prompt/completion-token bounds failed their known/absent controls. Only the seven additional options verified by the full 53-check contract run are exposed. This adds no directly matched upstream operation: **138/242**, the 22 partial analytics adaptations and the other live failures remain unchanged. This is separate from the 21 primary runnable examples and the realtime example above. No CLI filter flags are implied.
+
 ## AI Gateway inference output
 
 ### Runtime feedback and log ingestion

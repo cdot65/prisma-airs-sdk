@@ -101,6 +101,8 @@ Experimental runtime methods also model image/audio/moderation/rerank/OCR, legac
 
 Secret-reference CRUD is verified using owned, unbound synthetic references; external secret resolution is not certified. See the [captured lifecycle output](docs-site/docs/guides/examples.mdx#secret-reference-management-lifecycle). Portkey compatibility remains partial; retired upstream endpoints and tenant-unverified families stay visible in the [complete operation ledger](docs-site/docs/developer/gateway-coverage.md).
 
+Request, cost, token and latency charts accept verified trace/metadata filters, status-code/API-key/provider-model lists and inclusive total-token/cost bounds. List members match with OR; distinct filters combine with AND. Cost bounds are in cents. Empty latency aggregates remain `null`, not measured zero. Unknown filters are rejected before authentication; the SCM query names differ from upstream Portkey. See the [typed telemetry contract](docs-site/docs/guides/ai-gateway-api.mdx#charts).
+
 All AI Gateway write bodies have exported Zod schemas and inferred TypeScript types. Validation
 happens before OAuth and network access; documented nonempty-update requirements are enforced. The package also
 exports typed routing/provider configuration, deterministic known-value catalogs,

@@ -59,17 +59,68 @@ const logsOptionsSchema = telemetryWindowSchema
     statusCode: z.number().int().nonnegative().safe().optional(),
   })
   .strict();
+const chartFilterFields = {
+  traceId: nonBlankString.optional(),
+  metadata: GatewayJsonObjectSchema.pipe(z.record(z.string())).optional(),
+  statusCodes: z.array(z.number().int().nonnegative().safe()).nonempty().optional(),
+  apiKeyIds: z.array(z.string().uuid()).nonempty().optional(),
+  aiOrgModels: z
+    .array(z.string().regex(/^[^,\s]+__[^,\s]+$/))
+    .nonempty()
+    .optional(),
+  totalUnitsMin: z.number().int().nonnegative().safe().optional(),
+  totalUnitsMax: z.number().int().nonnegative().safe().optional(),
+  costMin: z.number().finite().nonnegative().optional(),
+  costMax: z.number().finite().nonnegative().optional(),
+};
+function validChartBounds(opts: {
+  totalUnitsMin?: number;
+  totalUnitsMax?: number;
+  costMin?: number;
+  costMax?: number;
+}): boolean {
+  return (
+    (opts.totalUnitsMin === undefined ||
+      opts.totalUnitsMax === undefined ||
+      opts.totalUnitsMin <= opts.totalUnitsMax) &&
+    (opts.costMin === undefined || opts.costMax === undefined || opts.costMin <= opts.costMax)
+  );
+}
+
+/**
+ * Standalone verified chart-filter validation, without workspace resolution or authentication.
+ * Shared by the SDK transport and CLI input adapters; excludes time-window and workspace fields.
+ * Cost bounds use cents. Lists use OR, distinct filters use AND, and bounds are inclusive.
+ * @example
+ * ```ts
+ * import { AIGatewayChartFiltersSchema } from '@cdot65/prisma-airs-sdk';
+ * const filters = AIGatewayChartFiltersSchema.parse({ statusCodes: [200, 446], costMax: 0.125 });
+ * console.log(filters.statusCodes);
+ * ```
+ */
+export const AIGatewayChartFiltersSchema = z
+  .object(chartFilterFields)
+  .strict()
+  .refine(validChartBounds);
+
+/** Validated filters shared by the request, cost, token and latency charts. */
+export type AIGatewayChartFilters = z.infer<typeof AIGatewayChartFiltersSchema>;
+
 const filteredChartOptionsSchema = telemetryWindowSchema
-  .extend({
-    traceId: nonBlankString.optional(),
-    metadata: GatewayJsonObjectSchema.pipe(z.record(z.string())).optional(),
-  })
-  .strict();
+  .extend(chartFilterFields)
+  .strict()
+  .refine(validChartBounds);
 
 function serializeChartOptions(tsgId: string, opts: AIGatewayChartOptions): Record<string, string> {
   const params = serializeWindow(tsgId, opts, filteredChartOptionsSchema);
   if (opts.traceId !== undefined) params.traceId = opts.traceId;
   if (opts.metadata !== undefined) params.metadata = JSON.stringify(opts.metadata);
+  if (opts.statusCodes !== undefined) params.statusCode = opts.statusCodes.join(',');
+  if (opts.apiKeyIds !== undefined) params.apiKeyIds = opts.apiKeyIds.join(',');
+  if (opts.aiOrgModels !== undefined) params.aiOrgModel = opts.aiOrgModels.join(',');
+  for (const key of ['totalUnitsMin', 'totalUnitsMax', 'costMin', 'costMax'] as const) {
+    if (opts[key] !== undefined) params[key] = String(opts[key]);
+  }
   return params;
 }
 
@@ -92,12 +143,15 @@ export interface AIGatewayGroupOptions extends AIGatewayWindowOptions {
 
 /**
  * Verified SCM filters for requests, cost, tokens and latency charts only.
+ * Members of each list match with OR; distinct supplied filters combine with AND.
+ * Total-token and cost ranges are inclusive. Cost bounds are in cents, not dollars.
  * These are partial adapters, not the complete upstream analytics query contract.
  * @example
  * ```ts
  * import { AIGatewayClient, type AIGatewayChartOptions } from '@cdot65/prisma-airs-sdk';
  * const options: AIGatewayChartOptions = {
  *   workspaceSlug: 'ws-dev', days: 1, metadata: { environment: 'dev' },
+ *   statusCodes: [200, 446], totalUnitsMin: 1,
  * };
  * const cost = await new AIGatewayClient().telemetry.cost(options);
  * console.log(cost.data.total); // cents
@@ -108,6 +162,24 @@ export interface AIGatewayChartOptions extends AIGatewayWindowOptions {
   traceId?: string;
   /** Exact string-valued metadata matches. Serialized as JSON in the `metadata` query parameter. */
   metadata?: Record<string, string>;
+  /** One or more response status codes, matched with OR and serialized as SCM `statusCode` CSV. */
+  statusCodes?: number[];
+  /** One or more API-key UUIDs, matched with OR and serialized as SCM `apiKeyIds` CSV. */
+  apiKeyIds?: string[];
+  /**
+   * Provider/model pairs such as `openai__gpt-5.6-terra`, matched with OR.
+   * Each item must contain a provider and model separated by `__`, without commas or whitespace.
+   * Serialized as SCM `aiOrgModel` CSV; these are analytics identifiers, not inference routing.
+   */
+  aiOrgModels?: string[];
+  /** Inclusive minimum total tokens. A nonnegative safe integer; may equal the maximum. */
+  totalUnitsMin?: number;
+  /** Inclusive maximum total tokens. Zero is preserved, not omitted. */
+  totalUnitsMax?: number;
+  /** Inclusive minimum cost in cents; fractional values are preserved. */
+  costMin?: number;
+  /** Inclusive maximum cost in cents. Zero is preserved, not omitted. */
+  costMax?: number;
 }
 
 /** Backwards-compatible name for the verified request-count chart options. */
@@ -172,7 +244,7 @@ export class AIGatewayTelemetryClient {
 
   /**
    * Total and per-day spend. **Values are in cents.**
-   * @param opts - Workspace slug, time window and optional verified trace/metadata filters.
+   * @param opts - Workspace slug, time window and verified trace, metadata, list and range filters.
    * @returns Cost series plus the period total, in cents.
    * @example
    * ```ts
@@ -194,7 +266,7 @@ export class AIGatewayTelemetryClient {
 
   /**
    * Per-day request counts.
-   * @param opts - Workspace slug, time window and optional verified trace/metadata filters.
+   * @param opts - Workspace slug, time window and verified trace, metadata, list and range filters.
    * @returns Request-count series plus the filtered period total.
    * @example
    * ```ts
@@ -216,7 +288,7 @@ export class AIGatewayTelemetryClient {
 
   /**
    * Latency in milliseconds. Percentiles are returned per-bucket and for the period.
-   * @param opts - Workspace slug, time window and optional verified trace/metadata filters.
+   * @param opts - Workspace slug, time window and verified trace, metadata, list and range filters.
    * @returns Latency series with p50/p90/p99; `data.total` is the period mean, not a sum.
    * The period mean and percentiles are null when the cohort has no matching requests.
    * @example
@@ -239,7 +311,7 @@ export class AIGatewayTelemetryClient {
 
   /**
    * Token usage, split into request and response units.
-   * @param opts - Workspace slug, time window and optional verified trace/metadata filters.
+   * @param opts - Workspace slug, time window and verified trace, metadata, list and range filters.
    * @returns Token series plus request/response unit totals.
    * @example
    * ```ts

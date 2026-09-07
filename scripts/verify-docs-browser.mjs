@@ -73,6 +73,17 @@ const analyticsChartEvidence = cli
         'utf8',
       ),
     );
+const analyticsQueryEvidence = cli
+  ? undefined
+  : JSON.parse(
+      readFileSync(
+        new URL(
+          '../artifacts/examples/gateway-analytics-query-contracts-sdk.json',
+          import.meta.url,
+        ),
+        'utf8',
+      ),
+    );
 const browser = await puppeteer.launch({
   executablePath: process.env.DOCS_CHROMIUM_EXECUTABLE ?? '/usr/bin/chromium',
   headless: true,
@@ -249,6 +260,16 @@ try {
         'Analytics source/installed provenance is stale',
       );
       await assertCapturedJson(analyticsChartEvidence.evidence);
+      assert(text.includes(analyticsQueryEvidence.capturedAt), 'Analytics query capture is stale');
+      assert(
+        text.includes(analyticsQueryEvidence.sdkVersion),
+        'Analytics query SDK version is stale',
+      );
+      assert(
+        text.includes(analyticsQueryEvidence.mode),
+        'Analytics query installation mode is absent',
+      );
+      await assertCapturedJson(analyticsQueryEvidence.evidence);
       const runtimeDiagnostics = JSON.parse(
         readFileSync(
           new URL('../artifacts/examples/gateway-runtime-diagnostics.json', import.meta.url),

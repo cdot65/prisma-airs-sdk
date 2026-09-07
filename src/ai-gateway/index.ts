@@ -28,6 +28,8 @@ export {
   type AIGatewayLogsOptions,
   type AIGatewayRequestChartOptions,
   type AIGatewayChartOptions,
+  AIGatewayChartFiltersSchema,
+  type AIGatewayChartFilters,
 } from './telemetry-client.js';
 export { type AIGatewayWindowOptions } from './window.js';
 export {

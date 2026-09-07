@@ -489,6 +489,16 @@ for (const module of [esm, cjs]) {
       data: { total: number | null; p50: number | null; p90: number | null; p99: number | null };
     }>;
   };
+  const filtersSchema = module.AIGatewayChartFiltersSchema as {
+    parse(input: unknown): unknown;
+    safeParse(input: unknown): { success: boolean };
+  };
+  assert.deepEqual(filtersSchema.parse({ statusCodes: [200, 446], costMax: 0.125 }), {
+    statusCodes: [200, 446],
+    costMax: 0.125,
+  });
+  assert.equal(filtersSchema.safeParse({ totalUnitsMin: 2, totalUnitsMax: 1 }).success, false);
+  assert.equal(filtersSchema.safeParse({ workspaceSlug: 'ws-dev' }).success, false);
   let authCalls = 0;
   const urls: string[] = [];
   const originalFetch = globalThis.fetch;
@@ -539,21 +549,42 @@ for (const module of [esm, cjs]) {
     assert.equal(url.searchParams.get('traceId'), 'owned-trace');
     assert.equal(url.searchParams.has('trace_id'), false);
     assert.deepEqual(JSON.parse(url.searchParams.get('metadata')!), { tag: 'a+b&c' });
-    for (const metric of ['cost', 'tokens', 'latency'] as const) {
+    for (const metric of ['requests', 'cost', 'tokens', 'latency'] as const) {
       const before: number = authCalls;
       await assert.rejects(telemetry[metric]({ workspaceSlug: 'ws-dev', metadata: { count: 1 } }), {
         errorType: (module.ErrorType as Record<string, string>).USER_REQUEST_PAYLOAD_ERROR,
       });
       assert.equal(authCalls, before);
+      await assert.rejects(
+        telemetry[metric]({ workspaceSlug: 'ws-dev', totalUnitsMin: 2, totalUnitsMax: 1 }),
+        {
+          errorType: (module.ErrorType as Record<string, string>).USER_REQUEST_PAYLOAD_ERROR,
+        },
+      );
+      assert.equal(authCalls, before);
       const result = await telemetry[metric]({
         workspaceSlug: 'ws-dev',
         traceId: 'owned-trace',
         metadata: { tag: 'a+b&c' },
+        statusCodes: [200, 446],
+        apiKeyIds: ['11111111-1111-4111-8111-111111111111'],
+        aiOrgModels: ['openai__gpt-5.6-terra'],
+        totalUnitsMin: 0,
+        totalUnitsMax: 42,
+        costMin: 0,
+        costMax: 0.125,
       });
       const filtered = new URL(urls.at(-1)!);
       assert.equal(filtered.pathname, `/logs/charts/${metric}`);
       assert.equal(filtered.searchParams.get('traceId'), 'owned-trace');
       assert.deepEqual(JSON.parse(filtered.searchParams.get('metadata')!), { tag: 'a+b&c' });
+      assert.equal(filtered.searchParams.get('statusCode'), '200,446');
+      assert.equal(filtered.searchParams.get('apiKeyIds'), '11111111-1111-4111-8111-111111111111');
+      assert.equal(filtered.searchParams.get('aiOrgModel'), 'openai__gpt-5.6-terra');
+      assert.equal(filtered.searchParams.get('totalUnitsMin'), '0');
+      assert.equal(filtered.searchParams.get('totalUnitsMax'), '42');
+      assert.equal(filtered.searchParams.get('costMin'), '0');
+      assert.equal(filtered.searchParams.get('costMax'), '0.125');
       if (metric === 'latency') {
         const data = (result as { data: Record<string, unknown> }).data;
         for (const field of ['total', 'p50', 'p90', 'p99']) assert.equal(data[field], null);

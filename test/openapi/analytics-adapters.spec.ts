@@ -19,10 +19,23 @@ describe('source-derived partial analytics adapters', () => {
         status: fixture.classification,
       });
       expect(operation.filters.map((filter) => filter.name).sort()).toEqual([
+        'ai_org_model',
+        'api_key_ids',
+        'cost_max',
+        'cost_min',
         'metadata',
+        'status_code',
+        'total_units_max',
+        'total_units_min',
         'trace_id',
       ]);
-      expect(operation.filters.every((filter) => filter.schema.type === 'string')).toBe(true);
+      for (const filter of operation.filters) {
+        if (filter.name.startsWith('total_units_'))
+          expect(filter.schema).toEqual({ type: 'integer', minimum: 0 });
+        else if (filter.name.startsWith('cost_'))
+          expect(filter.schema).toEqual({ type: 'number', minimum: 0 });
+        else expect(filter.schema.type).toBe('string');
+      }
       expect(operation.declaredQueryNames.length).toBeGreaterThan(20);
     }
   });
@@ -60,6 +73,13 @@ describe('source-derived partial analytics adapters', () => {
         end: new Date('2026-09-07T00:00:00Z'),
         traceId: 'owned',
         metadata: { sdk_e2e: 'owned' },
+        statusCodes: [200, 446],
+        apiKeyIds: ['11111111-1111-4111-8111-111111111111'],
+        aiOrgModels: ['openai__gpt-5.6-terra'],
+        totalUnitsMin: 0,
+        totalUnitsMax: 42,
+        costMin: 0,
+        costMax: 0.125,
       });
       const [url, options] = vi.mocked(globalThis.fetch).mock.calls[0];
       const actual = new URL(String(url));
@@ -73,6 +93,13 @@ describe('source-derived partial analytics adapters', () => {
         timeOfGenerationMax: expect.stringMatching(/T.*[+-]\d\d:\d\d$/),
         traceId: 'owned',
         metadata: '{"sdk_e2e":"owned"}',
+        statusCode: '200,446',
+        apiKeyIds: '11111111-1111-4111-8111-111111111111',
+        aiOrgModel: 'openai__gpt-5.6-terra',
+        totalUnitsMin: '0',
+        totalUnitsMax: '42',
+        costMin: '0',
+        costMax: '0.125',
       });
       expect(new Date(actual.searchParams.get('timeOfGenerationMin')!).toISOString()).toBe(
         '2026-09-06T00:00:00.000Z',
