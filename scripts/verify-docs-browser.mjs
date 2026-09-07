@@ -158,7 +158,9 @@ try {
       ['cli/aigateway/inference', [capturedAt, 'gpt-5.6-terra', 'READY', 'response-id']],
       ['runtime/dlp/profiles', ['500', '501']],
       ['cli/runtime/dlp/profiles', ['not live-verified', '501']],
-      ['cli/aigateway/telemetry', ['null', '0.23.0', '4.2.2']],
+      ['runtime/dlp/generate', ['five valid PNG', 'human-readable summary', 'sharp']],
+      ['cli/runtime/dlp/generate', ['2026-09-07T09:24:03.285Z', 'instead of JSON', 'sharp']],
+      ['cli/aigateway/telemetry', ['null', '0.24.0', '4.3.0', '54/54', '--cost-max']],
       ['cli/aigateway/workflows', ['400', 'AB01']],
     ])
       await check(`cli.desktop.${path}`, async () => {
@@ -183,6 +185,18 @@ try {
           );
           assert(text.includes(empty.capturedAt), 'Empty latency capture is stale');
           await assertCapturedJson(empty.output);
+          const filters = JSON.parse(
+            readFileSync(
+              new URL(
+                '../artifacts/examples/gateway-analytics-query-contracts-cli.json',
+                import.meta.url,
+              ),
+              'utf8',
+            ),
+          );
+          assert(text.includes(filters.capturedAt), 'Chart-filter capture is stale');
+          assert(text.includes(filters.cliVersion) && text.includes(filters.sdkVersion));
+          await assertCapturedJson(filters.evidence);
         }
       });
     await check('cli.mobile.inference-and-navigation', async () => {

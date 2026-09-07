@@ -12,6 +12,7 @@ export const liveReportSuites = [
   'gateway-analytics-chart-filters-sdk',
   'gateway-analytics-query-contracts',
   'gateway-analytics-query-contracts-sdk',
+  'gateway-analytics-query-contracts-cli',
   'gateway-extensions',
   'gateway-usage-reset',
   'gateway-usage-reset-audit',

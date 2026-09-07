@@ -2,13 +2,17 @@
 import assert from 'node:assert/strict';
 import { spawn } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
-import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { accessSync, constants, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { isAbsolute } from 'node:path';
 import { runtimeSuite } from './e2e/gateway-runtime.js';
 
 let capturedChat: unknown;
+const cli =
+  process.env.E2E_CLI_ENTRY ?? '/home/cdot/development/cdot65/prisma-airs-cli/dist/cli/index.js';
+// Installation is a prerequisite, not a live inference failure. Check it before creating a key.
+assert(isAbsolute(cli), 'CLI entry must be absolute');
+accessSync(cli, constants.R_OK);
 await runtimeSuite('cli-inference', async ({ harness, endpoint, apiKey }) => {
-  const cli =
-    process.env.E2E_CLI_ENTRY ?? '/home/cdot/development/cdot65/prisma-airs-cli/dist/cli/index.js';
   async function run(args: string[]) {
     return new Promise<{ code: number | null; stdout: string; stderr: string }>(
       (resolve, reject) => {

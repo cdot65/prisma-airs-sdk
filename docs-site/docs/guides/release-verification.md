@@ -4,6 +4,96 @@ title: Published-package examples
 
 # Published-package examples
 
+## SDK 0.24.0 and CLI 4.3.0 registry verification
+
+Both releases are published, installed independently from npm and payload-verified. CLI 4.3.0 pins SDK 0.24.0 exactly. The local user-prefix CLI is upgraded and independently checked. SDK publication preceded the CLI dependency update; existing runtime settings and the read-only credential configuration are unchanged.
+
+- Registry SDK inference: **10/10**, **2026-09-07T08:56:49.058Z**.
+- Installed registry SDK query contracts: **53/53**, **2026-09-07T08:56:03.088Z**.
+- Installed registry CLI query contracts: **54/54**, **2026-09-07T09:20:57.909Z**.
+- Registry CLI inference: **8/8**, **2026-09-07T09:19:53.288Z**.
+- Registry CLI empty-window JSON/YAML: **3/3**, **2026-09-07T09:19:46.233Z**.
+- Installed user CLI cross-service reads and benign scan: **12/12**, **2026-09-07T09:21:00.488Z**.
+- Independent all-history release-key retirement audit: **28/28**, **2026-09-07T09:20:51.289Z**.
+
+The SDK and CLI add verified query filters to four SCM chart adapters, sharing the SDK schema for validation before workspace resolution. Inclusive bounds, zero, fractional cents, CSV-OR lists and combined filters are verified against positive and empty cohorts. Empty latency aggregates remain null. Offline checks pass 10,931 SDK tests on Node 18/20/22/24 and 1,127 CLI tests, including 92 new flag/parser/public-command regressions against the actual dependency. Packed ESM/CommonJS, strict consumer types, source maps, OAuth deadlines and native WebSocket checks pass. Direct gateway coverage is unchanged at **138/242 (57.02%)**, with **22 partial analytics operations**. All original provider/service failures remain disclosed; full-scope assessment remains **5/10**.
+
+Actual CLI 4.3.0 registry-run chat output (response identifiers redacted):
+
+```json
+{
+  "id": "<response-id>",
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "content": "READY",
+        "role": "assistant",
+        "refusal": null,
+        "annotations": []
+      }
+    }
+  ],
+  "created": 1788772785,
+  "model": "gpt-5.6-terra",
+  "system_fingerprint": null,
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 4,
+    "prompt_tokens": 10,
+    "total_tokens": 14,
+    "completion_tokens_details": {
+      "reasoning_tokens": 0,
+      "accepted_prediction_tokens": 0,
+      "rejected_prediction_tokens": 0,
+      "audio_tokens": 0
+    },
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+      "cache_write_tokens": 0,
+      "audio_tokens": 0
+    }
+  },
+  "service_tier": "default"
+}
+```
+
+Actual empty-window CLI output, projected as disclosed by its capture:
+
+Actual installed CLI JSON/YAML output projected to exit status, period aggregate values and a zero-bucket check. No tenant identifiers, count aggregates or credentials are published. This historical empty-window check does not test new CLI filter flags.
+
+```json
+{
+  "version": "4.3.0",
+  "sdkVersion": "0.24.0",
+  "json": {
+    "exitCode": 0,
+    "total": null,
+    "p50": null,
+    "p90": null,
+    "p99": null,
+    "zeroValuedBuckets": true
+  },
+  "yaml": {
+    "exitCode": 0,
+    "total": null,
+    "p50": null,
+    "p90": null,
+    "p99": null,
+    "zeroValuedBuckets": true
+  }
+}
+```
+
+The analytics checks use existing owned traffic; they create no key, log or inference request. The separate release-inference checks use and retire short-lived dev keys with the prescribed models. TLS verification and the process-only LAN DNS accommodation are unchanged; WAN/container runtime readiness is not certified. Cost retains its rolling-day window and explicit cents/USD output; the other three charts support explicit timestamps. No realtime CLI command is added. See the [complete SDK query capture](./examples.mdx#verified-chart-query-contracts) and [complete CLI capture](https://cdot65.github.io/prisma-airs-cli/cli/aigateway/telemetry/#verified-chart-filter-output).
+
+Three subsequent harness-preflight regressions bring the verification checkout to 10,934 tests in 137 files. A missing local executable now fails before temporary-key creation. The npm metadata-lag attempt remains in private history; only the independently installed passing captures above are published as verified.
+
+The SDK's production dependency audit is clean. The CLI's production lockfile still has five high and one moderate advisory across YAML, ID generation and optional image dependencies; fresh npm resolution leaves the optional sharp advisory and its package-level propagation. Those require a focused security follow-up and are not reclassified by functional E2E success.
+
+The earlier release checkpoints below retain their original output and timestamps.
+
 ## SDK 0.23.0 and CLI 4.2.2 registry verification
 
 Both releases are published, installed independently from npm and payload-verified. CLI 4.2.2 pins SDK 0.23.0 exactly. The local user-prefix CLI is upgraded and independently checked. SDK publication preceded the CLI dependency update; existing runtime settings and the read-only credential configuration are unchanged.

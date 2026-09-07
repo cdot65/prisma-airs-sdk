@@ -10,7 +10,7 @@ const harness = new LiveHarness();
 try {
   const fixtures = new Map<string, { id: string; name: string }>();
   for (const file of readdirSync('artifacts/e2e/history').filter((name) =>
-    /^(?:release-sdk-inference(?:-022|-023)?|cli-inference)-\d{4}-.*\.json$/.test(name),
+    /^(?:release-sdk-inference(?:-022|-023|-024)?|cli-inference)-\d{4}-.*\.json$/.test(name),
   )) {
     const report = JSON.parse(readFileSync(`artifacts/e2e/history/${file}`, 'utf8')) as {
       credentialsUnchanged: boolean;

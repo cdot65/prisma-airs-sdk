@@ -6,7 +6,7 @@
 - Export `AIGatewayChartFiltersSchema` and its inferred type for standalone validation before workspace resolution or authentication; the transport shares those same definitions.
 - Preserve exact SCM casing and CSV serialization. Lists use OR; distinct filters use AND. Token/cost ranges are inclusive, preserve zero and reject reversed bounds before authentication. Cost values remain cents.
 - Verify all four charts against existing owned traffic with 53 live checks, including inclusive boundaries, CSV alternatives and empty negative cohorts. Add 248 failing-first SDK regression cases, 15 standalone-schema checks and expanded independently source-hashed adapter contracts.
-- Keep prompt/completion-token filters, other charts and grouping options strict. The original request-options interface and nullable latency types remain compatible. CLI filter flags are not implied.
+- Keep prompt/completion-token filters, other charts and grouping options strict. The original request-options interface and nullable latency types remain compatible. Separately published CLI 4.3.0 exposes these verified filters with the shared SDK validation; see its [actual executable output](https://cdot65.github.io/prisma-airs-cli/cli/aigateway/telemetry/#verified-chart-filter-output).
 
 These are still partial SCM adapters, not wire-equivalent upstream operations: direct gateway coverage remains **138/242 (57.02%)**. The release does not resolve recorded service/provider/entitlement failures or satisfy the full 99% target.
 

@@ -1,8 +1,11 @@
 /** @internal Read-only scalar, inclusive-range and CSV-OR contracts on owned historical traffic. */
 import assert from 'node:assert/strict';
+import { execFile } from 'node:child_process';
 import { randomUUID } from 'node:crypto';
 import { readFileSync } from 'node:fs';
-import { isAbsolute } from 'node:path';
+import { createRequire } from 'node:module';
+import { dirname, isAbsolute, resolve } from 'node:path';
+import { promisify } from 'node:util';
 import { pathToFileURL } from 'node:url';
 import {
   type AIGatewayChartFilters,
@@ -32,8 +35,38 @@ type ChartData = {
 const credentials = loadLiveCredentials();
 const harness = new LiveHarness();
 const sdk = process.argv.includes('--sdk');
-const suite = sdk ? 'gateway-analytics-query-contracts-sdk' : 'gateway-analytics-query-contracts';
+const cli = process.argv.includes('--cli');
+const suite = cli
+  ? 'gateway-analytics-query-contracts-cli'
+  : sdk
+    ? 'gateway-analytics-query-contracts-sdk'
+    : 'gateway-analytics-query-contracts';
 const installedEntry = process.env.E2E_ANALYTICS_SDK_ENTRY;
+const cliEntry = process.env.E2E_CLI_ENTRY;
+let cliVersion: string | undefined;
+const run = promisify(execFile);
+async function cliCommand(args: string[]): Promise<string> {
+  assert(cliEntry && isAbsolute(cliEntry));
+  try {
+    const result = await run(process.execPath, [cliEntry, ...args], {
+      env: {
+        ...process.env,
+        NO_COLOR: '1',
+        PANW_AI_SEC_NUM_RETRIES: '0',
+        PANW_AI_SEC_TIMEOUT_MS: '20000',
+      },
+      timeout: 30_000,
+      maxBuffer: 1_048_576,
+    });
+    assert(result.stdout.trim().length > 0);
+    return result.stdout;
+  } catch (error) {
+    const code = (error as { code?: unknown }).code;
+    throw new Error(
+      `CLI query-contract check failed; exit code ${typeof code === 'number' ? code : 'unknown'}`,
+    );
+  }
+}
 const evidence: {
   metric: string;
   filter: string;
@@ -43,6 +76,22 @@ const evidence: {
   respected: boolean;
 }[] = [];
 try {
+  assert(!(sdk && cli), 'Choose one consumer mode');
+  if (cli) {
+    assert(cliEntry && isAbsolute(cliEntry) && !installedEntry);
+    const packageFile = resolve(dirname(cliEntry), '../../package.json');
+    const pkg = JSON.parse(readFileSync(packageFile, 'utf8')) as {
+      version: string;
+      dependencies: Record<string, string>;
+    };
+    assert.equal(pkg.version, '4.3.0');
+    assert.equal(pkg.dependencies['@cdot65/prisma-airs-sdk'], SDK_VERSION);
+    assert.equal(createRequire(packageFile)('@cdot65/prisma-airs-sdk').SDK_VERSION, SDK_VERSION);
+    cliVersion = pkg.version;
+    await harness.check('analytics-query.installed-cli-version', async () => {
+      assert.equal((await cliCommand(['--version'])).trim(), cliVersion);
+    });
+  }
   let GatewayClient = AIGatewayClient;
   if (installedEntry) {
     assert(sdk && isAbsolute(installedEntry));
@@ -86,13 +135,14 @@ try {
     return record;
   });
   assert(control);
-  const token = sdk
-    ? undefined
-    : await new OAuthClient({
-        clientId: process.env.PANW_MGMT_CLIENT_ID!,
-        clientSecret: process.env.PANW_MGMT_CLIENT_SECRET!,
-        tsgId: process.env.PANW_MGMT_TSG_ID!,
-      }).getToken();
+  const token =
+    sdk || cli
+      ? undefined
+      : await new OAuthClient({
+          clientId: process.env.PANW_MGMT_CLIENT_ID!,
+          clientSecret: process.env.PANW_MGMT_CLIENT_SECRET!,
+          tsgId: process.env.PANW_MGMT_TSG_ID!,
+        }).getToken();
   harness.protect(token);
   const params = serializeWindow(process.env.PANW_MGMT_TSG_ID!, window);
   const missingKey = randomUUID();
@@ -174,6 +224,53 @@ try {
     ['latency', LatencyChartResponseSchema],
   ] as const) {
     async function chart(filters: Filters): Promise<ChartData> {
+      if (cli) {
+        const args = [
+          'aigateway',
+          'telemetry',
+          metric,
+          '--workspace',
+          window.workspaceSlug,
+          '--output',
+          'json',
+          '--trace-id',
+          control!.trace_id,
+          '--metadata',
+          JSON.stringify({ sdk_e2e: owned!.name }),
+        ];
+        // Cost preserves its existing rolling-window interface. The unique historical trace
+        // stays inside seven days; the other charts use the original exact fixture window.
+        if (metric === 'cost') args.push('--days', '7');
+        else args.push('--start', window.start.toISOString(), '--end', window.end.toISOString());
+        for (const [key, value] of Object.entries(filters)) {
+          const flag = '--' + key.replace(/[A-Z]/g, (letter) => '-' + letter.toLowerCase());
+          args.push(flag, Array.isArray(value) ? value.join(',') : String(value));
+        }
+        const parsed = JSON.parse(await cliCommand(args));
+        harness.captureResponseShape(`analytics-query.${metric}.cli`, parsed);
+        if (metric !== 'cost') return schema.parse(parsed).data;
+        assert.equal(parsed.workspaceSlug, window.workspaceSlug);
+        assert.equal(parsed.days, 7);
+        assert.equal(parsed.totalUsd, parsed.totalCents / 100);
+        assert.equal(parsed.avgUsd, parsed.avgCents / 100);
+        assert(
+          parsed.records.every(
+            (r: { costUsd: number; costCents: number }) => r.costUsd === r.costCents / 100,
+          ),
+        );
+        return CostChartResponseSchema.parse({
+          success: true,
+          data: {
+            total: parsed.totalCents,
+            avg: parsed.avgCents,
+            isQuotaExceeded: parsed.quotaExceeded,
+            records: parsed.records.map((r: { date: string; costCents: number }) => ({
+              x: r.date,
+              y: r.costCents,
+            })),
+          },
+        }).data;
+      }
       if (sdk) {
         const result = await gateway.telemetry[metric]({
           ...window,
@@ -270,8 +367,15 @@ try {
   };
   writePrivateReport(`artifacts/examples/${suite}.json`, {
     capturedAt: report.finishedAt,
-    mode: sdk ? (installedEntry ? 'installed-sdk' : 'source-sdk') : 'raw-scm',
-    sdkVersion: sdk ? SDK_VERSION : undefined,
+    mode: cli
+      ? 'installed-cli'
+      : sdk
+        ? installedEntry
+          ? 'installed-sdk'
+          : 'source-sdk'
+        : 'raw-scm',
+    cliVersion,
+    sdkVersion: sdk || cli ? SDK_VERSION : undefined,
     suite: { passed: report.passed, failed: report.failed, total: report.total },
     credentialsUnchanged: true,
     mutations: false,

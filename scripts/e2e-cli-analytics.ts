@@ -18,11 +18,11 @@ try {
   assert(entry && isAbsolute(entry), 'Pass the absolute installed CLI entry');
   const packageFile = resolve(dirname(entry), '../../package.json');
   const pkg = JSON.parse(readFileSync(packageFile, 'utf8')) as { version: string };
-  assert.equal(pkg.version, '4.2.2');
+  assert.equal(pkg.version, '4.3.0');
   const installedSdk = createRequire(packageFile)('@cdot65/prisma-airs-sdk') as {
     SDK_VERSION: string;
   };
-  assert.equal(installedSdk.SDK_VERSION, '0.23.0');
+  assert.equal(installedSdk.SDK_VERSION, '0.24.0');
   async function cli(args: string[]): Promise<string> {
     try {
       const result = await run(process.execPath, [entry!, ...args], {
