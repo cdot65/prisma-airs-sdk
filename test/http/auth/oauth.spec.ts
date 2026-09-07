@@ -67,6 +67,16 @@ describe('OAuthAuth.prepare', () => {
 });
 
 describe('OAuthAuth.onUnauthorized', () => {
+  it('does not refresh or replay an explicit SCM policy denial', async () => {
+    const client = makeClient();
+    const auth = new OAuthAuth(client);
+    expect(
+      await auth.onUnauthorized(
+        new Response(null, { status: 403, headers: { 'x-opa-decision': 'false' } }),
+      ),
+    ).toBe(false);
+    expect(client.clearToken).not.toHaveBeenCalled();
+  });
   it('clears token and returns true on 401', async () => {
     const client = makeClient();
     const auth = new OAuthAuth(client);

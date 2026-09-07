@@ -1,0 +1,1382 @@
+{
+  "source": "prisma-airs/management/mgmt-service_latest.yaml",
+  "sha256": "7ee421fd6ba31bd4f1c88d233ea032a52cd29ad59b71f2c3cbea9bc033fc215f",
+  "corrections": [
+    "management-topic-items-indentation",
+    "management-server-assigned-revisions",
+    "management-optional-topic-content",
+    "management-optional-dlp-members"
+  ],
+  "cases": [
+    {
+      "method": "POST",
+      "path": "/v1/mgmt/apikey",
+      "call": {
+        "method": "POST",
+        "path": "/v1/mgmt/apikey",
+        "source": "src/management/api-keys.ts",
+        "member": "create",
+        "plane": "management",
+        "responseSchema": "ApiKeySchema",
+        "requestSchema": "ApiKeyCreateRequestSchema",
+        "requestType": "ApiKeyCreateRequest",
+        "className": "ApiKeysClient",
+        "parameters": [
+          {
+            "name": "body",
+            "type": "ApiKeyCreateRequest"
+          }
+        ]
+      },
+      "query": {},
+      "queryWire": {},
+      "body": {
+        "dp_name": "x",
+        "auth_code": "x",
+        "cust_app": "x",
+        "cust_env": "x",
+        "cust_cloud_provider": "x",
+        "cust_ai_agent_framework": "x",
+        "revoked": false,
+        "created_by": "x",
+        "api_key_name": "x",
+        "rotation_time_interval": 1,
+        "rotation_time_unit": "x"
+      },
+      "responseBody": {
+        "api_key_id": "x",
+        "api_key_last8": "x",
+        "api_key_name": "x",
+        "auth_code": "x",
+        "csp_id": "x",
+        "tsg_id": "x",
+        "expiration": "2026-09-06T00:00:00Z",
+        "revoked": false,
+        "revoke_reason": "x",
+        "cust_app": "x",
+        "cust_env": "x",
+        "cust_ai_agent_framework": "x",
+        "cust_cloud_provider": "x",
+        "created_by": "x",
+        "updated_by": "x",
+        "last_modified_ts": "2026-09-06T00:00:00Z",
+        "rotation_time_interval": 1,
+        "rotation_time_unit": "x",
+        "dp_name": "x",
+        "status": "x",
+        "api_key": "x",
+        "lic_expiration": "2026-09-06T00:00:00Z",
+        "avg_text_records": 1,
+        "creation_ts": "2026-09-06T00:00:00Z",
+        "customer_appId": "x"
+      },
+      "responseStatus": 200,
+      "responseIsText": false
+    },
+    {
+      "method": "GET",
+      "path": "/v1/mgmt/apikeys",
+      "call": {
+        "method": "GET",
+        "path": "/v1/mgmt/apikeys",
+        "source": "src/management/api-keys.ts",
+        "member": "listForToken",
+        "plane": "management",
+        "responseSchema": "ApiKeyListResponseSchema",
+        "queryType": "Omit<PaginationOptions, 'latest'>",
+        "className": "ApiKeysClient",
+        "parameters": [
+          {
+            "name": "opts",
+            "type": "Omit<PaginationOptions, 'latest'>"
+          }
+        ]
+      },
+      "query": {
+        "offset": 1,
+        "limit": 1
+      },
+      "queryWire": {
+        "offset": ["1"],
+        "limit": ["1"]
+      },
+      "responseBody": {
+        "api_keys": [
+          {
+            "api_key_id": "x",
+            "api_key_last8": "x",
+            "api_key_name": "x",
+            "auth_code": "x",
+            "csp_id": "x",
+            "tsg_id": "x",
+            "expiration": "2026-09-06T00:00:00Z",
+            "revoked": false,
+            "revoke_reason": "x",
+            "cust_app": "x",
+            "cust_env": "x",
+            "cust_ai_agent_framework": "x",
+            "cust_cloud_provider": "x",
+            "created_by": "x",
+            "updated_by": "x",
+            "last_modified_ts": "2026-09-06T00:00:00Z",
+            "rotation_time_interval": 1,
+            "rotation_time_unit": "x",
+            "dp_name": "x",
+            "status": "x",
+            "api_key": "x",
+            "lic_expiration": "2026-09-06T00:00:00Z",
+            "avg_text_records": 1,
+            "creation_ts": "2026-09-06T00:00:00Z",
+            "customer_appId": "x"
+          }
+        ],
+        "next_offset": 1
+      },
+      "responseStatus": 200,
+      "responseIsText": false
+    },
+    {
+      "method": "DELETE",
+      "path": "/v1/mgmt/apikey/delete/{api_key_name}",
+      "call": {
+        "method": "DELETE",
+        "path": "/v1/mgmt/apikey/delete/{encodeURIComponent(apiKeyName)}",
+        "source": "src/management/api-keys.ts",
+        "member": "delete",
+        "plane": "management",
+        "responseSchema": "ApiKeyDeleteResponseSchema",
+        "className": "ApiKeysClient",
+        "parameters": [
+          {
+            "name": "apiKeyName",
+            "type": "string"
+          },
+          {
+            "name": "updatedBy",
+            "type": "string"
+          }
+        ]
+      },
+      "query": {
+        "updated_by": "x"
+      },
+      "queryWire": {
+        "updated_by": ["x"]
+      },
+      "responseBody": {
+        "message": "x"
+      },
+      "responseStatus": 200,
+      "responseIsText": false
+    },
+    {
+      "method": "POST",
+      "path": "/v1/mgmt/apikey/regenerate/{api_key_id}",
+      "call": {
+        "method": "POST",
+        "path": "/v1/mgmt/apikey/regenerate/{encodeURIComponent(apiKeyId)}",
+        "source": "src/management/api-keys.ts",
+        "member": "regenerate",
+        "plane": "management",
+        "responseSchema": "ApiKeySchema",
+        "requestSchema": "ApiKeyRegenerateRequestSchema",
+        "requestType": "ApiKeyRegenerateRequest",
+        "className": "ApiKeysClient",
+        "parameters": [
+          {
+            "name": "apiKeyId",
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "type": "ApiKeyRegenerateRequest"
+          }
+        ]
+      },
+      "query": {},
+      "queryWire": {},
+      "body": {
+        "rotation_time_interval": 1,
+        "rotation_time_unit": "x",
+        "updated_by": "x"
+      },
+      "responseBody": {
+        "api_key_id": "x",
+        "api_key_last8": "x",
+        "api_key_name": "x",
+        "auth_code": "x",
+        "csp_id": "x",
+        "tsg_id": "x",
+        "expiration": "2026-09-06T00:00:00Z",
+        "revoked": false,
+        "revoke_reason": "x",
+        "cust_app": "x",
+        "cust_env": "x",
+        "cust_ai_agent_framework": "x",
+        "cust_cloud_provider": "x",
+        "created_by": "x",
+        "updated_by": "x",
+        "last_modified_ts": "2026-09-06T00:00:00Z",
+        "rotation_time_interval": 1,
+        "rotation_time_unit": "x",
+        "dp_name": "x",
+        "status": "x",
+        "api_key": "x",
+        "lic_expiration": "2026-09-06T00:00:00Z",
+        "avg_text_records": 1,
+        "creation_ts": "2026-09-06T00:00:00Z",
+        "customer_appId": "x"
+      },
+      "responseStatus": 200,
+      "responseIsText": false
+    },
+    {
+      "method": "POST",
+      "path": "/v1/mgmt/profile",
+      "call": {
+        "method": "POST",
+        "path": "/v1/mgmt/profile",
+        "source": "src/management/profiles.ts",
+        "member": "create",
+        "plane": "management",
+        "responseSchema": "SecurityProfileSchema",
+        "requestSchema": "CreateSecurityProfileRequestSchema",
+        "requestType": "CreateSecurityProfileRequest",
+        "className": "ProfilesClient",
+        "parameters": [
+          {
+            "name": "body",
+            "type": "CreateSecurityProfileRequest"
+          }
+        ]
+      },
+      "query": {},
+      "queryWire": {},
+      "body": {
+        "profile_id": "x",
+        "profile_name": "x",
+        "revision": 1,
+        "active": false,
+        "policy": {
+          "dlp-data-profiles": [
+            {
+              "name": "x",
+              "uuid": "x",
+              "id": "x",
+              "version": "x",
+              "rule1": {
+                "action": "x"
+              },
+              "rule2": {
+                "action": "x"
+              },
+              "log-severity": "x",
+              "non-file-based": "x",
+              "file-based": "x"
+            }
+          ],
+          "ai-security-profiles": [
+            {
+              "model-type": "x",
+              "content-type": "x",
+              "model-configuration": {
+                "mask-data-in-storage": false,
+                "latency": {
+                  "inline-timeout-action": "x",
+                  "max-inline-latency": 1
+                },
+                "data-protection": {
+                  "data-leak-detection": {
+                    "member": [
+                      {
+                        "text": "x",
+                        "id": "x",
+                        "version": "x"
+                      }
+                    ],
+                    "action": "x",
+                    "mask-data-inline": false
+                  }
+                },
+                "app-protection": {
+                  "alert-url-category": {
+                    "member": ["x"]
+                  },
+                  "block-url-category": {
+                    "member": ["x"]
+                  },
+                  "allow-url-category": {
+                    "member": ["x"]
+                  }
+                },
+                "model-protection": [
+                  {
+                    "name": "x",
+                    "action": "x",
+                    "toxic-category-list": [
+                      {
+                        "category": "x",
+                        "action": "x"
+                      }
+                    ],
+                    "topic-list": [
+                      {
+                        "action": "x",
+                        "topic": [
+                          {
+                            "topic_name": "x",
+                            "topic_id": "x",
+                            "revision": 1
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ],
+                "agent-protection": [
+                  {
+                    "name": "x",
+                    "action": "x"
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "created_by": "x",
+        "updated_by": "x",
+        "last_modified_ts": "2026-09-06T00:00:00Z"
+      },
+      "responseBody": {
+        "profile_id": "x",
+        "profile_name": "x",
+        "revision": 1,
+        "active": false,
+        "policy": {
+          "dlp-data-profiles": [
+            {
+              "name": "x",
+              "uuid": "x",
+              "id": "x",
+              "version": "x",
+              "rule1": {
+                "action": "x"
+              },
+              "rule2": {
+                "action": "x"
+              },
+              "log-severity": "x",
+              "non-file-based": "x",
+              "file-based": "x"
+            }
+          ],
+          "ai-security-profiles": [
+            {
+              "model-type": "x",
+              "content-type": "x",
+              "model-configuration": {
+                "mask-data-in-storage": false,
+                "latency": {
+                  "inline-timeout-action": "x",
+                  "max-inline-latency": 1
+                },
+                "data-protection": {
+                  "data-leak-detection": {
+                    "member": [
+                      {
+                        "text": "x",
+                        "id": "x",
+                        "version": "x"
+                      }
+                    ],
+                    "action": "x",
+                    "mask-data-inline": false
+                  }
+                },
+                "app-protection": {
+                  "alert-url-category": {
+                    "member": ["x"]
+                  },
+                  "block-url-category": {
+                    "member": ["x"]
+                  },
+                  "allow-url-category": {
+                    "member": ["x"]
+                  }
+                },
+                "model-protection": [
+                  {
+                    "name": "x",
+                    "action": "x",
+                    "toxic-category-list": [
+                      {
+                        "category": "x",
+                        "action": "x"
+                      }
+                    ],
+                    "topic-list": [
+                      {
+                        "action": "x",
+                        "topic": [
+                          {
+                            "topic_name": "x",
+                            "topic_id": "x",
+                            "revision": 1
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ],
+                "agent-protection": [
+                  {
+                    "name": "x",
+                    "action": "x"
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "created_by": "x",
+        "updated_by": "x",
+        "last_modified_ts": "2026-09-06T00:00:00Z"
+      },
+      "responseStatus": 200,
+      "responseIsText": false
+    },
+    {
+      "method": "DELETE",
+      "path": "/v1/mgmt/profile/{profile_id}",
+      "call": {
+        "method": "DELETE",
+        "path": "/v1/mgmt/profile/{profileId}",
+        "source": "src/management/profiles.ts",
+        "member": "delete",
+        "plane": "management",
+        "responseSchema": "DeleteProfileResponseSchema",
+        "className": "ProfilesClient",
+        "parameters": [
+          {
+            "name": "profileId",
+            "type": "string"
+          }
+        ]
+      },
+      "query": {},
+      "queryWire": {},
+      "responseBody": {
+        "message": "x"
+      },
+      "responseStatus": 200,
+      "responseIsText": false
+    },
+    {
+      "method": "PUT",
+      "path": "/v1/mgmt/profile/uuid/{profile_id}",
+      "call": {
+        "method": "PUT",
+        "path": "/v1/mgmt/profile/uuid/{profileId}",
+        "source": "src/management/profiles.ts",
+        "member": "update",
+        "plane": "management",
+        "responseSchema": "SecurityProfileSchema",
+        "requestSchema": "CreateSecurityProfileRequestSchema",
+        "requestType": "CreateSecurityProfileRequest",
+        "className": "ProfilesClient",
+        "parameters": [
+          {
+            "name": "profileId",
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "type": "CreateSecurityProfileRequest"
+          }
+        ]
+      },
+      "query": {},
+      "queryWire": {},
+      "body": {
+        "profile_id": "x",
+        "profile_name": "x",
+        "revision": 1,
+        "active": false,
+        "policy": {
+          "dlp-data-profiles": [
+            {
+              "name": "x",
+              "uuid": "x",
+              "id": "x",
+              "version": "x",
+              "rule1": {
+                "action": "x"
+              },
+              "rule2": {
+                "action": "x"
+              },
+              "log-severity": "x",
+              "non-file-based": "x",
+              "file-based": "x"
+            }
+          ],
+          "ai-security-profiles": [
+            {
+              "model-type": "x",
+              "content-type": "x",
+              "model-configuration": {
+                "mask-data-in-storage": false,
+                "latency": {
+                  "inline-timeout-action": "x",
+                  "max-inline-latency": 1
+                },
+                "data-protection": {
+                  "data-leak-detection": {
+                    "member": [
+                      {
+                        "text": "x",
+                        "id": "x",
+                        "version": "x"
+                      }
+                    ],
+                    "action": "x",
+                    "mask-data-inline": false
+                  }
+                },
+                "app-protection": {
+                  "alert-url-category": {
+                    "member": ["x"]
+                  },
+                  "block-url-category": {
+                    "member": ["x"]
+                  },
+                  "allow-url-category": {
+                    "member": ["x"]
+                  }
+                },
+                "model-protection": [
+                  {
+                    "name": "x",
+                    "action": "x",
+                    "toxic-category-list": [
+                      {
+                        "category": "x",
+                        "action": "x"
+                      }
+                    ],
+                    "topic-list": [
+                      {
+                        "action": "x",
+                        "topic": [
+                          {
+                            "topic_name": "x",
+                            "topic_id": "x",
+                            "revision": 1
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ],
+                "agent-protection": [
+                  {
+                    "name": "x",
+                    "action": "x"
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "created_by": "x",
+        "updated_by": "x",
+        "last_modified_ts": "2026-09-06T00:00:00Z"
+      },
+      "responseBody": {
+        "profile_id": "x",
+        "profile_name": "x",
+        "revision": 1,
+        "active": false,
+        "policy": {
+          "dlp-data-profiles": [
+            {
+              "name": "x",
+              "uuid": "x",
+              "id": "x",
+              "version": "x",
+              "rule1": {
+                "action": "x"
+              },
+              "rule2": {
+                "action": "x"
+              },
+              "log-severity": "x",
+              "non-file-based": "x",
+              "file-based": "x"
+            }
+          ],
+          "ai-security-profiles": [
+            {
+              "model-type": "x",
+              "content-type": "x",
+              "model-configuration": {
+                "mask-data-in-storage": false,
+                "latency": {
+                  "inline-timeout-action": "x",
+                  "max-inline-latency": 1
+                },
+                "data-protection": {
+                  "data-leak-detection": {
+                    "member": [
+                      {
+                        "text": "x",
+                        "id": "x",
+                        "version": "x"
+                      }
+                    ],
+                    "action": "x",
+                    "mask-data-inline": false
+                  }
+                },
+                "app-protection": {
+                  "alert-url-category": {
+                    "member": ["x"]
+                  },
+                  "block-url-category": {
+                    "member": ["x"]
+                  },
+                  "allow-url-category": {
+                    "member": ["x"]
+                  }
+                },
+                "model-protection": [
+                  {
+                    "name": "x",
+                    "action": "x",
+                    "toxic-category-list": [
+                      {
+                        "category": "x",
+                        "action": "x"
+                      }
+                    ],
+                    "topic-list": [
+                      {
+                        "action": "x",
+                        "topic": [
+                          {
+                            "topic_name": "x",
+                            "topic_id": "x",
+                            "revision": 1
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ],
+                "agent-protection": [
+                  {
+                    "name": "x",
+                    "action": "x"
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "created_by": "x",
+        "updated_by": "x",
+        "last_modified_ts": "2026-09-06T00:00:00Z"
+      },
+      "responseStatus": 200,
+      "responseIsText": false
+    },
+    {
+      "method": "GET",
+      "path": "/v1/mgmt/profiles",
+      "call": {
+        "method": "GET",
+        "path": "/v1/mgmt/profiles",
+        "source": "src/management/profiles.ts",
+        "member": "listForToken",
+        "plane": "management",
+        "responseSchema": "SecurityProfileListResponseSchema",
+        "queryType": "PaginationOptions",
+        "className": "ProfilesClient",
+        "parameters": [
+          {
+            "name": "opts",
+            "type": "PaginationOptions"
+          }
+        ]
+      },
+      "query": {
+        "offset": 1,
+        "limit": 1,
+        "latest": false
+      },
+      "queryWire": {
+        "offset": ["1"],
+        "limit": ["1"],
+        "latest": ["false"]
+      },
+      "responseBody": {
+        "ai_profiles": [
+          {
+            "profile_id": "x",
+            "profile_name": "x",
+            "revision": 1,
+            "active": false,
+            "policy": {
+              "dlp-data-profiles": [
+                {
+                  "name": "x",
+                  "uuid": "x",
+                  "id": "x",
+                  "version": "x",
+                  "rule1": {
+                    "action": "x"
+                  },
+                  "rule2": {
+                    "action": "x"
+                  },
+                  "log-severity": "x",
+                  "non-file-based": "x",
+                  "file-based": "x"
+                }
+              ],
+              "ai-security-profiles": [
+                {
+                  "model-type": "x",
+                  "content-type": "x",
+                  "model-configuration": {
+                    "mask-data-in-storage": false,
+                    "latency": {
+                      "inline-timeout-action": "x",
+                      "max-inline-latency": 1
+                    },
+                    "data-protection": {
+                      "data-leak-detection": {
+                        "member": [
+                          {
+                            "text": "x",
+                            "id": "x",
+                            "version": "x"
+                          }
+                        ],
+                        "action": "x",
+                        "mask-data-inline": false
+                      }
+                    },
+                    "app-protection": {
+                      "alert-url-category": {
+                        "member": ["x"]
+                      },
+                      "block-url-category": {
+                        "member": ["x"]
+                      },
+                      "allow-url-category": {
+                        "member": ["x"]
+                      }
+                    },
+                    "model-protection": [
+                      {
+                        "name": "x",
+                        "action": "x",
+                        "toxic-category-list": [
+                          {
+                            "category": "x",
+                            "action": "x"
+                          }
+                        ],
+                        "topic-list": [
+                          {
+                            "action": "x",
+                            "topic": [
+                              {
+                                "topic_name": "x",
+                                "topic_id": "x",
+                                "revision": 1
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ],
+                    "agent-protection": [
+                      {
+                        "name": "x",
+                        "action": "x"
+                      }
+                    ]
+                  }
+                }
+              ]
+            },
+            "created_by": "x",
+            "updated_by": "x",
+            "last_modified_ts": "2026-09-06T00:00:00Z"
+          }
+        ],
+        "next_offset": 1
+      },
+      "responseStatus": 200,
+      "responseIsText": false
+    },
+    {
+      "method": "DELETE",
+      "path": "/v1/mgmt/profile/{profile_id}/force",
+      "call": {
+        "method": "DELETE",
+        "path": "/v1/mgmt/profile/{profileId}/force",
+        "source": "src/management/profiles.ts",
+        "member": "forceDelete",
+        "plane": "management",
+        "responseSchema": "DeleteProfileResponseSchema",
+        "className": "ProfilesClient",
+        "parameters": [
+          {
+            "name": "profileId",
+            "type": "string"
+          },
+          {
+            "name": "updatedBy",
+            "type": "string"
+          }
+        ]
+      },
+      "query": {
+        "updated_by": "x"
+      },
+      "queryWire": {
+        "updated_by": ["x"]
+      },
+      "responseBody": {
+        "message": "x"
+      },
+      "responseStatus": 200,
+      "responseIsText": false
+    },
+    {
+      "method": "GET",
+      "path": "/v1/mgmt/dlpprofiles",
+      "call": {
+        "method": "GET",
+        "path": "/v1/mgmt/dlpprofiles",
+        "source": "src/management/dlp-profiles.ts",
+        "member": "list",
+        "plane": "management",
+        "responseSchema": "DlpProfileListResponseSchema",
+        "className": "DlpProfilesClient",
+        "parameters": []
+      },
+      "query": {},
+      "queryWire": {},
+      "responseBody": {
+        "dlp_profiles": [
+          {
+            "name": "x",
+            "uuid": "x",
+            "id": "x",
+            "version": "x",
+            "rule1": {
+              "action": "x"
+            },
+            "rule2": {
+              "action": "x"
+            },
+            "log-severity": "x",
+            "non-file-based": "x",
+            "file-based": "x"
+          }
+        ]
+      },
+      "responseStatus": 200,
+      "responseIsText": false
+    },
+    {
+      "method": "GET",
+      "path": "/v1/mgmt/deploymentprofiles",
+      "call": {
+        "method": "GET",
+        "path": "/v1/mgmt/deploymentprofiles",
+        "source": "src/management/deployment-profiles.ts",
+        "member": "list",
+        "plane": "management",
+        "responseSchema": "DeploymentProfilesResponseSchema",
+        "queryType": "DeploymentProfileListOptions",
+        "className": "DeploymentProfilesClient",
+        "parameters": [
+          {
+            "name": "opts",
+            "type": "DeploymentProfileListOptions"
+          }
+        ]
+      },
+      "query": {
+        "unactivated": false
+      },
+      "queryWire": {
+        "unactivated": ["false"]
+      },
+      "responseBody": {
+        "deployment_profiles": [
+          {
+            "dp_name": "x",
+            "auth_code": "x",
+            "tsg_id": "x",
+            "status": "x",
+            "expiration_date": "x",
+            "ave_text_records": 1
+          }
+        ],
+        "status": "x"
+      },
+      "responseStatus": 200,
+      "responseIsText": false
+    },
+    {
+      "method": "GET",
+      "path": "/v1/mgmt/customerapp",
+      "call": {
+        "method": "GET",
+        "path": "/v1/mgmt/customerapp",
+        "source": "src/management/customer-apps.ts",
+        "member": "get",
+        "plane": "management",
+        "responseSchema": "CustomerAppSchema",
+        "className": "CustomerAppsClient",
+        "parameters": [
+          {
+            "name": "appName",
+            "type": "string"
+          }
+        ]
+      },
+      "query": {
+        "app_name": "x"
+      },
+      "queryWire": {
+        "app_name": ["x"]
+      },
+      "responseBody": {
+        "customer_appId": "x",
+        "tsg_id": "x",
+        "app_name": "x",
+        "model_name": "x",
+        "cloud_provider": "x",
+        "environment": "x",
+        "status": "x",
+        "created_by": "x",
+        "updated_by": "x",
+        "ai_agent_framework": "x"
+      },
+      "responseStatus": 200,
+      "responseIsText": false
+    },
+    {
+      "method": "DELETE",
+      "path": "/v1/mgmt/customerapp",
+      "call": {
+        "method": "DELETE",
+        "path": "/v1/mgmt/customerapp",
+        "source": "src/management/customer-apps.ts",
+        "member": "delete",
+        "plane": "management",
+        "responseSchema": "CustomerAppDeleteResponseSchema",
+        "className": "CustomerAppsClient",
+        "parameters": [
+          {
+            "name": "appName",
+            "type": "string"
+          },
+          {
+            "name": "updatedBy",
+            "type": "string"
+          }
+        ]
+      },
+      "query": {
+        "app_name": "x",
+        "updated_by": "x"
+      },
+      "queryWire": {
+        "app_name": ["x"],
+        "updated_by": ["x"]
+      },
+      "responseBody": {
+        "customer_appId": "x",
+        "tsg_id": "x",
+        "app_name": "x",
+        "model_name": "x",
+        "cloud_provider": "x",
+        "environment": "x",
+        "status": "x",
+        "created_by": "x",
+        "updated_by": "x",
+        "ai_agent_framework": "x"
+      },
+      "responseStatus": 200,
+      "responseIsText": false
+    },
+    {
+      "method": "PUT",
+      "path": "/v1/mgmt/customerapp",
+      "call": {
+        "method": "PUT",
+        "path": "/v1/mgmt/customerapp",
+        "source": "src/management/customer-apps.ts",
+        "member": "update",
+        "plane": "management",
+        "responseSchema": "CustomerAppSchema",
+        "requestSchema": "CustomerAppSchema",
+        "requestType": "CustomerApp",
+        "className": "CustomerAppsClient",
+        "parameters": [
+          {
+            "name": "customerAppId",
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "type": "CustomerApp"
+          }
+        ]
+      },
+      "query": {
+        "customer_app_id": "550e8400-e29b-41d4-a716-446655440000"
+      },
+      "queryWire": {
+        "customer_app_id": ["550e8400-e29b-41d4-a716-446655440000"]
+      },
+      "body": {
+        "customer_appId": "x",
+        "tsg_id": "x",
+        "app_name": "x",
+        "model_name": "x",
+        "cloud_provider": "x",
+        "environment": "x",
+        "status": "x",
+        "created_by": "x",
+        "updated_by": "x",
+        "ai_agent_framework": "x"
+      },
+      "responseBody": {
+        "customer_appId": "x",
+        "tsg_id": "x",
+        "app_name": "x",
+        "model_name": "x",
+        "cloud_provider": "x",
+        "environment": "x",
+        "status": "x",
+        "created_by": "x",
+        "updated_by": "x",
+        "ai_agent_framework": "x"
+      },
+      "responseStatus": 200,
+      "responseIsText": false
+    },
+    {
+      "method": "GET",
+      "path": "/v1/mgmt/customerapps",
+      "call": {
+        "method": "GET",
+        "path": "/v1/mgmt/customerapps",
+        "source": "src/management/customer-apps.ts",
+        "member": "listForToken",
+        "plane": "management",
+        "responseSchema": "CustomerAppListResponseSchema",
+        "queryType": "Omit<PaginationOptions, 'latest'>",
+        "className": "CustomerAppsClient",
+        "parameters": [
+          {
+            "name": "opts",
+            "type": "Omit<PaginationOptions, 'latest'>"
+          }
+        ]
+      },
+      "query": {
+        "offset": 1,
+        "limit": 1
+      },
+      "queryWire": {
+        "offset": ["1"],
+        "limit": ["1"]
+      },
+      "responseBody": {
+        "customer_apps": [
+          {
+            "customer_appId": "x",
+            "tsg_id": "x",
+            "app_name": "x",
+            "model_name": "x",
+            "cloud_provider": "x",
+            "environment": "x",
+            "ai_agent_framework": "x",
+            "api_keys_dp_info": [
+              {
+                "api_key_name": "x",
+                "dp_name": "x",
+                "auth_code": "x"
+              }
+            ]
+          }
+        ],
+        "next_offset": 1
+      },
+      "responseStatus": 200,
+      "responseIsText": false
+    },
+    {
+      "method": "POST",
+      "path": "/v1/mgmt/topic",
+      "call": {
+        "method": "POST",
+        "path": "/v1/mgmt/topic",
+        "source": "src/management/topics.ts",
+        "member": "create",
+        "plane": "management",
+        "responseSchema": "CustomTopicSchema",
+        "requestSchema": "CreateCustomTopicRequestSchema",
+        "requestType": "CreateCustomTopicRequest",
+        "className": "TopicsClient",
+        "parameters": [
+          {
+            "name": "body",
+            "type": "CreateCustomTopicRequest"
+          }
+        ]
+      },
+      "query": {},
+      "queryWire": {},
+      "body": {
+        "topic_id": "x",
+        "topic_name": "x",
+        "revision": 1,
+        "active": false,
+        "description": "x",
+        "examples": ["x"],
+        "created_by": "x",
+        "updated_by": "x",
+        "last_modified_ts": "2026-09-06T00:00:00Z",
+        "created_ts": "2026-09-06T00:00:00Z"
+      },
+      "responseBody": {
+        "topic_id": "x",
+        "topic_name": "x",
+        "revision": 1,
+        "active": false,
+        "description": "x",
+        "examples": ["x"],
+        "created_by": "x",
+        "updated_by": "x",
+        "last_modified_ts": "2026-09-06T00:00:00Z",
+        "created_ts": "2026-09-06T00:00:00Z"
+      },
+      "responseStatus": 200,
+      "responseIsText": false
+    },
+    {
+      "method": "DELETE",
+      "path": "/v1/mgmt/topic/{topic_id}",
+      "call": {
+        "method": "DELETE",
+        "path": "/v1/mgmt/topic/{topicId}",
+        "source": "src/management/topics.ts",
+        "member": "delete",
+        "plane": "management",
+        "responseSchema": "DeleteTopicResponseSchema",
+        "className": "TopicsClient",
+        "parameters": [
+          {
+            "name": "topicId",
+            "type": "string"
+          }
+        ]
+      },
+      "query": {},
+      "queryWire": {},
+      "responseBody": {
+        "message": "x"
+      },
+      "responseStatus": 200,
+      "responseIsText": false
+    },
+    {
+      "method": "DELETE",
+      "path": "/v1/mgmt/topic/{topic_id}/force",
+      "call": {
+        "method": "DELETE",
+        "path": "/v1/mgmt/topic/{topicId}/force",
+        "source": "src/management/topics.ts",
+        "member": "forceDeleteWithAudit",
+        "plane": "management",
+        "responseSchema": "DeleteTopicResponseSchema",
+        "className": "TopicsClient",
+        "parameters": [
+          {
+            "name": "topicId",
+            "type": "string"
+          },
+          {
+            "name": "updatedBy",
+            "type": "string"
+          }
+        ]
+      },
+      "query": {
+        "updated_by": "x"
+      },
+      "queryWire": {
+        "updated_by": ["x"]
+      },
+      "responseBody": {
+        "message": "x"
+      },
+      "responseStatus": 200,
+      "responseIsText": false
+    },
+    {
+      "method": "PUT",
+      "path": "/v1/mgmt/topic/uuid/{topic_id}",
+      "call": {
+        "method": "PUT",
+        "path": "/v1/mgmt/topic/uuid/{topicId}",
+        "source": "src/management/topics.ts",
+        "member": "update",
+        "plane": "management",
+        "responseSchema": "CustomTopicSchema",
+        "requestSchema": "CreateCustomTopicRequestSchema",
+        "requestType": "CreateCustomTopicRequest",
+        "className": "TopicsClient",
+        "parameters": [
+          {
+            "name": "topicId",
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "type": "CreateCustomTopicRequest"
+          }
+        ]
+      },
+      "query": {},
+      "queryWire": {},
+      "body": {
+        "topic_id": "x",
+        "topic_name": "x",
+        "revision": 1,
+        "active": false,
+        "description": "x",
+        "examples": ["x"],
+        "created_by": "x",
+        "updated_by": "x",
+        "last_modified_ts": "2026-09-06T00:00:00Z",
+        "created_ts": "2026-09-06T00:00:00Z"
+      },
+      "responseBody": {
+        "topic_id": "x",
+        "topic_name": "x",
+        "revision": 1,
+        "active": false,
+        "description": "x",
+        "examples": ["x"],
+        "created_by": "x",
+        "updated_by": "x",
+        "last_modified_ts": "2026-09-06T00:00:00Z",
+        "created_ts": "2026-09-06T00:00:00Z"
+      },
+      "responseStatus": 200,
+      "responseIsText": false
+    },
+    {
+      "method": "GET",
+      "path": "/v1/mgmt/topics",
+      "call": {
+        "method": "GET",
+        "path": "/v1/mgmt/topics",
+        "source": "src/management/topics.ts",
+        "member": "listForToken",
+        "plane": "management",
+        "responseSchema": "CustomTopicListResponseSchema",
+        "queryType": "Omit<PaginationOptions, 'latest'>",
+        "className": "TopicsClient",
+        "parameters": [
+          {
+            "name": "opts",
+            "type": "Omit<PaginationOptions, 'latest'>"
+          }
+        ]
+      },
+      "query": {
+        "offset": 1,
+        "limit": 1
+      },
+      "queryWire": {
+        "offset": ["1"],
+        "limit": ["1"]
+      },
+      "responseBody": {
+        "custom_topics": [
+          {
+            "topic_id": "x",
+            "topic_name": "x",
+            "revision": 1,
+            "active": false,
+            "description": "x",
+            "examples": ["x"],
+            "created_by": "x",
+            "updated_by": "x",
+            "last_modified_ts": "2026-09-06T00:00:00Z",
+            "created_ts": "2026-09-06T00:00:00Z"
+          }
+        ],
+        "next_offset": 1
+      },
+      "responseStatus": 200,
+      "responseIsText": false
+    },
+    {
+      "method": "POST",
+      "path": "/v1/mgmt/oauth/client_credential/accesstoken",
+      "call": {
+        "method": "POST",
+        "path": "/v1/mgmt/oauth/client_credential/accesstoken",
+        "source": "src/management/oauth-management.ts",
+        "member": "getAccessToken",
+        "plane": "management",
+        "responseSchema": "Oauth2TokenSchema",
+        "requestSchema": "ClientIdAndCustomerAppSchema",
+        "queryType": "GetTokenOptions",
+        "className": "OAuthManagementClient",
+        "parameters": [
+          {
+            "name": "opts",
+            "type": "GetTokenOptions"
+          }
+        ]
+      },
+      "query": {
+        "tokenTtlInterval": 1,
+        "tokenTtlUnit": "x"
+      },
+      "queryWire": {
+        "tokenTtlInterval": ["1"],
+        "tokenTtlUnit": ["x"]
+      },
+      "body": {
+        "client_id": "x",
+        "customer_app": "x"
+      },
+      "responseBody": {
+        "token_type": "x",
+        "issued_at": "x",
+        "client_id": "x",
+        "access_token": "x",
+        "expires_in": "x",
+        "status": "x"
+      },
+      "responseStatus": 200,
+      "responseIsText": false
+    }
+  ]
+}

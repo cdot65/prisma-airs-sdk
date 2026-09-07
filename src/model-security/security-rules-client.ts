@@ -8,6 +8,11 @@ import {
   type ListingOptions,
 } from '../listing.js';
 import { assertUuid } from '../validators.js';
+import { modelSecurityParams, type SnapshotVersionListOptions } from './custom-rules-client.js';
+import {
+  SnapshotVersionListResponseSchema,
+  type SnapshotVersionListResponse,
+} from '../models/model-security-custom-rules.js';
 import {
   ListModelSecurityRulesResponseSchema,
   ModelSecurityRuleResponseSchema,
@@ -17,6 +22,8 @@ import {
 
 /** Options for listing security rules. */
 export interface ModelSecurityRuleListOptions extends ListingOptions {
+  /** Read a historical snapshot by generation. */
+  generation?: number;
   /** Filter by source type. */
   source_type?: string;
   /** Search term (matches UUID or Name, 3-1000 chars). */
@@ -66,6 +73,8 @@ export class ModelSecurityRulesClient {
     const params = serializeListing(opts);
     if (opts?.source_type !== undefined) params.source_type = opts.source_type;
     if (opts?.search_query !== undefined) params.search_query = opts.search_query;
+    if (opts?.generation !== undefined)
+      Object.assign(params, modelSecurityParams({ generation: opts.generation }));
 
     return request({
       method: 'GET',
@@ -73,6 +82,19 @@ export class ModelSecurityRulesClient {
       path: MODEL_SEC_SECURITY_RULES_PATH,
       params,
       responseSchema: ListModelSecurityRulesResponseSchema,
+      auth: this.auth,
+      numRetries: this.numRetries,
+    });
+  }
+
+  /** List security rule snapshot versions. @example `const page = await ms.securityRules.listVersions({ limit: 20 });` */
+  async listVersions(opts: SnapshotVersionListOptions = {}): Promise<SnapshotVersionListResponse> {
+    return request({
+      method: 'GET',
+      baseUrl: this.baseUrl,
+      path: `${MODEL_SEC_SECURITY_RULES_PATH}/versions`,
+      params: modelSecurityParams(opts),
+      responseSchema: SnapshotVersionListResponseSchema,
       auth: this.auth,
       numRetries: this.numRetries,
     });

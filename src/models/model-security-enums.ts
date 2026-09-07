@@ -18,6 +18,8 @@ export const ErrorCodes = {
   MISSING_ARTIFACTS: 'MISSING_ARTIFACTS',
   WORKER_ERROR: 'WORKER_ERROR',
   POLICY_EVAL_ERROR: 'POLICY_EVAL_ERROR',
+  RESOURCE_NOT_FOUND: 'RESOURCE_NOT_FOUND',
+  SCAN_DATA_PENDING: 'SCAN_DATA_PENDING',
 } as const;
 
 /** Union type of all possible error code values. */
@@ -84,9 +86,15 @@ export const RuleState = {
 /** Union type of all possible rule state values. */
 export type RuleState = (typeof RuleState)[keyof typeof RuleState];
 
+/** Distinguishes PANW rule templates from customer-authored rules. */
+export const RuleOrigin = { PANW_MANAGED: 'PANW_MANAGED', CUSTOM: 'CUSTOM' } as const;
+export type RuleOrigin = (typeof RuleOrigin)[keyof typeof RuleOrigin];
+
 /** Origin of the model security scan. */
 export const ScanOrigin = {
   MODEL_SECURITY_SDK: 'MODEL_SECURITY_SDK',
+  MODEL_SECURITY_API: 'MODEL_SECURITY_API',
+  MODEL_SECURITY_FRONTEND: 'MODEL_SECURITY_FRONTEND',
   HUGGING_FACE: 'HUGGING_FACE',
 } as const;
 

@@ -1,0 +1,845 @@
+{
+  "source": "prisma-airs-redteam/management/mp-openapi.yaml",
+  "sha256": "4b92495d9a0c5aef460c22c8d124f1ad2586fe1f17ef07348a551a8a5ae78125",
+  "corrections": ["redteam-overlapping-connection-variants", "redteam-csv-template-content-type"],
+  "contracts": [
+    {
+      "direction": "response",
+      "validator": "CustomPromptSetResponseSchema",
+      "operations": [
+        "POST /v1/custom-attack/custom-prompt-set",
+        "GET /v1/custom-attack/custom-prompt-set/{prompt_set_uuid}",
+        "PUT /v1/custom-attack/custom-prompt-set/{prompt_set_uuid}",
+        "PUT /v1/custom-attack/custom-prompt-set/{prompt_set_uuid}/archive"
+      ],
+      "schema": {
+        "properties": {
+          "uuid": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Uuid",
+            "description": "Unique identifier"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name",
+            "description": "Name of the prompt set"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description",
+            "description": "Description of the prompt set",
+            "default": null
+          },
+          "language": {
+            "description": "Language of prompts in this set",
+            "properties": {
+              "code": {
+                "type": "string",
+                "title": "Code"
+              },
+              "name": {
+                "type": "string",
+                "title": "Name"
+              }
+            },
+            "type": "object",
+            "required": ["code", "name"],
+            "title": "LanguageOptionSchema"
+          },
+          "active": {
+            "type": "boolean",
+            "title": "Active",
+            "description": "Whether the prompt set is active"
+          },
+          "archive": {
+            "type": "boolean",
+            "title": "Archive",
+            "description": "Whether the prompt set is archived"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status",
+            "description": "Status of the prompt set"
+          },
+          "version": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Version",
+            "description": "GCS generation number for snapshot versioning"
+          },
+          "stats": {
+            "anyOf": [
+              {
+                "properties": {
+                  "total_prompts": {
+                    "type": "integer",
+                    "title": "Total Prompts",
+                    "description": "Total number of prompts"
+                  },
+                  "active_prompts": {
+                    "type": "integer",
+                    "title": "Active Prompts",
+                    "description": "Number of active prompts"
+                  },
+                  "failed_prompts": {
+                    "type": "integer",
+                    "title": "Failed Prompts",
+                    "description": "Number of failed prompts",
+                    "default": 0
+                  },
+                  "validation_prompts": {
+                    "type": "integer",
+                    "title": "Validation Prompts",
+                    "description": "Number of validation prompts",
+                    "default": 0
+                  },
+                  "inactive_prompts": {
+                    "type": "integer",
+                    "title": "Inactive Prompts",
+                    "description": "Number of inactive prompts"
+                  }
+                },
+                "type": "object",
+                "required": ["total_prompts", "active_prompts", "inactive_prompts"],
+                "title": "PromptSetStatsSchema",
+                "description": "Schema for prompt set statistics."
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Statistics about the prompt set"
+          },
+          "extra_info": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Extra Info",
+            "description": "Additional information"
+          },
+          "property_names": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Property Names",
+            "description": "Property names"
+          },
+          "properties": {
+            "items": {
+              "properties": {
+                "property_name": {
+                  "type": "string",
+                  "title": "Property Name",
+                  "description": "Property name"
+                },
+                "created_at": {
+                  "type": "string",
+                  "format": "date-time",
+                  "title": "Created At",
+                  "description": "When the property was created"
+                }
+              },
+              "type": "object",
+              "required": ["property_name", "created_at"],
+              "title": "PropertyDefinitionSchema",
+              "description": "Schema for property definitions in a prompt set."
+            },
+            "type": "array",
+            "title": "Properties",
+            "description": "Property definitions"
+          },
+          "created_by_user_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Created By User Id",
+            "description": "User ID who created the prompt set"
+          },
+          "updated_by_user_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Updated By User Id",
+            "description": "User ID who last updated the prompt set"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At",
+            "description": "Creation timestamp"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At",
+            "description": "Last update timestamp"
+          }
+        },
+        "type": "object",
+        "required": ["uuid", "name", "active", "archive", "status", "created_at", "updated_at"],
+        "title": "CustomPromptSetResponseSchema",
+        "description": "Schema for custom prompt set responses."
+      }
+    },
+    {
+      "direction": "response",
+      "validator": "CustomPromptSetListSchema",
+      "operations": ["GET /v1/custom-attack/list-custom-prompt-sets"],
+      "schema": {
+        "properties": {
+          "pagination": {
+            "properties": {
+              "total_items": {
+                "anyOf": [
+                  {
+                    "type": "integer"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "title": "Total Items"
+              }
+            },
+            "type": "object",
+            "title": "PaginationSchema"
+          },
+          "data": {
+            "items": {
+              "properties": {
+                "uuid": {
+                  "type": "string",
+                  "format": "uuid",
+                  "title": "Uuid",
+                  "description": "Unique identifier"
+                },
+                "name": {
+                  "type": "string",
+                  "title": "Name",
+                  "description": "Name of the prompt set"
+                },
+                "description": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "title": "Description",
+                  "description": "Description of the prompt set",
+                  "default": null
+                },
+                "language": {
+                  "description": "Language of prompts in this set",
+                  "properties": {
+                    "code": {
+                      "type": "string",
+                      "title": "Code"
+                    },
+                    "name": {
+                      "type": "string",
+                      "title": "Name"
+                    }
+                  },
+                  "type": "object",
+                  "required": ["code", "name"],
+                  "title": "LanguageOptionSchema"
+                },
+                "active": {
+                  "type": "boolean",
+                  "title": "Active",
+                  "description": "Whether the prompt set is active"
+                },
+                "archive": {
+                  "type": "boolean",
+                  "title": "Archive",
+                  "description": "Whether the prompt set is archived"
+                },
+                "status": {
+                  "type": "string",
+                  "title": "Status",
+                  "description": "Status of the prompt set"
+                },
+                "stats": {
+                  "anyOf": [
+                    {
+                      "properties": {
+                        "total_prompts": {
+                          "type": "integer",
+                          "title": "Total Prompts",
+                          "description": "Total number of prompts"
+                        },
+                        "active_prompts": {
+                          "type": "integer",
+                          "title": "Active Prompts",
+                          "description": "Number of active prompts"
+                        },
+                        "failed_prompts": {
+                          "type": "integer",
+                          "title": "Failed Prompts",
+                          "description": "Number of failed prompts",
+                          "default": 0
+                        },
+                        "validation_prompts": {
+                          "type": "integer",
+                          "title": "Validation Prompts",
+                          "description": "Number of validation prompts",
+                          "default": 0
+                        },
+                        "inactive_prompts": {
+                          "type": "integer",
+                          "title": "Inactive Prompts",
+                          "description": "Number of inactive prompts"
+                        }
+                      },
+                      "type": "object",
+                      "required": ["total_prompts", "active_prompts", "inactive_prompts"],
+                      "title": "PromptSetStatsSchema",
+                      "description": "Schema for prompt set statistics."
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "description": "Statistics about the prompt set"
+                },
+                "property_names": {
+                  "items": {
+                    "type": "string"
+                  },
+                  "type": "array",
+                  "title": "Property Names",
+                  "description": "Property names"
+                },
+                "created_by_user_id": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "title": "Created By User Id",
+                  "description": "User ID who created the prompt set"
+                },
+                "created_at": {
+                  "type": "string",
+                  "format": "date-time",
+                  "title": "Created At",
+                  "description": "Creation timestamp"
+                },
+                "updated_at": {
+                  "type": "string",
+                  "format": "date-time",
+                  "title": "Updated At",
+                  "description": "Last update timestamp"
+                }
+              },
+              "type": "object",
+              "required": [
+                "uuid",
+                "name",
+                "active",
+                "archive",
+                "status",
+                "created_at",
+                "updated_at"
+              ],
+              "title": "CustomPromptSetListItemSchema",
+              "description": "Schema for custom prompt set items in list responses."
+            },
+            "type": "array",
+            "title": "Data",
+            "description": "List of custom prompt sets"
+          }
+        },
+        "type": "object",
+        "required": ["pagination"],
+        "title": "CustomPromptSetListSchema",
+        "description": "Schema for custom prompt set list responses."
+      }
+    },
+    {
+      "direction": "request",
+      "validator": "CustomPromptSetUpdateRequestSchema",
+      "operations": ["PUT /v1/custom-attack/custom-prompt-set/{prompt_set_uuid}"],
+      "schema": {
+        "properties": {
+          "name": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 255
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name",
+            "description": "Updated name"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description",
+            "description": "Updated description"
+          },
+          "archive": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Archive",
+            "description": "Archive status"
+          },
+          "property_names": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array",
+                "maxItems": 2
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Property Names",
+            "description": "Updated property names (max 2)"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "CustomPromptSetUpdateRequestSchema",
+        "description": "Schema for updating a custom prompt set."
+      }
+    },
+    {
+      "direction": "request",
+      "validator": "CustomPromptSetArchiveRequestSchema",
+      "operations": ["PUT /v1/custom-attack/custom-prompt-set/{prompt_set_uuid}/archive"],
+      "schema": {
+        "properties": {
+          "archive": {
+            "type": "boolean",
+            "title": "Archive",
+            "description": "True to archive, False to unarchive"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": ["archive"],
+        "title": "CustomPromptSetArchiveRequestSchema",
+        "description": "Schema for archiving/unarchiving prompt sets."
+      }
+    },
+    {
+      "direction": "request",
+      "validator": "CustomPromptCreateRequestSchema",
+      "operations": ["POST /v1/custom-attack/custom-prompt-set/custom-prompt"],
+      "schema": {
+        "properties": {
+          "prompt": {
+            "type": "string",
+            "title": "Prompt",
+            "description": "The prompt text"
+          },
+          "goal": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Goal",
+            "description": "Goal of the prompt (user-defined or AI-generated)"
+          },
+          "properties": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "type": "object",
+            "title": "Properties",
+            "description": "Property assignments (property_name -> property_value)"
+          },
+          "prompt_set_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Prompt Set Id",
+            "description": "The UUID of the prompt set"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": ["prompt", "prompt_set_id"],
+        "title": "CustomPromptCreateRequestSchema",
+        "description": "Schema for creating a new custom prompt."
+      }
+    },
+    {
+      "direction": "response",
+      "validator": "CustomPromptResponseSchema",
+      "operations": [
+        "POST /v1/custom-attack/custom-prompt-set/custom-prompt",
+        "GET /v1/custom-attack/custom-prompt-set/{prompt_set_uuid}/custom-prompt/{prompt_uuid}",
+        "PUT /v1/custom-attack/custom-prompt-set/{prompt_set_uuid}/custom-prompt/{prompt_uuid}"
+      ],
+      "schema": {
+        "properties": {
+          "uuid": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Uuid",
+            "description": "Unique identifier"
+          },
+          "prompt": {
+            "type": "string",
+            "title": "Prompt",
+            "description": "The prompt text"
+          },
+          "goal": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Goal",
+            "description": "Goal of the prompt"
+          },
+          "user_defined_goal": {
+            "type": "boolean",
+            "title": "User Defined Goal",
+            "description": "Whether the goal was user-defined"
+          },
+          "detector_category": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Detector Category",
+            "description": "Detector category"
+          },
+          "severity": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Severity",
+            "description": "Severity level"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status",
+            "description": "Status of the prompt"
+          },
+          "active": {
+            "type": "boolean",
+            "title": "Active",
+            "description": "Whether the prompt is active"
+          },
+          "extra_info": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Extra Info",
+            "description": "Additional information"
+          },
+          "prompt_set_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Prompt Set Id",
+            "description": "The UUID of the prompt set this prompt belongs to"
+          },
+          "properties": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "type": "object",
+            "title": "Properties",
+            "description": "Property assignments"
+          },
+          "property_assignments": {
+            "items": {
+              "properties": {
+                "property_name": {
+                  "type": "string",
+                  "title": "Property Name",
+                  "description": "Property name (e.g., 'industry', 'role')"
+                },
+                "property_value": {
+                  "type": "string",
+                  "title": "Property Value",
+                  "description": "Property value (e.g., 'healthcare', 'CEO')"
+                }
+              },
+              "type": "object",
+              "required": ["property_name", "property_value"],
+              "title": "PropertyAssignmentSchema",
+              "description": "Schema for property name-value assignments."
+            },
+            "type": "array",
+            "title": "Property Assignments",
+            "description": "Detailed property assignments"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At",
+            "description": "Creation timestamp"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At",
+            "description": "Last update timestamp"
+          }
+        },
+        "type": "object",
+        "required": [
+          "uuid",
+          "prompt",
+          "user_defined_goal",
+          "status",
+          "active",
+          "prompt_set_id",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "CustomPromptResponseSchema",
+        "description": "Schema for custom prompt responses."
+      }
+    },
+    {
+      "direction": "response",
+      "validator": "CustomPromptListSchema",
+      "operations": [
+        "GET /v1/custom-attack/custom-prompt-set/{prompt_set_uuid}/list-custom-prompts"
+      ],
+      "schema": {
+        "properties": {
+          "pagination": {
+            "properties": {
+              "total_items": {
+                "anyOf": [
+                  {
+                    "type": "integer"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "title": "Total Items"
+              }
+            },
+            "type": "object",
+            "title": "PaginationSchema"
+          },
+          "data": {
+            "items": {
+              "properties": {
+                "uuid": {
+                  "type": "string",
+                  "format": "uuid",
+                  "title": "Uuid",
+                  "description": "Unique identifier"
+                },
+                "prompt": {
+                  "type": "string",
+                  "title": "Prompt",
+                  "description": "The prompt text"
+                },
+                "goal": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "title": "Goal",
+                  "description": "Goal of the prompt"
+                },
+                "user_defined_goal": {
+                  "type": "boolean",
+                  "title": "User Defined Goal",
+                  "description": "Whether the goal was user-defined"
+                },
+                "status": {
+                  "type": "string",
+                  "title": "Status",
+                  "description": "Status of the prompt"
+                },
+                "active": {
+                  "type": "boolean",
+                  "title": "Active",
+                  "description": "Whether the prompt is active"
+                },
+                "properties": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "type": "object",
+                  "title": "Properties",
+                  "description": "Property assignments"
+                },
+                "created_at": {
+                  "type": "string",
+                  "format": "date-time",
+                  "title": "Created At",
+                  "description": "Creation timestamp"
+                },
+                "updated_at": {
+                  "type": "string",
+                  "format": "date-time",
+                  "title": "Updated At",
+                  "description": "Last update timestamp"
+                }
+              },
+              "type": "object",
+              "required": [
+                "uuid",
+                "prompt",
+                "user_defined_goal",
+                "status",
+                "active",
+                "created_at",
+                "updated_at"
+              ],
+              "title": "CustomPromptListItemSchema",
+              "description": "Schema for custom prompt items in list responses."
+            },
+            "type": "array",
+            "title": "Data",
+            "description": "List of custom prompts"
+          }
+        },
+        "type": "object",
+        "required": ["pagination"],
+        "title": "CustomPromptListSchema",
+        "description": "Schema for custom prompt list responses."
+      }
+    },
+    {
+      "direction": "request",
+      "validator": "CustomPromptUpdateRequestSchema",
+      "operations": [
+        "PUT /v1/custom-attack/custom-prompt-set/{prompt_set_uuid}/custom-prompt/{prompt_uuid}"
+      ],
+      "schema": {
+        "properties": {
+          "prompt": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Prompt",
+            "description": "Updated prompt text"
+          },
+          "goal": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Goal",
+            "description": "Updated goal"
+          },
+          "properties": {
+            "anyOf": [
+              {
+                "additionalProperties": {
+                  "type": "string"
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Properties",
+            "description": "Updated property assignments"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "CustomPromptUpdateRequestSchema",
+        "description": "Schema for updating a custom prompt."
+      }
+    }
+  ]
+}

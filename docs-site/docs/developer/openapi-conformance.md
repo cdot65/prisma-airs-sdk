@@ -1,0 +1,159 @@
+---
+title: OpenAPI conformance and live validation
+---
+
+# OpenAPI conformance and live validation
+
+This page records the September 6–7, 2026 pre-release verification for SDK 0.21.0, including public pricing, the standalone OAuth deadline correction and experimental runtime observability detail methods. The user authorized shipping the implemented surface with the limitations below; publication does not certify the missing or failed workflows. See the [release notes](../about/release-notes.md) for release scope. The full assessment is in `SDK-ASSESSMENT.md`; private machine-readable evidence remains in the local `artifacts/` directory and is not published.
+
+## What the percentages measure
+
+Latest verification: 10,483/10,483 SDK tests in 128 files pass on each of Node 18.20.8, 20.20.2, 22.23.2 and 24.20.0; Node 22 statement/line coverage is 99.71%, function coverage 100%, and branch coverage 96.42%. The current tarball also passes ESM/CommonJS import, payload/source-map integrity and strict consumer-type checks on every major, including the new detail methods, public pricing without credentials, legacy/prompt JSON and SSE, and OAuth deadline recovery. The updated CLI passes 1,033 unit tests. September 7 OAuth-backed service reads retain their 24/24 result at 01:24:01 UTC; current CLI workflows pass 12/12 at 02:02:10 UTC, SDK inference 10/10 at 01:59:08 UTC, and CLI inference 8/8 at 02:01:20 UTC. Public pricing retains its 3/3 result at 00:34:56 UTC. Retained September 6 gateway management reads pass 48/48 and SDK runtime resources 26/26. Native batch completion/output passes 9/9 and terminal cancellation passes 8/8 after the null-field response correction; actual batch JSON is reproduced in the examples page.
+
+All 21 documentation scripts were executed in the September 7 run ending at 02:00:36.853 UTC: 18 pass and 3 fail; three additional live scan-output captures pass (21 pass / 3 fail / 24 total checks). The latest aggregate cleanup audit ends at 02:02:57.662 UTC with **341 pass / 1 fail / 342 total**, with a separate **53/53** runtime cleanup audit retained from September 6, 22:11 UTC. One unbound DLP profile remains active because retirement returns HTTP 500; an advertised DELETE returns 501. The vector-file-batch suite has 12 passing and 3 failing checks: create/completion/listing work after a discriminator correction, but cancel returns HTTP 500 and the two cancelled-state assertions fail. These workflow/code measurements are separate from the API-contract percentages below. See the [timestamped live results](./live-validation-results.md) and [actual example output](../guides/examples.mdx).
+
+The retained September 6 realtime probe completes HTTP 101, then receives an `invalid_model` error before session creation. Its 22 bounded-transport regressions pass, but realtime remains an unimplemented operation; successful authentication and socket/key cleanup do not certify a session. No model/provider was changed. Public pricing was added in the preceding increment; the current source/package additionally retains the standalone OAuth deadline correction and adds the two experimental detail methods.
+
+September 7 live runs use a test-process-only DNS accommodation: absolute IPv4 lookups for an explicit service allowlist, and a gateway LAN address verified against the configured DNS resolver and exact ingress route. TLS verification and the original `airs.cdot.io` hostname remain enabled. The read-only network preflight confirms unchanged infrastructure and credential-file hashes. No DNS, ingress or production configuration was changed, and public/WAN gateway reachability is **not certified** by these LAN-path runs. Earlier failed DNS attempts remain in report history.
+
+The original CLI source now includes inference commands. Local validation uses the packed SDK through a development dependency link. Its published dependency pin remains unchanged; a clean install needs the matching SDK release and CLI pin/lockfile update first. This is ready for local candidate testing, not a published release or a clean-install release certification.
+
+The September 7 authoring-boundary recheck ends at 00:58:15.702 UTC with 2 passing controls and 13 failed collection/label/prompt/partial requests. Nine without a provider header return the exact missing-provider/config 400; four with the prescribed `@openai` header return 404. Both hash-pinned gateway replicas register a generic provider-proxy GET fallback and no explicit GET handlers for these four collections. A synthetic replay of header validation reproduces the 400 without calling live clients. This identifies the runtime boundary, not a usable authoring control plane or proof of universal feature absence. No speculative SDK authoring methods were added by that diagnostic increment. The OAuth correction and current detail-method additions change source/package content and have refreshed unit, package and live evidence.
+
+| Contract dimension                                             |                   Result |
+| -------------------------------------------------------------- | -----------------------: |
+| AIRS operation implementations                                 |                149 / 149 |
+| AIRS serialized query parameters                               |                184 / 184 |
+| AIRS typed request property occurrences                        |                791 / 791 |
+| AIRS typed response property occurrences                       |            3,242 / 3,242 |
+| Valid AIRS request variants accepted                           |                965 / 965 |
+| Valid AIRS response variants accepted                          |            3,369 / 3,369 |
+| Independently invalid AIRS request mutations rejected          |            1,031 / 1,031 |
+| Directly matched Portkey operations                            |       137 / 242 (56.61%) |
+| Typed JSON request / response properties for those 137 matches | 1,358 / 1,358; 2,329 / 2,329 |
+
+Property counts are operation-level occurrences, including nested objects, arrays and union branches; they are not counts of unique component names. `unknown`, `any`, and pass-through properties do not count as modeled declared fields. Positive cases exercise required-only and full bodies, enum alternatives, nullable branches and selected boundaries. Ajv independently proves negative request cases invalid before the SDK is expected to reject them. This is a deterministic contract suite, not a mathematical proof covering every possible input or every textual constraint in an OpenAPI description.
+
+Query checks compare exact wire values, not merely parameter names. All 12 array-valued AIRS query parameters use multi-item specimens, so single-value ambiguity cannot hide a comma-versus-repeated-key mismatch. Scan ID queries use their explicit `explode: false`; other form arrays retain the specification's default `explode: true`. These expectations follow the [OpenAPI Parameter Object](https://spec.openapis.org/oas/v3.0.3.html#parameter-object) and are frozen independently of SDK serialization for offline CI.
+
+Code coverage, OpenAPI coverage, and successful live execution are separate measures. In particular, **this SDK does not implement 99% of all Portkey product APIs**. The September 6 design update authorizes a separate runtime client, now implemented for chat, embeddings, Responses, files, models, vector stores, batches, fine-tuning, provider HTTP and legacy/prompt REST methods. Public model pricing uses a separate no-auth client. The remaining realtime runtime operation, 23 upstream-retired Assistants/Threads operations, 48 tenant-unverified operations, 11 SCM adaptations and 22 partial analytics adaptations stay in the denominator. See the [complete 242-operation gateway ledger](./gateway-coverage.md) and [runtime guide](../guides/ai-gateway-inference.md). The JSON field audit excludes multipart/binary media; file multipart and binary download behavior have separate transport and live tests.
+
+Secret-reference CRUD passes 7/7 live SDK checks on the admin plane using an owned, unbound fixture with invalid synthetic credentials. The [examples page](../guides/examples.mdx#secret-reference-management-lifecycle) reproduces its sanitized output. Input schemas preserve authentication discriminators and reject manager/configuration mismatches and contradictory workspace access before network I/O. External secret resolution was not exercised.
+
+The upstream-retired classification follows [OpenAI’s August 26, 2026 Assistants shutdown](https://developers.openai.com/api/docs/assistants/migration), not a guessed explanation for an HTTP 404. These 23 operations remain gaps in the 242-operation denominator. Responses is not counted as equivalent coverage, and other gateway/provider compatibility modes are not established.
+
+## Source inventory
+
+The standalone OAuth correction reuses one disposable 30-second deadline for token headers and success/error JSON bodies. Sixteen failing-first regressions now pass, including concurrent timeout release, pending-state recovery, late-response disposal/no caching, and non-blocking cleanup. The packed ESM/CommonJS candidate passes real 30-second synthetic timeout/recovery checks on all four Node majors. Successful live authentication is verified separately: the runnable authentication example proves concurrent refresh deduplication and explicit cache clearing without printing tokens. These changes preserve the existing OAuth API, caching and callback behavior and add no automatic token retry. See [bounded refresh](../guides/oauth-lifecycle.md#bounded-refresh-and-timeout-recovery).
+
+The current increment adds experimental `inference.updateFeedback()` and `inference.getLog()`, raising direct implementation from 135 to 137/242. Both runtime handlers are confirmed; typed live calls on owned records still return HTTP 500 at 01:57:45.366 UTC. Three ownership/authentication/key-cleanup controls pass. An independent SCM read audit passes 5/5 at 01:58:59.117 UTC and confirms both retained feedback records remain neutral with zero weight. No new feedback or log is created. Fifty-eight failing-first checks plus five response/debug-safety checks cover strict UUID/score/metadata inputs, exact wire methods, v2 timestamp dependency, encoded log IDs, additive response fields, pre-authentication rejection, cancellation and zero default retries. Forty-four additional source-derived OpenAPI checks cover the new contracts. The storage failure is not fixed by an SDK method; these operations remain outside stability guarantees until live-verified.
+
+The preceding public-pricing increment added `AIGatewayModelPricingClient.get()`, raising direct implementation from 134 to 135/242 at that checkpoint. The pinned path explicitly declares public server `https://api.portkey.ai` (without `/v1`) and `security: []`. It is not a Prisma SCM or runtime route. Both prescribed model catalog lookups pass live without credentials; catalog prices are USD cents per token/unit, not tenant-effective billing. The client requires an explicit endpoint and validates paths/options before network I/O. Responses preserve future fields without evaluating formulas or counting opaque extensions as typed coverage. See the [public-pricing guide](../guides/ai-gateway-model-pricing.md) and its actual examples-page output.
+
+All 1,358 JSON request and 2,329 JSON response property occurrences for exact implemented routes are modeled. There are 59 focused pricing regressions, five independent captured-response/contract checks and two recursive-specimen regressions. A correction changes overlapping calculation-node `oneOf` alternatives to `anyOf`: a shallow formula containing a captured valid leaf is rejected by the original schema, although deeper captured responses can pass through its permissive fallback. The fixture generator terminates optional recursive arrays with `[]`, not invented null children. Final inventory checks also protect the AIRS CSV-upload route from gateway-only multipart exclusions. The complete offline OpenAPI gate contains 7,953 checks.
+
+The preceding increment added three experimental legacy/prompt methods with 67 failing-first method regressions and 797 additional independent contract cases. Root-level prompt parameters follow the pinned descriptions; educational nested `hyperparameters` are rejected. Legacy SSE preserves nullable intermediate fields and usage-only events; prompt completion supports native chat/legacy events.
+
+Raw and SDK legacy calls return 404 for the required model, so streaming is skipped after the failed prerequisite. Raw and SDK prompt calls use random unprovisioned template IDs and return 404; no existing template was executed or changed. Both deployed replicas register these routes and dispatch prompt completion to native handlers. That code evidence does not certify a successful template lifecycle. The [runtime guide](../guides/ai-gateway-inference.md) explains these limitations and the explicit schema corrections.
+
+The preceding provider HTTP increment added nine explicitly experimental image/audio/moderation/rerank/OCR methods. Four multipart request schemas are frozen separately, with independent Ajv-negative mutations, native Blob rejection checks and full-form byte/field assertions. Binary speech, all audio response formats, strict pre-network validation, cancellation and zero default retries are tested.
+
+Raw HTTP and SDK runs with checksum-validated synthetic media both record 2 passing controls and 9 failed operations. The prescribed model is unchanged. These failures are included in the [actual examples-page diagnostic JSON](../guides/examples.mdx#latest-runtime-diagnostics-failures-remain-visible); offline method coverage is not provider certification. The audio compatibility corrections explicitly record overlapping JSON alternatives and the pinned-string/official-numeric duration difference. There are 28 experimental methods in the ledger.
+
+The latest telemetry increment validates all query windows, grouping dimensions/columns and log filters before authentication. The request-count chart now supports live-verified camel-case `traceId` and string-valued JSON `metadata`: known synthetic records match and nonexistent filters select zero, with actual output on the [examples page](../guides/examples.mdx#verified-request-chart-filters). The raw snake-case `trace_id` probe was ignored by SCM and remains a failed diagnostic. The typed read-only suite passes 3/3, without new fixtures. The 66 new regression cases and packed-consumer wire/type checks pass, but all 22 partial analytics adaptations remain outside the direct-operation numerator.
+
+| Plane                     | Operations | Relative source                                                           |
+| ------------------------- | ---------: | ------------------------------------------------------------------------- |
+| Scan                      |          4 | `prisma-airs/scan/scan-service_latest.yaml`                               |
+| Management                |         21 | `prisma-airs/management/mgmt-service_latest.yaml`                         |
+| Model Security data       |         18 | `prisma-airs-model-security/dataplane/data-plane.yml`                     |
+| Model Security management |         23 | `prisma-airs-model-security/management/mgmt-plane.yml`                    |
+| Red Team data             |         36 | `prisma-airs-redteam/data-plane/dp-openapi.yaml`                          |
+| Red Team management       |         42 | `prisma-airs-redteam/management/mp-openapi.yaml`                          |
+| Network broker            |          5 | `prisma-airs-redteam/network-broker/AIRS-Red-Teaming-Network-Broker.yaml` |
+
+The supplied `prisma-airs-ai-redteam` directory was not present; the available upstream checkout uses `prisma-airs-redteam`. The fixture files and audit record SHA-256 hashes for every source. Upstream YAML files are never edited.
+
+## Explicit compatibility corrections
+
+The corrected AIRS contract is intentionally not a blind copy of malformed or outdated YAML:
+
+- Async scanning accepts a flat request batch; the source accidentally nests an already-array component.
+- A scan needs a profile selector and nonempty contents, as its field descriptions require.
+- Management `topic-list` items are nested correctly despite the source indentation error.
+- Live management creates and updates accept server-assigned revisions. Topic description/examples and DLP members can be omitted. Topic responses that omit `examples` normalize to `[]`.
+- Red Team connection alternatives overlap; treating them as exclusive `oneOf` variants rejects valid native/REST connections. The correction uses `anyOf`.
+- Custom prompt template download is CSV, not JSON. Upload includes the required CSV filename.
+
+Each AIRS correction has a pointer and rationale in `scripts/openapi/compatibility.ts`, which also records provider-prefixed Responses model IDs. The audit can inspect raw contracts with the individual tools' `--raw` option. Gateway compatibility is handled separately: SCM timestamps, response envelopes, nullable lifecycle fields and numeric boolean flags take precedence over Portkey examples. Runtime response-only corrections are explicit in `scripts/openapi/generate-inference-models.ts` and the runtime guide, including null intermediate usage, base64 embeddings and zero chunk size during vector indexing. Request constraints are not relaxed merely to accommodate response-only differences. Catalog strings remain open unless a live negative probe establishes a closed enum.
+
+## Reproduce the offline checks
+
+```bash
+npm ci
+npm run typecheck
+npm run typecheck:tooling
+npm run lint
+npm run test:coverage
+npm run openapi:check
+npm run build
+npm run docs:check
+npm run docs:build
+```
+
+`preflight` now runs the offline operation-contract gate. The older component-name comparison remains available as `preflight:legacy` for historical troubleshooting; it must not be used to claim specification coverage. Frozen transport fixtures and recursive schema snapshots make CI independent of local upstream checkouts.
+
+For a fresh source audit, supply the upstream checkouts explicitly:
+
+```bash
+AIRS_OPENAPI_DIR=/path/to/pan.dev/openapi-specs \
+GATEWAY_OPENAPI_FILE=/path/to/ai-gateway-openapi/openapi.yaml \
+npm run openapi:audit
+```
+
+The audit fails for missing AIRS operations, property coverage below 99%, rejected valid variants, accepted invalid requests, or incorrect query values/serialization. Gateway field checks apply only to exact route matches, not to unimplemented APIs. Review every hash change and compatibility correction before regenerating frozen fixtures with the scripts under `scripts/openapi/`.
+
+## Live validation and safety boundaries
+
+The [validated live results page](./live-validation-results.md) is generated from the retained E2E reports, including failures and skips. It also records CLI write-builder verification and cleanup evidence.
+
+The live harness reads `~/.prisma-airs/config.json` without writing it, checks its hash afterward, disables inherited debug output, and never prints credentials. Reports keep pass/fail/skip status, duration, error category and HTTP status. Response-shape evidence removes every scalar value; it is not presented as a replayable original response body.
+
+Read suites run by default. Mutation suites require explicit `--writes` and only change uniquely named SDK-owned fixtures:
+
+```bash
+npm run e2e:scan
+npm run e2e:management -- --writes
+npm run e2e:model-security -- --writes
+npm run e2e:red-team -- --writes --scan
+npm run e2e:gateway:read
+npm run e2e:gateway:extensions -- --writes
+npx tsx scripts/e2e-gateway-owned-writes.ts --writes
+CLI_COMPAT_DIR=/path/to/isolated-cli npx tsx scripts/e2e-cli.ts
+CLI_COMPAT_DIR=/path/to/isolated-cli npx tsx scripts/e2e-cli-writes.ts --writes
+npx tsx scripts/e2e-cleanup-audit.ts
+npx tsx scripts/e2e-completion-recheck.ts # read-only authentication control and quota recheck
+
+# Live runtime suites create and retire a temporary key from read-only SCM credentials.
+# IPv4 flag is a host-specific workaround, not an SDK or system DNS change.
+E2E_GATEWAY_IPV4_ONLY=1 npx tsx scripts/e2e-gateway-inference.ts --writes
+E2E_GATEWAY_IPV4_ONLY=1 npx tsx scripts/e2e-gateway-runtime-resources.ts --writes
+E2E_GATEWAY_IPV4_ONLY=1 E2E_CLI_ENTRY=/path/to/updated-cli/dist/cli/index.js \
+npx tsx scripts/e2e-cli-inference.ts --writes
+E2E_GATEWAY_IPV4_ONLY=1 npx tsx scripts/e2e-cleanup-runtime-audit.ts --writes
+npx tsx scripts/e2e-cleanup-audit.ts
+```
+
+Management validation includes profile/topic/key lifecycles and an actual scan using the created profile. Model Security validation includes custom-rule assignment, version history, and **synthetic scanner-result ingestion**, not execution of the proprietary ML scanning engine. Red Team validation includes completed bounded custom jobs using benign prompts, report retrieval, draft targets/adapters, CSV upload/download, and cleanup. It does not run an unrestricted adversarial campaign.
+
+Live exceptions are not converted into passes: Red Team quota returned 403 and prompt-set version information returned 500. Gateway MCP test/connection revocation returned 403, and export start returned 500. Other intentionally unexecuted actions include accepting legal terms, changing organisation authentication, provisioning instances, interactive Copilot authorization, resetting existing usage counters, and rotating existing credentials. These require a suitable disposable environment or separate user authority.
+
+The separate 07:48 UTC completion recheck confirmed a successful Red Team language read and another quota HTTP 403 with the same credentials. No resources were created. Its retained report is `artifacts/e2e/completion-recheck.json`; it repeats an existing failure rather than counting as new API coverage.
+
+Deleted resources can remain archived, and scan/job/export audit records have no deletion API. Fixture journals record this footprint. Read the final assessment for the latest per-suite counts, cleanup verification and remaining tenant limitations before declaring a production rollout.
+
+## Documentation build security
+
+The SDK dependency audit reports no known vulnerabilities. Docusaurus is a separate build-time dependency tree, not part of the npm SDK payload. Its patched dependency set still inherits the unpatched `image-size` ICNS and JXL/HEIF denial-of-service advisories: [GHSA-w3rx-r6r6-pgpr](https://github.com/advisories/GHSA-w3rx-r6r6-pgpr) and [GHSA-5p2g-fcmc-qvqq](https://github.com/advisories/GHSA-5p2g-fcmc-qvqq).
+
+The docs `prebuild`/`prestart` guard checks repository-site file signatures and rejects these image containers, even with misleading extensions, before invoking Docusaurus. This mitigates the checked source inputs; it does not patch the upstream package or clear its audit warnings. Use reviewed, local PNG/JPEG/WebP/SVG assets, keep builds isolated, and update the dependency when an upstream fix is available. The local preview serves the prebuilt static site on loopback only.

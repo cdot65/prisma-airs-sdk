@@ -72,8 +72,9 @@ export async function collectAll<T>(
     throw new RangeError('max must be a non-negative integer');
   const items: T[] = [];
   for await (const item of iterable) {
-    if (max > 0 && items.length >= max) break;
     items.push(item);
+    // Stop before asking the iterator for another item (which may fetch another page).
+    if (max > 0 && items.length >= max) break;
   }
   return items;
 }
@@ -89,6 +90,7 @@ export function collectSkipPages<T>(
   opts: WalkAllOptions = {},
 ): Promise<T[]> {
   const limit = opts.limit ?? 50;
+  assertPageSize(limit, 'limit');
   return collectAll(
     paginate(async (skip: number) => {
       const page = await fetchPage(skip, limit);
@@ -108,13 +110,24 @@ export function collectSpringPages<T>(
   opts: { size?: number; max?: number } = {},
 ): Promise<T[]> {
   const size = opts.size ?? 50;
+  assertPageSize(size, 'size');
   return collectAll(
     paginate(async (page: number) => {
       const result = await fetchPage(page, size);
+      if (!result.last && result.items.length === 0) {
+        throw new Error('Pagination returned an empty non-final page');
+      }
       return { items: result.items, next: result.last ? undefined : page + 1 };
     }, 0),
     { max: opts.max },
   );
+}
+
+/** @internal Reject invalid page sizes before starting a network walk. */
+function assertPageSize(value: number, name: string): void {
+  if (!Number.isSafeInteger(value) || value <= 0) {
+    throw new RangeError(`${name} must be a positive integer`);
+  }
 }
 
 /**

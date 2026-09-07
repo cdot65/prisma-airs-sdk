@@ -10,6 +10,17 @@
 //   - Observed-null fields use .nullable(), not .optional().
 
 import { z } from 'zod';
+import {
+  GatewayCatalogGuardrailParametersSchema,
+  GatewayCatalogProviderConfigurationSchema,
+  GatewayCatalogMcpConfigurationSchema,
+  GatewayPricingAdjustmentsSchema,
+  GatewayPricingConfigSchema,
+  GatewayCatalogSecretMappingSchema,
+  GatewayDeploymentTagsSchema,
+  GatewayMcpServerMappingSchema,
+} from './ai-gateway-extensions.js';
+import { GatewayRoutingConfigSchema } from './ai-gateway-routing.js';
 
 // ---------------------------------------------------------------------------
 // Envelopes — three distinct families
@@ -30,6 +41,7 @@ const aiGatewayList = <T extends z.ZodTypeAny>(item: T) =>
     .object({
       object: z.string(),
       total: z.number(),
+      success: z.boolean().optional(),
       has_more: z.boolean().optional(),
       data: z.array(item),
     })
@@ -415,18 +427,41 @@ export type GatewayLogsResponse = z.infer<typeof GatewayLogsResponseSchema>;
 // ---------------------------------------------------------------------------
 
 /**
- * Placeholder for write responses whose shape has NOT been verified against a live tenant.
+ * Backward-compatible receipt for gateway writes with varying or incompletely verified shapes.
  *
  * Verifying `deployments`, `configs`, `guardrails`, and `providers` create responses proved
  * every create returns a minimal receipt rather than the record it creates — never inferable
  * from the corresponding read. See {@link GatewayDeploymentCreateResponseSchema}, {@link
  * GatewayConfigCreateResponseSchema}, {@link GatewayGuardrailCreateResponseSchema}, and {@link
- * GatewayProviderCreateResponseSchema} for the four now-verified receipts. This placeholder
- * still covers every remaining unverified write (all `update()` PUT responses, plus
- * `api-keys`/`integrations`/`mcp-integrations`/`workspaces`/`plugins` create responses).
- * Tighten each into a named schema as it is verified. See PRD-ai-gateway-client.md "Testing".
+ * GatewayProviderCreateResponseSchema} for the four specialized receipts. This generic
+ * receipt also covers update and create operations with different lifecycle fields. Several
+ * are live-verified; others are not. See the operation-level gateway coverage ledger and
+ * sanitized live-response fixtures rather than interpreting this shared type as verification.
  */
-export const GatewayWriteResponseSchema = z.object({}).passthrough();
+export const GatewayWriteResponseSchema = z
+  .object({
+    id: z.string().optional(),
+    slug: z.string().optional(),
+    version_id: z.string().optional(),
+    success: z.boolean().optional(),
+    data: z
+      .union([
+        z
+          .object({
+            id: z.string().optional(),
+            slug: z.string().optional(),
+            version_id: z.string().optional(),
+          })
+          .passthrough(),
+        z.string(),
+        z.number(),
+        z.boolean(),
+        z.array(z.unknown()),
+        z.null(),
+      ])
+      .optional(),
+  })
+  .passthrough();
 export type GatewayWriteResponse = z.infer<typeof GatewayWriteResponseSchema>;
 
 // ---------------------------------------------------------------------------
@@ -557,6 +592,9 @@ export const GatewayConfigDetailSchema = GatewayConfigSchema.extend({
   format: z.string(),
   type: z.string(),
   version_id: z.string(),
+  /** Upstream envelope fields remain readable when present; SCM normally returns a flat record. */
+  success: z.boolean().optional(),
+  data: z.object({ config: GatewayRoutingConfigSchema.optional() }).passthrough().optional(),
 }).passthrough();
 export type GatewayConfigDetail = z.infer<typeof GatewayConfigDetailSchema>;
 
@@ -582,6 +620,11 @@ export const GatewayConfigCreateResponseSchema = z
     version_id: z.string(),
     slug: z.string(),
     object: z.string(),
+    success: z.boolean().optional(),
+    data: z
+      .object({ id: z.string().optional(), version_id: z.string().optional() })
+      .passthrough()
+      .optional(),
   })
   .passthrough();
 export type GatewayConfigCreateResponse = z.infer<typeof GatewayConfigCreateResponseSchema>;
@@ -597,6 +640,7 @@ export type GatewayConfigCreateResponse = z.infer<typeof GatewayConfigCreateResp
  */
 export const GatewayGuardrailSchema = z
   .object({
+    target: z.enum(['llm', 'mcp_tools']).optional(),
     id: z.string(),
     name: z.string(),
     slug: z.string(),
@@ -628,12 +672,14 @@ const guardrailFeedbackActionSchema = z
  * top of the list row. Verified live 2026-07-28.
  */
 export const GatewayGuardrailDetailSchema = GatewayGuardrailSchema.extend({
+  mcp_server_mappings: z.array(GatewayMcpServerMappingSchema).optional(),
   checks: z.array(
     z
       .object({
         /** e.g. `panw-prisma-airs.intercept`, the Prisma AIRS intercept check. */
         id: z.string(),
-        parameters: z.record(z.unknown()),
+        parameters: GatewayCatalogGuardrailParametersSchema,
+        name: z.string().optional(),
         is_enabled: z.boolean(),
       })
       .passthrough(),
@@ -678,6 +724,17 @@ export const GatewayProviderSchema = z
     name: z.string().optional(),
     slug: z.string().optional(),
     object: z.string().optional(),
+    integration_id: z.string().optional(),
+    note: z.string().nullable().optional(),
+    status: z.string().optional(),
+    usage_limits: z
+      .union([GatewayUsageLimitSchema, z.array(GatewayUsageLimitSchema)])
+      .nullable()
+      .optional(),
+    reset_usage: z.union([z.number(), z.boolean()]).nullable().optional(),
+    created_at: z.string().optional(),
+    rate_limits: z.array(GatewayRateLimitSchema).nullable().optional(),
+    expires_at: z.string().nullable().optional(),
   })
   .passthrough();
 export type GatewayProvider = z.infer<typeof GatewayProviderSchema>;
@@ -695,16 +752,17 @@ export const GatewayProviderDetailSchema = z
     masked_api_key: z.string(),
     slug: z.string(),
     name: z.string(),
-    usage_limits: z.unknown().nullable(),
+    usage_limits: z.union([GatewayUsageLimitSchema, z.array(GatewayUsageLimitSchema)]).nullable(),
     status: z.string(),
     note: z.string().nullable(),
     created_at: z.string(),
     expires_at: z.string().nullable(),
     last_reset_at: z.string().nullable(),
-    rate_limits: z.array(z.unknown()),
+    rate_limits: z.array(GatewayRateLimitSchema),
+    reset_usage: z.union([z.number(), z.boolean()]).nullable().optional(),
     integration_id: z.string(),
     tags: z.unknown().nullable(),
-    secret_mappings: z.array(z.unknown()).optional(),
+    secret_mappings: z.array(GatewayCatalogSecretMappingSchema).optional(),
     object: z.string(),
   })
   .passthrough();
@@ -764,7 +822,8 @@ export const GatewayIntegrationSchema = z
     owner_id: z.string(),
     status: z.string(),
     created_at: z.string(),
-    last_updated_at: z.string(),
+    /** Newly created integrations have not been updated yet. Verified live 2026-09-06. */
+    last_updated_at: z.string().nullable(),
     slug: z.string(),
     tags: z.unknown().nullable(),
     description: z.string().nullable(),
@@ -773,6 +832,19 @@ export const GatewayIntegrationSchema = z
     workspace_id: z.string().nullable(),
     ai_provider_id: z.string(),
     object: z.string(),
+    masked_key: z.string().nullable().optional(),
+    configurations: z
+      .union([GatewayCatalogProviderConfigurationSchema, z.string()])
+      .nullable()
+      .optional(),
+    global_workspace_access_settings: z
+      .lazy(() => GatewayGlobalWorkspaceAccessSchema)
+      .nullable()
+      .optional(),
+    allow_all_models: z.boolean().optional(),
+    workspace_count: z.number().optional(),
+    secret_mappings: z.array(GatewayCatalogSecretMappingSchema).nullable().optional(),
+    pricing_adjustments: GatewayPricingAdjustmentsSchema.nullable().optional(),
   })
   .passthrough();
 export type GatewayIntegration = z.infer<typeof GatewayIntegrationSchema>;
@@ -782,7 +854,26 @@ export type ListIntegrationsResponse = z.infer<typeof ListIntegrationsResponseSc
 /** `integrations/{id}/models` — per-model enablement for one integration. */
 export const GatewayIntegrationModelsResponseSchema = z
   .object({
-    models: z.array(z.object({ slug: z.string(), enabled: z.boolean() }).passthrough()),
+    models: z.array(
+      z
+        .object({
+          slug: z.string(),
+          enabled: z.boolean(),
+          name: z.string().optional(),
+          is_custom: z
+            .union([z.boolean(), z.literal(0), z.literal(1)])
+            .nullable()
+            .optional(),
+          is_finetune: z
+            .union([z.boolean(), z.literal(0), z.literal(1)])
+            .nullable()
+            .optional(),
+          base_model_slug: z.string().nullable().optional(),
+          pricing_config: GatewayPricingConfigSchema.nullable().optional(),
+        })
+        .passthrough(),
+    ),
+    total: z.number().int().optional(),
     allow_all_models: z.boolean(),
     object: z.string(),
   })
@@ -818,8 +909,9 @@ export type GatewayIntegrationWorkspace = z.infer<typeof GatewayIntegrationWorks
 export const GatewayGlobalWorkspaceAccessSchema = z
   .object({
     enabled: z.boolean(),
-    rate_limits: limitsField(GatewayRateLimitSchema),
-    usage_limits: limitsField(GatewayUsageLimitSchema),
+    /** Disabled access can omit both policy fields entirely. */
+    rate_limits: limitsField(GatewayRateLimitSchema).optional(),
+    usage_limits: limitsField(GatewayUsageLimitSchema).optional(),
   })
   .passthrough();
 export type GatewayGlobalWorkspaceAccess = z.infer<typeof GatewayGlobalWorkspaceAccessSchema>;
@@ -827,6 +919,7 @@ export type GatewayGlobalWorkspaceAccess = z.infer<typeof GatewayGlobalWorkspace
 /** `integrations/{id}/workspaces` — which workspaces may use this integration. */
 export const GatewayIntegrationWorkspacesResponseSchema = z
   .object({
+    total: z.number().int().optional(),
     workspaces: z.array(GatewayIntegrationWorkspaceSchema),
     global_workspace_access: GatewayGlobalWorkspaceAccessSchema,
     object: z.string(),
@@ -839,6 +932,11 @@ export type GatewayIntegrationWorkspacesResponse = z.infer<
 /** An MCP server integration. */
 export const McpIntegrationSchema = z
   .object({
+    slug: z.string().optional(),
+    workspace_id: z.string().nullable().optional(),
+    description: z.string().nullable().optional(),
+    workspaces_count: z.number().nullable().optional(),
+    secret_mappings: z.array(GatewayCatalogSecretMappingSchema).nullable().optional(),
     id: z.string(),
     organisation_id: z.string(),
     name: z.string(),
@@ -872,7 +970,7 @@ export const McpIntegrationDetailSchema = z
     status: z.string(),
     created_at: z.string(),
     last_updated_at: z.string(),
-    configurations: z.record(z.unknown()),
+    configurations: GatewayCatalogMcpConfigurationSchema,
     global_workspace_access: z.object({ enabled: z.boolean() }).passthrough().nullable(),
     workspace_id: z.string().nullable(),
     slug: z.string(),
@@ -880,7 +978,7 @@ export const McpIntegrationDetailSchema = z
     auth_type: z.string(),
     transport: z.string(),
     type: z.string(),
-    secret_mappings: z.array(z.unknown()).nullable(),
+    secret_mappings: z.array(GatewayCatalogSecretMappingSchema).nullable(),
     object: z.string(),
   })
   .passthrough();
@@ -895,13 +993,18 @@ export const McpIntegrationCapabilitySchema = z
     type: z.string(),
     title: z.string().nullable(),
     description: z.string().nullable(),
-    icons: z.unknown().nullable(),
+    icons: z.array(z.unknown()).nullable(),
     enabled: z.boolean(),
     created_at: z.string(),
     last_updated_at: z.string(),
     input_schema: z.record(z.unknown()).nullable(),
     output_schema: z.record(z.unknown()).nullable(),
-    execution: z.unknown().nullable(),
+    execution: z.record(z.unknown()).nullable(),
+    arguments: z.array(z.unknown()).nullable().optional(),
+    uri: z.string().nullable().optional(),
+    uri_template: z.string().nullable().optional(),
+    mime_type: z.string().nullable().optional(),
+    size: z.number().nullable().optional(),
     annotations: z.record(z.unknown()).nullable(),
     object: z.string(),
   })
@@ -969,6 +1072,8 @@ export type McpIntegrationMetadata = z.infer<typeof McpIntegrationMetadataSchema
 /** A deployment list row. */
 export const GatewayDeploymentSchema = z
   .object({
+    connection_status: z.string().optional(),
+    tags: GatewayDeploymentTagsSchema.nullable().optional(),
     id: z.string(),
     name: z.string(),
     slug: z.string(),
@@ -992,6 +1097,14 @@ export const GatewayDeploymentDetailSchema = GatewayDeploymentSchema.extend({
   deployment_config: z.record(z.unknown()).nullable(),
   auth_settings: z
     .object({
+      gateway_base_url: z.string().optional(),
+      mcp_gateway_base_url: z.string().optional(),
+      private_link_endpoint: z.string().optional(),
+      use_private_link_proxy: z.number().int().optional(),
+      is_dataservice_hosted: z.number().int().optional(),
+      is_playground_proxy_allowed: z.number().int().optional(),
+      jwt_subs_allowed: z.array(z.string()).optional(),
+      jwt_sub_workspace_mapping: z.record(z.string()).optional(),
       /** 0/1, not boolean — the create REQUEST sends a real boolean here. */
       disable_portkey_gateway: z.number(),
       workspaces_allowed: z.array(z.string()),
@@ -1112,6 +1225,10 @@ export type GatewayAuditLogRecord = z.infer<typeof GatewayAuditLogRecordSchema>;
 
 /** `audit-logs` — a bare `{records}` object, neither list envelope. */
 export const GatewayAuditLogsResponseSchema = z
-  .object({ records: z.array(GatewayAuditLogRecordSchema) })
+  .object({
+    records: z.array(GatewayAuditLogRecordSchema),
+    total: z.number().int().optional(),
+    object: z.string().optional(),
+  })
   .passthrough();
 export type GatewayAuditLogsResponse = z.infer<typeof GatewayAuditLogsResponseSchema>;

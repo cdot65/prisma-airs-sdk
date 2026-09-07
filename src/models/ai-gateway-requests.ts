@@ -1,5 +1,13 @@
 import { z } from 'zod';
 import {
+  GatewayCatalogGuardrailParametersSchema,
+  GatewayCatalogProviderConfigurationSchema,
+  GatewayCatalogMcpConfigurationSchema,
+  GatewayPricingAdjustmentsRequestSchema,
+  GatewayPricingConfigRequestSchema,
+  GatewayDeploymentTagsSchema,
+} from './ai-gateway-extensions.js';
+import {
   GatewayApiKeyScopeSchema,
   GatewayDeploymentStatusSchema,
   GatewayDeploymentTypeSchema,
@@ -145,7 +153,7 @@ export type GatewayConfigUpdateRequest = z.infer<typeof GatewayConfigUpdateReque
 export const GatewayGuardrailCheckSchema = z
   .object({
     id: nonEmptyString,
-    parameters: GatewayJsonObjectSchema.optional(),
+    parameters: GatewayCatalogGuardrailParametersSchema.and(GatewayJsonObjectSchema).optional(),
     is_enabled: z.boolean().optional(),
     name: nonEmptyString.optional(),
   })
@@ -178,11 +186,30 @@ export type GatewayGuardrailActions = z.infer<typeof GatewayGuardrailActionsSche
 export const GatewayGuardrailCreateRequestSchema = z
   .object({
     workspace_id: uuid,
+    /** Optional upstream organisation scope; SCM still requires workspace_id. */
+    organisation_id: numericId.optional(),
     name: nonEmptyString,
-    checks: z.array(GatewayGuardrailCheckSchema).min(1),
-    actions: GatewayGuardrailActionsSchema,
+    target: z.enum(['llm', 'mcp_tools']).optional(),
+    checks: z.array(GatewayGuardrailCheckSchema).min(1).optional(),
+    actions: GatewayGuardrailActionsSchema.optional(),
   })
-  .strict();
+  .strict()
+  .superRefine((body, context) => {
+    if (body.target !== 'mcp_tools') {
+      if (!body.checks)
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['checks'],
+          message: 'LLM guardrails require checks',
+        });
+      if (!body.actions)
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['actions'],
+          message: 'LLM guardrails require actions',
+        });
+    }
+  });
 export type GatewayGuardrailCreateRequest = z.infer<typeof GatewayGuardrailCreateRequestSchema>;
 
 export const GatewayGuardrailUpdateRequestSchema = nonEmptyObject(
@@ -301,13 +328,19 @@ export type GatewayApiKeyRotateRequest = z.infer<typeof GatewayApiKeyRotateReque
 export const GatewayIntegrationCreateRequestSchema = z
   .object({
     organisation_id: numericId,
+    /** Optional upstream workspace scope; verify hosted tenant support before relying on it. */
+    workspace_id: workspaceRef.optional(),
     ai_provider_id: uuid,
     name: nonEmptyString,
     slug: nonEmptyString,
     description: z.string().optional(),
-    configurations: GatewayJsonObjectSchema.optional(),
+    configurations:
+      GatewayCatalogProviderConfigurationSchema.and(GatewayJsonObjectSchema).optional(),
     key: nonEmptyString.optional(),
     secret_mappings: z.array(GatewaySecretMappingSchema).optional(),
+    create_default_provider: z.boolean().optional(),
+    default_provider_slug: nonEmptyString.optional(),
+    pricing_adjustments: GatewayPricingAdjustmentsRequestSchema.nullable().optional(),
   })
   .strict();
 export type GatewayIntegrationCreateRequest = z.infer<typeof GatewayIntegrationCreateRequestSchema>;
@@ -317,9 +350,11 @@ export const GatewayIntegrationUpdateRequestSchema = nonEmptyObject(
     .object({
       name: nonEmptyString.optional(),
       description: z.string().optional(),
-      configurations: GatewayJsonObjectSchema.optional(),
+      configurations:
+        GatewayCatalogProviderConfigurationSchema.and(GatewayJsonObjectSchema).optional(),
       key: nonEmptyString.optional(),
       secret_mappings: z.array(GatewaySecretMappingSchema).optional(),
+      pricing_adjustments: GatewayPricingAdjustmentsRequestSchema.nullable().optional(),
     })
     .strict(),
 );
@@ -332,8 +367,18 @@ export const GatewayIntegrationModelUpdateSchema = z
     is_custom: z.boolean().nullable().optional(),
     is_finetune: z.boolean().nullable().optional(),
     base_model_slug: nonEmptyString.nullable().optional(),
-    configurations: GatewayJsonObjectSchema.optional(),
-    pricing_config: GatewayJsonObjectSchema.optional(),
+    configurations: z
+      .object({
+        custom_host: z.string().optional(),
+        custom_headers: z
+          .object({ key: z.string().optional(), value: z.string().optional() })
+          .catchall(z.string())
+          .optional(),
+      })
+      .catchall(GatewayJsonValueSchema)
+      .and(GatewayJsonObjectSchema)
+      .optional(),
+    pricing_config: GatewayPricingConfigRequestSchema.and(GatewayJsonObjectSchema).optional(),
   })
   .strict();
 export type GatewayIntegrationModelUpdate = z.infer<typeof GatewayIntegrationModelUpdateSchema>;
@@ -371,12 +416,13 @@ export const McpIntegrationCreateRequestSchema = z
   .object({
     name: nonEmptyString,
     organisation_id: numericId,
+    workspace_id: workspaceRef.optional(),
     slug: nonEmptyString,
     url: z.string().url(),
     auth_type: GatewayMcpAuthTypeSchema,
     transport: GatewayMcpTransportSchema,
     description: z.string().nullable().optional(),
-    configurations: GatewayJsonObjectSchema.optional(),
+    configurations: GatewayCatalogMcpConfigurationSchema.and(GatewayJsonObjectSchema).optional(),
     secret_mappings: z.array(GatewaySecretMappingSchema).optional(),
   })
   .strict();
@@ -387,7 +433,7 @@ export const McpIntegrationUpdateRequestSchema = nonEmptyObject(
     .object({
       name: nonEmptyString.optional(),
       description: z.string().nullable().optional(),
-      configurations: GatewayJsonObjectSchema.optional(),
+      configurations: GatewayCatalogMcpConfigurationSchema.and(GatewayJsonObjectSchema).optional(),
       url: z.string().url().optional(),
       auth_type: GatewayMcpAuthTypeSchema.optional(),
       transport: GatewayMcpTransportSchema.optional(),
@@ -457,6 +503,7 @@ export const GatewayDeploymentCreateRequestSchema = z
     deployment_config: GatewayJsonObjectSchema.optional(),
     is_default: z.boolean().optional(),
     slug: nonEmptyString.optional(),
+    tags: GatewayDeploymentTagsSchema.and(GatewayJsonObjectSchema).nullable().optional(),
   })
   .strict();
 export type GatewayDeploymentCreateRequest = z.infer<typeof GatewayDeploymentCreateRequestSchema>;
@@ -472,6 +519,7 @@ export const GatewayDeploymentUpdateRequestSchema = nonEmptyObject(
       rotate_auth: z.boolean().optional(),
       override_existing: z.boolean().optional(),
       auth_settings: GatewayDeploymentAuthSettingsInputSchema.optional(),
+      tags: GatewayDeploymentTagsSchema.and(GatewayJsonObjectSchema).nullable().optional(),
     })
     .strict(),
 );

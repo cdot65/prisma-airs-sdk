@@ -18,6 +18,9 @@ export class OAuthAuth implements AuthAdapter {
   }
 
   async onUnauthorized(res: Response): Promise<boolean> {
+    // A verified policy denial will not be repaired by refreshing the same identity.
+    // Preserve legacy 403 refresh behavior where the server does not identify the cause.
+    if (res.status === 403 && res.headers.get('x-opa-decision') === 'false') return false;
     if (res.status === 401 || res.status === 403) {
       this.oauthClient.clearToken();
       return true;

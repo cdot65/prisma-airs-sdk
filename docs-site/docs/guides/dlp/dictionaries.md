@@ -1,5 +1,9 @@
 # DLP — Dictionaries
 
+:::warning[Latest live validation]
+The 2026-09-06 executable example's dictionary list passed, but multipart creation returned HTTP 400. JSON Blob variants with the observed `GLOBAL` region and `us` both failed; a text JSON part returned HTTP 415. No dictionary was created by those attempts. The code samples below illustrate the declared contract, not a currently passing live write workflow. See [actual example results](../examples.mdx) and [wire-probe results](../../developer/live-validation-results.md).
+:::
+
 Manage Dictionaries on the DLP service (`/v2/api/dictionaries`).
 
 Subclient lives at `client.dlp.dictionaries` (a `DictionariesClient`). **Full CRUD with a multipart twist**: `create` and `replace` take a metadata object + a keyword file (newline-delimited). PATCH uses JSON Merge Patch. PUT can return 200+body **or** 204+empty — `replace()` returns `DictionaryResponse | undefined`.

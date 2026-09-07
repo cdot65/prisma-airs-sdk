@@ -14,12 +14,13 @@
  * 2. **Delete archives, it does not destroy.** The workspace disappears from the default list but
  *    remains under `--status archived`. There is no hard delete.
  *
- * VERIFICATION STATUS (probed live 2026-08-01 against TSG 1852583913):
+ * VERIFICATION STATUS (revalidated 2026-09-06):
  *   list / get      VERIFIED, including the status filter, admin-plane routing, and slug refs.
- *   create/update/delete  Endpoints exist and their request contracts are confirmed, but no 2xx
- *                   has been observed — the SDK types those responses permissively and marks them
- *                   "Shape unverified against a live tenant". Use --dry-run first, and follow any
- *                   write with `get` rather than trusting the returned body.
+ *   create          Latest owned-fixture attempts returned HTTP 400 AB01 for synthetic scope names.
+ *                   A valid unused SCM scope or known-good SCM request is needed for revalidation.
+ *   update/delete   Historical behavior is documented in the client; no new workspace was created
+ *                   during this review, so its owned lifecycle could not be revalidated.
+ *                   Use --dry-run first. Do not mutate an existing workspace to bypass this limit.
  *
  * Requires PANW_AI_GW_* in the environment, falling back to PANW_MGMT_*. Writes and `--plane admin`
  * need a tenant-root admin role; a workspace-scoped role alone yields 403.

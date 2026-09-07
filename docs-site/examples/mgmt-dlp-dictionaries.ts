@@ -1,7 +1,10 @@
-import { ManagementClient, AISecSDKException } from '@cdot65/prisma-airs-sdk';
+import { reportExampleError } from './example-support.js';
+import { exampleName, recordExampleFixture } from './example-support.js';
+import { ManagementClient } from '@cdot65/prisma-airs-sdk';
 
 async function main() {
-  const client = new ManagementClient();
+  const client = new ManagementClient({ numRetries: 0 });
+  let ownedId: string | undefined;
 
   try {
     console.log('Listing dictionaries...');
@@ -11,13 +14,21 @@ async function main() {
       console.log(`  - ${d.name ?? '(unnamed)'} id=${d.id ?? '?'}`);
     }
 
+    if (!process.argv.includes('--writes')) {
+      console.log('Read-only: pass --writes for an owned dictionary lifecycle.');
+      return;
+    }
+    const region =
+      process.env.PANW_DLP_DICTIONARY_REGION ??
+      page.content.find((d) => d.region_name)?.region_name;
+    if (!region) throw new Error('Set PANW_DLP_DICTIONARY_REGION to the tenant dictionary region');
     console.log('\nCreating example dictionary (multipart upload)...');
     const created = await client.dlp.dictionaries.create({
       metadata: {
         category: 'Confidential',
-        name: `sdk-example-${Date.now()}`,
+        name: exampleName,
         original_file_name: 'keywords.txt',
-        region_name: 'us-west-2',
+        region_name: region,
         type: 'custom',
       },
       file: 'alpha\nbravo\ncharlie\n',
@@ -27,6 +38,8 @@ async function main() {
 
     const id = created.id;
     if (id) {
+      ownedId = id;
+      recordExampleFixture('dlp.dictionary', id);
       console.log(`\nGetting ${id} with keywords...`);
       const got = await client.dlp.dictionaries.get(id, { includeKeywords: true });
       console.log(`  name=${got.name} keywords=${got.keywords?.length ?? 0}`);
@@ -37,7 +50,7 @@ async function main() {
           category: 'Confidential',
           name: got.name ?? 'example',
           original_file_name: 'keywords.txt',
-          region_name: got.region_name ?? 'us-west-2',
+          region_name: got.region_name ?? region,
           type: 'custom',
         },
         file: 'alpha\nbravo\ncharlie\ndelta\n',
@@ -47,16 +60,14 @@ async function main() {
 
       console.log('\nDeleting...');
       await client.dlp.dictionaries.delete(id);
+      ownedId = undefined;
       console.log('  deleted (204)');
     }
   } catch (error) {
-    if (error instanceof AISecSDKException) {
-      console.error('Error:', error.message);
-      console.error('Type:', error.errorType);
-    } else {
-      throw error;
-    }
+    reportExampleError(error);
+  } finally {
+    if (ownedId) await client.dlp.dictionaries.delete(ownedId);
   }
 }
 
-main().catch(console.error);
+main().catch(reportExampleError);

@@ -1,0 +1,1154 @@
+{
+  "source": "prisma-airs-model-security/management/mgmt-plane.yml",
+  "sha256": "92b010dbe1b2ba96984aaaadfca95e4a2ff68a1fa98209765cfa1b0bcffcc808",
+  "corrections": [],
+  "cases": [
+    {
+      "method": "GET",
+      "path": "/v1/custom-rules",
+      "call": {
+        "method": "GET",
+        "path": "/v1/custom-rules",
+        "source": "src/model-security/custom-rules-client.ts",
+        "member": "list",
+        "plane": "model-management",
+        "responseSchema": "ListCustomRulesResponseSchema",
+        "queryType": "CustomRuleListOptions",
+        "className": "ModelSecurityCustomRulesClient",
+        "parameters": [
+          {
+            "name": "opts",
+            "type": "CustomRuleListOptions"
+          }
+        ]
+      },
+      "query": {
+        "limit": 1,
+        "skip": 0,
+        "sort_field": "created_at",
+        "sort_dir": "asc",
+        "is_archived": false,
+        "search_query": "x",
+        "source_types": ["LOCAL", "HUGGING_FACE"],
+        "generation": 0
+      },
+      "queryWire": {
+        "limit": ["1"],
+        "skip": ["0"],
+        "sort_field": ["created_at"],
+        "sort_dir": ["asc"],
+        "is_archived": ["false"],
+        "search_query": ["x"],
+        "source_types": ["LOCAL", "HUGGING_FACE"],
+        "generation": ["0"]
+      },
+      "responseBody": {
+        "custom_rules": [
+          {
+            "compatible_sources": ["LOCAL"],
+            "condition": {
+              "key": "x",
+              "operator": "equals",
+              "type": "label",
+              "value": "x"
+            },
+            "created_at": "2026-09-06T00:00:00Z",
+            "created_by": "550e8400-e29b-41d4-a716-446655440000",
+            "description": "x",
+            "enabled_security_group_count": 1,
+            "is_archived": false,
+            "name": "x",
+            "remediation_message": "x",
+            "rule_action": "FAIL",
+            "tsg_id": "x",
+            "updated_at": "2026-09-06T00:00:00Z",
+            "updated_by": "550e8400-e29b-41d4-a716-446655440000",
+            "uuid": "550e8400-e29b-41d4-a716-446655440000",
+            "violation_message": "x"
+          }
+        ],
+        "pagination": {
+          "total_items": 1
+        }
+      },
+      "responseStatus": 200,
+      "responseIsText": false
+    },
+    {
+      "method": "POST",
+      "path": "/v1/custom-rules",
+      "call": {
+        "method": "POST",
+        "path": "/v1/custom-rules",
+        "source": "src/model-security/custom-rules-client.ts",
+        "member": "create",
+        "plane": "model-management",
+        "responseSchema": "CustomRuleResponseSchema",
+        "requestSchema": "CustomRuleCreateRequestSchema",
+        "requestType": "CustomRuleCreateRequest",
+        "className": "ModelSecurityCustomRulesClient",
+        "parameters": [
+          {
+            "name": "body",
+            "type": "CustomRuleCreateRequest"
+          }
+        ]
+      },
+      "query": {},
+      "queryWire": {},
+      "body": {
+        "compatible_sources": ["LOCAL"],
+        "condition": {
+          "key": "x",
+          "operator": "equals",
+          "type": "label",
+          "value": "x"
+        },
+        "description": "x",
+        "name": "x",
+        "remediation_message": "x",
+        "rule_action": "FAIL",
+        "violation_message": "x"
+      },
+      "responseBody": {
+        "compatible_sources": ["LOCAL"],
+        "condition": {
+          "key": "x",
+          "operator": "equals",
+          "type": "label",
+          "value": "x"
+        },
+        "created_at": "2026-09-06T00:00:00Z",
+        "created_by": "550e8400-e29b-41d4-a716-446655440000",
+        "description": "x",
+        "is_archived": false,
+        "name": "x",
+        "remediation_message": "x",
+        "rule_action": "FAIL",
+        "tsg_id": "x",
+        "updated_at": "2026-09-06T00:00:00Z",
+        "updated_by": "550e8400-e29b-41d4-a716-446655440000",
+        "uuid": "550e8400-e29b-41d4-a716-446655440000",
+        "violation_message": "x"
+      },
+      "responseStatus": 201,
+      "responseIsText": false
+    },
+    {
+      "method": "GET",
+      "path": "/v1/custom-rules/versions",
+      "call": {
+        "method": "GET",
+        "path": "/v1/custom-rules/versions",
+        "source": "src/model-security/custom-rules-client.ts",
+        "member": "listVersions",
+        "plane": "model-management",
+        "responseSchema": "SnapshotVersionListResponseSchema",
+        "queryType": "SnapshotVersionListOptions",
+        "className": "ModelSecurityCustomRulesClient",
+        "parameters": [
+          {
+            "name": "opts",
+            "type": "SnapshotVersionListOptions"
+          }
+        ]
+      },
+      "query": {
+        "limit": 1,
+        "next_token": "x"
+      },
+      "queryWire": {
+        "limit": ["1"],
+        "next_token": ["x"]
+      },
+      "responseBody": {
+        "pagination": {
+          "next_token": "x"
+        },
+        "versions": [
+          {
+            "generation": 1,
+            "timestamp": "2026-09-06T00:00:00Z"
+          }
+        ]
+      },
+      "responseStatus": 200,
+      "responseIsText": false
+    },
+    {
+      "method": "GET",
+      "path": "/v1/custom-rules/{custom_rule_uuid}",
+      "call": {
+        "method": "GET",
+        "path": "/v1/custom-rules/{uuid}",
+        "source": "src/model-security/custom-rules-client.ts",
+        "member": "get",
+        "plane": "model-management",
+        "responseSchema": "CustomRuleResponseSchema",
+        "className": "ModelSecurityCustomRulesClient",
+        "parameters": [
+          {
+            "name": "uuid",
+            "type": "string"
+          }
+        ]
+      },
+      "query": {},
+      "queryWire": {},
+      "responseBody": {
+        "compatible_sources": ["LOCAL"],
+        "condition": {
+          "key": "x",
+          "operator": "equals",
+          "type": "label",
+          "value": "x"
+        },
+        "created_at": "2026-09-06T00:00:00Z",
+        "created_by": "550e8400-e29b-41d4-a716-446655440000",
+        "description": "x",
+        "is_archived": false,
+        "name": "x",
+        "remediation_message": "x",
+        "rule_action": "FAIL",
+        "tsg_id": "x",
+        "updated_at": "2026-09-06T00:00:00Z",
+        "updated_by": "550e8400-e29b-41d4-a716-446655440000",
+        "uuid": "550e8400-e29b-41d4-a716-446655440000",
+        "violation_message": "x"
+      },
+      "responseStatus": 200,
+      "responseIsText": false
+    },
+    {
+      "method": "PUT",
+      "path": "/v1/custom-rules/{custom_rule_uuid}",
+      "call": {
+        "method": "PUT",
+        "path": "/v1/custom-rules/{uuid}",
+        "source": "src/model-security/custom-rules-client.ts",
+        "member": "update",
+        "plane": "model-management",
+        "responseSchema": "CustomRuleResponseSchema",
+        "requestSchema": "CustomRuleUpdateRequestSchema",
+        "requestType": "CustomRuleUpdateRequest",
+        "className": "ModelSecurityCustomRulesClient",
+        "parameters": [
+          {
+            "name": "uuid",
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "type": "CustomRuleUpdateRequest"
+          }
+        ]
+      },
+      "query": {},
+      "queryWire": {},
+      "body": {
+        "condition": {
+          "key": "x",
+          "operator": "equals",
+          "type": "label",
+          "value": "x"
+        },
+        "description": "x",
+        "name": "x",
+        "remediation_message": "x",
+        "rule_action": "FAIL",
+        "violation_message": "x"
+      },
+      "responseBody": {
+        "compatible_sources": ["LOCAL"],
+        "condition": {
+          "key": "x",
+          "operator": "equals",
+          "type": "label",
+          "value": "x"
+        },
+        "created_at": "2026-09-06T00:00:00Z",
+        "created_by": "550e8400-e29b-41d4-a716-446655440000",
+        "description": "x",
+        "is_archived": false,
+        "name": "x",
+        "remediation_message": "x",
+        "rule_action": "FAIL",
+        "tsg_id": "x",
+        "updated_at": "2026-09-06T00:00:00Z",
+        "updated_by": "550e8400-e29b-41d4-a716-446655440000",
+        "uuid": "550e8400-e29b-41d4-a716-446655440000",
+        "violation_message": "x"
+      },
+      "responseStatus": 200,
+      "responseIsText": false
+    },
+    {
+      "method": "POST",
+      "path": "/v1/custom-rules/{custom_rule_uuid}/archive",
+      "call": {
+        "method": "POST",
+        "path": "/v1/custom-rules/{uuid}/archive",
+        "source": "src/model-security/custom-rules-client.ts",
+        "member": "archive",
+        "plane": "model-management",
+        "className": "ModelSecurityCustomRulesClient",
+        "parameters": [
+          {
+            "name": "uuid",
+            "type": "string"
+          }
+        ]
+      },
+      "query": {},
+      "queryWire": {},
+      "responseBody": "prompt,goal\n",
+      "responseStatus": 204,
+      "responseIsText": true
+    },
+    {
+      "method": "GET",
+      "path": "/v1/custom-rules/{custom_rule_uuid}/security-groups",
+      "call": {
+        "method": "GET",
+        "path": "/v1/custom-rules/{uuid}/security-groups",
+        "source": "src/model-security/custom-rules-client.ts",
+        "member": "listSecurityGroups",
+        "plane": "model-management",
+        "responseSchema": "ListCustomRuleSecurityGroupsResponseSchema",
+        "queryType": "{ skip?: number; limit?: number }",
+        "className": "ModelSecurityCustomRulesClient",
+        "parameters": [
+          {
+            "name": "uuid",
+            "type": "string"
+          },
+          {
+            "name": "opts",
+            "type": "{ skip?: number; limit?: number }"
+          }
+        ]
+      },
+      "query": {
+        "limit": 1,
+        "skip": 0
+      },
+      "queryWire": {
+        "limit": ["1"],
+        "skip": ["0"]
+      },
+      "responseBody": {
+        "pagination": {
+          "total_items": 1
+        },
+        "security_groups": [
+          {
+            "name": "x",
+            "rule_state": "DISABLED",
+            "source_type": "LOCAL",
+            "uuid": "550e8400-e29b-41d4-a716-446655440000"
+          }
+        ]
+      },
+      "responseStatus": 200,
+      "responseIsText": false
+    },
+    {
+      "method": "POST",
+      "path": "/v1/custom-rules/{custom_rule_uuid}/security-groups",
+      "call": {
+        "method": "POST",
+        "path": "/v1/custom-rules/{uuid}/security-groups",
+        "source": "src/model-security/custom-rules-client.ts",
+        "member": "assignSecurityGroups",
+        "plane": "model-management",
+        "responseSchema": "BatchAssignCustomRuleResponseSchema",
+        "requestSchema": "BatchAssignCustomRuleRequestSchema",
+        "requestType": "BatchAssignCustomRuleRequest",
+        "className": "ModelSecurityCustomRulesClient",
+        "parameters": [
+          {
+            "name": "uuid",
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "type": "BatchAssignCustomRuleRequest"
+          }
+        ]
+      },
+      "query": {},
+      "queryWire": {},
+      "body": {
+        "assignments": [
+          {
+            "security_group_uuid": "550e8400-e29b-41d4-a716-446655440000",
+            "state": "DISABLED"
+          }
+        ]
+      },
+      "responseBody": {
+        "results": [
+          {
+            "error": "x",
+            "rule_instance_uuid": "550e8400-e29b-41d4-a716-446655440000",
+            "security_group_uuid": "550e8400-e29b-41d4-a716-446655440000",
+            "status": "x"
+          }
+        ]
+      },
+      "responseStatus": 207,
+      "responseIsText": false
+    },
+    {
+      "method": "DELETE",
+      "path": "/v1/custom-rules/{custom_rule_uuid}/security-groups/{sg_uuid}",
+      "call": {
+        "method": "DELETE",
+        "path": "/v1/custom-rules/{uuid}/security-groups/{groupUuid}",
+        "source": "src/model-security/custom-rules-client.ts",
+        "member": "removeAssignment",
+        "plane": "model-management",
+        "className": "ModelSecurityCustomRulesClient",
+        "parameters": [
+          {
+            "name": "uuid",
+            "type": "string"
+          },
+          {
+            "name": "groupUuid",
+            "type": "string"
+          }
+        ]
+      },
+      "query": {},
+      "queryWire": {},
+      "responseBody": "prompt,goal\n",
+      "responseStatus": 204,
+      "responseIsText": true
+    },
+    {
+      "method": "POST",
+      "path": "/v1/custom-rules/{custom_rule_uuid}/unarchive",
+      "call": {
+        "method": "POST",
+        "path": "/v1/custom-rules/{uuid}/unarchive",
+        "source": "src/model-security/custom-rules-client.ts",
+        "member": "unarchive",
+        "plane": "model-management",
+        "className": "ModelSecurityCustomRulesClient",
+        "parameters": [
+          {
+            "name": "uuid",
+            "type": "string"
+          }
+        ]
+      },
+      "query": {},
+      "queryWire": {},
+      "responseBody": "prompt,goal\n",
+      "responseStatus": 204,
+      "responseIsText": true
+    },
+    {
+      "method": "GET",
+      "path": "/v1/pypi/authenticate",
+      "call": {
+        "method": "GET",
+        "path": "/v1/pypi/authenticate",
+        "source": "src/model-security/client.ts",
+        "member": "getPyPIAuth",
+        "plane": "model-management",
+        "responseSchema": "PyPIAuthResponseSchema",
+        "className": "ModelSecurityClient",
+        "parameters": []
+      },
+      "query": {},
+      "queryWire": {},
+      "responseBody": {
+        "expires_at": "2026-09-06T00:00:00Z",
+        "url": "x"
+      },
+      "responseStatus": 200,
+      "responseIsText": false
+    },
+    {
+      "method": "GET",
+      "path": "/v1/security-groups",
+      "call": {
+        "method": "GET",
+        "path": "/v1/security-groups",
+        "source": "src/model-security/security-groups-client.ts",
+        "member": "list",
+        "plane": "model-management",
+        "responseSchema": "ListModelSecurityGroupsResponseSchema",
+        "queryType": "ModelSecurityGroupListOptions",
+        "className": "ModelSecurityGroupsClient",
+        "parameters": [
+          {
+            "name": "opts",
+            "type": "ModelSecurityGroupListOptions"
+          }
+        ]
+      },
+      "query": {
+        "skip": 0,
+        "limit": 1,
+        "sort_field": "created_at",
+        "sort_dir": "asc",
+        "source_types": ["LOCAL", "HUGGING_FACE"],
+        "search_query": "xxx",
+        "enabled_rules": [
+          "550e8400-e29b-41d4-a716-446655440000",
+          "550e8400-e29b-41d4-a716-446655440000"
+        ]
+      },
+      "queryWire": {
+        "skip": ["0"],
+        "limit": ["1"],
+        "sort_field": ["created_at"],
+        "sort_dir": ["asc"],
+        "source_types": ["LOCAL", "HUGGING_FACE"],
+        "search_query": ["xxx"],
+        "enabled_rules": [
+          "550e8400-e29b-41d4-a716-446655440000",
+          "550e8400-e29b-41d4-a716-446655440000"
+        ]
+      },
+      "responseBody": {
+        "pagination": {
+          "total_items": 1
+        },
+        "security_groups": [
+          {
+            "created_at": "2026-09-06T00:00:00Z",
+            "description": "x",
+            "enabled_rule_count": 1,
+            "is_tombstone": false,
+            "name": "x",
+            "source_type": "LOCAL",
+            "state": "PENDING",
+            "tsg_id": "x",
+            "updated_at": "2026-09-06T00:00:00Z",
+            "uuid": "550e8400-e29b-41d4-a716-446655440000"
+          }
+        ]
+      },
+      "responseStatus": 200,
+      "responseIsText": false
+    },
+    {
+      "method": "POST",
+      "path": "/v1/security-groups",
+      "call": {
+        "method": "POST",
+        "path": "/v1/security-groups",
+        "source": "src/model-security/security-groups-client.ts",
+        "member": "create",
+        "plane": "model-management",
+        "responseSchema": "ModelSecurityGroupResponseSchema",
+        "requestSchema": "ModelSecurityGroupCreateRequestSchema",
+        "requestType": "ModelSecurityGroupCreateRequest",
+        "className": "ModelSecurityGroupsClient",
+        "parameters": [
+          {
+            "name": "body",
+            "type": "ModelSecurityGroupCreateRequest"
+          }
+        ]
+      },
+      "query": {},
+      "queryWire": {},
+      "body": {
+        "description": "x",
+        "name": "x",
+        "rule_configurations": {},
+        "source_type": "LOCAL"
+      },
+      "responseBody": {
+        "created_at": "2026-09-06T00:00:00Z",
+        "description": "x",
+        "is_tombstone": false,
+        "name": "x",
+        "source_type": "LOCAL",
+        "state": "PENDING",
+        "tsg_id": "x",
+        "updated_at": "2026-09-06T00:00:00Z",
+        "uuid": "550e8400-e29b-41d4-a716-446655440000"
+      },
+      "responseStatus": 201,
+      "responseIsText": false
+    },
+    {
+      "method": "GET",
+      "path": "/v1/security-groups/{security_group_uuid}/rule-instances",
+      "call": {
+        "method": "GET",
+        "path": "/v1/security-groups/{securityGroupUuid}/rule-instances",
+        "source": "src/model-security/security-groups-client.ts",
+        "member": "listRuleInstances",
+        "plane": "model-management",
+        "responseSchema": "ListModelSecurityRuleInstancesResponseSchema",
+        "queryType": "ModelSecurityRuleInstanceListOptions",
+        "className": "ModelSecurityGroupsClient",
+        "parameters": [
+          {
+            "name": "securityGroupUuid",
+            "type": "string"
+          },
+          {
+            "name": "opts",
+            "type": "ModelSecurityRuleInstanceListOptions"
+          }
+        ]
+      },
+      "query": {
+        "limit": 1,
+        "skip": 1,
+        "security_rule_uuid": "550e8400-e29b-41d4-a716-446655440000",
+        "state": "DISABLED",
+        "is_custom": false,
+        "generation": 0
+      },
+      "queryWire": {
+        "limit": ["1"],
+        "skip": ["1"],
+        "security_rule_uuid": ["550e8400-e29b-41d4-a716-446655440000"],
+        "state": ["DISABLED"],
+        "is_custom": ["false"],
+        "generation": ["0"]
+      },
+      "responseBody": {
+        "pagination": {
+          "total_items": 1
+        },
+        "rule_instances": [
+          {
+            "created_at": "2026-09-06T00:00:00Z",
+            "created_by": "550e8400-e29b-41d4-a716-446655440000",
+            "custom_rule": {
+              "description": "x",
+              "name": "x",
+              "uuid": "550e8400-e29b-41d4-a716-446655440000"
+            },
+            "custom_rule_uuid": "550e8400-e29b-41d4-a716-446655440000",
+            "field_values": {},
+            "rule": {
+              "compatible_sources": ["LOCAL"],
+              "constant_values": {},
+              "default_state": "DISABLED",
+              "default_values": {},
+              "description": "x",
+              "editable_fields": [
+                {
+                  "attribute_name": "x",
+                  "description": "x",
+                  "display_name": "x",
+                  "display_type": "SELECT",
+                  "dropdown_values": [
+                    {
+                      "label": "x",
+                      "value": "x"
+                    }
+                  ],
+                  "type": "x"
+                }
+              ],
+              "name": "x",
+              "remediation": {
+                "description": "x",
+                "steps": ["x"],
+                "url": "x"
+              },
+              "rule_type": "METADATA",
+              "uuid": "550e8400-e29b-41d4-a716-446655440000"
+            },
+            "security_group_uuid": "550e8400-e29b-41d4-a716-446655440000",
+            "security_rule_uuid": "550e8400-e29b-41d4-a716-446655440000",
+            "state": "DISABLED",
+            "tsg_id": "x",
+            "updated_at": "2026-09-06T00:00:00Z",
+            "updated_by": "550e8400-e29b-41d4-a716-446655440000",
+            "uuid": "550e8400-e29b-41d4-a716-446655440000"
+          }
+        ]
+      },
+      "responseStatus": 200,
+      "responseIsText": false
+    },
+    {
+      "method": "GET",
+      "path": "/v1/security-groups/{security_group_uuid}/rule-instances/versions",
+      "call": {
+        "method": "GET",
+        "path": "/v1/security-groups/{securityGroupUuid}/rule-instances/versions",
+        "source": "src/model-security/security-groups-client.ts",
+        "member": "listRuleInstanceVersions",
+        "plane": "model-management",
+        "responseSchema": "SnapshotVersionListResponseSchema",
+        "queryType": "SnapshotVersionListOptions",
+        "className": "ModelSecurityGroupsClient",
+        "parameters": [
+          {
+            "name": "securityGroupUuid",
+            "type": "string"
+          },
+          {
+            "name": "opts",
+            "type": "SnapshotVersionListOptions"
+          }
+        ]
+      },
+      "query": {
+        "limit": 1,
+        "next_token": "x"
+      },
+      "queryWire": {
+        "limit": ["1"],
+        "next_token": ["x"]
+      },
+      "responseBody": {
+        "pagination": {
+          "next_token": "x"
+        },
+        "versions": [
+          {
+            "generation": 1,
+            "timestamp": "2026-09-06T00:00:00Z"
+          }
+        ]
+      },
+      "responseStatus": 200,
+      "responseIsText": false
+    },
+    {
+      "method": "GET",
+      "path": "/v1/security-groups/{security_group_uuid}/rule-instances/{rule_instance_uuid}",
+      "call": {
+        "method": "GET",
+        "path": "/v1/security-groups/{securityGroupUuid}/rule-instances/{ruleInstanceUuid}",
+        "source": "src/model-security/security-groups-client.ts",
+        "member": "getRuleInstance",
+        "plane": "model-management",
+        "responseSchema": "ModelSecurityRuleInstanceResponseSchema",
+        "className": "ModelSecurityGroupsClient",
+        "parameters": [
+          {
+            "name": "securityGroupUuid",
+            "type": "string"
+          },
+          {
+            "name": "ruleInstanceUuid",
+            "type": "string"
+          }
+        ]
+      },
+      "query": {},
+      "queryWire": {},
+      "responseBody": {
+        "created_at": "2026-09-06T00:00:00Z",
+        "created_by": "550e8400-e29b-41d4-a716-446655440000",
+        "custom_rule": {
+          "description": "x",
+          "name": "x",
+          "uuid": "550e8400-e29b-41d4-a716-446655440000"
+        },
+        "custom_rule_uuid": "550e8400-e29b-41d4-a716-446655440000",
+        "field_values": {},
+        "rule": {
+          "compatible_sources": ["LOCAL"],
+          "constant_values": {},
+          "default_state": "DISABLED",
+          "default_values": {},
+          "description": "x",
+          "editable_fields": [
+            {
+              "attribute_name": "x",
+              "description": "x",
+              "display_name": "x",
+              "display_type": "SELECT",
+              "dropdown_values": [
+                {
+                  "label": "x",
+                  "value": "x"
+                }
+              ],
+              "type": "x"
+            }
+          ],
+          "name": "x",
+          "remediation": {
+            "description": "x",
+            "steps": ["x"],
+            "url": "x"
+          },
+          "rule_type": "METADATA",
+          "uuid": "550e8400-e29b-41d4-a716-446655440000"
+        },
+        "security_group_uuid": "550e8400-e29b-41d4-a716-446655440000",
+        "security_rule_uuid": "550e8400-e29b-41d4-a716-446655440000",
+        "state": "DISABLED",
+        "tsg_id": "x",
+        "updated_at": "2026-09-06T00:00:00Z",
+        "updated_by": "550e8400-e29b-41d4-a716-446655440000",
+        "uuid": "550e8400-e29b-41d4-a716-446655440000"
+      },
+      "responseStatus": 200,
+      "responseIsText": false
+    },
+    {
+      "method": "PUT",
+      "path": "/v1/security-groups/{security_group_uuid}/rule-instances/{rule_instance_uuid}",
+      "call": {
+        "method": "PUT",
+        "path": "/v1/security-groups/{securityGroupUuid}/rule-instances/{ruleInstanceUuid}",
+        "source": "src/model-security/security-groups-client.ts",
+        "member": "updateRuleInstance",
+        "plane": "model-management",
+        "responseSchema": "ModelSecurityRuleInstanceResponseSchema",
+        "requestSchema": "ModelSecurityRuleInstanceUpdateRequestSchema",
+        "requestType": "ModelSecurityRuleInstanceUpdateRequest",
+        "className": "ModelSecurityGroupsClient",
+        "parameters": [
+          {
+            "name": "securityGroupUuid",
+            "type": "string"
+          },
+          {
+            "name": "ruleInstanceUuid",
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "type": "ModelSecurityRuleInstanceUpdateRequest"
+          }
+        ]
+      },
+      "query": {},
+      "queryWire": {},
+      "body": {
+        "field_values": {},
+        "security_group_uuid": "550e8400-e29b-41d4-a716-446655440000",
+        "state": "DISABLED"
+      },
+      "responseBody": {
+        "created_at": "2026-09-06T00:00:00Z",
+        "created_by": "550e8400-e29b-41d4-a716-446655440000",
+        "custom_rule": {
+          "description": "x",
+          "name": "x",
+          "uuid": "550e8400-e29b-41d4-a716-446655440000"
+        },
+        "custom_rule_uuid": "550e8400-e29b-41d4-a716-446655440000",
+        "field_values": {},
+        "rule": {
+          "compatible_sources": ["LOCAL"],
+          "constant_values": {},
+          "default_state": "DISABLED",
+          "default_values": {},
+          "description": "x",
+          "editable_fields": [
+            {
+              "attribute_name": "x",
+              "description": "x",
+              "display_name": "x",
+              "display_type": "SELECT",
+              "dropdown_values": [
+                {
+                  "label": "x",
+                  "value": "x"
+                }
+              ],
+              "type": "x"
+            }
+          ],
+          "name": "x",
+          "remediation": {
+            "description": "x",
+            "steps": ["x"],
+            "url": "x"
+          },
+          "rule_type": "METADATA",
+          "uuid": "550e8400-e29b-41d4-a716-446655440000"
+        },
+        "security_group_uuid": "550e8400-e29b-41d4-a716-446655440000",
+        "security_rule_uuid": "550e8400-e29b-41d4-a716-446655440000",
+        "state": "DISABLED",
+        "tsg_id": "x",
+        "updated_at": "2026-09-06T00:00:00Z",
+        "updated_by": "550e8400-e29b-41d4-a716-446655440000",
+        "uuid": "550e8400-e29b-41d4-a716-446655440000"
+      },
+      "responseStatus": 200,
+      "responseIsText": false
+    },
+    {
+      "method": "DELETE",
+      "path": "/v1/security-groups/{uuid}",
+      "call": {
+        "method": "DELETE",
+        "path": "/v1/security-groups/{uuid}",
+        "source": "src/model-security/security-groups-client.ts",
+        "member": "delete",
+        "plane": "model-management",
+        "className": "ModelSecurityGroupsClient",
+        "parameters": [
+          {
+            "name": "uuid",
+            "type": "string"
+          }
+        ]
+      },
+      "query": {},
+      "queryWire": {},
+      "responseBody": "prompt,goal\n",
+      "responseStatus": 204,
+      "responseIsText": true
+    },
+    {
+      "method": "GET",
+      "path": "/v1/security-groups/{uuid}",
+      "call": {
+        "method": "GET",
+        "path": "/v1/security-groups/{uuid}",
+        "source": "src/model-security/security-groups-client.ts",
+        "member": "get",
+        "plane": "model-management",
+        "responseSchema": "ModelSecurityGroupResponseSchema",
+        "className": "ModelSecurityGroupsClient",
+        "parameters": [
+          {
+            "name": "uuid",
+            "type": "string"
+          }
+        ]
+      },
+      "query": {},
+      "queryWire": {},
+      "responseBody": {
+        "created_at": "2026-09-06T00:00:00Z",
+        "description": "x",
+        "is_tombstone": false,
+        "name": "x",
+        "source_type": "LOCAL",
+        "state": "PENDING",
+        "tsg_id": "x",
+        "updated_at": "2026-09-06T00:00:00Z",
+        "uuid": "550e8400-e29b-41d4-a716-446655440000"
+      },
+      "responseStatus": 200,
+      "responseIsText": false
+    },
+    {
+      "method": "PUT",
+      "path": "/v1/security-groups/{uuid}",
+      "call": {
+        "method": "PUT",
+        "path": "/v1/security-groups/{uuid}",
+        "source": "src/model-security/security-groups-client.ts",
+        "member": "update",
+        "plane": "model-management",
+        "responseSchema": "ModelSecurityGroupResponseSchema",
+        "requestSchema": "ModelSecurityGroupUpdateRequestSchema",
+        "requestType": "ModelSecurityGroupUpdateRequest",
+        "className": "ModelSecurityGroupsClient",
+        "parameters": [
+          {
+            "name": "uuid",
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "type": "ModelSecurityGroupUpdateRequest"
+          }
+        ]
+      },
+      "query": {},
+      "queryWire": {},
+      "body": {
+        "description": "x",
+        "name": "x"
+      },
+      "responseBody": {
+        "created_at": "2026-09-06T00:00:00Z",
+        "description": "x",
+        "is_tombstone": false,
+        "name": "x",
+        "source_type": "LOCAL",
+        "state": "PENDING",
+        "tsg_id": "x",
+        "updated_at": "2026-09-06T00:00:00Z",
+        "uuid": "550e8400-e29b-41d4-a716-446655440000"
+      },
+      "responseStatus": 200,
+      "responseIsText": false
+    },
+    {
+      "method": "GET",
+      "path": "/v1/security-rules",
+      "call": {
+        "method": "GET",
+        "path": "/v1/security-rules",
+        "source": "src/model-security/security-rules-client.ts",
+        "member": "list",
+        "plane": "model-management",
+        "responseSchema": "ListModelSecurityRulesResponseSchema",
+        "queryType": "ModelSecurityRuleListOptions",
+        "className": "ModelSecurityRulesClient",
+        "parameters": [
+          {
+            "name": "opts",
+            "type": "ModelSecurityRuleListOptions"
+          }
+        ]
+      },
+      "query": {
+        "limit": 1,
+        "skip": 1,
+        "source_type": "LOCAL",
+        "search_query": "xxx",
+        "generation": 0
+      },
+      "queryWire": {
+        "limit": ["1"],
+        "skip": ["1"],
+        "source_type": ["LOCAL"],
+        "search_query": ["xxx"],
+        "generation": ["0"]
+      },
+      "responseBody": {
+        "pagination": {
+          "total_items": 1
+        },
+        "rules": [
+          {
+            "compatible_sources": ["LOCAL"],
+            "constant_values": {},
+            "default_state": "DISABLED",
+            "default_values": {},
+            "description": "x",
+            "editable_fields": [
+              {
+                "attribute_name": "x",
+                "description": "x",
+                "display_name": "x",
+                "display_type": "SELECT",
+                "dropdown_values": [
+                  {
+                    "label": "x",
+                    "value": "x"
+                  }
+                ],
+                "type": "x"
+              }
+            ],
+            "enabled_security_group_count": 1,
+            "name": "x",
+            "remediation": {
+              "description": "x",
+              "steps": ["x"],
+              "url": "x"
+            },
+            "rule_type": "METADATA",
+            "uuid": "550e8400-e29b-41d4-a716-446655440000"
+          }
+        ]
+      },
+      "responseStatus": 200,
+      "responseIsText": false
+    },
+    {
+      "method": "GET",
+      "path": "/v1/security-rules/versions",
+      "call": {
+        "method": "GET",
+        "path": "/v1/security-rules/versions",
+        "source": "src/model-security/security-rules-client.ts",
+        "member": "listVersions",
+        "plane": "model-management",
+        "responseSchema": "SnapshotVersionListResponseSchema",
+        "queryType": "SnapshotVersionListOptions",
+        "className": "ModelSecurityRulesClient",
+        "parameters": [
+          {
+            "name": "opts",
+            "type": "SnapshotVersionListOptions"
+          }
+        ]
+      },
+      "query": {
+        "limit": 1,
+        "next_token": "x"
+      },
+      "queryWire": {
+        "limit": ["1"],
+        "next_token": ["x"]
+      },
+      "responseBody": {
+        "pagination": {
+          "next_token": "x"
+        },
+        "versions": [
+          {
+            "generation": 1,
+            "timestamp": "2026-09-06T00:00:00Z"
+          }
+        ]
+      },
+      "responseStatus": 200,
+      "responseIsText": false
+    },
+    {
+      "method": "GET",
+      "path": "/v1/security-rules/{uuid}",
+      "call": {
+        "method": "GET",
+        "path": "/v1/security-rules/{uuid}",
+        "source": "src/model-security/security-rules-client.ts",
+        "member": "get",
+        "plane": "model-management",
+        "responseSchema": "ModelSecurityRuleResponseSchema",
+        "className": "ModelSecurityRulesClient",
+        "parameters": [
+          {
+            "name": "uuid",
+            "type": "string"
+          }
+        ]
+      },
+      "query": {},
+      "queryWire": {},
+      "responseBody": {
+        "compatible_sources": ["LOCAL"],
+        "constant_values": {},
+        "default_state": "DISABLED",
+        "default_values": {},
+        "description": "x",
+        "editable_fields": [
+          {
+            "attribute_name": "x",
+            "description": "x",
+            "display_name": "x",
+            "display_type": "SELECT",
+            "dropdown_values": [
+              {
+                "label": "x",
+                "value": "x"
+              }
+            ],
+            "type": "x"
+          }
+        ],
+        "name": "x",
+        "remediation": {
+          "description": "x",
+          "steps": ["x"],
+          "url": "x"
+        },
+        "rule_type": "METADATA",
+        "uuid": "550e8400-e29b-41d4-a716-446655440000"
+      },
+      "responseStatus": 200,
+      "responseIsText": false
+    }
+  ]
+}

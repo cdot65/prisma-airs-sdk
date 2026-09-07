@@ -1,7 +1,24 @@
 # Architecture & Internals
 
+## Review update: bounded transport and contract gates
+
+The September 2026 review adds [operation-level OpenAPI validation](./openapi-conformance.md),
+typed custom-rule and gateway extension clients, and regression coverage for CLI-facing behavior.
+The shared request pipeline validates request bodies before OAuth, serializes JSON once, and
+creates a fresh URL/deadline for each retry. Authentication, body reads and backoff are bounded;
+caller cancellation stops waiting without cancelling a shared OAuth token refresh for other callers.
+The token manager separately owns one disposable 30-second deadline across token headers and
+JSON-body reads. All refresh waiters reject on expiry even if an instrumented fetch ignores
+cancellation; later callers can refresh again, and late token responses cannot update the cache.
+Pagination collectors stop at the requested cap without fetching an extra page and reject stalled
+non-final Spring pagination. Native `fetch`, `crypto`, and Zod remain the runtime foundation.
+
+Stable gateway request fields reject typos; explicit extension maps accept only finite,
+prototype-safe JSON. Responses preserve additive fields. Public legacy AIRS request-builder types
+remain source-compatible with the CLI while their submission schemas enforce documented requirements.
+
 This page explains **how** the Prisma AIRS TypeScript SDK works under the hood: the service
-domains it covers, the two authentication strategies, the single request pipeline every client
+domains it covers, the explicit authentication boundaries, the single request pipeline every client
 shares, and the validation and error models that hold it all together.
 
 :::tip[Looking for the symbol-level docs?]
@@ -13,7 +30,7 @@ The SDK has **zero external HTTP dependencies** — it is built on the runtime's
 
 ## Service domains and auth methods
 
-The SDK covers five service domains. They split across exactly two authentication methods:
+The SDK separates AIRS/SCM authentication, gateway runtime keys and unauthenticated public catalog reads:
 
 | Domain         | Entry point           | Auth                      | Base URL constant               |
 | -------------- | --------------------- | ------------------------- | ------------------------------- |
@@ -22,10 +39,15 @@ The SDK covers five service domains. They split across exactly two authenticatio
 | Model Security | `ModelSecurityClient` | OAuth2 client_credentials | `DEFAULT_MODEL_SEC_*_ENDPOINT`  |
 | Red Team       | `RedTeamClient`       | OAuth2 client_credentials | `DEFAULT_RED_TEAM_*_ENDPOINT`   |
 | AI Gateway     | `AIGatewayClient`     | OAuth2 client_credentials | `DEFAULT_AI_GW_*_ENDPOINT`      |
+| Gateway runtime | `AIGatewayInferenceClient` | `x-portkey-api-key` | Explicit runtime endpoint |
+| Public model pricing | `AIGatewayModelPricingClient` | None | Explicit public catalog endpoint |
 
 Only the scan service uses `init()` and the `ApiKeyAuth` adapter. It accepts an API key, a
-pre-obtained bearer token, or both; it does not fetch OAuth2 tokens. Everything else (management
-CRUD, DLP, model security, red teaming, AI Gateway) authenticates with OAuth2 client_credentials.
+pre-obtained bearer token, or both; it does not fetch OAuth2 tokens. Management CRUD, DLP,
+model security, red teaming and SCM AI Gateway use OAuth2 client_credentials. Runtime inference
+uses a separate gateway key; public pricing accepts no credentials. Neither client inherits SCM
+authentication or a hostname. Public pricing has no implicit /v1 prefix and returns catalog
+data, not tenant cost telemetry; see [public model pricing](../guides/ai-gateway-model-pricing.md).
 The Management client additionally talks to a separate DLP base URL (`DEFAULT_DLP_ENDPOINT`)
 reusing the same OAuth credentials.
 
@@ -43,9 +65,10 @@ export const MAX_CONTENT_PROMPT_LENGTH = 2 * 1024 * 1024; // 2 MB
 
 ## The unified `request()` pipeline
 
-Every client in every domain — regardless of auth method — ultimately calls one internal helper,
-`request()` in `src/http/request.ts`. Sub-clients never touch `fetch` directly. They build a
-declarative `RequestSpec` and hand it off:
+Service-resource clients — regardless of auth method — use the internal `request()` helper in
+`src/http/request.ts`. Resource sub-clients build a declarative `RequestSpec` and hand it off.
+`OAuthClient` performs the token exchange directly to avoid recursive authentication; it reuses
+the same internal deadline/abortable-wait primitives and validates the token response separately:
 
 ```ts
 // src/management/profiles.ts (representative)
@@ -102,8 +125,8 @@ Walking it explicitly:
 1. **Validate request.** When a client declares `requestSchema`, the JSON body is parsed before URL
    construction, authentication, or transport. The parsed value—not the unchecked input—is later
    serialized. A failure throws `USER_REQUEST_PAYLOAD_ERROR` with the method, path, and the Zod issue for each
-   failing field path. Secret string values are never echoed; enum, literal, and unknown-key issues do
-   name the offending value or key.
+   failing field path. Secret string values are never echoed; enum, literal, and unknown-key issues
+   report issue codes, not rejected values or unknown-key names.
 2. **Build URL.** The base URL is right-trimmed of trailing slashes, then joined with `path`. Query
    `params` are appended; array values append once per element (`?id=a&id=b`).
 3. **Build headers + body.** A `User-Agent` of `PAN-AIRS/<version>-typescript-sdk` is always set,

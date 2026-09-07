@@ -1,0 +1,9 @@
+{
+  "source": "Typed SDK live responses captured 2026-09-06T19:59:34.826Z from the designated dev gateway; the returned feedback identifier is replaced.",
+  "feedback": {
+    "status": "success",
+    "message": "Feedback successfully saved",
+    "feedback_ids": ["owned-feedback"]
+  },
+  "logAcknowledgement": "ok"
+}

@@ -1,86 +1,126 @@
 ---
 id: examples
 title: Runnable Examples
-description: How to run the SDK example scripts for scanning, management, DLP, model security, red teaming, AI Gateway, and validation workflows — with captured output.
+description: Executable SDK examples with fresh live and mock output, explicit failures, and cleanup requirements.
 ---
 
 # Runnable Examples
 
-The repository includes runnable TypeScript examples in `docs-site/examples/` (plus one AI Gateway
-walkthrough in the repo-root `examples/` folder). They exercise the same public SDK APIs documented
-in the guides and are run with `tsx` **from the repository root** — the root `tsconfig.json` maps
-`@cdot65/prisma-airs-sdk` to `src/`, so a fresh clone needs no build step.
+Captured **2026-09-07T02:00:36.854Z**, from the actual runnable files against the local SDK candidate. Credential values and resource identifiers are redacted. Tenant inventories are intentionally not published. These results are not a claim that every service operation or the complete Portkey API passes.
+
+## Latest execution results
+
+All 21 documentation scripts were executed: 18 passed and 3 failed. Three additional real scan-response captures bring the example suite to 21/24 passing checks. A successful walkthrough is not an operation-level guarantee: Red Team's optional quota/statistics calls may report unavailability; their independent checks remain visible in the [complete live results](../developer/live-validation-results.md).
+
+| Script | Backend | Result | Workflow |
+| --- | --- | --- | --- |
+| `profiles-get-validation.ts` | mock | PASS | Mock profile lookup and pagination |
+| `profiles-crud-validation.ts` | mock | PASS | Mock profile CRUD and force-delete behavior |
+| `oauth-lifecycle-validation.ts` | mock | PASS | Mock token timing, refresh, callbacks and auth retry |
+| `red-team-mgmt-validation.ts` | mock | PASS | Mock/schema target and custom-attack validation |
+| `basic-scan.ts` | live | PASS | Synchronous scan |
+| `async-scan.ts` | live | PASS | Two-item asynchronous batch with bounded polling |
+| `query-results.ts` | live | PASS | Real scan IDs and report IDs from the preceding scan |
+| `mgmt-auth.ts` | live | PASS | OAuth authentication, profile list and standalone refresh/cache lifecycle |
+| `mgmt-profiles.ts` | live | PASS | Owned profile lifecycle, including revision cleanup |
+| `mgmt-topics.ts` | live | PASS | Owned custom-topic lifecycle, including revision cleanup |
+| `mgmt-dashboard.ts` | live | PASS | Application and violation dashboard reads |
+| `mgmt-dlp-data-filtering-profiles.ts` | live | PASS | Data filtering profile reads |
+| `mgmt-dlp-data-patterns.ts` | live | PASS | Owned pattern create/get/patch/delete |
+| `mgmt-dlp-data-profiles.ts` | live | FAIL: HTTP 500 | Advanced data profile lifecycle attempt |
+| `mgmt-dlp-dictionaries.ts` | live | FAIL: HTTP 400 | Multipart dictionary lifecycle attempt |
+| `model-security-scans.ts` | live | PASS | Existing ML scan evaluations/files and policy reads |
+| `red-team-scans.ts` | live | PASS | Job/category/target reads; quota and statistics are optional |
+| `red-team-targets.ts` | live | PASS | Target details and custom prompt-set reads |
+| `red-team-network-broker.ts` | live | FAIL: HTTP 403 | Channel reads and owned draft create/update attempt |
+| `gateway-model-pricing.ts` | live | PASS | Unauthenticated public catalog rates for the two required models |
+| `gateway-inference.ts` | live | PASS | Real gateway chat, 32-dimensional embeddings and read-only fine-tuning job listing |
 
 ## Setup
 
-Install dependencies and create an environment file:
+Run from the repository root. The root TypeScript configuration resolves the package import to this checkout's source; examples do not silently exercise a globally installed SDK.
 
 ```bash
-npm install
+npm ci
 cp .env.example .env
-```
-
-Fill in the credentials required by the workflow you want to run:
-
-- Scan examples require `PANW_AI_SEC_API_KEY` or `PANW_AI_SEC_API_TOKEN`, plus
-  `PANW_AI_SEC_PROFILE_NAME` (the name of an existing security profile in your tenant).
-- Management and DLP examples require `PANW_MGMT_CLIENT_ID`, `PANW_MGMT_CLIENT_SECRET`, and
-  `PANW_MGMT_TSG_ID`.
-- Model Security, Red Team, and AI Gateway examples can use their service-specific
-  `PANW_MODEL_SEC_*` / `PANW_RED_TEAM_*` / `PANW_AI_GW_*` credentials or fall back to `PANW_MGMT_*`.
-- Validation scripts marked as mock-backed do not require live AIRS credentials or a `.env` file.
-
-Run examples with:
-
-```bash
-npx tsx --env-file=.env docs-site/examples/<script>.ts
-```
-
-:::note[`--env-file` needs Node 20.6+ and an existing file]
-`--env-file` is a Node.js flag (20.6+). The SDK itself supports Node 18, so on older runtimes
-`export` the variables in your shell instead. Node also aborts with `.env: not found` if the file is
-missing — which is why the mock-backed commands below omit the flag entirely.
-:::
-
-## AI Runtime Security Scan Examples
-
-| Script             | What it demonstrates                                                              |
-| ------------------ | --------------------------------------------------------------------------------- |
-| `basic-scan.ts`    | Calls `init()`, creates `Content`, and runs `Scanner.syncScan()` with metadata.   |
-| `async-scan.ts`    | Submits a 2-item batch with `Scanner.asyncScan()` (cap is 20) and polls the rows. |
-| `query-results.ts` | Fetches scan results and threat reports by scan ID / report ID.                   |
-
-```bash
 npx tsx --env-file=.env docs-site/examples/basic-scan.ts
-npx tsx --env-file=.env docs-site/examples/async-scan.ts
-SCAN_IDS='uuid-1,uuid-2' REPORT_IDS='Ruuid-1' npx tsx --env-file=.env docs-site/examples/query-results.ts
 ```
 
-Output captured on 2026-09-01 with `PANW_AI_SEC_PROFILE_NAME="AI Gateway - Strict"`:
+Scan examples need `PANW_AI_SEC_API_KEY` and `PANW_AI_SEC_PROFILE_NAME`. Management and DLP use `PANW_MGMT_CLIENT_ID`, `PANW_MGMT_CLIENT_SECRET`, and `PANW_MGMT_TSG_ID`; Model Security and Red Team support the documented service-specific overrides with management fallback. Runtime gateway inference instead requires an explicit `PANW_AI_GW_INFERENCE_ENDPOINT` and `PANW_AI_GW_INFERENCE_API_KEY`; it never derives a runtime key from OAuth credentials.
+
+Node's `--env-file` flag requires Node 20.6+ and an existing file. On Node 18, export variables in the shell. Never commit credential files. Mock scripts need neither a credential file nor live credentials.
+
+The September 7 live rerun uses a disclosed test-workspace DNS accommodation: fully qualified service-host lookups and the gateway's existing LAN ingress address verified through its configured secondary resolver. Original HTTPS URLs/SNI, certificate verification and gateway authentication remain intact; no system DNS or infrastructure was changed. Earlier DNS-failed attempts are retained, and the public WAN path is not certified. See the [network verification details](../developer/live-validation-results.md).
+
+## Public model pricing
+
+This example calls the spec-declared public Portkey catalog, not the Prisma runtime or SCM. No credentials or workspace settings are read or sent. The endpoint is explicit and has no /v1 prefix. Prices below are actual catalog values captured at the page timestamp, in USD cents per token; they are not a price quote, effective tenant billing or the result of executing a formula. Unknown catalog fields are preserved by the SDK but are outside this small output projection.
+
+```bash
+npx tsx docs-site/examples/gateway-model-pricing.ts
+```
 
 ```text
-$ npx tsx --env-file=.env docs-site/examples/basic-scan.ts
+[
+  {
+    "provider": "openai",
+    "model": "gpt-5.6-terra",
+    "currency": "USD",
+    "units": "USD cents per token",
+    "request_token": {
+      "price": 0.0002
+    },
+    "response_token": {
+      "price": 0.0012
+    }
+  },
+  {
+    "provider": "openai",
+    "model": "text-embedding-3-small",
+    "currency": "USD",
+    "units": "USD cents per token",
+    "request_token": {
+      "price": 0.000002
+    },
+    "response_token": {
+      "price": 0
+    }
+  }
+]
+```
+
+## Live scan output
+
+The security profile's actual decisions are shown below; another profile may produce different decisions. The three full sanitized response bodies are on the [Scan API page](./scan-api.md#example-output).
+
+### Synchronous scan
+
+```text
 Category: benign
 Action: allow
-Scan ID: 323521fb-c345-4e49-8033-89eb37b8cb5b
-Report ID: R323521fb-c345-4e49-8033-89eb37b8cb5b
+Scan ID: <resource-id>
+Report ID: <resource-id>
+```
 
-$ npx tsx --env-file=.env docs-site/examples/async-scan.ts
-Received: 2026-09-01T16:20:39.388749169Z
-Batch scan ID: 18dde44e-46ee-4f01-8a61-a6b1b2c7bb46
-18dde44e-46ee-4f01-8a61-a6b1b2c7bb46:1 complete allow
-18dde44e-46ee-4f01-8a61-a6b1b2c7bb46:2 complete allow
+### Asynchronous scan
 
-$ SCAN_IDS=323521fb-c345-4e49-8033-89eb37b8cb5b,18dde44e-46ee-4f01-8a61-a6b1b2c7bb46 \
-  REPORT_IDS=R323521fb-c345-4e49-8033-89eb37b8cb5b \
-  npx tsx --env-file=.env docs-site/examples/query-results.ts
-Scan 323521fb-c345-4e49-8033-89eb37b8cb5b, request 0: status=complete
+The script submits once and polls at most 20 times, 1.5 seconds apart. It fails if both submitted request IDs do not complete. A caller can query the returned batch ID again later without resubmitting the batch.
+
+```text
+Received: 2026-09-07T01:59:13.980398547Z
+Batch scan ID: <resource-id>
+<resource-id>:1 pending allow
+<resource-id>:2 pending allow
+```
+
+### Query results and detector reports
+
+Set `SCAN_IDS` and `REPORT_IDS` to real IDs from your own scan. Placeholders below are redactions, not runnable identifiers.
+
+```text
+Scan <resource-id>, request 0: status=complete
   category=benign action=allow
-Scan 18dde44e-46ee-4f01-8a61-a6b1b2c7bb46, request 1: status=complete
-  category=benign action=allow
-Scan 18dde44e-46ee-4f01-8a61-a6b1b2c7bb46, request 2: status=complete
-  category=benign action=allow
-Report R323521fb-c345-4e49-8033-89eb37b8cb5b, request 0:
+Report <resource-id>, request 0:
   agent_security: benign -> allow
   dlp: benign -> allow
   pi: benign -> allow
@@ -96,49 +136,48 @@ Report R323521fb-c345-4e49-8033-89eb37b8cb5b, request 0:
   malicious_code: benign -> allow
 ```
 
-Note how one report lists each detector once per `data_type` (prompt and response), and how the
-sync scan's rows carry `req_id: 0` while the async batch preserves the `req_id` you submitted. Full
-JSON bodies — including a blocked prompt-injection attempt and DLP masking — are in the
-[Scan API guide](./scan-api.md#example-output).
+## Management and DLP
 
-## Management and DLP Examples
-
-| Script                                | What it demonstrates                                                    |
-| ------------------------------------- | ----------------------------------------------------------------------- |
-| `mgmt-auth.ts`                        | Constructs `ManagementClient` and triggers OAuth on the first API call. |
-| `mgmt-profiles.ts`                    | Creates, lists, updates, and deletes an AI security profile.            |
-| `mgmt-topics.ts`                      | Creates, lists, updates, and deletes a custom topic.                    |
-| `mgmt-dashboard.ts`                   | Reads runtime dashboard application and violation data.                 |
-| `mgmt-dlp-data-filtering-profiles.ts` | Lists and reads DLP data filtering profiles (replace is commented out). |
-| `mgmt-dlp-data-patterns.ts`           | Creates, reads, patches, and deletes a DLP data pattern.                |
-| `mgmt-dlp-data-profiles.ts`           | Creates, reads, and merge-patches a DLP data profile (no DELETE exists). |
-| `mgmt-dlp-dictionaries.ts`            | Creates (multipart), reads, replaces, and deletes a DLP dictionary.     |
+Mutation examples default to read-only. Pass `--writes` deliberately for unique `sdk-example-*` fixtures. Profile/topic cleanup includes revisions created by updates; pattern/dictionary cleanup runs in `finally`. DLP advanced profiles have no DELETE operation in the supplied contract: the example attempts status-based retirement, and any retirement failure remains a failure in the [cleanup audit](../developer/live-validation-results.md#cleanup-and-retained-footprint). Do not run repeated DLP profile creation while that cleanup path is failing.
 
 ```bash
 npx tsx --env-file=.env docs-site/examples/mgmt-auth.ts
-npx tsx --env-file=.env docs-site/examples/mgmt-profiles.ts
-npx tsx --env-file=.env docs-site/examples/mgmt-topics.ts
-npx tsx --env-file=.env docs-site/examples/mgmt-dashboard.ts
-npx tsx --env-file=.env docs-site/examples/mgmt-dlp-data-filtering-profiles.ts
-npx tsx --env-file=.env docs-site/examples/mgmt-dlp-data-patterns.ts
-npx tsx --env-file=.env docs-site/examples/mgmt-dlp-data-profiles.ts
-npx tsx --env-file=.env docs-site/examples/mgmt-dlp-dictionaries.ts
+npx tsx --env-file=.env docs-site/examples/mgmt-profiles.ts --writes
+npx tsx --env-file=.env docs-site/examples/mgmt-topics.ts --writes
+npx tsx --env-file=.env docs-site/examples/mgmt-dlp-data-patterns.ts --writes
 ```
 
-The `mgmt-profiles.ts`, `mgmt-topics.ts`, `mgmt-dlp-data-patterns.ts`, and `mgmt-dlp-dictionaries.ts`
-scripts **create real resources** (named `sdk-example-*`) in your tenant and delete them again at
-the end; `mgmt-dlp-data-profiles.ts` creates one it cannot delete. Run them against a non-production
-TSG. With invalid or revoked OAuth credentials every one of them stops at the first call with
-`AISEC_OAUTH_ERROR:Client authentication failed`.
+Dictionaries use `PANW_DLP_DICTIONARY_REGION` when set, otherwise a region observed in the tenant dictionary inventory. Do not substitute an AWS region without checking the service's region vocabulary. Advanced profiles reference a real basic-profile ID; a regex leaf without a pattern ID is not an executable policy.
 
-## Model Security and Red Team Examples
+### OAuth authentication
 
-| Script                       | What it demonstrates                                                       |
-| ---------------------------- | -------------------------------------------------------------------------- |
-| `model-security-scans.ts`    | Lists Model Security scans, evaluations, files, security groups, and rules. |
-| `red-team-scans.ts`          | Lists Red Team scan jobs, categories, targets, quota, and statistics.       |
-| `red-team-targets.ts`        | Reads Red Team targets, a target profile, and custom prompt sets.           |
-| `red-team-network-broker.ts` | Lists, creates, updates, and inspects stats for network broker channels.    |
+```text
+Authenticated successfully
+Profiles found: 100
+Standalone OAuth lifecycle: {"concurrentRefreshDeduplicated":true,"explicitRefreshSucceeded":true,"refreshCallbacks":2,"tokenValid":true}
+```
+
+The standalone checks above exercise successful live refresh deduplication, explicit local-cache clearing and refresh callbacks; no token is printed. Separately, the SDK's 16 failing-first timeout regressions and packed ESM/CommonJS fault-injection checks prove that a stalled token fetch/body cannot hold callers indefinitely or cache a late token. The fixed 30-second token deadline is independent of the pre-expiry buffer and service-request timeout. See [bounded OAuth refresh](./oauth-lifecycle.md#bounded-refresh-and-timeout-recovery).
+
+### Profile lifecycle
+
+```text
+Profiles returned: 5
+Created owned profile
+Updated owned profile
+Deleted owned profile revisions: 2
+```
+
+### Custom-topic lifecycle
+
+```text
+Topics returned: 5
+Created owned topic
+Updated owned topic
+Deleted owned topic revisions: 1
+```
+
+## Model Security and Red Team
 
 ```bash
 npx tsx --env-file=.env docs-site/examples/model-security-scans.ts
@@ -147,78 +186,798 @@ npx tsx --env-file=.env docs-site/examples/red-team-targets.ts
 npx tsx --env-file=.env docs-site/examples/red-team-network-broker.ts
 ```
 
-`red-team-network-broker.ts` creates a channel named `sdk-example-broker` and does not delete it
-(the network broker API has no delete endpoint in the SDK).
+The Model Security walkthrough uses an existing scan, not a new proprietary-engine scan. Set `MODEL_SECURITY_SCAN_ID` to choose one explicitly. Its default selection excludes synthetic SDK/CLI test groups. Network-broker reads are non-mutating; `--writes` requests a draft create/update and leaves an auditable draft because the API has no delete operation. The live draft creates succeeded; their subsequent updates returned HTTP 403. Three disconnected drafts are journaled, and repeat validation reuses one rather than creating more. A failed update is not a completed lifecycle.
 
-## AI Gateway Example
+## Secret-reference management lifecycle
 
-A read-only walkthrough covering telemetry, the config plane, the admin plane, audit logs, and
-error handling lives at [`examples/ai-gateway.ts`](https://github.com/cdot65/prisma-airs-sdk/blob/main/examples/ai-gateway.ts)
-in the repository root:
+The separate repository E2E example passed **7/7** at **2026-09-06T19:40:18.695Z**. This admin-plane CRUD workflow uses SCM OAuth, not a runtime gateway key. It creates an unbound reference with invalid synthetic AWS credentials, limits its allowed workspace to dev, exercises filtered listing and slug retrieval, then deletes it and confirms HTTP 404. It does not test secret resolution or a live AWS/Azure/Vault integration. It is additional lifecycle evidence, not another script in the 21-script table.
 
 ```bash
-npx tsx --env-file=.env examples/ai-gateway.ts
+npx tsx scripts/e2e-gateway-secret-references.ts --writes
 ```
 
-It needs the two SCM role grants described in the [AI Gateway guide](./ai-gateway-api.mdx#authorization);
-with only one of them half of the calls return `403`.
+Actual SDK lifecycle output, projected to non-secret fields. Owned identifiers replaced; auth_config omitted in full. Invalid synthetic AWS credentials only. No integration binding or external secret resolution was attempted.
 
-## Mock-Backed Validation Scripts
+```json
+{
+  "created": {
+    "id": "<owned-reference-id>",
+    "slug": "<owned-reference-slug>",
+    "object": "secret-reference"
+  },
+  "retrieved": {
+    "manager_type": "aws_sm",
+    "allow_all_workspaces": false,
+    "secret_key": null,
+    "auth_config": "[REDACTED]"
+  },
+  "filtered": {
+    "object": "list",
+    "total": 1
+  },
+  "updated": {},
+  "deleted": {},
+  "confirmedNotFound": true
+}
+```
 
-These scripts spin up local mock servers or validate schemas directly, so they run without live
-tenant credentials and without a `.env` file:
+Use `gw.secretReferences.list({ current_page: 0, page_size: 20 })` for read-only listing. Do not add `workspace_id`: that unsupported filter caused HTTP 403 during discovery and is rejected locally. All `auth_config` subtrees are secret-bearing and omitted from SDK debug bodies. See [secret-reference management](./ai-gateway-api.mdx#secret-references).
 
-| Script                          | What it validates                                                                          |
-| ------------------------------- | ------------------------------------------------------------------------------------------ |
-| `profiles-get-validation.ts`    | `profiles.get()` and `profiles.getByName()` behaviour, including pagination and not-found. |
-| `profiles-crud-validation.ts`   | Management profile create, list, get, update, delete, and force-delete flow (33 checks).    |
-| `oauth-lifecycle-validation.ts` | OAuth token caching, buffer-window refresh, expiry, 401/403 retry, callbacks, `clearToken`. |
-| `red-team-mgmt-validation.ts`   | Red Team target/custom-attack Zod schemas plus `validate` param and CSV upload (37 checks). |
+## Verified request-chart filters
+
+The read-only typed SDK check passed **3/3** at **2026-09-06T21:21:10.314Z**. It reused already journaled synthetic records: the exact known trace selects one request, and a nonexistent trace selects none. Known metadata matches and nonexistent metadata selects none. An earlier raw diagnostic found that upstream snake-case `trace_id` is ignored by SCM; that check remains a failure in the live-results table. An HTTP 200 alone is not filter verification.
+
+```bash
+npx tsx scripts/e2e-gateway-analytics-request-filters.ts
+```
+
+```ts
+const selected = await gw.telemetry.requests({
+  workspaceSlug: 'ws-develo-71f8d8',
+  days: 1,
+  traceId: ownedTraceId, // a trace your application already recorded
+});
+const tagged = await gw.telemetry.requests({
+  workspaceSlug: 'ws-develo-71f8d8',
+  days: 1,
+  metadata: { sdk_e2e: ownedTestTag },
+});
+```
+
+Read-only typed SDK calls against previously journaled synthetic records. Known trace totals and absent-filter totals are actual values; known metadata counts are projected to a boolean. No tenant-wide counts or resource identifiers are published. Only request-count chart filters are verified, not equivalence across all analytics operations.
+
+```json
+{
+  "traceId": {
+    "knownTotal": 1,
+    "absentTotal": 0
+  },
+  "metadata": {
+    "knownMatched": true,
+    "absentTotal": 0
+  }
+}
+```
+
+Use camel-case `traceId` and string-valued metadata on `telemetry.requests` only. Invalid dates, non-finite/reversed windows, unknown query fields, unsupported grouping dimensions/columns and malformed log filters fail locally before authentication. These two verified filters do not establish equivalence for all 22 partially adapted analytics operations. See [telemetry contracts](./ai-gateway-api.mdx#telemetry).
+
+## AI Gateway inference output
+
+### Runtime feedback and log ingestion
+
+The additional typed SDK observability example passed **5/5** at **2026-09-06T19:59:34.826Z**. It uses the explicit runtime endpoint and a short-lived runtime key, not SCM OAuth. The designated inference model generates one owned trace; feedback has zero value/weight and logs contain synthetic data only. Single and array log submissions preserve the gateway's plain-text acknowledgement. An independent SCM read audit confirms the retained records; the pinned API has no deletion operation. This is separate from the 21 primary scripts above. Feedback update and log-detail retrieval are now experimental typed methods; their live storage failures remain visible below and are not passing workflows.
+
+```bash
+E2E_GATEWAY_IPV4_ONLY=1 npx tsx scripts/e2e-gateway-runtime-observability.ts --writes --sdk
+npx tsx scripts/e2e-gateway-observability-audit.ts
+```
+
+```json
+{
+  "feedback": {
+    "status": "success",
+    "message": "Feedback successfully saved",
+    "feedback_ids": [
+      "<owned-feedback-id>"
+    ]
+  },
+  "singleLogAcknowledgement": "ok",
+  "batchLogAcknowledgement": "ok"
+}
+```
+
+### Latest runtime diagnostics: failures remain visible
+
+The following JSON is a sanitized projection of the actual result records, not successful model output. Positive-score feedback updates, an omitted-metadata variant and restoration to zero all returned HTTP 500 on the same synthetic record. A subsequent read-only SCM audit confirmed its value and weight remain zero. Legacy completion returned HTTP 404 for the prescribed `@openai/gpt-5.6-terra` model, while model lookup/authentication passed; streaming was skipped after that prerequisite failure. No alternate model was used. Temporary runtime-key deletion passed in every suite that created a key and was checked independently in the aggregate audit.
+
+```json
+[
+  {
+    "suite": "gateway-observability-details-sdk",
+    "finishedAt": "2026-09-07T01:57:45.366Z",
+    "passed": 3,
+    "failed": 2,
+    "skipped": 0,
+    "total": 5,
+    "results": [
+      {
+        "name": "observability-sdk.owned-log-control",
+        "status": "PASS"
+      },
+      {
+        "name": "observability-sdk.runtime-model-auth-control",
+        "status": "PASS"
+      },
+      {
+        "name": "observability-sdk.log-detail",
+        "status": "FAIL",
+        "statusCode": 500
+      },
+      {
+        "name": "observability-sdk.feedback-update-neutral",
+        "status": "FAIL",
+        "statusCode": 500
+      },
+      {
+        "name": "cleanup.runtime-key.retired",
+        "status": "PASS"
+      }
+    ]
+  },
+  {
+    "suite": "gateway-feedback-scores",
+    "finishedAt": "2026-09-06T20:24:57.217Z",
+    "passed": 2,
+    "failed": 3,
+    "skipped": 0,
+    "total": 5,
+    "results": [
+      {
+        "name": "observability-details.owned-log-control",
+        "status": "PASS"
+      },
+      {
+        "name": "observability-details.feedback.positive-score-zero-weight",
+        "status": "FAIL",
+        "statusCode": 500
+      },
+      {
+        "name": "observability-details.feedback.positive-score-minimal-metadata",
+        "status": "FAIL",
+        "statusCode": 500
+      },
+      {
+        "name": "observability-details.feedback.restore-neutral",
+        "status": "FAIL",
+        "statusCode": 500
+      },
+      {
+        "name": "cleanup.runtime-key.retired",
+        "status": "PASS"
+      }
+    ]
+  },
+  {
+    "suite": "gateway-legacy-completions",
+    "finishedAt": "2026-09-06T20:32:34.213Z",
+    "passed": 2,
+    "failed": 1,
+    "skipped": 1,
+    "total": 4,
+    "results": [
+      {
+        "name": "legacy-completions.model-auth-control",
+        "status": "PASS"
+      },
+      {
+        "name": "legacy-completions.create",
+        "status": "FAIL",
+        "statusCode": 404
+      },
+      {
+        "name": "legacy-completions.stream",
+        "status": "SKIP"
+      },
+      {
+        "name": "cleanup.runtime-key.retired",
+        "status": "PASS"
+      }
+    ]
+  },
+  {
+    "suite": "gateway-legacy-completions-sdk",
+    "finishedAt": "2026-09-06T22:37:14.653Z",
+    "passed": 2,
+    "failed": 1,
+    "skipped": 1,
+    "total": 4,
+    "results": [
+      {
+        "name": "legacy-completions.model-auth-control",
+        "status": "PASS"
+      },
+      {
+        "name": "legacy-completions.create",
+        "status": "FAIL",
+        "statusCode": 404
+      },
+      {
+        "name": "legacy-completions.stream",
+        "status": "SKIP"
+      },
+      {
+        "name": "cleanup.runtime-key.retired",
+        "status": "PASS"
+      }
+    ]
+  },
+  {
+    "suite": "gateway-prompt-runtime",
+    "finishedAt": "2026-09-06T22:37:15.237Z",
+    "passed": 2,
+    "failed": 2,
+    "skipped": 0,
+    "total": 4,
+    "results": [
+      {
+        "name": "prompt-runtime.model-auth-control",
+        "status": "PASS"
+      },
+      {
+        "name": "prompt-runtime.render.unprovisioned-template",
+        "status": "FAIL",
+        "statusCode": 404
+      },
+      {
+        "name": "prompt-runtime.completions.unprovisioned-template",
+        "status": "FAIL",
+        "statusCode": 404
+      },
+      {
+        "name": "cleanup.runtime-key.retired",
+        "status": "PASS"
+      }
+    ]
+  },
+  {
+    "suite": "gateway-prompt-runtime-sdk",
+    "finishedAt": "2026-09-06T22:38:18.128Z",
+    "passed": 2,
+    "failed": 2,
+    "skipped": 0,
+    "total": 4,
+    "results": [
+      {
+        "name": "prompt-runtime.model-auth-control",
+        "status": "PASS"
+      },
+      {
+        "name": "prompt-runtime.render.unprovisioned-template",
+        "status": "FAIL",
+        "statusCode": 404
+      },
+      {
+        "name": "prompt-runtime.completions.unprovisioned-template",
+        "status": "FAIL",
+        "statusCode": 404
+      },
+      {
+        "name": "cleanup.runtime-key.retired",
+        "status": "PASS"
+      }
+    ]
+  },
+  {
+    "suite": "gateway-realtime",
+    "finishedAt": "2026-09-06T23:47:14.326Z",
+    "passed": 3,
+    "failed": 1,
+    "skipped": 0,
+    "total": 4,
+    "transport": {
+      "outcome": "server-error",
+      "upgraded": true,
+      "statusCode": 101,
+      "sessionCreated": false,
+      "closed": true,
+      "eventTypes": [
+        "error"
+      ],
+      "clientEventsSent": 0,
+      "errorCode": "invalid_model",
+      "modelErrorReported": true
+    },
+    "results": [
+      {
+        "name": "realtime.model-auth-control",
+        "status": "PASS"
+      },
+      {
+        "name": "realtime.connect-and-session",
+        "status": "FAIL",
+        "statusCode": 101
+      },
+      {
+        "name": "realtime.socket-cleanup",
+        "status": "PASS"
+      },
+      {
+        "name": "cleanup.runtime-key.retired",
+        "status": "PASS"
+      }
+    ]
+  },
+  {
+    "suite": "gateway-runtime-authoring",
+    "finishedAt": "2026-09-07T00:58:15.702Z",
+    "passed": 2,
+    "failed": 13,
+    "skipped": 0,
+    "total": 15,
+    "transport": {
+      "observedAt": "2026-09-07T00:58:13.568Z",
+      "withoutProvider": {
+        "requests": 9,
+        "httpStatus": 400,
+        "missingProviderOrConfig": true
+      },
+      "withPrescribedProvider": {
+        "requests": 4,
+        "httpStatus": 404,
+        "successful": 0
+      },
+      "authoringAvailabilityEstablished": false
+    },
+    "results": [
+      {
+        "name": "runtime-authoring.model-auth-control",
+        "status": "PASS"
+      },
+      {
+        "name": "runtime-authoring.collections.id",
+        "status": "FAIL",
+        "statusCode": 400
+      },
+      {
+        "name": "runtime-authoring.collections.slug",
+        "status": "FAIL",
+        "statusCode": 400
+      },
+      {
+        "name": "runtime-authoring.collections.provider-boundary",
+        "status": "FAIL",
+        "statusCode": 404
+      },
+      {
+        "name": "runtime-authoring.labels.id",
+        "status": "FAIL",
+        "statusCode": 400
+      },
+      {
+        "name": "runtime-authoring.labels.slug",
+        "status": "FAIL",
+        "statusCode": 400
+      },
+      {
+        "name": "runtime-authoring.labels.none",
+        "status": "FAIL",
+        "statusCode": 400
+      },
+      {
+        "name": "runtime-authoring.labels.provider-boundary",
+        "status": "FAIL",
+        "statusCode": 404
+      },
+      {
+        "name": "runtime-authoring.prompts.id",
+        "status": "FAIL",
+        "statusCode": 400
+      },
+      {
+        "name": "runtime-authoring.prompts.slug",
+        "status": "FAIL",
+        "statusCode": 400
+      },
+      {
+        "name": "runtime-authoring.prompts.none",
+        "status": "FAIL",
+        "statusCode": 400
+      },
+      {
+        "name": "runtime-authoring.prompts.provider-boundary",
+        "status": "FAIL",
+        "statusCode": 404
+      },
+      {
+        "name": "runtime-authoring.prompts.partials.none",
+        "status": "FAIL",
+        "statusCode": 400
+      },
+      {
+        "name": "runtime-authoring.prompts.partials.provider-boundary",
+        "status": "FAIL",
+        "statusCode": 404
+      },
+      {
+        "name": "cleanup.runtime-key.retired",
+        "status": "PASS"
+      }
+    ]
+  },
+  {
+    "suite": "gateway-provider-http",
+    "finishedAt": "2026-09-06T22:06:39.937Z",
+    "passed": 2,
+    "failed": 9,
+    "skipped": 0,
+    "total": 11,
+    "results": [
+      {
+        "name": "provider-http.model-auth-control",
+        "status": "PASS"
+      },
+      {
+        "name": "provider-http.images.generations",
+        "status": "FAIL",
+        "statusCode": 400
+      },
+      {
+        "name": "provider-http.images.edits",
+        "status": "FAIL",
+        "statusCode": 400
+      },
+      {
+        "name": "provider-http.images.variations",
+        "status": "FAIL",
+        "statusCode": 404
+      },
+      {
+        "name": "provider-http.audio.speech",
+        "status": "FAIL",
+        "statusCode": 404
+      },
+      {
+        "name": "provider-http.audio.transcriptions",
+        "status": "FAIL",
+        "statusCode": 400
+      },
+      {
+        "name": "provider-http.audio.translations",
+        "status": "FAIL",
+        "statusCode": 400
+      },
+      {
+        "name": "provider-http.moderations",
+        "status": "FAIL",
+        "statusCode": 400
+      },
+      {
+        "name": "provider-http.rerank",
+        "status": "FAIL",
+        "statusCode": 500
+      },
+      {
+        "name": "provider-http.ocr",
+        "status": "FAIL",
+        "statusCode": 500
+      },
+      {
+        "name": "cleanup.runtime-key.retired",
+        "status": "PASS"
+      }
+    ]
+  },
+  {
+    "suite": "gateway-provider-http-sdk",
+    "finishedAt": "2026-09-06T22:07:31.983Z",
+    "passed": 2,
+    "failed": 9,
+    "skipped": 0,
+    "total": 11,
+    "results": [
+      {
+        "name": "provider-http.model-auth-control",
+        "status": "PASS"
+      },
+      {
+        "name": "provider-http.images.generations",
+        "status": "FAIL",
+        "statusCode": 400
+      },
+      {
+        "name": "provider-http.images.edits",
+        "status": "FAIL",
+        "statusCode": 400
+      },
+      {
+        "name": "provider-http.images.variations",
+        "status": "FAIL",
+        "statusCode": 404
+      },
+      {
+        "name": "provider-http.audio.speech",
+        "status": "FAIL",
+        "statusCode": 404
+      },
+      {
+        "name": "provider-http.audio.transcriptions",
+        "status": "FAIL",
+        "statusCode": 400
+      },
+      {
+        "name": "provider-http.audio.translations",
+        "status": "FAIL",
+        "statusCode": 400
+      },
+      {
+        "name": "provider-http.moderations",
+        "status": "FAIL",
+        "statusCode": 400
+      },
+      {
+        "name": "provider-http.rerank",
+        "status": "FAIL",
+        "statusCode": 500
+      },
+      {
+        "name": "provider-http.ocr",
+        "status": "FAIL",
+        "statusCode": 500
+      },
+      {
+        "name": "cleanup.runtime-key.retired",
+        "status": "PASS"
+      }
+    ]
+  },
+  {
+    "suite": "gateway-deployment-diagnostics",
+    "finishedAt": "2026-09-07T00:57:51.238Z",
+    "passed": 5,
+    "failed": 0,
+    "skipped": 0,
+    "total": 5,
+    "results": [
+      {
+        "name": "deployment-diagnostics.health",
+        "status": "PASS"
+      },
+      {
+        "name": "deployment-diagnostics.target-isolation",
+        "status": "PASS"
+      },
+      {
+        "name": "deployment-diagnostics.replica-1.storage-reproduction",
+        "status": "PASS"
+      },
+      {
+        "name": "deployment-diagnostics.replica-2.storage-reproduction",
+        "status": "PASS"
+      },
+      {
+        "name": "deployment-diagnostics.configuration-unchanged",
+        "status": "PASS"
+      }
+    ]
+  }
+]
+```
+
+The typed observability-detail run finished at **2026-09-07T01:57:45.366Z** with **3 pass / 2 fail / 5 total**. It calls `inference.getLog()` with the owned log's real path format and ISO creation timestamp, and `inference.updateFeedback()` with the exact neutral synthetic feedback UUID. Both return HTTP 500; ownership, same-key model lookup and key retirement pass. No new log or feedback is created. These are experimental direct contracts backed by 63 focused tests and independently generated OpenAPI fixtures, not successful detail/update certification. TypeScript and pre-authentication validation enforce the v2 timestamp requirement; debug logs omit sensitive bodies.
+
+```bash
+E2E_GATEWAY_IPV4_ONLY=1 npx tsx scripts/e2e-gateway-observability-details-sdk.ts --writes
+```
+
+The runtime-authoring recheck finished at **2026-09-07T00:58:15.702Z**. Nine read-only list requests for collections, labels, prompts and partials returned HTTP 400 with the exact missing-provider/config message. Four additional requests with the prescribed `@openai` provider header passed that boundary but returned HTTP 404. Model/authentication and key retirement pass; all 13 authoring checks fail. The JSON projection above records the observed header/error distinction without raw error bodies or credentials. No authoring or IAM resource was changed.
+
+Both hash-pinned deployed replicas register a generic GET provider-proxy fallback and no explicit GET handlers for these four authoring collections. A synthetic replay of the reviewed header-validation function returns the same missing-header 400 before invoking its continuation; adding a valid provider reaches only the synthetic continuation, never a network client. This explains the missing-header responses and does **not** establish a usable authoring API. Sending a provider header is not a replacement for a verified SCM/Portkey control-plane authoring endpoint. Prompt rendering/completion remain separately registered routes.
+
+The new typed legacy-completion suite reproduces the prescribed model's 404; streaming remains skipped after that prerequisite fails. The raw and typed prompt-runtime runs use random **unprovisioned** template IDs, required variables and root-level parameter overrides. Both rendering and completion return 404 in both runs. These failures diagnose an unavailable owned-template workflow; they are not successful prompt examples and do not establish that the registered routes are absent. No existing template was executed or changed, and no alternative model was selected.
+
+Both exact deployed replicas register legacy completion, prompt completion and prompt rendering. Their prompt-completion route dispatches to the ordinary chat/legacy handlers. The SDK now models all three as experimental, including strict flattened inputs, native/wrapped JSON results and bounded native SSE. Deployed-code route evidence and passing offline fixtures are not live template certification.
+
+```bash
+E2E_GATEWAY_IPV4_ONLY=1 npx tsx scripts/e2e-gateway-legacy-completions.ts --writes --sdk
+E2E_GATEWAY_IPV4_ONLY=1 npx tsx scripts/e2e-gateway-prompt-runtime.ts --writes
+E2E_GATEWAY_IPV4_ONLY=1 npx tsx scripts/e2e-gateway-prompt-runtime.ts --writes --sdk
+```
+
+The realtime diagnostic completed a valid HTTP 101 WebSocket upgrade, then received an `error` event with allowlisted code `invalid_model` before any session was created. The JSON below includes the actual sanitized transport observation. Same-key model lookup, socket closure and temporary-key retirement pass; the session workflow fails. No audio or client/generation event was sent, and no alternate model was selected. The probe uses isolated `ws@8.21.3` with TLS verification, no redirects/compression/retries, a 15-second deadline and bounded payload/event counts. This test-only dependency is not added to the SDK package. Realtime remains an unimplemented operation, not a successful integration.
+
+```bash
+E2E_GATEWAY_IPV4_ONLY=1 npx tsx scripts/e2e-gateway-realtime.ts --writes
+```
+
+The provider HTTP runs below use the same synthetic inputs through raw HTTP and the nine new experimental SDK methods: image generation/edit/variation, speech, transcription/translation, moderation, rerank and OCR. Both runs use only `@openai/gpt-5.6-terra`. Model lookup and key cleanup pass; all nine provider operations fail with the same HTTP statuses in both runs. These are failed live integrations, not successful examples. The corrected one-pixel PNG is checksum/decompression-tested and the 0.1-second silent WAV has validated PCM headers. Earlier probes with an invalid image checksum, and attempts stopped by this host's DNS issue, are retained as historical diagnostics; they are not used to certify media compatibility. No specialized model or alternate provider was substituted.
+
+```bash
+E2E_GATEWAY_IPV4_ONLY=1 npx tsx scripts/e2e-gateway-provider-http.ts --writes
+E2E_GATEWAY_IPV4_ONLY=1 npx tsx scripts/e2e-gateway-provider-http.ts --writes --sdk
+```
+
+The deployment diagnostic's five passing checks reproduce service limitations; they are not five successful SDK operations. At **2026-09-07T00:57:51.238Z**, both exact Deployment-owned gateway replicas ran **gateway_enterprise:2.20.0**, bundle SHA-256 **b2710c4f6a580a5a1bb525695f942175e4698d61a0c90ba066c48f93490f6331**. Their configured log and analytics stores are `control_plane`. Evaluating two reviewed, hash-pinned pure functions with synthetic dependencies reproduced `ClickHouse client not initialized` for feedback lookup and `Invalid Log Storage` for log detail. The deployed handlers map these paths to HTTP 500. A separate synthetic reproduction verifies that the realtime upstream-open wait has no rejection handler; this is a potential stalled-handshake path, **not the cause of the observed run**, which upgraded successfully and received `invalid_model`. No server bundle was started, no database/network client was called by the reproductions, and deployment configuration was unchanged. Switching storage backends would alter production data handling and is not an SDK fix.
+
+See [all timestamped results and deployment findings](../developer/live-validation-results.md). Diagnostics alone do not add implemented or live-verified operations; the two new detail methods count as experimental implementations because their typed clients and independent contracts now exist, not because an HTTP error passed a diagnostic.
+
+### Inference walkthrough
+
+The executable example used the dev workspace (`ws-develo-71f8d8`), `https://airs.cdot.io/v1`, `@openai/gpt-5.6-terra`, and `@openai/text-embedding-3-small`. The E2E runner creates and deletes its own short-lived SCM service key; secrets never appear in transcripts.
+
+```bash
+npx tsx --env-file=.env docs-site/examples/gateway-inference.ts
+```
+
+```text
+{
+  "model": "gpt-5.6-terra",
+  "content": "READY",
+  "usage": {
+    "completion_tokens": 4,
+    "prompt_tokens": 10,
+    "total_tokens": 14,
+    "completion_tokens_details": {
+      "reasoning_tokens": 0,
+      "accepted_prediction_tokens": 0,
+      "rejected_prediction_tokens": 0,
+      "audio_tokens": 0
+    },
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+      "cache_write_tokens": 0,
+      "audio_tokens": 0
+    }
+  },
+  "embeddingCount": 1,
+  "dimensions": 32,
+  "fineTuningJobCount": 0,
+  "fineTuningHasMore": false
+}
+```
+
+For JSON/SSE Responses and CLI commands, see [gateway inference](./ai-gateway-inference.md). The separate repo-root `examples/ai-gateway.ts` is a management-plane walkthrough; its methods are covered by the canonical gateway read suite and it is outside the documentation-script denominator here.
+
+## Validated batch inference output
+
+Captured **2026-09-06T18:51:22.545Z** by the separate batch E2E workflow, which passed 9/9 checks. This is additional runtime evidence, not an extra script in the 21-script table above.
+
+Actual output from one synthetic gpt-5.6-terra batch request through the dev gateway. Resource and request IDs are redacted. Input/output files and the temporary key were deleted; the terminal batch audit record has no deletion API.
+
+```json
+{
+  "id": "<redacted-id>",
+  "custom_id": "<redacted-id>",
+  "response": {
+    "status_code": 200,
+    "request_id": "<redacted-id>",
+    "body": {
+      "id": "<redacted-id>",
+      "object": "chat.completion",
+      "created": 1788720671,
+      "model": "gpt-5.6-terra",
+      "choices": [
+        {
+          "index": 0,
+          "message": {
+            "role": "assistant",
+            "content": "READY",
+            "refusal": null,
+            "annotations": []
+          },
+          "finish_reason": "stop"
+        }
+      ],
+      "usage": {
+        "prompt_tokens": 11,
+        "completion_tokens": 4,
+        "total_tokens": 15,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0,
+          "audio_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      },
+      "service_tier": "default",
+      "system_fingerprint": null
+    }
+  },
+  "error": null
+}
+```
+
+The workflow validates creation, retrieval, terminal completion, the gateway output endpoint, native file download and cleanup. It sends one synthetic request capped at 128 completion tokens using the designated model. The separate cancellation suite verifies the terminal cancelled state. [Native batch completion has a 24-hour SLA](https://developers.openai.com/api/docs/guides/batch); this test waits at most 30 minutes before requesting cancellation, then allows up to 11 minutes for cancellation cleanup. A local test deadline is not an upstream SLA violation.
+
+```bash
+E2E_GATEWAY_IPV4_ONLY=1 npx tsx scripts/e2e-gateway-batches.ts --writes
+E2E_GATEWAY_IPV4_ONLY=1 npx tsx scripts/e2e-gateway-batches.ts --writes --cancel
+```
+
+The sanitized capture is `artifacts/examples/gateway-batch.json`; counters are checked against `artifacts/e2e/gateway-batches.json` before this page is generated.
+
+## Mock-backed validation output
+
+These transcripts come from local synthetic servers and schema checks, not the AIRS tenant. The final eight nonempty lines of each captured run are reproduced below; the complete OAuth transcript is on the [token lifecycle page](./oauth-lifecycle.md#validation-output).
+
+### profiles-get-validation
 
 ```bash
 npx tsx docs-site/examples/profiles-get-validation.ts
-npx tsx docs-site/examples/profiles-crud-validation.ts
-npx tsx docs-site/examples/oauth-lifecycle-validation.ts
-npx tsx docs-site/examples/red-team-mgmt-validation.ts
 ```
 
-Final lines of each run, captured on 2026-09-01:
-
 ```text
-$ npx tsx docs-site/examples/profiles-get-validation.ts
-  ...
+[T+  0.0s]   API        GET /v1/mgmt/profiles/tsg/123?offset=0&limit=100
+[T+  0.0s]   PASS       ✓ Threw AISecSDKException
+[T+  0.0s]   PASS       ✓ Message contains "Profile not found" (got: AISEC_USER_REQUEST_PAYLOAD_ERROR:Profile not found: nonexistent-profile)
+═══════════════════════════════════════════════════════════════
   Validation Complete
   Duration: 0.0s
   Result: ALL PASSED
+═══════════════════════════════════════════════════════════════
+```
 
-$ npx tsx docs-site/examples/profiles-crud-validation.ts
-  ...
+### profiles-crud-validation
+
+```bash
+npx tsx docs-site/examples/profiles-crud-validation.ts
+```
+
+```text
+[T+  0.1s]   PASS       ✓ Force-delete returned message: "Profile force-deleted successfully"
+[T+  0.1s]   PASS       ✓ Threw AISecSDKException for invalid UUID on force-delete
+════════════════════════════════════════════════════════════
   Validation Complete
   Duration: 0.1s
   Passed: 33  |  Failed: 0
   Result: ALL PASSED
+════════════════════════════════════════════════════════════
+```
 
-$ npx tsx docs-site/examples/oauth-lifecycle-validation.ts
-  ...
+### oauth-lifecycle-validation
+
+```bash
+npx tsx docs-site/examples/oauth-lifecycle-validation.ts
+```
+
+```text
+[T+  8.3s]   PASS       ✓ Callback #4: expiresInMs=5000
+═══════════════════════════════════════════════════════════════
   Validation Complete
   Total token fetches: 7 (standalone 4, managed 3)
   Total callbacks: 4
   Duration: 8.3s
   Result: ALL PASSED
-
-$ npx tsx docs-site/examples/red-team-mgmt-validation.ts
-  ...
-  Total: 37  |  Passed: 37  |  Failed: 0
+═══════════════════════════════════════════════════════════════
 ```
 
-The complete OAuth transcript, phase by phase, is on the [OAuth Token Lifecycle](./oauth-lifecycle.md#validation-output) page.
+### red-team-mgmt-validation
 
-## Related Pages
+```bash
+npx tsx docs-site/examples/red-team-mgmt-validation.ts
+```
 
-- [Quick Start](../getting-started/quick-start)
-- [Environment Variables](../getting-started/environment-variables)
-- [Scan API](./scan-api)
-- [Management API](./management-api)
-- [Model Security API](./model-security-api)
-- [Red Team API](./red-team-api)
-- [AI Gateway API](./ai-gateway-api)
+```text
+  ✅ create() omits validate param when not specified
+  ✅ uploadPromptsCsv returns parsed response
+  ✅ uploadPromptsCsv hits correct endpoint
+  ✅ uploadPromptsCsv passes prompt_set_uuid query param
+  ✅ uploadPromptsCsv sends multipart/form-data
+════════════════════════════════════════════════════════════
+  Total: 37  |  Passed: 37  |  Failed: 0
+════════════════════════════════════════════════════════════
+```
+
+## Reproduce this evidence
+
+The internal runner reads `~/.prisma-airs/config.json` without modifying it, requires `--writes`, keeps fixture journals, and records actual script exit codes. It intentionally exits nonzero if any example fails.
+
+```bash
+E2E_GATEWAY_IPV4_ONLY=1 npx tsx scripts/e2e-doc-examples.ts --writes
+```
+
+The IPv4 override is a disclosed, process-only workaround for this test host's gateway DNS lookup; it does not disable TLS verification or change SDK defaults. The source reports are `artifacts/examples/latest.json` and `artifacts/e2e/doc-examples.json`; public pages are generated with `scripts/e2e/generate-example-docs.ts`. See [live results](../developer/live-validation-results.md), [contract coverage](../developer/openapi-conformance.md), and the [gateway gap ledger](../developer/gateway-coverage.md).

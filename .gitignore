@@ -12,6 +12,9 @@ pnpm-debug.log*
 # Coverage directory
 coverage/
 
+# Private live evidence, fixture IDs, package consumers, and browser tooling
+artifacts/
+
 # Environment variables
 .env
 .env.*

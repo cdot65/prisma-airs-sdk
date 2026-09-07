@@ -1,0 +1,283 @@
+{
+  "source": "prisma-airs-redteam/management/mp-openapi.yaml",
+  "sha256": "4b92495d9a0c5aef460c22c8d124f1ad2586fe1f17ef07348a551a8a5ae78125",
+  "corrections": ["redteam-overlapping-connection-variants", "redteam-csv-template-content-type"],
+  "contracts": [
+    {
+      "direction": "response",
+      "validator": "CustomPromptSetReferenceSchema",
+      "operations": ["GET /v1/custom-attack/custom-prompt-set/{prompt_set_uuid}/reference"],
+      "schema": {
+        "properties": {
+          "uuid": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Uuid",
+            "description": "UUID of the custom prompt set"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name",
+            "description": "Name of the prompt set"
+          },
+          "language": {
+            "description": "Language of prompts in this set",
+            "default": "en",
+            "type": "string",
+            "enum": [
+              "ar",
+              "bn",
+              "zh-CN",
+              "zh-TW",
+              "nl",
+              "en",
+              "fr",
+              "de",
+              "hi",
+              "id",
+              "it",
+              "ja",
+              "ko",
+              "pl",
+              "pt",
+              "ru",
+              "es",
+              "sv",
+              "th",
+              "tr",
+              "vi"
+            ],
+            "title": "SupportedLanguage"
+          },
+          "version": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Version",
+            "description": "GCS generation number for snapshot versioning"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status",
+            "description": "Current status of the prompt set"
+          },
+          "active": {
+            "type": "boolean",
+            "title": "Active",
+            "description": "Whether the prompt set is active"
+          },
+          "tsg_id": {
+            "type": "string",
+            "title": "Tsg Id",
+            "description": "Tenant Security Group ID"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At",
+            "description": "Creation timestamp"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At",
+            "description": "Last update timestamp"
+          }
+        },
+        "type": "object",
+        "required": ["uuid", "name", "status", "active", "tsg_id", "created_at", "updated_at"],
+        "title": "CustomPromptSetReferenceSchema",
+        "description": "Reference schema for custom prompt sets used by data plane.\n\nContains minimal information needed for data plane to fetch\nconfigurations from GCS using the GCS-first pattern.\n"
+      }
+    },
+    {
+      "direction": "response",
+      "validator": "CustomPromptSetVersionInfoSchema",
+      "operations": ["GET /v1/custom-attack/custom-prompt-set/{prompt_set_uuid}/version-info"],
+      "schema": {
+        "properties": {
+          "uuid": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Uuid",
+            "description": "UUID of the custom prompt set"
+          },
+          "version": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Version",
+            "description": "GCS generation number for this version"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status",
+            "description": "Status when this version was created"
+          },
+          "stats": {
+            "anyOf": [
+              {
+                "properties": {
+                  "total_prompts": {
+                    "type": "integer",
+                    "title": "Total Prompts",
+                    "description": "Total number of prompts"
+                  },
+                  "active_prompts": {
+                    "type": "integer",
+                    "title": "Active Prompts",
+                    "description": "Number of active prompts"
+                  },
+                  "failed_prompts": {
+                    "type": "integer",
+                    "title": "Failed Prompts",
+                    "description": "Number of failed prompts",
+                    "default": 0
+                  },
+                  "validation_prompts": {
+                    "type": "integer",
+                    "title": "Validation Prompts",
+                    "description": "Number of validation prompts",
+                    "default": 0
+                  },
+                  "inactive_prompts": {
+                    "type": "integer",
+                    "title": "Inactive Prompts",
+                    "description": "Number of inactive prompts"
+                  }
+                },
+                "type": "object",
+                "required": ["total_prompts", "active_prompts", "inactive_prompts"],
+                "title": "PromptSetStatsSchema",
+                "description": "Schema for prompt set statistics."
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Prompt statistics when version was created"
+          },
+          "snapshot_created_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Snapshot Created At",
+            "description": "When the snapshot was created"
+          },
+          "is_latest": {
+            "type": "boolean",
+            "title": "Is Latest",
+            "description": "Whether this is the latest version"
+          }
+        },
+        "type": "object",
+        "required": ["uuid", "status", "is_latest"],
+        "title": "CustomPromptSetVersionInfoSchema",
+        "description": "Version information for a custom prompt set snapshot.\n\nProvides metadata about a specific version without full configuration data.\n"
+      }
+    },
+    {
+      "direction": "response",
+      "validator": "DashboardOverviewResponseSchema",
+      "operations": ["GET /v1/dashboard/overview"],
+      "schema": {
+        "properties": {
+          "total_targets": {
+            "type": "integer",
+            "minimum": 0,
+            "title": "Total Targets",
+            "description": "Total number of targets"
+          },
+          "targets_by_type": {
+            "items": {
+              "properties": {
+                "name": {
+                  "type": "string",
+                  "title": "Name",
+                  "description": "Name of the item (e.g., target type, status)"
+                },
+                "count": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "title": "Count",
+                  "description": "Count of items"
+                }
+              },
+              "type": "object",
+              "required": ["name", "count"],
+              "title": "CountByNameSchema",
+              "description": "Generic count schema with name field for extensible list structures.\n\nUsed in dashboard and other endpoints to provide counts grouped by a name field.\nFrontend-friendly list format for easy iteration.\n"
+            },
+            "type": "array",
+            "title": "Targets By Type",
+            "description": "Target counts grouped by type (APPLICATION, AGENT, MODEL)"
+          }
+        },
+        "type": "object",
+        "required": ["total_targets"],
+        "title": "DashboardOverviewResponseSchema",
+        "description": "Dashboard overview response with target counts.\n\nEndpoint: GET /api/v1/dashboard/overview\nReturns target counts by type in list format for easy frontend iteration.\n"
+      }
+    },
+    {
+      "direction": "response",
+      "validator": "TenantLanguagesResponseSchema",
+      "operations": ["GET /v1/languages"],
+      "schema": {
+        "properties": {
+          "multilingual_enabled": {
+            "type": "boolean",
+            "title": "Multilingual Enabled"
+          },
+          "supported_job_types": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Supported Job Types"
+          },
+          "languages": {
+            "items": {
+              "properties": {
+                "code": {
+                  "type": "string",
+                  "title": "Code"
+                },
+                "name": {
+                  "type": "string",
+                  "title": "Name"
+                }
+              },
+              "type": "object",
+              "required": ["code", "name"],
+              "title": "LanguageOptionSchema",
+              "description": "Language representation with code and display name."
+            },
+            "type": "array",
+            "title": "Languages"
+          }
+        },
+        "type": "object",
+        "required": ["multilingual_enabled", "supported_job_types", "languages"],
+        "title": "TenantLanguagesResponseSchema",
+        "description": "Response for GET /v1/languages — tenant-facing language dropdown."
+      }
+    }
+  ]
+}

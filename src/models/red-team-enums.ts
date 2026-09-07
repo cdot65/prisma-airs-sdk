@@ -38,6 +38,7 @@ export const TargetAuthType = {
   HEADERS: 'HEADERS',
   BASIC_AUTH: 'BASIC_AUTH',
   OAUTH2: 'OAUTH2',
+  CUSTOM_TARGET_ADAPTER: 'CUSTOM_TARGET_ADAPTER',
 } as const;
 export type TargetAuthType = (typeof TargetAuthType)[keyof typeof TargetAuthType];
 
@@ -172,6 +173,7 @@ export const JobType = {
   STATIC: 'STATIC',
   DYNAMIC: 'DYNAMIC',
   CUSTOM: 'CUSTOM',
+  CLARA: 'CLARA',
 } as const;
 export type JobType = (typeof JobType)[keyof typeof JobType];
 
@@ -209,6 +211,8 @@ export type RedTeamCategory = (typeof RedTeamCategory)[keyof typeof RedTeamCateg
 export const ResponseMode = {
   REST: 'REST',
   STREAMING: 'STREAMING',
+  WEBSOCKET: 'WEBSOCKET',
+  WEBSOCKET_STREAMING: 'WEBSOCKET_STREAMING',
 } as const;
 export type ResponseMode = (typeof ResponseMode)[keyof typeof ResponseMode];
 
@@ -284,6 +288,9 @@ export const TargetConnectionType = {
   REST: 'REST',
   STREAMING: 'STREAMING',
   WEBSOCKET: 'WEBSOCKET',
+  WEBSOCKET_STREAMING: 'WEBSOCKET_STREAMING',
+  MS_COPILOT_STUDIO: 'MS_COPILOT_STUDIO',
+  CUSTOM_TARGET_ADAPTER: 'CUSTOM_TARGET_ADAPTER',
 } as const;
 export type TargetConnectionType = (typeof TargetConnectionType)[keyof typeof TargetConnectionType];
 

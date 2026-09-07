@@ -3,6 +3,7 @@ import { z } from 'zod';
 /** Zod schema for toxic content report. */
 export const TcReportSchema = z
   .object({
+    toxic_categories: z.array(z.string()).optional(),
     confidence: z.string().optional(),
     verdict: z.string().optional(),
   })

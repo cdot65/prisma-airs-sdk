@@ -1,0 +1,197 @@
+{
+  "source": "prisma-airs/management/mgmt-service_latest.yaml",
+  "sha256": "7ee421fd6ba31bd4f1c88d233ea032a52cd29ad59b71f2c3cbea9bc033fc215f",
+  "corrections": [
+    "management-topic-items-indentation",
+    "management-server-assigned-revisions",
+    "management-optional-topic-content",
+    "management-optional-dlp-members"
+  ],
+  "contracts": [
+    {
+      "direction": "response",
+      "validator": "CustomTopicSchema",
+      "operations": ["POST /v1/mgmt/topic", "PUT /v1/mgmt/topic/uuid/{topic_id}"],
+      "schema": {
+        "type": "object",
+        "properties": {
+          "topic_id": {
+            "type": "string",
+            "description": "Unique identifier for the custom topic"
+          },
+          "topic_name": {
+            "type": "string",
+            "description": "Name of the custom topic"
+          },
+          "revision": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Revision number of the custom topic"
+          },
+          "active": {
+            "type": "boolean",
+            "description": "Indicates whether the custom topic is currently active or disabled"
+          },
+          "description": {
+            "type": "string",
+            "description": "Detailed explanation or purpose of the custom topic"
+          },
+          "examples": {
+            "type": "array",
+            "description": "List of example usages or scenarios for the custom topic",
+            "items": {
+              "type": "string"
+            }
+          },
+          "created_by": {
+            "type": "string",
+            "description": "Email address of the user who created the custom topic"
+          },
+          "updated_by": {
+            "type": "string",
+            "description": "Email address of the user who last modified the custom topic"
+          },
+          "last_modified_ts": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Timestamp of when the custom topic was last modified"
+          },
+          "created_ts": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Timestamp of when the custom topic was created"
+          }
+        },
+        "required": ["topic_name", "revision", "description"]
+      }
+    },
+    {
+      "direction": "response",
+      "validator": "DeleteTopicResponseSchema",
+      "operations": ["DELETE /v1/mgmt/topic/{topic_id}", "DELETE /v1/mgmt/topic/{topic_id}/force"],
+      "schema": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    {
+      "direction": "response",
+      "validator": "CustomTopicListResponseSchema",
+      "operations": ["GET /v1/mgmt/topics"],
+      "schema": {
+        "type": "object",
+        "properties": {
+          "custom_topics": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "topic_id": {
+                  "type": "string",
+                  "description": "Unique identifier for the custom topic"
+                },
+                "topic_name": {
+                  "type": "string",
+                  "description": "Name of the custom topic"
+                },
+                "revision": {
+                  "type": "integer",
+                  "format": "int64",
+                  "description": "Revision number of the custom topic"
+                },
+                "active": {
+                  "type": "boolean",
+                  "description": "Indicates whether the custom topic is currently active or disabled"
+                },
+                "description": {
+                  "type": "string",
+                  "description": "Detailed explanation or purpose of the custom topic"
+                },
+                "examples": {
+                  "type": "array",
+                  "description": "List of example usages or scenarios for the custom topic",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "created_by": {
+                  "type": "string",
+                  "description": "Email address of the user who created the custom topic"
+                },
+                "updated_by": {
+                  "type": "string",
+                  "description": "Email address of the user who last modified the custom topic"
+                },
+                "last_modified_ts": {
+                  "type": "string",
+                  "format": "date-time",
+                  "description": "Timestamp of when the custom topic was last modified"
+                },
+                "created_ts": {
+                  "type": "string",
+                  "format": "date-time",
+                  "description": "Timestamp of when the custom topic was created"
+                }
+              },
+              "required": ["topic_name", "revision", "description"]
+            }
+          },
+          "next_offset": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      }
+    },
+    {
+      "direction": "request",
+      "validator": "ClientIdAndCustomerAppSchema",
+      "operations": ["POST /v1/mgmt/oauth/client_credential/accesstoken"],
+      "schema": {
+        "type": "object",
+        "properties": {
+          "client_id": {
+            "type": "string"
+          },
+          "customer_app": {
+            "type": "string"
+          }
+        },
+        "required": ["client_id", "customer_app"]
+      }
+    },
+    {
+      "direction": "response",
+      "validator": "Oauth2TokenSchema",
+      "operations": ["POST /v1/mgmt/oauth/client_credential/accesstoken"],
+      "schema": {
+        "type": "object",
+        "properties": {
+          "token_type": {
+            "type": "string"
+          },
+          "issued_at": {
+            "type": "string"
+          },
+          "client_id": {
+            "type": "string"
+          },
+          "access_token": {
+            "type": "string"
+          },
+          "expires_in": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          }
+        },
+        "required": ["access_token"]
+      }
+    }
+  ]
+}

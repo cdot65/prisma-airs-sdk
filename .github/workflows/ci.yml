@@ -29,3 +29,9 @@ jobs:
 
       - name: Typecheck
         run: npm run typecheck
+
+      - name: Audit and E2E tooling typecheck
+        run: npm run typecheck:tooling
+
+      - name: Pinned OpenAPI contract gate (offline)
+        run: npm run openapi:check

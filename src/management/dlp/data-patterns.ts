@@ -1,3 +1,4 @@
+import { DataPatternPatchRequestSchema, DataPatternRequestSchema } from '../../models/index.js';
 import { DLP_DATA_PATTERNS_PATH } from '../../constants.js';
 import { request } from '../../http/request.js';
 import type { AuthAdapter } from '../../http/types.js';
@@ -120,6 +121,7 @@ export class DataPatternsClient {
    */
   async create(body: DataPatternRequest): Promise<DataPatternResponse> {
     return request({
+      requestSchema: DataPatternRequestSchema,
       method: 'POST',
       baseUrl: this.baseUrl,
       path: DLP_DATA_PATTERNS_PATH,
@@ -173,6 +175,7 @@ export class DataPatternsClient {
    */
   async replace(resourceId: string, body: DataPatternRequest): Promise<DataPatternResponse> {
     return request({
+      requestSchema: DataPatternRequestSchema,
       method: 'PUT',
       baseUrl: this.baseUrl,
       path: `${DLP_DATA_PATTERNS_PATH}/${encodeURIComponent(resourceId)}`,
@@ -204,6 +207,7 @@ export class DataPatternsClient {
    */
   async patch(resourceId: string, body: DataPatternPatchRequest): Promise<DataPatternResponse> {
     return request({
+      requestSchema: DataPatternPatchRequestSchema,
       method: 'PATCH',
       baseUrl: this.baseUrl,
       path: `${DLP_DATA_PATTERNS_PATH}/${encodeURIComponent(resourceId)}`,

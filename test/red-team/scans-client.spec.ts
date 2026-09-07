@@ -35,7 +35,12 @@ describe('RedTeamScansClient', () => {
   describe('create', () => {
     it('POSTs to /v1/scan', async () => {
       mockFetch(jobMock({ uuid: VALID_UUID, status: 'PENDING' }), 201);
-      const result = await client.create({ target_id: VALID_UUID, job_type: 'STATIC' });
+      const result = await client.create({
+        name: 'sdk-test',
+        target: { uuid: VALID_UUID },
+        job_type: 'STATIC',
+        job_metadata: { categories: {} },
+      });
 
       expect(result.uuid).toBe(VALID_UUID);
       const [url, init] = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0];

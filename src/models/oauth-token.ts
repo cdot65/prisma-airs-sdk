@@ -3,9 +3,9 @@ import { z } from 'zod';
 /** @internal Zod schema for an OAuth2 token response. */
 export const OAuthTokenResponseSchema = z
   .object({
-    access_token: z.string(),
+    access_token: z.string().min(1),
     token_type: z.string().optional(),
-    expires_in: z.number(),
+    expires_in: z.number().finite().nonnegative(),
     scope: z.string().optional(),
   })
   .passthrough();

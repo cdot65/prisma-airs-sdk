@@ -16,7 +16,7 @@ export type ApiKeyDPInfo = z.infer<typeof ApiKeyDPInfoSchema>;
 export const CustomerAppSchema = z
   .object({
     customer_appId: z.string().optional(),
-    tsg_id: z.string(),
+    tsg_id: z.string().optional(),
     app_name: z.string(),
     model_name: z.string().optional(),
     cloud_provider: z.string(),
@@ -68,6 +68,7 @@ export type CustomerAppListResponse = z.infer<typeof CustomerAppListResponseSche
 export const CustomerAppDeleteResponseSchema = z.union([
   z.string().transform((message) => ({ message })),
   z.object({ message: z.string() }).passthrough(),
+  CustomerAppSchema,
 ]);
 
 /** Response from deleting a customer app. */

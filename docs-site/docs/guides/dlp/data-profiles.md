@@ -2,7 +2,11 @@
 
 Manage Data Profiles on the DLP service (`/v2/api/data-profiles`).
 
-Subclient lives at `client.dlp.dataProfiles` (a `DataProfilesClient`). **CRUD without DELETE** — the spec does not expose a DELETE for data profiles. To remove a profile, patch its lifecycle state via the underlying API (typically `profile_status: 'deleted'`).
+Subclient lives at `client.dlp.dataProfiles` (a `DataProfilesClient`). The supplied contract exposes list/create/get/replace/patch, not DELETE.
+
+:::warning[Latest live validation: cleanup is not verified]
+The 2026-09-06 executable example created an advanced profile referencing a real basic profile. PATCH/PUT and status-based retirement then returned HTTP 500. Although OPTIONS advertises DELETE, an owned-fixture DELETE probe returned HTTP 501. The unbound example fixture remains journaled and active; do not assume that setting `profile_status: 'deleted'` removes it, or repeat creation while cleanup is failing. See [captured example results](../examples.mdx) and the [independent cleanup audit](../../developer/live-validation-results.md).
+:::
 
 Two distinct rule shapes live under `detection_rules[].rule_type`:
 
@@ -35,7 +39,7 @@ Flow: **patterns + dictionaries → composed in a data profile → bound to a da
 - **Set `confidence_level` to the pattern's strengths.** A leaf can only ask for a confidence level the underlying pattern advertises in `supported_confidence_levels` — keep the two in sync, or the leaf never reaches its threshold.
 - **Compose, don't duplicate.** When several filtering profiles need the same "EU-regulated" definition, build one `multi_profile` umbrella and reference it everywhere; editing the umbrella updates all consumers at once (see Use case 2).
 - **Gotcha — `multi_profile` auto-promotes to `advanced`.** Composing other profiles upgrades `profile_type` to `'advanced'` server-side even if you didn't ask; don't assert it stayed `basic`.
-- **Gotcha — no DELETE.** Removal is a lifecycle patch (`profile_status: 'deleted'`), and `patch()` requires `name` + `profile_type` re-sent every time.
+- **Gotcha — no supported DELETE.** `patch()` requires `name` + `profile_type`, but the latest live server rejected lifecycle retirement. Treat cleanup as unverified until a subsequent read proves a deleted state.
 - **Gotcha — a profile bound by a filtering profile is in use.** Deleting/mutating it can change enforcement behavior downstream; check `dataFilteringProfiles` references first.
 
 ## Setup

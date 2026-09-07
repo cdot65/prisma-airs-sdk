@@ -1,0 +1,673 @@
+{
+  "source": "/home/cdot/development/others/ai-gateway-openapi/openapi.yaml",
+  "sha256": "de7a1bd98bdb2edb7428a33054d9f6000b9568d1cd5b603d1a8302c053d094d9",
+  "corrections": [
+    "gateway-pricing-overlapping-calculation-nodes",
+    "gateway-prompt-root-hyperparameters",
+    "gateway-prompt-native-completion-response",
+    "gateway-legacy-stream-null-fields",
+    "gateway-audio-overlapping-json-variants",
+    "gateway-audio-verbose-duration",
+    "gateway-provider-prefixed-response-models"
+  ],
+  "contracts": [
+    {
+      "direction": "response",
+      "validator": "GatewayInferenceListPaginatedFineTuningJobsResponseSchema",
+      "operations": ["GET /fine_tuning/jobs"],
+      "schema": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "title": "FineTuningJob",
+              "description": "The `fine_tuning.job` object represents a fine-tuning job that has been created through the API.\n",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "description": "The object identifier, which can be referenced in the API endpoints."
+                },
+                "created_at": {
+                  "type": "integer",
+                  "description": "The Unix timestamp (in seconds) for when the fine-tuning job was created."
+                },
+                "error": {
+                  "type": "object",
+                  "nullable": true,
+                  "description": "For fine-tuning jobs that have `failed`, this will contain more information on the cause of the failure.",
+                  "properties": {
+                    "code": {
+                      "type": "string",
+                      "description": "A machine-readable error code."
+                    },
+                    "message": {
+                      "type": "string",
+                      "description": "A human-readable error message."
+                    },
+                    "param": {
+                      "type": "string",
+                      "description": "The parameter that was invalid, usually `training_file` or `validation_file`. This field will be null if the failure was not parameter-specific.",
+                      "nullable": true
+                    }
+                  },
+                  "required": ["code", "message", "param"]
+                },
+                "fine_tuned_model": {
+                  "type": "string",
+                  "nullable": true,
+                  "description": "The name of the fine-tuned model that is being created. The value will be null if the fine-tuning job is still running."
+                },
+                "finished_at": {
+                  "type": "integer",
+                  "nullable": true,
+                  "description": "The Unix timestamp (in seconds) for when the fine-tuning job was finished. The value will be null if the fine-tuning job is still running."
+                },
+                "hyperparameters": {
+                  "type": "object",
+                  "description": "The hyperparameters used for the fine-tuning job. See the [fine-tuning guide](https://platform.openai.com/docs/guides/fine-tuning) for more details.",
+                  "properties": {
+                    "n_epochs": {
+                      "oneOf": [
+                        {
+                          "type": "string",
+                          "enum": ["auto"]
+                        },
+                        {
+                          "type": "integer",
+                          "minimum": 1,
+                          "maximum": 50
+                        }
+                      ],
+                      "default": "auto",
+                      "description": "The number of epochs to train the model for. An epoch refers to one full cycle through the training dataset.\n\"auto\" decides the optimal number of epochs based on the size of the dataset. If setting the number manually, we support any number between 1 and 50 epochs."
+                    }
+                  },
+                  "required": ["n_epochs"]
+                },
+                "model": {
+                  "type": "string",
+                  "description": "The base model that is being fine-tuned."
+                },
+                "object": {
+                  "type": "string",
+                  "description": "The object type, which is always \"fine_tuning.job\".",
+                  "enum": ["fine_tuning.job"]
+                },
+                "organization_id": {
+                  "type": "string",
+                  "description": "The organization that owns the fine-tuning job."
+                },
+                "result_files": {
+                  "type": "array",
+                  "description": "The compiled results file ID(s) for the fine-tuning job. You can retrieve the results with the [Files API](https://platform.openai.com/docs/api-reference/files/retrieve-contents).",
+                  "items": {
+                    "type": "string",
+                    "example": "file-abc123"
+                  }
+                },
+                "status": {
+                  "type": "string",
+                  "description": "The current status of the fine-tuning job, which can be either `validating_files`, `queued`, `running`, `succeeded`, `failed`, or `cancelled`.",
+                  "enum": [
+                    "validating_files",
+                    "queued",
+                    "running",
+                    "succeeded",
+                    "failed",
+                    "cancelled"
+                  ]
+                },
+                "trained_tokens": {
+                  "type": "integer",
+                  "nullable": true,
+                  "description": "The total number of billable tokens processed by this fine-tuning job. The value will be null if the fine-tuning job is still running."
+                },
+                "training_file": {
+                  "type": "string",
+                  "description": "The file ID used for training. You can retrieve the training data with the [Files API](https://platform.openai.com/docs/api-reference/files/retrieve-contents)."
+                },
+                "validation_file": {
+                  "type": "string",
+                  "nullable": true,
+                  "description": "The file ID used for validation. You can retrieve the validation results with the [Files API](https://platform.openai.com/docs/api-reference/files/retrieve-contents)."
+                },
+                "integrations": {
+                  "type": "array",
+                  "nullable": true,
+                  "description": "A list of integrations to enable for this fine-tuning job.",
+                  "maxItems": 5,
+                  "items": {
+                    "oneOf": [
+                      {
+                        "type": "object",
+                        "title": "Fine-Tuning Job Integration",
+                        "required": ["type", "wandb"],
+                        "properties": {
+                          "type": {
+                            "type": "string",
+                            "description": "The type of the integration being enabled for the fine-tuning job",
+                            "enum": ["wandb"]
+                          },
+                          "wandb": {
+                            "type": "object",
+                            "description": "The settings for your integration with Weights and Biases. This payload specifies the project that\nmetrics will be sent to. Optionally, you can set an explicit display name for your run, add tags\nto your run, and set a default entity (team, username, etc) to be associated with your run.\n",
+                            "required": ["project"],
+                            "properties": {
+                              "project": {
+                                "description": "The name of the project that the new run will be created under.\n",
+                                "type": "string",
+                                "example": "my-wandb-project"
+                              },
+                              "name": {
+                                "description": "A display name to set for the run. If not set, we will use the Job ID as the name.\n",
+                                "nullable": true,
+                                "type": "string"
+                              },
+                              "entity": {
+                                "description": "The entity to use for the run. This allows you to set the team or username of the WandB user that you would\nlike associated with the run. If not set, the default entity for the registered WandB API key is used.\n",
+                                "nullable": true,
+                                "type": "string"
+                              },
+                              "tags": {
+                                "description": "A list of tags to be attached to the newly created run. These tags are passed through directly to WandB. Some\ndefault tags are generated by OpenAI: \"openai/finetune\", \"openai/{base-model}\", \"openai/{ftjob-abcdef}\".\n",
+                                "type": "array",
+                                "items": {
+                                  "type": "string",
+                                  "example": "custom-tag"
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    ],
+                    "x-oaiExpandable": true
+                  }
+                },
+                "seed": {
+                  "type": "integer",
+                  "description": "The seed used for the fine-tuning job."
+                },
+                "estimated_finish": {
+                  "type": "integer",
+                  "nullable": true,
+                  "description": "The Unix timestamp (in seconds) for when the fine-tuning job is estimated to finish. The value will be null if the fine-tuning job is not running."
+                }
+              },
+              "required": [
+                "created_at",
+                "error",
+                "finished_at",
+                "fine_tuned_model",
+                "hyperparameters",
+                "id",
+                "model",
+                "object",
+                "organization_id",
+                "result_files",
+                "status",
+                "trained_tokens",
+                "training_file",
+                "validation_file",
+                "seed"
+              ]
+            }
+          },
+          "has_more": {
+            "type": "boolean"
+          },
+          "object": {
+            "type": "string",
+            "enum": ["list"]
+          }
+        },
+        "required": ["object", "data", "has_more"]
+      }
+    },
+    {
+      "direction": "response",
+      "validator": "GatewayInferenceListFineTuningJobEventsResponseSchema",
+      "operations": ["GET /fine_tuning/jobs/{fine_tuning_job_id}/events"],
+      "schema": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "description": "Fine-tuning job event object",
+              "properties": {
+                "id": {
+                  "type": "string"
+                },
+                "created_at": {
+                  "type": "integer"
+                },
+                "level": {
+                  "type": "string",
+                  "enum": ["info", "warn", "error"]
+                },
+                "message": {
+                  "type": "string"
+                },
+                "object": {
+                  "type": "string",
+                  "enum": ["fine_tuning.job.event"]
+                }
+              },
+              "required": ["id", "object", "created_at", "level", "message"],
+              "x-code-samples": {
+                "name": "The fine-tuning job event object",
+                "example": "{\n  \"object\": \"fine_tuning.job.event\",\n  \"id\": \"ftevent-abc123\"\n  \"created_at\": 1677610602,\n  \"level\": \"info\",\n  \"message\": \"Created fine-tuning job\"\n}\n"
+              }
+            }
+          },
+          "object": {
+            "type": "string",
+            "enum": ["list"]
+          }
+        },
+        "required": ["object", "data"]
+      }
+    },
+    {
+      "direction": "response",
+      "validator": "GatewayInferenceListFineTuningJobCheckpointsResponseSchema",
+      "operations": ["GET /fine_tuning/jobs/{fine_tuning_job_id}/checkpoints"],
+      "schema": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "title": "FineTuningJobCheckpoint",
+              "description": "The `fine_tuning.job.checkpoint` object represents a model checkpoint for a fine-tuning job that is ready to use.\n",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "description": "The checkpoint identifier, which can be referenced in the API endpoints."
+                },
+                "created_at": {
+                  "type": "integer",
+                  "description": "The Unix timestamp (in seconds) for when the checkpoint was created."
+                },
+                "fine_tuned_model_checkpoint": {
+                  "type": "string",
+                  "description": "The name of the fine-tuned checkpoint model that is created."
+                },
+                "step_number": {
+                  "type": "integer",
+                  "description": "The step number that the checkpoint was created at."
+                },
+                "metrics": {
+                  "type": "object",
+                  "description": "Metrics at the step number during the fine-tuning job.",
+                  "properties": {
+                    "step": {
+                      "type": "number"
+                    },
+                    "train_loss": {
+                      "type": "number"
+                    },
+                    "train_mean_token_accuracy": {
+                      "type": "number"
+                    },
+                    "valid_loss": {
+                      "type": "number"
+                    },
+                    "valid_mean_token_accuracy": {
+                      "type": "number"
+                    },
+                    "full_valid_loss": {
+                      "type": "number"
+                    },
+                    "full_valid_mean_token_accuracy": {
+                      "type": "number"
+                    }
+                  }
+                },
+                "fine_tuning_job_id": {
+                  "type": "string",
+                  "description": "The name of the fine-tuning job that this checkpoint was created from."
+                },
+                "object": {
+                  "type": "string",
+                  "description": "The object type, which is always \"fine_tuning.job.checkpoint\".",
+                  "enum": ["fine_tuning.job.checkpoint"]
+                }
+              },
+              "required": [
+                "created_at",
+                "fine_tuning_job_id",
+                "fine_tuned_model_checkpoint",
+                "id",
+                "metrics",
+                "object",
+                "step_number"
+              ],
+              "x-code-samples": {
+                "name": "The fine-tuning job checkpoint object",
+                "example": "{\n  \"object\": \"fine_tuning.job.checkpoint\",\n  \"id\": \"ftckpt_qtZ5Gyk4BLq1SfLFWp3RtO3P\",\n  \"created_at\": 1712211699,\n  \"fine_tuned_model_checkpoint\": \"ft:gpt-3.5-turbo-0125:my-org:custom_suffix:9ABel2dg:ckpt-step-88\",\n  \"fine_tuning_job_id\": \"ftjob-fpbNQ3H1GrMehXRf8cO97xTN\",\n  \"metrics\": {\n    \"step\": 88,\n    \"train_loss\": 0.478,\n    \"train_mean_token_accuracy\": 0.924,\n    \"valid_loss\": 10.112,\n    \"valid_mean_token_accuracy\": 0.145,\n    \"full_valid_loss\": 0.567,\n    \"full_valid_mean_token_accuracy\": 0.944\n  },\n  \"step_number\": 88\n}\n"
+              }
+            }
+          },
+          "object": {
+            "type": "string",
+            "enum": ["list"]
+          },
+          "first_id": {
+            "type": "string",
+            "nullable": true
+          },
+          "last_id": {
+            "type": "string",
+            "nullable": true
+          },
+          "has_more": {
+            "type": "boolean"
+          }
+        },
+        "required": ["object", "data", "has_more"]
+      }
+    },
+    {
+      "direction": "response",
+      "validator": "GatewayInferenceListModelsResponseSchema",
+      "operations": ["GET /models"],
+      "schema": {
+        "type": "object",
+        "properties": {
+          "object": {
+            "type": "string",
+            "enum": ["list"]
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "title": "Model",
+              "description": "Describes an OpenAI model offering that can be used with the API.",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "description": "The model identifier, which can be referenced in the API endpoints."
+                },
+                "created": {
+                  "type": "integer",
+                  "description": "The Unix timestamp (in seconds) when the model was created."
+                },
+                "object": {
+                  "type": "string",
+                  "description": "The object type, which is always \"model\".",
+                  "enum": ["model"]
+                },
+                "owned_by": {
+                  "type": "string",
+                  "description": "The organization that owns the model."
+                }
+              },
+              "required": ["id", "object", "created", "owned_by"]
+            }
+          }
+        },
+        "required": ["object", "data"]
+      }
+    },
+    {
+      "direction": "response",
+      "validator": "GatewayInferenceModelSchema",
+      "operations": ["GET /models/{model}"],
+      "schema": {
+        "title": "Model",
+        "description": "Describes an OpenAI model offering that can be used with the API.",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "The model identifier, which can be referenced in the API endpoints."
+          },
+          "created": {
+            "type": "integer",
+            "description": "The Unix timestamp (in seconds) when the model was created."
+          },
+          "object": {
+            "type": "string",
+            "description": "The object type, which is always \"model\".",
+            "enum": ["model"]
+          },
+          "owned_by": {
+            "type": "string",
+            "description": "The organization that owns the model."
+          }
+        },
+        "required": ["id", "object", "created", "owned_by"]
+      }
+    },
+    {
+      "direction": "response",
+      "validator": "GatewayInferenceDeleteModelResponseSchema",
+      "operations": ["DELETE /models/{model}"],
+      "schema": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "deleted": {
+            "type": "boolean"
+          },
+          "object": {
+            "type": "string"
+          }
+        },
+        "required": ["id", "object", "deleted"]
+      }
+    },
+    {
+      "direction": "request",
+      "validator": "GatewayInferenceInputCreateModerationRequestSchema",
+      "operations": ["POST /moderations"],
+      "schema": {
+        "type": "object",
+        "properties": {
+          "input": {
+            "description": "The input text to classify",
+            "oneOf": [
+              {
+                "type": "string",
+                "default": "",
+                "example": "I want to kill them."
+              },
+              {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "default": "",
+                  "example": "I want to kill them."
+                }
+              }
+            ]
+          },
+          "model": {
+            "description": "Two content moderations models are available: `text-moderation-stable` and `text-moderation-latest`.\n\nThe default is `text-moderation-latest` which will be automatically upgraded over time. This ensures you are always using our most accurate model. If you use `text-moderation-stable`, we will provide advanced notice before updating the model. Accuracy of `text-moderation-stable` may be slightly lower than for `text-moderation-latest`.\n",
+            "nullable": false,
+            "default": "text-moderation-latest",
+            "example": "text-moderation-stable",
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "string",
+                "enum": ["text-moderation-latest", "text-moderation-stable"]
+              }
+            ],
+            "x-oaiTypeLabel": "string"
+          }
+        },
+        "required": ["input"]
+      }
+    },
+    {
+      "direction": "response",
+      "validator": "GatewayInferenceCreateModerationResponseSchema",
+      "operations": ["POST /moderations"],
+      "schema": {
+        "type": "object",
+        "description": "Represents if a given text input is potentially harmful.",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "The unique identifier for the moderation request."
+          },
+          "model": {
+            "type": "string",
+            "description": "The model used to generate the moderation results."
+          },
+          "results": {
+            "type": "array",
+            "description": "A list of moderation objects.",
+            "items": {
+              "type": "object",
+              "properties": {
+                "flagged": {
+                  "type": "boolean",
+                  "description": "Whether any of the below categories are flagged."
+                },
+                "categories": {
+                  "type": "object",
+                  "description": "A list of the categories, and whether they are flagged or not.",
+                  "properties": {
+                    "hate": {
+                      "type": "boolean",
+                      "description": "Content that expresses, incites, or promotes hate based on race, gender, ethnicity, religion, nationality, sexual orientation, disability status, or caste. Hateful content aimed at non-protected groups (e.g., chess players) is harassment."
+                    },
+                    "hate/threatening": {
+                      "type": "boolean",
+                      "description": "Hateful content that also includes violence or serious harm towards the targeted group based on race, gender, ethnicity, religion, nationality, sexual orientation, disability status, or caste."
+                    },
+                    "harassment": {
+                      "type": "boolean",
+                      "description": "Content that expresses, incites, or promotes harassing language towards any target."
+                    },
+                    "harassment/threatening": {
+                      "type": "boolean",
+                      "description": "Harassment content that also includes violence or serious harm towards any target."
+                    },
+                    "self-harm": {
+                      "type": "boolean",
+                      "description": "Content that promotes, encourages, or depicts acts of self-harm, such as suicide, cutting, and eating disorders."
+                    },
+                    "self-harm/intent": {
+                      "type": "boolean",
+                      "description": "Content where the speaker expresses that they are engaging or intend to engage in acts of self-harm, such as suicide, cutting, and eating disorders."
+                    },
+                    "self-harm/instructions": {
+                      "type": "boolean",
+                      "description": "Content that encourages performing acts of self-harm, such as suicide, cutting, and eating disorders, or that gives instructions or advice on how to commit such acts."
+                    },
+                    "sexual": {
+                      "type": "boolean",
+                      "description": "Content meant to arouse sexual excitement, such as the description of sexual activity, or that promotes sexual services (excluding sex education and wellness)."
+                    },
+                    "sexual/minors": {
+                      "type": "boolean",
+                      "description": "Sexual content that includes an individual who is under 18 years old."
+                    },
+                    "violence": {
+                      "type": "boolean",
+                      "description": "Content that depicts death, violence, or physical injury."
+                    },
+                    "violence/graphic": {
+                      "type": "boolean",
+                      "description": "Content that depicts death, violence, or physical injury in graphic detail."
+                    }
+                  },
+                  "required": [
+                    "hate",
+                    "hate/threatening",
+                    "harassment",
+                    "harassment/threatening",
+                    "self-harm",
+                    "self-harm/intent",
+                    "self-harm/instructions",
+                    "sexual",
+                    "sexual/minors",
+                    "violence",
+                    "violence/graphic"
+                  ]
+                },
+                "category_scores": {
+                  "type": "object",
+                  "description": "A list of the categories along with their scores as predicted by model.",
+                  "properties": {
+                    "hate": {
+                      "type": "number",
+                      "description": "The score for the category 'hate'."
+                    },
+                    "hate/threatening": {
+                      "type": "number",
+                      "description": "The score for the category 'hate/threatening'."
+                    },
+                    "harassment": {
+                      "type": "number",
+                      "description": "The score for the category 'harassment'."
+                    },
+                    "harassment/threatening": {
+                      "type": "number",
+                      "description": "The score for the category 'harassment/threatening'."
+                    },
+                    "self-harm": {
+                      "type": "number",
+                      "description": "The score for the category 'self-harm'."
+                    },
+                    "self-harm/intent": {
+                      "type": "number",
+                      "description": "The score for the category 'self-harm/intent'."
+                    },
+                    "self-harm/instructions": {
+                      "type": "number",
+                      "description": "The score for the category 'self-harm/instructions'."
+                    },
+                    "sexual": {
+                      "type": "number",
+                      "description": "The score for the category 'sexual'."
+                    },
+                    "sexual/minors": {
+                      "type": "number",
+                      "description": "The score for the category 'sexual/minors'."
+                    },
+                    "violence": {
+                      "type": "number",
+                      "description": "The score for the category 'violence'."
+                    },
+                    "violence/graphic": {
+                      "type": "number",
+                      "description": "The score for the category 'violence/graphic'."
+                    }
+                  },
+                  "required": [
+                    "hate",
+                    "hate/threatening",
+                    "harassment",
+                    "harassment/threatening",
+                    "self-harm",
+                    "self-harm/intent",
+                    "self-harm/instructions",
+                    "sexual",
+                    "sexual/minors",
+                    "violence",
+                    "violence/graphic"
+                  ]
+                }
+              },
+              "required": ["flagged", "categories", "category_scores"]
+            }
+          }
+        },
+        "required": ["id", "model", "results"]
+      }
+    }
+  ]
+}

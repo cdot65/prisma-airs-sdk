@@ -1,5 +1,22 @@
 # Red Team API
 
+## Capability discovery and validated workflows
+
+Use `getScanMetadata()`, `getGoalCategories(targetType)`, `getLanguages()`,
+`getManagementLanguages()`, and `adapters.getConfig()` to discover the deployed service's
+capabilities. A known 422 collision on the parameterless scan-metadata data route falls back to
+management target metadata; other errors are not hidden.
+
+Target helpers include `startProfiling()`, `getCopilotAuthUrl()`, `exchangeCopilotToken()`, and
+`deleteCopilotToken()`. Copilot bodies are always omitted from debug output. Interactive OAuth,
+legal acceptance and infrastructure provisioning are not part of unattended disposable tests.
+
+Custom prompt template downloads are CSV; uploads now include the `prompts.csv` filename.
+Request schemas validate documented UUIDs, language catalogs, enum values and size constraints
+before submission. Bounded benign custom jobs, reports, CSV round-trips, draft targets and adapters
+were exercised live. The tenant still returns 403 for quota and 500 for prompt-set version
+information; see the [validation report](../developer/openapi-conformance.md).
+
 :::tip[Complete inventories]
 Red Team `list()` methods return one native `skip`/`limit` page. Use the corresponding all-page
 helper for a flat, filter-preserving inventory: `scans.listAll()`, `targets.listAll()`,

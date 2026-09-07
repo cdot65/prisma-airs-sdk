@@ -1,0 +1,2079 @@
+{
+  "source": "prisma-airs-redteam/management/mp-openapi.yaml",
+  "sha256": "4b92495d9a0c5aef460c22c8d124f1ad2586fe1f17ef07348a551a8a5ae78125",
+  "corrections": ["redteam-overlapping-connection-variants", "redteam-csv-template-content-type"],
+  "contracts": [
+    {
+      "direction": "request",
+      "validator": "AdapterCreateRequestSchema",
+      "operations": ["POST /v1/adapters"],
+      "schema": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 255,
+            "title": "Name",
+            "description": "Adapter name"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description",
+            "description": "Adapter description"
+          },
+          "script_b64": {
+            "type": "string",
+            "title": "Script B64",
+            "description": "Base64-encoded adapter script"
+          },
+          "network_broker_channel_uuid": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Network Broker Channel Uuid",
+            "description": "NB channel UUID for this adapter. Optional while the adapter is a DRAFT (save for later); required to activate (validate=true)."
+          },
+          "variables": {
+            "items": {
+              "properties": {
+                "key": {
+                  "type": "string",
+                  "maxLength": 255,
+                  "title": "Key",
+                  "description": "Variable key"
+                },
+                "value": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "title": "Value",
+                  "description": "Variable value. On update, null means 'keep the existing value' — used for unchanged secrets, whose values are never returned."
+                },
+                "type": {
+                  "description": "VAR (non-sensitive) or SECRET (sensitive)",
+                  "type": "string",
+                  "enum": ["VAR", "SECRET"],
+                  "title": "AdapterVarType"
+                }
+              },
+              "type": "object",
+              "required": ["key", "type"],
+              "title": "AdapterVarBase",
+              "description": "A single adapter configuration variable (also the GSM-stored shape)."
+            },
+            "type": "array",
+            "title": "Variables",
+            "description": "Configuration variables and secrets for the adapter"
+          },
+          "prompt": {
+            "type": "string",
+            "title": "Prompt",
+            "description": "Sample prompt used to exercise the adapter end-to-end during validation. Not stored on the adapter."
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": ["name", "script_b64", "prompt"],
+        "title": "CustomTargetAdapterCreateRequestSchema",
+        "description": "Customer input to create an adapter."
+      }
+    },
+    {
+      "direction": "response",
+      "validator": "AdapterResponseSchema",
+      "operations": [
+        "POST /v1/adapters",
+        "GET /v1/adapters/{adapter_uuid}",
+        "PUT /v1/adapters/{adapter_uuid}"
+      ],
+      "schema": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 255,
+            "title": "Name",
+            "description": "Adapter name"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description",
+            "description": "Adapter description"
+          },
+          "script_b64": {
+            "type": "string",
+            "title": "Script B64",
+            "description": "Base64-encoded adapter script"
+          },
+          "network_broker_channel_uuid": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Network Broker Channel Uuid",
+            "description": "NB channel UUID for this adapter. Optional while the adapter is a DRAFT (save for later); required to activate (validate=true)."
+          },
+          "variables": {
+            "items": {
+              "properties": {
+                "key": {
+                  "type": "string",
+                  "maxLength": 255,
+                  "title": "Key",
+                  "description": "Variable key"
+                },
+                "value": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "title": "Value",
+                  "description": "Variable value. On update, null means 'keep the existing value' — used for unchanged secrets, whose values are never returned."
+                },
+                "type": {
+                  "description": "VAR (non-sensitive) or SECRET (sensitive)",
+                  "type": "string",
+                  "enum": ["VAR", "SECRET"],
+                  "title": "AdapterVarType"
+                },
+                "is_redacted": {
+                  "type": "boolean",
+                  "title": "Is Redacted",
+                  "description": "True when the value is hidden (secrets). Redacted values are returned as null.",
+                  "default": false
+                }
+              },
+              "type": "object",
+              "required": ["key", "type"],
+              "title": "AdapterVarResponseSchema",
+              "description": "A variable returned in adapter responses.\n\nSecrets are masked: value is returned as null with is_redacted=true.\n"
+            },
+            "type": "array",
+            "title": "Variables",
+            "description": "Configuration variables; secret values are redacted (null)."
+          },
+          "uuid": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Uuid"
+          },
+          "tsg_id": {
+            "type": "string",
+            "title": "Tsg Id"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["DRAFT", "ACTIVE"],
+            "title": "CustomTargetAdapterStatus"
+          },
+          "created_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Created At"
+          },
+          "updated_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Updated At"
+          },
+          "created_by_user_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Created By User Id"
+          },
+          "updated_by_user_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Updated By User Id"
+          },
+          "target_count": {
+            "type": "integer",
+            "title": "Target Count",
+            "description": "Number of targets currently referencing this adapter.",
+            "default": 0
+          }
+        },
+        "type": "object",
+        "required": ["name", "script_b64", "uuid", "tsg_id", "status"],
+        "title": "CustomTargetAdapterSchema"
+      }
+    },
+    {
+      "direction": "response",
+      "validator": "AdapterListSchema",
+      "operations": ["GET /v1/adapters"],
+      "schema": {
+        "properties": {
+          "pagination": {
+            "properties": {
+              "total_items": {
+                "anyOf": [
+                  {
+                    "type": "integer"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "title": "Total Items"
+              }
+            },
+            "type": "object",
+            "title": "PaginationSchema"
+          },
+          "data": {
+            "items": {
+              "properties": {
+                "uuid": {
+                  "type": "string",
+                  "format": "uuid",
+                  "title": "Uuid"
+                },
+                "name": {
+                  "type": "string",
+                  "title": "Name"
+                },
+                "status": {
+                  "type": "string",
+                  "enum": ["DRAFT", "ACTIVE"],
+                  "title": "CustomTargetAdapterStatus"
+                },
+                "created_at": {
+                  "type": "string",
+                  "format": "date-time",
+                  "title": "Created At"
+                },
+                "updated_at": {
+                  "type": "string",
+                  "format": "date-time",
+                  "title": "Updated At"
+                },
+                "created_by_user_id": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "title": "Created By User Id"
+                },
+                "target_count": {
+                  "anyOf": [
+                    {
+                      "type": "integer"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "title": "Target Count",
+                  "description": "Number of targets referencing this adapter. Only populated when include_target_count=true."
+                }
+              },
+              "type": "object",
+              "required": ["uuid", "name", "status", "created_at", "updated_at"],
+              "title": "CustomTargetAdapterListItemSchema"
+            },
+            "type": "array",
+            "title": "Data",
+            "description": "List of adapters"
+          }
+        },
+        "type": "object",
+        "required": ["pagination"],
+        "title": "CustomTargetAdapterListSchema"
+      }
+    },
+    {
+      "direction": "response",
+      "validator": "AdapterConfigResponseSchema",
+      "operations": ["GET /v1/adapters/config"],
+      "schema": {
+        "properties": {
+          "default_script_b64": {
+            "type": "string",
+            "title": "Default Script B64",
+            "description": "Base64-encoded starter adapter script template for the editor."
+          },
+          "default_test_prompt": {
+            "type": "string",
+            "title": "Default Test Prompt",
+            "description": "Default prompt used to test the adapter."
+          }
+        },
+        "type": "object",
+        "required": ["default_script_b64", "default_test_prompt"],
+        "title": "CustomTargetAdapterConfigResponseSchema",
+        "description": "Static/example values for the adapter authoring UI.\n\nReturned by GET /v1/adapters/config so the frontend can prefill the editor.\n"
+      }
+    },
+    {
+      "direction": "request",
+      "validator": "AdapterUpdateRequestSchema",
+      "operations": ["PUT /v1/adapters/{adapter_uuid}"],
+      "schema": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 255,
+            "title": "Name",
+            "description": "Adapter name"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description",
+            "description": "Adapter description"
+          },
+          "script_b64": {
+            "type": "string",
+            "title": "Script B64",
+            "description": "Base64-encoded adapter script"
+          },
+          "network_broker_channel_uuid": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Network Broker Channel Uuid",
+            "description": "NB channel UUID for this adapter. Optional while the adapter is a DRAFT (save for later); required to activate (validate=true)."
+          },
+          "variables": {
+            "items": {
+              "properties": {
+                "key": {
+                  "type": "string",
+                  "maxLength": 255,
+                  "title": "Key",
+                  "description": "Variable key"
+                },
+                "value": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "title": "Value",
+                  "description": "Variable value. On update, null means 'keep the existing value' — used for unchanged secrets, whose values are never returned."
+                },
+                "type": {
+                  "description": "VAR (non-sensitive) or SECRET (sensitive)",
+                  "type": "string",
+                  "enum": ["VAR", "SECRET"],
+                  "title": "AdapterVarType"
+                }
+              },
+              "type": "object",
+              "required": ["key", "type"],
+              "title": "AdapterVarBase",
+              "description": "A single adapter configuration variable (also the GSM-stored shape)."
+            },
+            "type": "array",
+            "title": "Variables",
+            "description": "Configuration variables and secrets for the adapter"
+          },
+          "prompt": {
+            "type": "string",
+            "title": "Prompt",
+            "description": "Sample prompt used to exercise the adapter end-to-end during validation. Not stored on the adapter."
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": ["name", "script_b64", "prompt"],
+        "title": "CustomTargetAdapterUpdateRequestSchema",
+        "description": "Update is a full replacement (PUT): all create fields are required.\n\nFor ``variables`` the list defines the complete desired key set:\n- value provided -> set/add the value\n- value null     -> keep the existing value (unchanged secrets)\n- key omitted    -> delete the variable\n"
+      }
+    },
+    {
+      "direction": "request",
+      "validator": "AdapterValidateRequestSchema",
+      "operations": ["POST /v1/adapters/validate"],
+      "schema": {
+        "properties": {
+          "script_b64": {
+            "type": "string",
+            "title": "Script B64",
+            "description": "Base64-encoded adapter script"
+          },
+          "network_broker_channel_uuid": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Network Broker Channel Uuid",
+            "description": "NB channel UUID"
+          },
+          "prompt": {
+            "type": "string",
+            "title": "Prompt",
+            "description": "Sample prompt used to exercise the adapter end-to-end."
+          },
+          "variables": {
+            "items": {
+              "properties": {
+                "key": {
+                  "type": "string",
+                  "maxLength": 255,
+                  "title": "Key",
+                  "description": "Variable key"
+                },
+                "value": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "title": "Value",
+                  "description": "Variable value. On update, null means 'keep the existing value' — used for unchanged secrets, whose values are never returned."
+                },
+                "type": {
+                  "description": "VAR (non-sensitive) or SECRET (sensitive)",
+                  "type": "string",
+                  "enum": ["VAR", "SECRET"],
+                  "title": "AdapterVarType"
+                }
+              },
+              "type": "object",
+              "required": ["key", "type"],
+              "title": "AdapterVarBase",
+              "description": "A single adapter configuration variable (also the GSM-stored shape)."
+            },
+            "type": "array",
+            "title": "Variables",
+            "description": "Configuration variables and secrets for the adapter"
+          },
+          "adapter_uuid": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Adapter Uuid",
+            "description": "Existing adapter UUID. When provided and variables contain redacted placeholders (or null), the real values are resolved from the adapter's stored secret before validation. Omit when validating a brand-new adapter."
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": ["script_b64", "network_broker_channel_uuid", "prompt"],
+        "title": "CustomTargetAdapterValidateRequestSchema"
+      }
+    },
+    {
+      "direction": "response",
+      "validator": "AdapterValidateResponseSchema",
+      "operations": ["POST /v1/adapters/validate"],
+      "schema": {
+        "properties": {
+          "validated": {
+            "type": "boolean",
+            "title": "Validated"
+          },
+          "stdout": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Stdout"
+          },
+          "stderr": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Stderr"
+          },
+          "traceback": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Traceback"
+          }
+        },
+        "type": "object",
+        "required": ["validated"],
+        "title": "CustomTargetAdapterValidateResponseSchema"
+      }
+    },
+    {
+      "direction": "request",
+      "validator": "TargetCreateRequestSchema",
+      "operations": ["POST /v1/target"],
+      "schema": {
+        "properties": {
+          "connection_params": {
+            "anyOf": [
+              {
+                "anyOf": [
+                  {
+                    "properties": {
+                      "target_connection_config": {
+                        "anyOf": [
+                          {
+                            "properties": {
+                              "api_key": {
+                                "type": "string",
+                                "title": "Api Key",
+                                "description": "OpenAI API key for authentication",
+                                "examples": ["sk-abxx"]
+                              },
+                              "model_name": {
+                                "type": "string",
+                                "title": "Model Name",
+                                "description": "OpenAI model name for API requests",
+                                "examples": ["gpt-4.1-nano"]
+                              }
+                            },
+                            "type": "object",
+                            "required": ["api_key", "model_name"],
+                            "title": "OpenAIConnectionParams",
+                            "description": "Connection parameters specific to OpenAI targets"
+                          },
+                          {
+                            "properties": {
+                              "api_key": {
+                                "type": "string",
+                                "title": "Api Key",
+                                "description": "Huggingface API key for authentication",
+                                "examples": ["sk-abxx"]
+                              },
+                              "model_name": {
+                                "type": "string",
+                                "title": "Model Name",
+                                "description": "Huggingface model name for API requests",
+                                "examples": ["gpt-4.1-nano"]
+                              }
+                            },
+                            "type": "object",
+                            "required": ["api_key", "model_name"],
+                            "title": "HuggingfaceConnectionParams",
+                            "description": "Connection parameters specific to huggingface targets"
+                          },
+                          {
+                            "properties": {
+                              "auth_type": {
+                                "description": "Auth type",
+                                "type": "string",
+                                "enum": ["OAUTH", "ACCESS_TOKEN"],
+                                "title": "AuthType"
+                              },
+                              "access_token": {
+                                "anyOf": [
+                                  {
+                                    "type": "string"
+                                  },
+                                  {
+                                    "type": "null"
+                                  }
+                                ],
+                                "title": "Access Token",
+                                "description": "Databricks access token"
+                              },
+                              "client_id": {
+                                "anyOf": [
+                                  {
+                                    "type": "string"
+                                  },
+                                  {
+                                    "type": "null"
+                                  }
+                                ],
+                                "title": "Client Id",
+                                "description": "Databricks client_id"
+                              },
+                              "secret": {
+                                "anyOf": [
+                                  {
+                                    "type": "string"
+                                  },
+                                  {
+                                    "type": "null"
+                                  }
+                                ],
+                                "title": "Secret",
+                                "description": "Databricks secret"
+                              },
+                              "workspace_url": {
+                                "type": "string",
+                                "title": "Workspace Url",
+                                "description": "Databricks workscpace_url"
+                              },
+                              "model_name": {
+                                "type": "string",
+                                "title": "Model Name",
+                                "description": "Databricks model name"
+                              }
+                            },
+                            "type": "object",
+                            "required": ["auth_type", "workspace_url", "model_name"],
+                            "title": "DatabricksConnectionParams"
+                          },
+                          {
+                            "properties": {
+                              "access_id": {
+                                "type": "string",
+                                "title": "Access Id",
+                                "description": "AWS access key ID"
+                              },
+                              "access_secret": {
+                                "type": "string",
+                                "title": "Access Secret",
+                                "description": "AWS secret access key"
+                              },
+                              "session_token": {
+                                "anyOf": [
+                                  {
+                                    "type": "string"
+                                  },
+                                  {
+                                    "type": "null"
+                                  }
+                                ],
+                                "title": "Session Token",
+                                "description": "AWS session token (optional)"
+                              },
+                              "region": {
+                                "type": "string",
+                                "title": "Region",
+                                "description": "AWS region"
+                              },
+                              "model_id": {
+                                "type": "string",
+                                "title": "Model Id",
+                                "description": "Bedrock model ID"
+                              }
+                            },
+                            "type": "object",
+                            "required": ["access_id", "access_secret", "region", "model_id"],
+                            "title": "BedrockAccessConnectionParams",
+                            "description": "AWS Bedrock access parameters stored in target_metadata."
+                          },
+                          {
+                            "properties": {
+                              "client_id": {
+                                "type": "string",
+                                "title": "Client Id",
+                                "description": "Azure App Registration Client ID"
+                              },
+                              "client_secret": {
+                                "type": "string",
+                                "title": "Client Secret",
+                                "description": "Azure App Registration Client Secret"
+                              },
+                              "tenant_id": {
+                                "type": "string",
+                                "title": "Tenant Id",
+                                "description": "Azure AD Tenant ID"
+                              },
+                              "schema_name": {
+                                "type": "string",
+                                "title": "Schema Name",
+                                "description": "Copilot Agent schema/identifier"
+                              },
+                              "environment_id": {
+                                "type": "string",
+                                "title": "Environment Id",
+                                "description": "Power Platform Environment ID"
+                              },
+                              "token_json_uuid": {
+                                "anyOf": [
+                                  {
+                                    "type": "string",
+                                    "format": "uuid"
+                                  },
+                                  {
+                                    "type": "null"
+                                  }
+                                ],
+                                "title": "Token Json Uuid",
+                                "description": "UUID referencing MSAL token cache in GSM. Set after POST /ms-copilot-studio/token."
+                              },
+                              "token_cache_json": {
+                                "anyOf": [
+                                  {
+                                    "type": "string"
+                                  },
+                                  {
+                                    "type": "null"
+                                  }
+                                ],
+                                "title": "Token Cache Json",
+                                "description": "Serialized MSAL token cache. Injected at POST/PUT /target time from standalone GSM record."
+                              }
+                            },
+                            "type": "object",
+                            "required": [
+                              "client_id",
+                              "client_secret",
+                              "tenant_id",
+                              "schema_name",
+                              "environment_id"
+                            ],
+                            "title": "MSCopilotStudioConnectionParams",
+                            "description": "Microsoft Copilot Studio Agent connection parameters."
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "title": "Target Connection Config",
+                        "description": "Provider-specific connection config"
+                      },
+                      "multi_turn_config": {
+                        "anyOf": [
+                          {
+                            "oneOf": [
+                              {
+                                "properties": {
+                                  "type": {
+                                    "type": "string",
+                                    "const": "stateful",
+                                    "title": "Type",
+                                    "default": "stateful"
+                                  },
+                                  "response_id_field": {
+                                    "type": "string",
+                                    "title": "Response Id Field",
+                                    "description": "JSON path to extract session ID from target response (e.g., 'id' for OpenAI responses API)",
+                                    "examples": ["id", "conversation_id", "session.id"]
+                                  },
+                                  "request_id_field": {
+                                    "type": "string",
+                                    "title": "Request Id Field",
+                                    "description": "JSON path to inject session ID in next request (e.g., 'previous_response_id' for OpenAI)",
+                                    "examples": [
+                                      "previous_response_id",
+                                      "conversation_id",
+                                      "session_id"
+                                    ]
+                                  }
+                                },
+                                "type": "object",
+                                "required": ["response_id_field", "request_id_field"],
+                                "title": "MultiTurnStatefulConfig",
+                                "description": "Configuration for stateful multi-turn targets (session_supported=true).\n\nStateful targets maintain conversation state on the server side using session IDs.\nThe session ID is extracted from responses and injected into subsequent requests.\n"
+                              },
+                              {
+                                "properties": {
+                                  "type": {
+                                    "type": "string",
+                                    "const": "stateless",
+                                    "title": "Type",
+                                    "default": "stateless"
+                                  },
+                                  "assistant_role": {
+                                    "anyOf": [
+                                      {
+                                        "type": "string"
+                                      },
+                                      {
+                                        "type": "null"
+                                      }
+                                    ],
+                                    "title": "Assistant Role",
+                                    "description": "Role name for assistant messages in conversation history (e.g., 'assistant', 'bot', 'model')",
+                                    "examples": ["assistant", "bot", "model", "ai"]
+                                  }
+                                },
+                                "type": "object",
+                                "title": "MultiTurnStatelessConfig",
+                                "description": "Configuration for stateless multi-turn targets (session_supported=false).\n\nStateless targets require the client to maintain and send conversation history.\nThe assistant_role specifies the role name used for assistant messages in the history.\n"
+                              }
+                            ],
+                            "discriminator": {
+                              "propertyName": "type",
+                              "mapping": {
+                                "stateful": "#/components/schemas/MultiTurnStatefulConfig",
+                                "stateless": "#/components/schemas/MultiTurnStatelessConfig"
+                              }
+                            }
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "title": "Multi Turn Config",
+                        "description": "Multi-turn config for stateful or stateless target"
+                      },
+                      "multi_turn_supported": {
+                        "type": "boolean",
+                        "title": "Multi Turn Supported",
+                        "description": "Whether a native target that drives multi-turn internally supports it. Currently consumed only by custom target adapters, which have no multi_turn_config to infer it from; gates the multi-turn validation probe.",
+                        "default": false
+                      }
+                    },
+                    "type": "object",
+                    "title": "NativeConnectionParamsBase",
+                    "description": "Base connection parameters for native/SDK-based targets (no HTTP endpoint).\n\nUsed for no-code agent platforms like Microsoft Copilot Studio where\ninteraction is via a provider's client library, not HTTP REST/streaming.\n\n# TODO: Consider refactoring RestConnectionParamsBase and StreamingConnectionParamsBase\n# to share a common base with this class (e.g., extract target_connection_config and\n# multi_turn_config into a shared parent).\n"
+                  },
+                  {
+                    "properties": {
+                      "api_endpoint": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "title": "Api Endpoint",
+                        "description": "API endpoint URL",
+                        "examples": ["https://api.openai.com/v1/responses"]
+                      },
+                      "request_headers": {
+                        "additionalProperties": true,
+                        "type": "object",
+                        "title": "Request Headers",
+                        "description": "Request headers",
+                        "default": {},
+                        "examples": [
+                          {
+                            "Authorization": "Bearer sk-xxx",
+                            "Content-Type": "application/json"
+                          }
+                        ]
+                      },
+                      "request_json": {
+                        "additionalProperties": true,
+                        "type": "object",
+                        "title": "Request Json",
+                        "description": "Request JSON",
+                        "default": {},
+                        "examples": [
+                          {
+                            "input": [
+                              {
+                                "content": [
+                                  {
+                                    "text": "{INPUT}",
+                                    "type": "input_text"
+                                  }
+                                ],
+                                "role": "user"
+                              }
+                            ],
+                            "model": "gpt-4.1-nano"
+                          }
+                        ]
+                      },
+                      "response_json": {
+                        "additionalProperties": true,
+                        "type": "object",
+                        "title": "Response Json",
+                        "description": "Response JSON",
+                        "default": {},
+                        "examples": [
+                          {
+                            "content": "{RESPONSE}"
+                          }
+                        ]
+                      },
+                      "response_key": {
+                        "type": "string",
+                        "title": "Response Key",
+                        "description": "Response key",
+                        "default": null,
+                        "examples": ["content"]
+                      },
+                      "target_connection_config": {
+                        "anyOf": [
+                          {
+                            "$ref": "#/properties/connection_params/anyOf/0/anyOf/0/properties/target_connection_config/anyOf/0"
+                          },
+                          {
+                            "$ref": "#/properties/connection_params/anyOf/0/anyOf/0/properties/target_connection_config/anyOf/1"
+                          },
+                          {
+                            "$ref": "#/properties/connection_params/anyOf/0/anyOf/0/properties/target_connection_config/anyOf/2"
+                          },
+                          {
+                            "$ref": "#/properties/connection_params/anyOf/0/anyOf/0/properties/target_connection_config/anyOf/3"
+                          },
+                          {
+                            "$ref": "#/properties/connection_params/anyOf/0/anyOf/0/properties/target_connection_config/anyOf/4"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "title": "Target Connection Config",
+                        "description": "Target Connection config of type openai/huggingface .."
+                      },
+                      "curl": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "title": "Curl",
+                        "description": "Generated cURL command ready to use (redacted for security)",
+                        "examples": [
+                          "curl \"https://api.openai.com/v1/chat/completions\" -H \"Content-Type: application/json\" -H \"Authorization: Bearer ***\" -d '{\"model\":\"gpt-4\",\"messages\":[{\"role\":\"user\",\"content\":\"{INPUT}\"}]}'"
+                        ]
+                      },
+                      "multi_turn_config": {
+                        "anyOf": [
+                          {
+                            "oneOf": [
+                              {
+                                "$ref": "#/properties/connection_params/anyOf/0/anyOf/0/properties/multi_turn_config/anyOf/0/oneOf/0"
+                              },
+                              {
+                                "$ref": "#/properties/connection_params/anyOf/0/anyOf/0/properties/multi_turn_config/anyOf/0/oneOf/1"
+                              }
+                            ],
+                            "discriminator": {
+                              "propertyName": "type",
+                              "mapping": {
+                                "stateful": "#/components/schemas/MultiTurnStatefulConfig",
+                                "stateless": "#/components/schemas/MultiTurnStatelessConfig"
+                              }
+                            }
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "title": "Multi Turn Config",
+                        "description": "Multi turn config for stateful or stateless target",
+                        "examples": ["assistant_role: assistant"]
+                      },
+                      "ws_response_timeout": {
+                        "type": "number",
+                        "title": "Ws Response Timeout",
+                        "description": "Timeout in seconds for waiting for a WebSocket response message",
+                        "default": 110,
+                        "examples": [60, 110]
+                      }
+                    },
+                    "type": "object",
+                    "title": "WebSocketConnectionParamsBase",
+                    "description": "Connection parameters for WebSocket targets."
+                  },
+                  {
+                    "properties": {
+                      "api_endpoint": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "title": "Api Endpoint",
+                        "description": "API endpoint URL",
+                        "examples": ["https://api.openai.com/v1/responses"]
+                      },
+                      "request_headers": {
+                        "additionalProperties": true,
+                        "type": "object",
+                        "title": "Request Headers",
+                        "description": "Request headers",
+                        "default": {},
+                        "examples": [
+                          {
+                            "Authorization": "Bearer sk-xxx",
+                            "Content-Type": "application/json"
+                          }
+                        ]
+                      },
+                      "request_json": {
+                        "additionalProperties": true,
+                        "type": "object",
+                        "title": "Request Json",
+                        "description": "Request JSON",
+                        "default": {},
+                        "examples": [
+                          {
+                            "input": [
+                              {
+                                "content": [
+                                  {
+                                    "text": "{INPUT}",
+                                    "type": "input_text"
+                                  }
+                                ],
+                                "role": "user"
+                              }
+                            ],
+                            "model": "gpt-4.1-nano"
+                          }
+                        ]
+                      },
+                      "response_json": {
+                        "additionalProperties": true,
+                        "type": "object",
+                        "title": "Response Json",
+                        "description": "Response JSON",
+                        "default": {},
+                        "examples": [
+                          {
+                            "content": "{RESPONSE}"
+                          }
+                        ]
+                      },
+                      "response_key": {
+                        "type": "string",
+                        "title": "Response Key",
+                        "description": "Response key",
+                        "default": null,
+                        "examples": ["content"]
+                      },
+                      "target_connection_config": {
+                        "anyOf": [
+                          {
+                            "$ref": "#/properties/connection_params/anyOf/0/anyOf/0/properties/target_connection_config/anyOf/0"
+                          },
+                          {
+                            "$ref": "#/properties/connection_params/anyOf/0/anyOf/0/properties/target_connection_config/anyOf/1"
+                          },
+                          {
+                            "$ref": "#/properties/connection_params/anyOf/0/anyOf/0/properties/target_connection_config/anyOf/2"
+                          },
+                          {
+                            "$ref": "#/properties/connection_params/anyOf/0/anyOf/0/properties/target_connection_config/anyOf/3"
+                          },
+                          {
+                            "$ref": "#/properties/connection_params/anyOf/0/anyOf/0/properties/target_connection_config/anyOf/4"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "title": "Target Connection Config",
+                        "description": "Target Connection config of type openai/huggingface .."
+                      },
+                      "curl": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "title": "Curl",
+                        "description": "Generated cURL command ready to use (redacted for security)",
+                        "examples": [
+                          "curl \"https://api.openai.com/v1/chat/completions\" -H \"Content-Type: application/json\" -H \"Authorization: Bearer ***\" -d '{\"model\":\"gpt-4\",\"messages\":[{\"role\":\"user\",\"content\":\"{INPUT}\"}]}'"
+                        ]
+                      },
+                      "multi_turn_config": {
+                        "anyOf": [
+                          {
+                            "oneOf": [
+                              {
+                                "$ref": "#/properties/connection_params/anyOf/0/anyOf/0/properties/multi_turn_config/anyOf/0/oneOf/0"
+                              },
+                              {
+                                "$ref": "#/properties/connection_params/anyOf/0/anyOf/0/properties/multi_turn_config/anyOf/0/oneOf/1"
+                              }
+                            ],
+                            "discriminator": {
+                              "propertyName": "type",
+                              "mapping": {
+                                "stateful": "#/components/schemas/MultiTurnStatefulConfig",
+                                "stateless": "#/components/schemas/MultiTurnStatelessConfig"
+                              }
+                            }
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "title": "Multi Turn Config",
+                        "description": "Multi turn config for stateful or stateless target",
+                        "examples": ["assistant_role: assistant"]
+                      },
+                      "response_stop_key": {
+                        "type": "string",
+                        "title": "Response Stop Key"
+                      },
+                      "response_stop_value": {
+                        "type": "string",
+                        "title": "Response Stop Value"
+                      }
+                    },
+                    "type": "object",
+                    "required": ["response_stop_key", "response_stop_value"],
+                    "title": "StreamingConnectionParamsBase",
+                    "description": "Base streaming connection parameters without generated fields."
+                  },
+                  {
+                    "properties": {
+                      "api_endpoint": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "title": "Api Endpoint",
+                        "description": "API endpoint URL",
+                        "examples": ["https://api.openai.com/v1/responses"]
+                      },
+                      "request_headers": {
+                        "additionalProperties": true,
+                        "type": "object",
+                        "title": "Request Headers",
+                        "description": "Request headers",
+                        "default": {},
+                        "examples": [
+                          {
+                            "Authorization": "Bearer sk-xxx",
+                            "Content-Type": "application/json"
+                          }
+                        ]
+                      },
+                      "request_json": {
+                        "additionalProperties": true,
+                        "type": "object",
+                        "title": "Request Json",
+                        "description": "Request JSON",
+                        "default": {},
+                        "examples": [
+                          {
+                            "input": [
+                              {
+                                "content": [
+                                  {
+                                    "text": "{INPUT}",
+                                    "type": "input_text"
+                                  }
+                                ],
+                                "role": "user"
+                              }
+                            ],
+                            "model": "gpt-4.1-nano"
+                          }
+                        ]
+                      },
+                      "response_json": {
+                        "additionalProperties": true,
+                        "type": "object",
+                        "title": "Response Json",
+                        "description": "Response JSON",
+                        "default": {},
+                        "examples": [
+                          {
+                            "content": "{RESPONSE}"
+                          }
+                        ]
+                      },
+                      "response_key": {
+                        "type": "string",
+                        "title": "Response Key",
+                        "description": "Response key",
+                        "default": null,
+                        "examples": ["content"]
+                      },
+                      "target_connection_config": {
+                        "anyOf": [
+                          {
+                            "$ref": "#/properties/connection_params/anyOf/0/anyOf/0/properties/target_connection_config/anyOf/0"
+                          },
+                          {
+                            "$ref": "#/properties/connection_params/anyOf/0/anyOf/0/properties/target_connection_config/anyOf/1"
+                          },
+                          {
+                            "$ref": "#/properties/connection_params/anyOf/0/anyOf/0/properties/target_connection_config/anyOf/2"
+                          },
+                          {
+                            "$ref": "#/properties/connection_params/anyOf/0/anyOf/0/properties/target_connection_config/anyOf/3"
+                          },
+                          {
+                            "$ref": "#/properties/connection_params/anyOf/0/anyOf/0/properties/target_connection_config/anyOf/4"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "title": "Target Connection Config",
+                        "description": "Target Connection config of type openai/huggingface .."
+                      },
+                      "curl": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "title": "Curl",
+                        "description": "Generated cURL command ready to use (redacted for security)",
+                        "examples": [
+                          "curl \"https://api.openai.com/v1/chat/completions\" -H \"Content-Type: application/json\" -H \"Authorization: Bearer ***\" -d '{\"model\":\"gpt-4\",\"messages\":[{\"role\":\"user\",\"content\":\"{INPUT}\"}]}'"
+                        ]
+                      },
+                      "multi_turn_config": {
+                        "anyOf": [
+                          {
+                            "oneOf": [
+                              {
+                                "$ref": "#/properties/connection_params/anyOf/0/anyOf/0/properties/multi_turn_config/anyOf/0/oneOf/0"
+                              },
+                              {
+                                "$ref": "#/properties/connection_params/anyOf/0/anyOf/0/properties/multi_turn_config/anyOf/0/oneOf/1"
+                              }
+                            ],
+                            "discriminator": {
+                              "propertyName": "type",
+                              "mapping": {
+                                "stateful": "#/components/schemas/MultiTurnStatefulConfig",
+                                "stateless": "#/components/schemas/MultiTurnStatelessConfig"
+                              }
+                            }
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "title": "Multi Turn Config",
+                        "description": "Multi turn config for stateful or stateless target",
+                        "examples": ["assistant_role: assistant"]
+                      }
+                    },
+                    "type": "object",
+                    "title": "RestConnectionParamsBase",
+                    "description": "Base connection parameters without generated fields."
+                  }
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Connection Params",
+            "description": "API connection parameters (sensitive data masked for security)",
+            "examples": [
+              {
+                "api_endpoint": "https://api.openai.com/v1/responses",
+                "request_headers": {
+                  "Authorization": "Bearer sk-xxx",
+                  "Content-Type": "application/json"
+                },
+                "request_json": {
+                  "input": [
+                    {
+                      "content": [
+                        {
+                          "text": "{INPUT}",
+                          "type": "input_text"
+                        }
+                      ],
+                      "role": "user"
+                    }
+                  ],
+                  "model": "gpt-4.1-nano"
+                },
+                "response_json": {
+                  "content": "{RESPONSE}"
+                },
+                "response_key": "content"
+              }
+            ]
+          },
+          "auth_config": {
+            "anyOf": [
+              {
+                "properties": {
+                  "auth_header": {
+                    "additionalProperties": {
+                      "type": "string"
+                    },
+                    "type": "object",
+                    "title": "Auth Header",
+                    "description": "Auth header as {name: value} dict",
+                    "examples": [
+                      {
+                        "Authorization": "Bearer sk-xxxxxxxxxxxx"
+                      },
+                      {
+                        "x-api-key": "my-api-key"
+                      }
+                    ]
+                  }
+                },
+                "type": "object",
+                "required": ["auth_header"],
+                "title": "HeadersAuthConfig",
+                "description": "Static header injection (API keys, bearer tokens)."
+              },
+              {
+                "properties": {
+                  "basic_auth_location": {
+                    "description": "Where credentials are sent: HEADER or PAYLOAD",
+                    "default": "HEADER",
+                    "type": "string",
+                    "enum": ["HEADER", "PAYLOAD"],
+                    "title": "BasicAuthLocation"
+                  },
+                  "basic_auth_header": {
+                    "anyOf": [
+                      {
+                        "additionalProperties": {
+                          "type": "string"
+                        },
+                        "type": "object"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "title": "Basic Auth Header",
+                    "description": "Auth header as {name: value} dict (required when location=HEADER)",
+                    "examples": [
+                      {
+                        "Authorization": "Basic dXNlcjpwYXNz"
+                      }
+                    ]
+                  }
+                },
+                "type": "object",
+                "title": "BasicAuthAuthConfig",
+                "description": "Basic Auth credentials — header or payload location."
+              },
+              {
+                "properties": {
+                  "oauth2_token_url": {
+                    "type": "string",
+                    "title": "Oauth2 Token Url",
+                    "description": "OAuth2 token endpoint URL",
+                    "examples": ["https://login.microsoftonline.com/{tenant}/oauth2/v2.0/token"]
+                  },
+                  "oauth2_expiry_minutes": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "title": "Oauth2 Expiry Minutes",
+                    "description": "Token validity in minutes. System refreshes at expiry - 1 min.",
+                    "default": 60
+                  },
+                  "oauth2_headers": {
+                    "additionalProperties": true,
+                    "type": "object",
+                    "title": "Oauth2 Headers",
+                    "description": "HTTP headers for the token request",
+                    "examples": [
+                      {
+                        "Authorization": "Basic Y2xpZW50X2lkOmNsaWVudF9zZWNyZXQ=",
+                        "Content-Type": "application/x-www-form-urlencoded"
+                      }
+                    ]
+                  },
+                  "oauth2_body_params": {
+                    "additionalProperties": true,
+                    "type": "object",
+                    "title": "Oauth2 Body Params",
+                    "description": "Body parameters for the token request (nested JSON dict)",
+                    "examples": [
+                      {
+                        "client_id": "my-client-id",
+                        "client_secret": "my-client-secret",
+                        "grant_type": "client_credentials",
+                        "scope": "api-access"
+                      }
+                    ]
+                  },
+                  "oauth2_token_response_key": {
+                    "type": "string",
+                    "title": "Oauth2 Token Response Key",
+                    "description": "Dot-notation path to token in response JSON",
+                    "default": "access_token",
+                    "examples": ["access_token", "data.credentials.access_token"]
+                  },
+                  "oauth2_inject_header": {
+                    "additionalProperties": {
+                      "type": "string"
+                    },
+                    "type": "object",
+                    "title": "Oauth2 Inject Header",
+                    "description": "Header template with {TOKEN} placeholder",
+                    "examples": [
+                      {
+                        "Authorization": "Bearer {TOKEN}"
+                      }
+                    ]
+                  }
+                },
+                "type": "object",
+                "required": ["oauth2_token_url", "oauth2_inject_header"],
+                "title": "OAuth2AuthConfig",
+                "description": "OAuth2 client credentials with proactive token refresh."
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Auth Config",
+            "description": "Authentication configuration (resolved based on auth_type)"
+          },
+          "network_broker_channel_uuid": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Network Broker Channel Uuid",
+            "description": "Network broker channel UUID for routing requests. Required when api_endpoint_type is NETWORK_BROKER.",
+            "examples": ["550e8400-e29b-41d4-a716-446655440000"]
+          },
+          "name": {
+            "type": "string",
+            "title": "Name",
+            "description": "Target name",
+            "examples": ["GPT 4.1 Nano"]
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description",
+            "description": "Optional target description",
+            "default": null,
+            "examples": ["AI model for testing"]
+          },
+          "target_type": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": ["APPLICATION", "AGENT", "MODEL"],
+                "title": "TargetType",
+                "description": "Target Types Available"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Type of target"
+          },
+          "connection_type": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "DATABRICKS",
+                  "BEDROCK",
+                  "OPENAI",
+                  "HUGGING_FACE",
+                  "CUSTOM",
+                  "REST",
+                  "STREAMING",
+                  "WEBSOCKET",
+                  "WEBSOCKET_STREAMING",
+                  "MS_COPILOT_STUDIO",
+                  "CUSTOM_TARGET_ADAPTER"
+                ],
+                "title": "TargetConnectionType",
+                "description": "Connection type/provider for the target."
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Connection type/provider for the target",
+            "examples": ["CUSTOM", "OPENAI", "BEDROCK"]
+          },
+          "api_endpoint_type": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": ["PUBLIC", "PRIVATE", "NETWORK_BROKER"],
+                "title": "ApiEndpointType",
+                "description": "API endpoint accessibility type."
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Accessibility type of the API endpoint",
+            "examples": ["PUBLIC", "PRIVATE", "NETWORK_BROKER"]
+          },
+          "response_mode": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": ["REST", "STREAMING", "WEBSOCKET", "WEBSOCKET_STREAMING"],
+                "title": "ResponseMode",
+                "description": "Response mode for target interactions."
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Response mode for API interactions",
+            "examples": ["REST", "STREAMING", "WEBSOCKET"]
+          },
+          "auth_type": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": ["HEADERS", "BASIC_AUTH", "OAUTH2", "CUSTOM_TARGET_ADAPTER"],
+                "title": "AuthType",
+                "description": "Authentication method for target API access."
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Authentication method for target API access",
+            "examples": ["HEADERS", "BASIC_AUTH", "OAUTH2"]
+          },
+          "session_supported": {
+            "type": "boolean",
+            "title": "Session Supported",
+            "description": "Whether target supports session for multi-turn conversations",
+            "default": false
+          },
+          "extra_info": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Extra Info",
+            "description": "Additional configuration or metadata for the target",
+            "default": {},
+            "examples": [
+              {
+                "custom_key": "custom_value"
+              }
+            ]
+          },
+          "adapter_uuid": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Adapter Uuid",
+            "description": "Custom adapter this target uses. Required when connection_type is CUSTOM_TARGET_ADAPTER; must be null for every other connection type."
+          },
+          "target_metadata": {
+            "description": "Target metadata and configuration options",
+            "properties": {
+              "multi_turn": {
+                "type": "boolean",
+                "title": "Multi Turn",
+                "description": "Whether target supports multi-turn conversations (Probe 2 result)",
+                "default": false
+              },
+              "multi_turn_error_message": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "title": "Multi Turn Error Message",
+                "description": "Concise error message if Probe 2 failed",
+                "examples": ["Session ID extraction failed", "Assistant role not configured"]
+              },
+              "supports_multimodal_files": {
+                "type": "boolean",
+                "title": "Supports Multimodal Files",
+                "description": "Whether the target accepted a sample file attack at validation time (Probe 3). When False, scans against this target run text-only.",
+                "default": false
+              },
+              "supports_multimodal_files_error_message": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "title": "Supports Multimodal Files Error Message",
+                "description": "Concise error message if the multimodal file probe failed",
+                "examples": [
+                  "HTTP 400: target rejected file payload",
+                  "File delivery not configured"
+                ]
+              },
+              "rate_limit": {
+                "anyOf": [
+                  {
+                    "type": "integer"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "title": "Rate Limit",
+                "description": "Current rate limit value",
+                "examples": [996]
+              },
+              "rate_limit_enabled": {
+                "type": "boolean",
+                "title": "Rate Limit Enabled",
+                "description": "Whether rate limiting is enabled",
+                "default": false
+              },
+              "rate_limit_error_code": {
+                "anyOf": [
+                  {
+                    "type": "integer"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "title": "Rate Limit Error Code",
+                "description": "HTTP status code for rate limit errors",
+                "examples": [429]
+              },
+              "rate_limit_error_json": {
+                "anyOf": [
+                  {
+                    "additionalProperties": true,
+                    "type": "object"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "title": "Rate Limit Error Json",
+                "description": "JSON structure of rate limit error response",
+                "examples": [
+                  {
+                    "error": {
+                      "code": "rate_limit_exceeded",
+                      "message": "Rate limit reached for o1-preview on requests per min (RPM): Limit 20, Used 20, Requested 1. Please try again in 3s. Visit https://platform.openai.com/account/rate-limits to learn more.",
+                      "param": "null",
+                      "type": "requests"
+                    }
+                  }
+                ]
+              },
+              "rate_limit_error_message": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "title": "Rate Limit Error Message",
+                "description": "Raw error message string for rate limit errors",
+                "examples": [
+                  "Rate limit reached for o1-preview on requests per min (RPM): Limit 20, Used 20, Requested 1. Please try again in 3s."
+                ]
+              },
+              "content_filter_enabled": {
+                "type": "boolean",
+                "title": "Content Filter Enabled",
+                "description": "Whether content filtering is enabled",
+                "default": false
+              },
+              "content_filter_error_code": {
+                "anyOf": [
+                  {
+                    "type": "integer"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "title": "Content Filter Error Code",
+                "description": "HTTP status code for content filter errors",
+                "examples": [400]
+              },
+              "content_filter_error_json": {
+                "anyOf": [
+                  {
+                    "additionalProperties": true,
+                    "type": "object"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "title": "Content Filter Error Json",
+                "description": "JSON structure of content filter error response",
+                "examples": [
+                  {
+                    "error": {
+                      "code": "invalid_prompt",
+                      "message": "Invalid prompt: your prompt was flagged as potentially violating our usage policy. Please try again with a different prompt.",
+                      "type": "invalid_request_error"
+                    }
+                  }
+                ]
+              },
+              "content_filter_error_message": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "title": "Content Filter Error Message",
+                "description": "Raw error message string for content filter errors",
+                "examples": [
+                  "Invalid prompt: your prompt was flagged as potentially violating our usage policy. Please try again with a different prompt."
+                ]
+              },
+              "probe_message": {
+                "type": "string",
+                "title": "Probe Message",
+                "default": "Hello, this is a test message from the red team validation system."
+              },
+              "request_timeout": {
+                "type": "number",
+                "title": "Request Timeout",
+                "description": "Request timeout in seconds",
+                "default": 110,
+                "examples": [110]
+              }
+            },
+            "type": "object",
+            "title": "TargetMetadata"
+          },
+          "target_background": {
+            "anyOf": [
+              {
+                "properties": {
+                  "industry": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "title": "Industry",
+                    "description": "Target's industry (e.g., Healthcare, Finance)"
+                  },
+                  "use_case": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "title": "Use Case",
+                    "description": "Primary use case (e.g., Customer Support, Code Assistant)"
+                  },
+                  "competitors": {
+                    "anyOf": [
+                      {
+                        "items": {
+                          "type": "string"
+                        },
+                        "type": "array"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "title": "Competitors",
+                    "description": "Known competitor products"
+                  },
+                  "agentic_profiling_enabled": {
+                    "type": "boolean",
+                    "title": "Agentic Profiling Enabled",
+                    "description": "Whether agentic profiling is enabled for this target",
+                    "default": true
+                  }
+                },
+                "type": "object",
+                "title": "TargetBackground",
+                "description": "Target background - used in create/update API requests and stored in DB/GCS.\n\nRequired fields for activation:\n- industry (string, required)\n- use_case (string, required)\n\nOptional field:\n- competitors (list of strings)\n"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Target background: industry, use_case, competitors"
+          },
+          "additional_context": {
+            "anyOf": [
+              {
+                "properties": {
+                  "base_model": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "title": "Base Model",
+                    "description": "Base model name (e.g., GPT-4, Claude)"
+                  },
+                  "core_architecture": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "title": "Core Architecture",
+                    "description": "Core architecture details"
+                  },
+                  "system_prompt": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "title": "System Prompt",
+                    "description": "System prompt"
+                  },
+                  "languages_supported": {
+                    "anyOf": [
+                      {
+                        "items": {
+                          "type": "string"
+                        },
+                        "type": "array"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "title": "Languages Supported",
+                    "description": "Supported languages"
+                  },
+                  "banned_keywords": {
+                    "anyOf": [
+                      {
+                        "items": {
+                          "type": "string"
+                        },
+                        "type": "array"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "title": "Banned Keywords",
+                    "description": "Banned keywords/phrases"
+                  },
+                  "tools_accessible": {
+                    "anyOf": [
+                      {
+                        "items": {
+                          "type": "string"
+                        },
+                        "type": "array"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "title": "Tools Accessible",
+                    "description": "Accessible tools/capabilities"
+                  }
+                },
+                "type": "object",
+                "title": "TargetAdditionalContext",
+                "description": "Additional context - used in create/update API requests and stored in DB/GCS.\n\nSingle value fields are strings.\nList fields are lists of strings.\n"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Additional context: base_model, system_prompt, languages, etc."
+          },
+          "canonical_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 512
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Canonical Id",
+            "description": "Partner-supplied stable identifier (e.g. Discovery's id). Free-form opaque string; immutable once set."
+          },
+          "adapter_variable_overrides": {
+            "anyOf": [
+              {
+                "items": {
+                  "properties": {
+                    "key": {
+                      "type": "string",
+                      "maxLength": 255,
+                      "title": "Key",
+                      "description": "Variable key"
+                    },
+                    "value": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "title": "Value",
+                      "description": "Variable value. On update, null means 'keep the existing value' — used for unchanged secrets, whose values are never returned."
+                    },
+                    "type": {
+                      "description": "VAR (non-sensitive) or SECRET (sensitive)",
+                      "type": "string",
+                      "enum": ["VAR", "SECRET"],
+                      "title": "AdapterVarType"
+                    }
+                  },
+                  "type": "object",
+                  "required": ["key", "type"],
+                  "title": "AdapterVarBase",
+                  "description": "A single adapter configuration variable (also the GSM-stored shape)."
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Adapter Variable Overrides",
+            "description": "Target-level overrides for the adapter's variables and secrets, by key. A value wins over the adapter's base value; a null secret value keeps the existing override on update. Only valid when connection_type is CUSTOM_TARGET_ADAPTER."
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": ["name"],
+        "title": "TargetCreateRequestSchema",
+        "description": "Target create request schema for validating and defining target creation parameters."
+      }
+    }
+  ]
+}

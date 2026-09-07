@@ -1,4 +1,5 @@
-import { ManagementClient, AISecSDKException } from '@cdot65/prisma-airs-sdk';
+import { reportExampleError } from './example-support.js';
+import { ManagementClient } from '@cdot65/prisma-airs-sdk';
 
 /**
  * Pull per-application token consumption and violation breakdown from the SCM AIRS
@@ -61,13 +62,8 @@ async function main() {
       }
     }
   } catch (error) {
-    if (error instanceof AISecSDKException) {
-      console.error('Error:', error.message);
-      console.error('Type:', error.errorType);
-    } else {
-      throw error;
-    }
+    reportExampleError(error);
   }
 }
 
-main().catch(console.error);
+main().catch(reportExampleError);

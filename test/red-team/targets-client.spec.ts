@@ -45,7 +45,7 @@ describe('RedTeamTargetsClient', () => {
   describe('create', () => {
     it('POSTs to /v1/target', async () => {
       mockFetch(targetMock({ name: 'test-target' }), 201);
-      const result = await client.create({ name: 'test-target', target_type: 'API' });
+      const result = await client.create({ name: 'test-target', target_type: 'APPLICATION' });
 
       expect(result.uuid).toBe(validUuid);
       const [url, init] = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0];
@@ -255,7 +255,7 @@ describe('RedTeamTargetsClient', () => {
   describe('probe', () => {
     it('POSTs to /v1/target/probe', async () => {
       mockFetch(targetMock({ status: 'PROBING' }));
-      const result = await client.probe({ target_id: validUuid });
+      const result = await client.probe({ name: 'sdk-test', uuid: validUuid });
 
       expect(result.status).toBe('PROBING');
       const [url, init] = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0];

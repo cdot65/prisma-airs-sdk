@@ -1,3 +1,7 @@
+import {
+  AdvancedDataProfileRequestSchema,
+  DataProfilePatchRequestSchema,
+} from '../../models/index.js';
 import { DLP_DATA_PROFILES_PATH } from '../../constants.js';
 import { request } from '../../http/request.js';
 import type { AuthAdapter } from '../../http/types.js';
@@ -127,6 +131,7 @@ export class DataProfilesClient {
    */
   async create(body: AdvancedDataProfileRequest): Promise<DataProfileResponse> {
     return request({
+      requestSchema: AdvancedDataProfileRequestSchema,
       method: 'POST',
       baseUrl: this.baseUrl,
       path: DLP_DATA_PROFILES_PATH,
@@ -189,6 +194,7 @@ export class DataProfilesClient {
     body: AdvancedDataProfileRequest,
   ): Promise<DataProfileResponse> {
     return request({
+      requestSchema: AdvancedDataProfileRequestSchema,
       method: 'PUT',
       baseUrl: this.baseUrl,
       path: `${DLP_DATA_PROFILES_PATH}/${encodeURIComponent(resourceId)}`,
@@ -219,6 +225,7 @@ export class DataProfilesClient {
    */
   async patch(resourceId: string, body: DataProfilePatchRequest): Promise<DataProfileResponse> {
     return request({
+      requestSchema: DataProfilePatchRequestSchema,
       method: 'PATCH',
       baseUrl: this.baseUrl,
       path: `${DLP_DATA_PROFILES_PATH}/${encodeURIComponent(resourceId)}`,

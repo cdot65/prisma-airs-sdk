@@ -29,6 +29,13 @@ import {
   type McpIntegrationWorkspacesBulkUpdateRequest,
 } from '../models/ai-gateway-requests.js';
 import type { AIGatewaySubClientOptions } from './types.js';
+import { z } from 'zod';
+import {
+  GatewayMcpIntegrationWorkspacesListResponseSchema,
+  GatewayMcpIntegrationWorkspacesLegacyResponseSchema,
+  type GatewayMcpIntegrationWorkspacesListResponse,
+  type GatewayMcpIntegrationWorkspacesLegacyResponse,
+} from '../models/ai-gateway-extensions.js';
 
 /** Client for AI Gateway MCP server integrations (admin plane). */
 export class AIGatewayMcpIntegrationsClient {
@@ -40,6 +47,28 @@ export class AIGatewayMcpIntegrationsClient {
     this.baseUrl = opts.baseUrl;
     this.auth = opts.auth;
     this.numRetries = opts.numRetries;
+  }
+
+  /** List MCP integration workspace access; version selects the upstream envelope. @example `await gw.mcpIntegrations.getWorkspaces(id, { version: '2' });` */
+  async getWorkspaces(
+    mcpIntegrationId: string,
+    opts: { version?: string } = {},
+  ): Promise<
+    GatewayMcpIntegrationWorkspacesListResponse | GatewayMcpIntegrationWorkspacesLegacyResponse
+  > {
+    assertUuid(mcpIntegrationId, 'mcpIntegrationId');
+    return request({
+      method: 'GET',
+      baseUrl: this.baseUrl,
+      path: `${AI_GW_MCP_INTEGRATIONS_PATH}/${mcpIntegrationId}/workspaces`,
+      params: opts.version === undefined ? undefined : { version: opts.version },
+      responseSchema: z.union([
+        GatewayMcpIntegrationWorkspacesListResponseSchema,
+        GatewayMcpIntegrationWorkspacesLegacyResponseSchema,
+      ]),
+      auth: this.auth,
+      numRetries: this.numRetries,
+    });
   }
 
   /**

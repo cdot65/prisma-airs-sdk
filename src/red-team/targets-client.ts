@@ -1,3 +1,10 @@
+import {
+  TargetAuthValidationRequestSchema,
+  TargetContextUpdateSchema,
+  TargetCreateRequestSchema,
+  TargetProbeRequestSchema,
+  TargetUpdateRequestSchema,
+} from '../models/index.js';
 import { z } from 'zod';
 import {
   RED_TEAM_TARGET_PATH,
@@ -5,6 +12,18 @@ import {
   RED_TEAM_TEMPLATE_PATH,
 } from '../constants.js';
 import { request } from '../http/request.js';
+import {
+  StartProfilingResponseSchema,
+  MSCopilotStudioAuthUrlRequestSchema,
+  MSCopilotStudioAuthUrlResponseSchema,
+  MSCopilotStudioTokenRequestSchema,
+  MSCopilotStudioTokenResponseSchema,
+  type StartProfilingResponse,
+  type MSCopilotStudioAuthUrlRequest,
+  type MSCopilotStudioAuthUrlResponse,
+  type MSCopilotStudioTokenRequest,
+  type MSCopilotStudioTokenResponse,
+} from '../models/red-team-capabilities.js';
 import type { AuthAdapter } from '../http/types.js';
 import { collectAll, paginate, serializeListing, type CollectAllOptions } from '../listing.js';
 import { assertUuid } from '../validators.js';
@@ -32,6 +51,8 @@ import type { RedTeamListOptions } from './scans-client.js';
 
 /** Target list filter options. */
 export interface TargetListOptions extends RedTeamListOptions {
+  /** Filter targets using a particular custom adapter. */
+  adapter_uuid?: string;
   target_type?: string;
   status?: string;
 }
@@ -54,6 +75,61 @@ export interface RedTeamTargetsClientOptions {
 
 /** Client for Red Team management plane target operations. */
 export class RedTeamTargetsClient {
+  /** Trigger profiling of an active target. @example `await rt.targets.startProfiling(targetUuid);` */
+  async startProfiling(uuid: string): Promise<StartProfilingResponse> {
+    assertUuid(uuid, 'target uuid');
+    return request({
+      method: 'POST',
+      baseUrl: this.baseUrl,
+      path: `${RED_TEAM_TARGET_PATH}/${uuid}/profile`,
+      responseSchema: StartProfilingResponseSchema,
+      auth: this.auth,
+      numRetries: this.numRetries,
+    });
+  }
+  /** Begin Copilot Studio OAuth authorization. @example `const auth = await rt.targets.getCopilotAuthUrl({ client_id, client_secret, tenant_id });` */
+  async getCopilotAuthUrl(
+    body: MSCopilotStudioAuthUrlRequest,
+  ): Promise<MSCopilotStudioAuthUrlResponse> {
+    return request({
+      method: 'POST',
+      baseUrl: this.baseUrl,
+      path: `${RED_TEAM_TARGET_PATH}/ms-copilot-studio/auth-url`,
+      body,
+      requestSchema: MSCopilotStudioAuthUrlRequestSchema,
+      responseSchema: MSCopilotStudioAuthUrlResponseSchema,
+      omitDebugBody: true,
+      auth: this.auth,
+      numRetries: this.numRetries,
+    });
+  }
+  /** Exchange the Copilot callback and state for a stored token reference. @example `const token = await rt.targets.exchangeCopilotToken({ auth_response: { code, state }, token_json_uuid, client_id, client_secret, tenant_id });` */
+  async exchangeCopilotToken(
+    body: MSCopilotStudioTokenRequest,
+  ): Promise<MSCopilotStudioTokenResponse> {
+    return request({
+      method: 'POST',
+      baseUrl: this.baseUrl,
+      path: `${RED_TEAM_TARGET_PATH}/ms-copilot-studio/token`,
+      body,
+      requestSchema: MSCopilotStudioTokenRequestSchema,
+      responseSchema: MSCopilotStudioTokenResponseSchema,
+      omitDebugBody: true,
+      auth: this.auth,
+      numRetries: this.numRetries,
+    });
+  }
+  /** Delete a Copilot token reference when cancelling authorization. @example `await rt.targets.deleteCopilotToken(tokenUuid);` */
+  async deleteCopilotToken(uuid: string): Promise<void> {
+    assertUuid(uuid, 'token json uuid');
+    return request({
+      method: 'DELETE',
+      baseUrl: this.baseUrl,
+      path: `${RED_TEAM_TARGET_PATH}/ms-copilot-studio/token/${uuid}`,
+      auth: this.auth,
+      numRetries: this.numRetries,
+    });
+  }
   private readonly baseUrl: string;
   private readonly auth: AuthAdapter;
   private readonly numRetries: number;
@@ -94,6 +170,7 @@ export class RedTeamTargetsClient {
     if (opts?.validate !== undefined) params.validate = String(opts.validate);
 
     return request({
+      requestSchema: TargetCreateRequestSchema,
       method: 'POST',
       baseUrl: this.baseUrl,
       path: RED_TEAM_TARGET_PATH,
@@ -121,6 +198,10 @@ export class RedTeamTargetsClient {
    */
   async list(opts?: TargetListOptions): Promise<TargetList> {
     const params = serializeListing(opts);
+    if (opts?.adapter_uuid !== undefined) {
+      assertUuid(opts.adapter_uuid, 'adapter uuid');
+      params.adapter_uuid = opts.adapter_uuid;
+    }
     if (opts?.target_type !== undefined) params.target_type = opts.target_type;
     if (opts?.status !== undefined) params.status = opts.status;
 
@@ -218,6 +299,7 @@ export class RedTeamTargetsClient {
     if (opts?.validate !== undefined) params.validate = String(opts.validate);
 
     return request({
+      requestSchema: TargetUpdateRequestSchema,
       method: 'PUT',
       baseUrl: this.baseUrl,
       path: `${RED_TEAM_TARGET_PATH}/${uuid}`,
@@ -276,6 +358,7 @@ export class RedTeamTargetsClient {
    */
   async probe(body: TargetProbeRequest): Promise<TargetResponse> {
     return request({
+      requestSchema: TargetProbeRequestSchema,
       method: 'POST',
       baseUrl: this.baseUrl,
       path: `${RED_TEAM_TARGET_PATH}/probe`,
@@ -333,6 +416,7 @@ export class RedTeamTargetsClient {
   async updateProfile(uuid: string, body: TargetContextUpdate): Promise<TargetResponse> {
     assertUuid(uuid, 'target uuid');
     return request({
+      requestSchema: TargetContextUpdateSchema,
       method: 'PUT',
       baseUrl: this.baseUrl,
       path: `${RED_TEAM_TARGET_PATH}/${uuid}/profile`,
@@ -362,6 +446,7 @@ export class RedTeamTargetsClient {
    */
   async validateAuth(body: TargetAuthValidationRequest): Promise<TargetAuthValidationResponse> {
     return request({
+      requestSchema: TargetAuthValidationRequestSchema,
       method: 'POST',
       baseUrl: this.baseUrl,
       path: RED_TEAM_TARGET_VALIDATE_AUTH_PATH,

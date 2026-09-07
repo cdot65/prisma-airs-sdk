@@ -19,6 +19,18 @@ import {
   type GatewayGuardrailUpdateRequest,
 } from '../models/ai-gateway-requests.js';
 import type { AIGatewaySubClientOptions, AIGatewayWorkspaceScopedListOptions } from './types.js';
+import {
+  GatewayMcpServerMappingsResponseSchema,
+  GatewayBulkSyncMcpServerMappingsRequestSchema,
+  GatewayBulkSyncMcpServerMappingsResponseSchema,
+  GatewayUpsertMcpServerMappingRequestSchema,
+  GatewayUpsertMcpServerMappingResponseSchema,
+  type GatewayMcpServerMapping,
+  type GatewayBulkSyncMcpServerMappingsRequest,
+  type GatewayBulkSyncMcpServerMappingsResponse,
+  type GatewayUpsertMcpServerMappingRequest,
+  type GatewayUpsertMcpServerMappingResponse,
+} from '../models/ai-gateway-extensions.js';
 
 /** Client for AI Gateway guardrail operations (data plane). */
 export class AIGatewayGuardrailsClient {
@@ -30,6 +42,57 @@ export class AIGatewayGuardrailsClient {
     this.baseUrl = opts.baseUrl;
     this.auth = opts.auth;
     this.numRetries = opts.numRetries;
+  }
+
+  /** List guardrail mappings to MCP servers. @example `await gw.guardrails.getMcpServers(id);` */
+  async getMcpServers(guardrailId: string): Promise<GatewayMcpServerMapping[]> {
+    assertUuid(guardrailId, 'guardrailId');
+    return request({
+      method: 'GET',
+      baseUrl: this.baseUrl,
+      path: `${AI_GW_GUARDRAILS_PATH}/${guardrailId}/mcp-servers`,
+      responseSchema: GatewayMcpServerMappingsResponseSchema,
+      auth: this.auth,
+      numRetries: this.numRetries,
+    });
+  }
+
+  /** Replace all MCP server mappings on this guardrail. @example `await gw.guardrails.syncMcpServers(id, body);` */
+  async syncMcpServers(
+    guardrailId: string,
+    body: GatewayBulkSyncMcpServerMappingsRequest,
+  ): Promise<GatewayBulkSyncMcpServerMappingsResponse> {
+    assertUuid(guardrailId, 'guardrailId');
+    return request({
+      method: 'PUT',
+      baseUrl: this.baseUrl,
+      path: `${AI_GW_GUARDRAILS_PATH}/${guardrailId}/mcp-servers`,
+      body,
+      requestSchema: GatewayBulkSyncMcpServerMappingsRequestSchema,
+      responseSchema: GatewayBulkSyncMcpServerMappingsResponseSchema,
+      auth: this.auth,
+      numRetries: this.numRetries,
+    });
+  }
+
+  /** Enable or disable one MCP server mapping. @example `await gw.guardrails.upsertMcpServer(id, serverId, body);` */
+  async upsertMcpServer(
+    guardrailId: string,
+    mcpServerId: string,
+    body: GatewayUpsertMcpServerMappingRequest,
+  ): Promise<GatewayUpsertMcpServerMappingResponse> {
+    assertUuid(guardrailId, 'guardrailId');
+    assertUuid(mcpServerId, 'mcpServerId');
+    return request({
+      method: 'PUT',
+      baseUrl: this.baseUrl,
+      path: `${AI_GW_GUARDRAILS_PATH}/${guardrailId}/mcp-servers/${mcpServerId}`,
+      body,
+      requestSchema: GatewayUpsertMcpServerMappingRequestSchema,
+      responseSchema: GatewayUpsertMcpServerMappingResponseSchema,
+      auth: this.auth,
+      numRetries: this.numRetries,
+    });
   }
 
   /**

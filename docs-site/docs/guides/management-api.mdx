@@ -5,6 +5,21 @@ description: Configure Prisma AIRS security profiles, custom topics, API keys, d
 
 # Management API
 
+## Token-scoped inventories and submission validation
+
+`profiles.listForToken()`, `topics.listForToken()`, `apiKeys.listForToken()`, and
+`customerApps.listForToken()` use the documented token-scoped collection routes. Existing
+TSG-scoped `list()` methods retain their behavior for CLI compatibility.
+
+Profile creation requires `policy` at submission. Revisions are server-assigned when omitted;
+some profile updates create a new revision with a different ID, so use the returned ID.
+Minimal custom topics may omit descriptions/examples, and omitted response examples normalize
+to an empty array. `topics.forceDeleteWithAudit(topicId, updatedBy)` serializes the audit actor
+on the force-delete route. Only delete a topic after checking its profile dependencies.
+
+These behaviors were verified through owned live workflows; see the
+[conformance report](../developer/openapi-conformance.md).
+
 CRUD operations for AIRS configuration via OAuth2 client credentials. Covers security profiles, custom topics, API keys, customer apps, dashboard telemetry, DLP resources, deployment profiles, scan logs, and OAuth token management.
 
 ## How it works
@@ -315,10 +330,8 @@ const updated = await client.topics.update(topic.topic_id!, {
 const result = await client.topics.delete(topic.topic_id!);
 
 // Force delete (removes even if referenced)
-// updatedBy is optional for topics
-const result = await client.topics.forceDelete(topic.topic_id!);
-// or with updatedBy
-const resultWithUser = await client.topics.forceDelete(topic.topic_id!, 'user@example.com');
+// The acting user is required by the API.
+const forced = await client.topics.forceDelete(topic.topic_id!, 'user@example.com');
 ```
 
 ## API Keys
@@ -628,7 +641,7 @@ Build a single `ManagementClient` and share it across your app. It owns the OAut
 A standard `delete` on a profile or topic that's still referenced by a policy fails with a **409 conflict** (the response lists the referencing policies). That's a safety net, not a bug. Either detach the references first, or call `forceDelete` to remove it anyway. Note the asymmetry:
 
 - `profiles.forceDelete(id, updatedBy)` — `updatedBy` is **required**.
-- `topics.forceDelete(id, updatedBy?)` — `updatedBy` is **optional**.
+- `topics.forceDelete(id, updatedBy?)` — the API **requires** `updatedBy`; omission now fails locally. The optional TypeScript argument is retained for existing CLI wrappers. New code can use `forceDeleteWithAudit(id, updatedBy)` for a required parameter. Both use `/topic/{id}/force`, not the obsolete `/topic/force/{id}` path.
 :::
 :::note[List endpoints paginate]
 `list()` returns up to 100 items by default. Pass `{ offset, limit }` and follow `next_offset` until it comes back `0` or absent (for scan logs, follow `page_token`) to walk the full set — or call the resource's `listAll()`, which does exactly that. Don't assume the first page is everything.

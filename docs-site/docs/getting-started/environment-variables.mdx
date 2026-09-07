@@ -67,25 +67,46 @@ All fall back to the corresponding `PANW_MGMT_*` variable if not set.
 | `PANW_AI_GW_ADMIN_ENDPOINT`   | —                           | `https://api.apps.paloaltonetworks.com/ai_gw/admin/v2` | Admin plane base URL        |
 | `PANW_AI_GW_TOKEN_ENDPOINT`   | `PANW_MGMT_TOKEN_ENDPOINT` | `https://auth.apps.paloaltonetworks.com/oauth2/access_token` | OAuth2 token endpoint |
 
+Runtime inference is separate from those SCM settings:
+
+| Variable | Required | Default | Purpose |
+| --- | --- | --- | --- |
+| `PANW_AI_GW_INFERENCE_ENDPOINT` | Yes, unless passed to the constructor | None | Deployed runtime base URL including `/v1` |
+| `PANW_AI_GW_INFERENCE_API_KEY` | Yes, unless passed to the constructor | None | Gateway runtime key; never management OAuth |
+
+The SDK does not default a provider or model. The companion CLI additionally recognizes
+`PANW_AI_GW_INFERENCE_MODEL` and `PANW_AI_GW_EMBEDDING_MODEL` as defaults for its inference
+commands. [Runtime inference guide](../guides/ai-gateway-inference.md).
+
 ## Debugging
+
+`PANW_AI_SEC_TIMEOUT_MS` sets the shared per-attempt deadline in milliseconds (default `60000`;
+must be a positive integer). Scanner per-call `timeoutMs` overrides it. OAuth token acquisition
+also has its own fixed 30-second deadline across token headers and JSON-body reads. This token
+deadline is not changed by `PANW_AI_SEC_TIMEOUT_MS` or `tokenBufferMs` (the latter controls
+pre-expiry refresh timing). A caller's shorter service-request deadline stops that caller's wait
+without cancelling a shared refresh for other callers.
 
 | Variable             | Required | Default | Description                                                     |
 | -------------------- | -------- | ------- | --------------------------------------------------------------- |
 | `PANW_AI_SEC_DEBUG`  | No       | —       | Set to `1`/`true`/`yes`/`on` to log every API call to `stderr`. |
+| `PANW_AI_SEC_DEBUG_BODY` | No | Off | Separately opt into redacted request/response bodies; requires debug enabled. Secret operations still omit bodies. |
 
-When enabled, the SDK logs each HTTP request (method, full URL, headers, body) and response
-(status, duration, body) to **stderr** for every domain — scan, management, model security, red
+When enabled, the SDK logs each HTTP request (method, sanitized URL, headers) and response
+(status and duration) to **stderr** for every domain — scan, management, model security, red
 teaming, and AI Gateway. It logs once per attempt, so retries and 401-driven token refreshes are
 visible.
 
 Access-token header values (`Authorization`, `x-pan-token`) are replaced with a non-reversible
-`sha256:<prefix>` hash, so debug logs are safe to share and you can still tell when a token
-rotates. The raw token is never written.
+`sha256:<prefix>` hash, so you can still tell when a token rotates. Cookies, credential query
+parameters, URL user information, and recognized secret fields are redacted. The raw token is
+never written. Logs can still contain resource identifiers or customer content when body logging
+is explicitly enabled; inspect them before sharing. Body logging is off by default.
 
 ```text
 [airs-sdk] → GET https://api.sase.paloaltonetworks.com/ai-red-teaming/mgmt-plane/v1/custom-attack/list-custom-prompt-sets?limit=1
 [airs-sdk]   headers {"User-Agent":"PAN-AIRS/0.20.1-typescript-sdk","service-name":"api","Authorization":"sha256:6ba877dddebe"}
-[airs-sdk] ← 200 (1397ms) {"pagination":{"total_items":1},"data":[...]}
+[airs-sdk] ← 200 (1397ms)
 ```
 
 Enable it inline for a single run:
@@ -94,9 +115,8 @@ Enable it inline for a single run:
 PANW_AI_SEC_DEBUG=1 npx tsx your-script.ts
 ```
 
-> AI Gateway operations redact fields listed in `AI_GATEWAY_SECRET_FIELDS`; unknown fields and
-> other service bodies are logged verbatim and may contain prompt content. Keep debug logging off
-> in production and review captured output before sharing.
+> With `PANW_AI_SEC_DEBUG_BODY=1`, unknown body fields may still contain customer content despite
+> credential redaction. Keep body logging off in production and review captured output before sharing.
 
 ## Example Scripts
 

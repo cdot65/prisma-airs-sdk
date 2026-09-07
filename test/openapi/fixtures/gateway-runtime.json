@@ -1,0 +1,3213 @@
+{
+  "source": "ai-gateway-openapi/openapi.yaml",
+  "sha256": "de7a1bd98bdb2edb7428a33054d9f6000b9568d1cd5b603d1a8302c053d094d9",
+  "corrections": [
+    "gateway-pricing-overlapping-calculation-nodes",
+    "gateway-prompt-root-hyperparameters",
+    "gateway-prompt-native-completion-response",
+    "gateway-legacy-stream-null-fields",
+    "gateway-audio-overlapping-json-variants",
+    "gateway-audio-verbose-duration",
+    "gateway-provider-prefixed-response-models"
+  ],
+  "cases": [
+    {
+      "method": "POST",
+      "path": "/chat/completions",
+      "call": {
+        "method": "POST",
+        "path": "/chat/completions",
+        "source": "src/ai-gateway/inference-client.ts",
+        "member": "createChatCompletion",
+        "plane": "gateway",
+        "responseSchema": "GatewayInferenceCreateChatCompletionResponseSchema",
+        "requestSchema": "GatewayInferenceInputCreateChatCompletionRequestSchema",
+        "requestType": "GatewayChatCompletionRequest",
+        "className": "AIGatewayInferenceClient",
+        "parameters": [
+          {
+            "name": "body",
+            "type": "GatewayChatCompletionRequest"
+          },
+          {
+            "name": "options",
+            "type": "GatewayInferenceRequestOptions"
+          }
+        ]
+      },
+      "runtimeClient": true,
+      "query": {},
+      "queryWire": {},
+      "body": {
+        "messages": [
+          {
+            "content": "x",
+            "role": "system",
+            "name": "x"
+          }
+        ],
+        "model": "x",
+        "frequency_penalty": -2,
+        "logit_bias": {},
+        "logprobs": false,
+        "top_logprobs": 0,
+        "max_tokens": 1,
+        "max_completion_tokens": 1,
+        "n": 1,
+        "presence_penalty": -2,
+        "response_format": {
+          "type": "text"
+        },
+        "seed": -9223372036854776000,
+        "stop": "x",
+        "stream": false,
+        "stream_options": {
+          "include_usage": false
+        },
+        "thinking": {
+          "type": "enabled",
+          "budget_tokens": 1
+        },
+        "temperature": 0,
+        "top_p": 0,
+        "tools": [
+          {
+            "type": "function",
+            "function": {
+              "description": "x",
+              "name": "x",
+              "parameters": {},
+              "strict": false
+            }
+          }
+        ],
+        "tool_choice": "none",
+        "parallel_tool_calls": false,
+        "user": "x",
+        "function_call": "none",
+        "functions": [
+          {
+            "description": "x",
+            "name": "x",
+            "parameters": {}
+          }
+        ]
+      },
+      "responseBody": {
+        "id": "x",
+        "choices": [
+          {
+            "finish_reason": "stop",
+            "index": 1,
+            "message": {
+              "content": "x",
+              "tool_calls": [
+                {
+                  "id": "x",
+                  "type": "function",
+                  "function": {
+                    "name": "x",
+                    "arguments": "x"
+                  }
+                }
+              ],
+              "role": "assistant",
+              "function_call": {
+                "arguments": "x",
+                "name": "x"
+              },
+              "content_blocks": [
+                {
+                  "type": "text",
+                  "text": "x"
+                }
+              ]
+            },
+            "logprobs": {
+              "content": [
+                {
+                  "token": "x",
+                  "logprob": 1,
+                  "bytes": [1],
+                  "top_logprobs": [
+                    {
+                      "token": "x",
+                      "logprob": 1,
+                      "bytes": [1]
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ],
+        "created": 1,
+        "model": "x",
+        "system_fingerprint": "x",
+        "object": "chat.completion",
+        "usage": {
+          "completion_tokens": 1,
+          "prompt_tokens": 1,
+          "total_tokens": 1,
+          "completion_tokens_details": {
+            "reasoning_tokens": 1,
+            "accepted_prediction_tokens": 1,
+            "rejected_prediction_tokens": 1
+          },
+          "prompt_tokens_details": {
+            "cached_tokens": 1
+          }
+        }
+      },
+      "responseStatus": 200,
+      "responseIsText": false
+    },
+    {
+      "method": "POST",
+      "path": "/completions",
+      "call": {
+        "method": "POST",
+        "path": "/completions",
+        "source": "src/ai-gateway/inference-client.ts",
+        "member": "createCompletion",
+        "plane": "gateway",
+        "responseSchema": "GatewayInferenceCreateCompletionResponseSchema",
+        "requestSchema": "GatewayInferenceInputCreateCompletionRequestSchema",
+        "requestType": "GatewayInferenceInputCreateCompletionRequest",
+        "className": "AIGatewayInferenceClient",
+        "parameters": [
+          {
+            "name": "body",
+            "type": "GatewayInferenceInputCreateCompletionRequest"
+          },
+          {
+            "name": "options",
+            "type": "GatewayInferenceRequestOptions"
+          }
+        ]
+      },
+      "runtimeClient": true,
+      "query": {},
+      "queryWire": {},
+      "body": {
+        "model": "x",
+        "prompt": "x",
+        "best_of": 0,
+        "echo": false,
+        "frequency_penalty": -2,
+        "logit_bias": {},
+        "logprobs": 0,
+        "max_tokens": 0,
+        "n": 1,
+        "presence_penalty": -2,
+        "seed": -9223372036854776000,
+        "stop": "x",
+        "stream": false,
+        "stream_options": {
+          "include_usage": false
+        },
+        "suffix": "x",
+        "temperature": 0,
+        "top_p": 0,
+        "user": "x"
+      },
+      "responseBody": {
+        "id": "x",
+        "choices": [
+          {
+            "finish_reason": "stop",
+            "index": 1,
+            "logprobs": {
+              "text_offset": [1],
+              "token_logprobs": [1],
+              "tokens": ["x"],
+              "top_logprobs": [{}]
+            },
+            "text": "x"
+          }
+        ],
+        "created": 1,
+        "model": "x",
+        "system_fingerprint": "x",
+        "object": "text_completion",
+        "usage": {
+          "completion_tokens": 1,
+          "prompt_tokens": 1,
+          "total_tokens": 1,
+          "completion_tokens_details": {
+            "reasoning_tokens": 1,
+            "accepted_prediction_tokens": 1,
+            "rejected_prediction_tokens": 1
+          },
+          "prompt_tokens_details": {
+            "cached_tokens": 1
+          }
+        }
+      },
+      "responseStatus": 200,
+      "responseIsText": false
+    },
+    {
+      "method": "POST",
+      "path": "/prompts/{promptId}/completions",
+      "call": {
+        "method": "POST",
+        "path": "/prompts/{gatewayPathSegment(promptId)}/completions",
+        "source": "src/ai-gateway/inference-client.ts",
+        "member": "createPromptCompletion",
+        "plane": "gateway",
+        "responseSchema": "GatewayInferenceCreatePromptCompletionResponseSchema",
+        "requestSchema": "GatewayInferenceInputCreatePromptCompletionRequestSchema",
+        "requestType": "GatewayInferenceInputCreatePromptCompletionRequest",
+        "className": "AIGatewayInferenceClient",
+        "parameters": [
+          {
+            "name": "promptId",
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "type": "GatewayInferenceInputCreatePromptCompletionRequest"
+          },
+          {
+            "name": "options",
+            "type": "GatewayInferenceRequestOptions"
+          }
+        ]
+      },
+      "runtimeClient": true,
+      "query": {},
+      "queryWire": {},
+      "body": {
+        "messages": [
+          {
+            "content": "x",
+            "role": "system",
+            "name": "x"
+          }
+        ],
+        "model": "x",
+        "frequency_penalty": -2,
+        "logit_bias": {},
+        "logprobs": false,
+        "top_logprobs": 0,
+        "max_tokens": 1,
+        "max_completion_tokens": 1,
+        "n": 1,
+        "presence_penalty": -2,
+        "response_format": {
+          "type": "text"
+        },
+        "seed": -9223372036854776000,
+        "stop": "x",
+        "stream": false,
+        "stream_options": {
+          "include_usage": false
+        },
+        "thinking": {
+          "type": "enabled",
+          "budget_tokens": 1
+        },
+        "temperature": 0,
+        "top_p": 0,
+        "tools": [
+          {
+            "type": "function",
+            "function": {
+              "description": "x",
+              "name": "x",
+              "parameters": {},
+              "strict": false
+            }
+          }
+        ],
+        "tool_choice": "none",
+        "parallel_tool_calls": false,
+        "user": "x",
+        "function_call": "none",
+        "functions": [
+          {
+            "description": "x",
+            "name": "x",
+            "parameters": {}
+          }
+        ],
+        "variables": {}
+      },
+      "responseBody": {
+        "id": "x",
+        "choices": [
+          {
+            "finish_reason": "stop",
+            "index": 1,
+            "message": {
+              "content": "x",
+              "tool_calls": [
+                {
+                  "id": "x",
+                  "type": "function",
+                  "function": {
+                    "name": "x",
+                    "arguments": "x"
+                  }
+                }
+              ],
+              "role": "assistant",
+              "function_call": {
+                "arguments": "x",
+                "name": "x"
+              },
+              "content_blocks": [
+                {
+                  "type": "text",
+                  "text": "x"
+                }
+              ]
+            },
+            "logprobs": {
+              "content": [
+                {
+                  "token": "x",
+                  "logprob": 1,
+                  "bytes": [1],
+                  "top_logprobs": [
+                    {
+                      "token": "x",
+                      "logprob": 1,
+                      "bytes": [1]
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ],
+        "created": 1,
+        "model": "x",
+        "system_fingerprint": "x",
+        "object": "chat.completion",
+        "usage": {
+          "completion_tokens": 1,
+          "prompt_tokens": 1,
+          "total_tokens": 1,
+          "completion_tokens_details": {
+            "reasoning_tokens": 1,
+            "accepted_prediction_tokens": 1,
+            "rejected_prediction_tokens": 1
+          },
+          "prompt_tokens_details": {
+            "cached_tokens": 1
+          }
+        }
+      },
+      "responseStatus": 200,
+      "responseIsText": false
+    },
+    {
+      "method": "POST",
+      "path": "/prompts/{promptId}/render",
+      "call": {
+        "method": "POST",
+        "path": "/prompts/{gatewayPathSegment(promptId)}/render",
+        "source": "src/ai-gateway/inference-client.ts",
+        "member": "createPromptRender",
+        "plane": "gateway",
+        "responseSchema": "GatewayInferenceCreatePromptRenderResponseSchema",
+        "requestSchema": "GatewayInferenceInputCreatePromptRenderRequestSchema",
+        "requestType": "GatewayInferenceInputCreatePromptRenderRequest",
+        "className": "AIGatewayInferenceClient",
+        "parameters": [
+          {
+            "name": "promptId",
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "type": "GatewayInferenceInputCreatePromptRenderRequest"
+          },
+          {
+            "name": "options",
+            "type": "GatewayInferenceRequestOptions"
+          }
+        ]
+      },
+      "runtimeClient": true,
+      "query": {},
+      "queryWire": {},
+      "body": {
+        "messages": [
+          {
+            "content": "x",
+            "role": "system",
+            "name": "x"
+          }
+        ],
+        "model": "x",
+        "frequency_penalty": -2,
+        "logit_bias": {},
+        "logprobs": false,
+        "top_logprobs": 0,
+        "max_tokens": 1,
+        "max_completion_tokens": 1,
+        "n": 1,
+        "presence_penalty": -2,
+        "response_format": {
+          "type": "text"
+        },
+        "seed": -9223372036854776000,
+        "stop": "x",
+        "stream": false,
+        "stream_options": {
+          "include_usage": false
+        },
+        "thinking": {
+          "type": "enabled",
+          "budget_tokens": 1
+        },
+        "temperature": 0,
+        "top_p": 0,
+        "tools": [
+          {
+            "type": "function",
+            "function": {
+              "description": "x",
+              "name": "x",
+              "parameters": {},
+              "strict": false
+            }
+          }
+        ],
+        "tool_choice": "none",
+        "parallel_tool_calls": false,
+        "user": "x",
+        "function_call": "none",
+        "functions": [
+          {
+            "description": "x",
+            "name": "x",
+            "parameters": {}
+          }
+        ],
+        "variables": {}
+      },
+      "responseBody": {
+        "success": false,
+        "data": {
+          "messages": [
+            {
+              "content": "x",
+              "role": "system",
+              "name": "x"
+            }
+          ],
+          "model": "x",
+          "frequency_penalty": -2,
+          "logit_bias": {},
+          "logprobs": false,
+          "top_logprobs": 0,
+          "max_tokens": 1,
+          "max_completion_tokens": 1,
+          "n": 1,
+          "presence_penalty": -2,
+          "response_format": {
+            "type": "text"
+          },
+          "seed": -9223372036854776000,
+          "stop": "x",
+          "stream": false,
+          "stream_options": {
+            "include_usage": false
+          },
+          "thinking": {
+            "type": "enabled",
+            "budget_tokens": 1
+          },
+          "temperature": 0,
+          "top_p": 0,
+          "tools": [
+            {
+              "type": "function",
+              "function": {
+                "description": "x",
+                "name": "x",
+                "parameters": {},
+                "strict": false
+              }
+            }
+          ],
+          "tool_choice": "none",
+          "parallel_tool_calls": false,
+          "user": "x",
+          "function_call": "none",
+          "functions": [
+            {
+              "description": "x",
+              "name": "x",
+              "parameters": {}
+            }
+          ]
+        }
+      },
+      "responseStatus": 200,
+      "responseIsText": false
+    },
+    {
+      "method": "POST",
+      "path": "/images/generations",
+      "call": {
+        "method": "POST",
+        "path": "/images/generations",
+        "source": "src/ai-gateway/runtime-resources-client.ts",
+        "member": "createImage",
+        "plane": "gateway",
+        "responseSchema": "GatewayInferenceImagesResponseSchema",
+        "requestSchema": "GatewayInferenceInputCreateImageRequestSchema",
+        "requestType": "GatewayInferenceInputCreateImageRequest",
+        "className": "AIGatewayRuntimeResourcesClient",
+        "parameters": [
+          {
+            "name": "body",
+            "type": "GatewayInferenceInputCreateImageRequest"
+          },
+          {
+            "name": "options",
+            "type": "GatewayInferenceRequestOptions"
+          }
+        ]
+      },
+      "runtimeClient": true,
+      "query": {},
+      "queryWire": {},
+      "body": {
+        "prompt": "x",
+        "model": "x",
+        "n": 1,
+        "quality": "standard",
+        "response_format": "url",
+        "size": "256x256",
+        "style": "vivid",
+        "user": "x"
+      },
+      "responseBody": {
+        "created": 1,
+        "data": [
+          {
+            "b64_json": "x",
+            "url": "x",
+            "revised_prompt": "x"
+          }
+        ]
+      },
+      "responseStatus": 200,
+      "responseIsText": false
+    },
+    {
+      "method": "POST",
+      "path": "/embeddings",
+      "call": {
+        "method": "POST",
+        "path": "/embeddings",
+        "source": "src/ai-gateway/inference-client.ts",
+        "member": "createEmbedding",
+        "plane": "gateway",
+        "responseSchema": "GatewayInferenceCreateEmbeddingResponseSchema",
+        "requestSchema": "GatewayInferenceInputCreateEmbeddingRequestSchema",
+        "requestType": "GatewayEmbeddingRequest",
+        "className": "AIGatewayInferenceClient",
+        "parameters": [
+          {
+            "name": "body",
+            "type": "GatewayEmbeddingRequest"
+          },
+          {
+            "name": "options",
+            "type": "GatewayInferenceRequestOptions"
+          }
+        ]
+      },
+      "runtimeClient": true,
+      "query": {},
+      "queryWire": {},
+      "body": {
+        "input": "x",
+        "model": "x",
+        "encoding_format": "float",
+        "dimensions": 1,
+        "user": "x"
+      },
+      "responseBody": {
+        "data": [
+          {
+            "index": 1,
+            "embedding": [1],
+            "object": "embedding"
+          }
+        ],
+        "model": "x",
+        "object": "list",
+        "usage": {
+          "prompt_tokens": 1,
+          "total_tokens": 1
+        }
+      },
+      "responseStatus": 200,
+      "responseIsText": false
+    },
+    {
+      "method": "POST",
+      "path": "/rerank",
+      "call": {
+        "method": "POST",
+        "path": "/rerank",
+        "source": "src/ai-gateway/runtime-resources-client.ts",
+        "member": "createRerank",
+        "plane": "gateway",
+        "responseSchema": "GatewayInferenceCreateRerankResponseSchema",
+        "requestSchema": "GatewayInferenceInputCreateRerankRequestSchema",
+        "requestType": "GatewayInferenceInputCreateRerankRequest",
+        "className": "AIGatewayRuntimeResourcesClient",
+        "parameters": [
+          {
+            "name": "body",
+            "type": "GatewayInferenceInputCreateRerankRequest"
+          },
+          {
+            "name": "options",
+            "type": "GatewayInferenceRequestOptions"
+          }
+        ]
+      },
+      "runtimeClient": true,
+      "query": {},
+      "queryWire": {},
+      "body": {
+        "model": "x",
+        "query": "x",
+        "documents": ["x"],
+        "top_n": 1,
+        "return_documents": false,
+        "max_tokens_per_doc": 1,
+        "priority": 1,
+        "rank_fields": ["x"],
+        "truncation": false,
+        "parameters": {}
+      },
+      "responseBody": {
+        "id": "x",
+        "object": "list",
+        "results": [
+          {
+            "index": 1,
+            "relevance_score": 1,
+            "document": {
+              "text": "x"
+            }
+          }
+        ],
+        "model": "x",
+        "usage": {
+          "search_units": 1
+        },
+        "provider": "x"
+      },
+      "responseStatus": 200,
+      "responseIsText": false
+    },
+    {
+      "method": "POST",
+      "path": "/ocr",
+      "call": {
+        "method": "POST",
+        "path": "/ocr",
+        "source": "src/ai-gateway/runtime-resources-client.ts",
+        "member": "createOcr",
+        "plane": "gateway",
+        "responseSchema": "GatewayInferenceCreateOcrResponseSchema",
+        "requestSchema": "GatewayInferenceInputCreateOcrRequestSchema",
+        "requestType": "GatewayInferenceInputCreateOcrRequest",
+        "className": "AIGatewayRuntimeResourcesClient",
+        "parameters": [
+          {
+            "name": "body",
+            "type": "GatewayInferenceInputCreateOcrRequest"
+          },
+          {
+            "name": "options",
+            "type": "GatewayInferenceRequestOptions"
+          }
+        ]
+      },
+      "runtimeClient": true,
+      "query": {},
+      "queryWire": {},
+      "body": {
+        "model": "x",
+        "document": {
+          "type": "document_url",
+          "document_url": "x",
+          "image_url": "x"
+        },
+        "include_image_base64": false,
+        "image_limit": 1,
+        "image_min_size": 1,
+        "pages": [1]
+      },
+      "responseBody": {
+        "pages": [
+          {
+            "index": 1,
+            "markdown": "x",
+            "images": [
+              {
+                "id": "x",
+                "image_base64": "x"
+              }
+            ]
+          }
+        ],
+        "model": "x",
+        "usage_info": {
+          "pages_processed": 1
+        }
+      },
+      "responseStatus": 200,
+      "responseIsText": false
+    },
+    {
+      "method": "POST",
+      "path": "/audio/speech",
+      "call": {
+        "method": "POST",
+        "path": "/audio/speech",
+        "source": "src/ai-gateway/runtime-resources-client.ts",
+        "member": "createSpeech",
+        "plane": "gateway",
+        "requestSchema": "GatewayInferenceInputCreateSpeechRequestSchema",
+        "requestType": "GatewayInferenceInputCreateSpeechRequest",
+        "className": "AIGatewayRuntimeResourcesClient",
+        "parameters": [
+          {
+            "name": "body",
+            "type": "GatewayInferenceInputCreateSpeechRequest"
+          },
+          {
+            "name": "options",
+            "type": "GatewayInferenceRequestOptions"
+          }
+        ]
+      },
+      "runtimeClient": true,
+      "query": {},
+      "queryWire": {},
+      "body": {
+        "model": "x",
+        "input": "x",
+        "voice": "alloy",
+        "response_format": "mp3",
+        "speed": 0.25
+      },
+      "responseBody": "prompt,goal\n",
+      "responseStatus": 200,
+      "responseIsText": true
+    },
+    {
+      "method": "GET",
+      "path": "/files",
+      "call": {
+        "method": "GET",
+        "path": "/files",
+        "source": "src/ai-gateway/runtime-resources-client.ts",
+        "member": "listFiles",
+        "plane": "gateway",
+        "responseSchema": "GatewayInferenceListFilesResponseSchema",
+        "queryType": "GatewayInferenceInputListFilesQuery",
+        "className": "AIGatewayRuntimeResourcesClient",
+        "parameters": [
+          {
+            "name": "opts",
+            "type": "GatewayInferenceInputListFilesQuery"
+          },
+          {
+            "name": "options",
+            "type": "GatewayInferenceRequestOptions"
+          }
+        ]
+      },
+      "runtimeClient": true,
+      "query": {
+        "purpose": "x"
+      },
+      "queryWire": {
+        "purpose": ["x"]
+      },
+      "responseBody": {
+        "data": [
+          {
+            "id": "x",
+            "bytes": 1,
+            "created_at": 1,
+            "filename": "x",
+            "object": "file",
+            "purpose": "assistants",
+            "status": "uploaded",
+            "status_details": "x"
+          }
+        ],
+        "object": "list"
+      },
+      "responseStatus": 200,
+      "responseIsText": false
+    },
+    {
+      "method": "DELETE",
+      "path": "/files/{file_id}",
+      "call": {
+        "method": "DELETE",
+        "path": "/files/{gatewayPathSegment(file_id)}",
+        "source": "src/ai-gateway/runtime-resources-client.ts",
+        "member": "deleteFile",
+        "plane": "gateway",
+        "responseSchema": "GatewayInferenceDeleteFileResponseSchema",
+        "className": "AIGatewayRuntimeResourcesClient",
+        "parameters": [
+          {
+            "name": "file_id",
+            "type": "string"
+          },
+          {
+            "name": "options",
+            "type": "GatewayInferenceRequestOptions"
+          }
+        ]
+      },
+      "runtimeClient": true,
+      "query": {},
+      "queryWire": {},
+      "responseBody": {
+        "id": "x",
+        "object": "file",
+        "deleted": false
+      },
+      "responseStatus": 200,
+      "responseIsText": false
+    },
+    {
+      "method": "GET",
+      "path": "/files/{file_id}",
+      "call": {
+        "method": "GET",
+        "path": "/files/{gatewayPathSegment(file_id)}",
+        "source": "src/ai-gateway/runtime-resources-client.ts",
+        "member": "retrieveFile",
+        "plane": "gateway",
+        "responseSchema": "GatewayInferenceOpenAIFileSchema",
+        "className": "AIGatewayRuntimeResourcesClient",
+        "parameters": [
+          {
+            "name": "file_id",
+            "type": "string"
+          },
+          {
+            "name": "options",
+            "type": "GatewayInferenceRequestOptions"
+          }
+        ]
+      },
+      "runtimeClient": true,
+      "query": {},
+      "queryWire": {},
+      "responseBody": {
+        "id": "x",
+        "bytes": 1,
+        "created_at": 1,
+        "filename": "x",
+        "object": "file",
+        "purpose": "assistants",
+        "status": "uploaded",
+        "status_details": "x"
+      },
+      "responseStatus": 200,
+      "responseIsText": false
+    },
+    {
+      "method": "GET",
+      "path": "/files/{file_id}/content",
+      "call": {
+        "method": "GET",
+        "path": "/files/{gatewayPathSegment(file_id)}/content",
+        "source": "src/ai-gateway/runtime-resources-client.ts",
+        "member": "downloadFile",
+        "plane": "gateway",
+        "className": "AIGatewayRuntimeResourcesClient",
+        "parameters": [
+          {
+            "name": "file_id",
+            "type": "string"
+          },
+          {
+            "name": "options",
+            "type": "GatewayInferenceRequestOptions"
+          }
+        ]
+      },
+      "runtimeClient": true,
+      "query": {},
+      "queryWire": {},
+      "responseBody": "x",
+      "responseStatus": 200,
+      "responseIsText": true
+    },
+    {
+      "method": "POST",
+      "path": "/fine_tuning/jobs",
+      "call": {
+        "method": "POST",
+        "path": "/fine_tuning/jobs",
+        "source": "src/ai-gateway/runtime-resources-client.ts",
+        "member": "createFineTuningJob",
+        "plane": "gateway",
+        "responseSchema": "GatewayInferenceFineTuningJobSchema",
+        "requestSchema": "GatewayInferenceInputCreateFineTuningJobRequestSchema",
+        "requestType": "GatewayInferenceInputCreateFineTuningJobRequest",
+        "className": "AIGatewayRuntimeResourcesClient",
+        "parameters": [
+          {
+            "name": "body",
+            "type": "GatewayInferenceInputCreateFineTuningJobRequest"
+          },
+          {
+            "name": "options",
+            "type": "GatewayInferenceRequestOptions"
+          }
+        ]
+      },
+      "runtimeClient": true,
+      "query": {},
+      "queryWire": {},
+      "body": {
+        "model": "x",
+        "training_file": "x",
+        "validation_file": "x",
+        "suffix": "x",
+        "method": {
+          "type": "supervised",
+          "supervised": {
+            "hyperparameters": {
+              "n_epochs": 1,
+              "learning_rate_multiplier": 1,
+              "batch_size": 1
+            }
+          },
+          "dpo": {
+            "hyperparameters": {
+              "n_epochs": 1,
+              "learning_rate_multiplier": 1,
+              "batch_size": 1
+            }
+          }
+        }
+      },
+      "responseBody": {
+        "id": "x",
+        "created_at": 1,
+        "error": {
+          "code": "x",
+          "message": "x",
+          "param": "x"
+        },
+        "fine_tuned_model": "x",
+        "finished_at": 1,
+        "hyperparameters": {
+          "n_epochs": "auto"
+        },
+        "model": "x",
+        "object": "fine_tuning.job",
+        "organization_id": "x",
+        "result_files": ["x"],
+        "status": "validating_files",
+        "trained_tokens": 1,
+        "training_file": "x",
+        "validation_file": "x",
+        "integrations": [
+          {
+            "type": "wandb",
+            "wandb": {
+              "project": "x",
+              "name": "x",
+              "entity": "x",
+              "tags": ["x"]
+            }
+          }
+        ],
+        "seed": 1,
+        "estimated_finish": 1
+      },
+      "responseStatus": 200,
+      "responseIsText": false
+    },
+    {
+      "method": "GET",
+      "path": "/fine_tuning/jobs",
+      "call": {
+        "method": "GET",
+        "path": "/fine_tuning/jobs",
+        "source": "src/ai-gateway/runtime-resources-client.ts",
+        "member": "listPaginatedFineTuningJobs",
+        "plane": "gateway",
+        "responseSchema": "GatewayInferenceListPaginatedFineTuningJobsResponseSchema",
+        "queryType": "GatewayInferenceInputListPaginatedFineTuningJobsQuery",
+        "className": "AIGatewayRuntimeResourcesClient",
+        "parameters": [
+          {
+            "name": "opts",
+            "type": "GatewayInferenceInputListPaginatedFineTuningJobsQuery"
+          },
+          {
+            "name": "options",
+            "type": "GatewayInferenceRequestOptions"
+          }
+        ]
+      },
+      "runtimeClient": true,
+      "query": {
+        "after": "x",
+        "limit": 1
+      },
+      "queryWire": {
+        "after": ["x"],
+        "limit": ["1"]
+      },
+      "responseBody": {
+        "data": [
+          {
+            "id": "x",
+            "created_at": 1,
+            "error": {
+              "code": "x",
+              "message": "x",
+              "param": "x"
+            },
+            "fine_tuned_model": "x",
+            "finished_at": 1,
+            "hyperparameters": {
+              "n_epochs": "auto"
+            },
+            "model": "x",
+            "object": "fine_tuning.job",
+            "organization_id": "x",
+            "result_files": ["x"],
+            "status": "validating_files",
+            "trained_tokens": 1,
+            "training_file": "x",
+            "validation_file": "x",
+            "integrations": [
+              {
+                "type": "wandb",
+                "wandb": {
+                  "project": "x",
+                  "name": "x",
+                  "entity": "x",
+                  "tags": ["x"]
+                }
+              }
+            ],
+            "seed": 1,
+            "estimated_finish": 1
+          }
+        ],
+        "has_more": false,
+        "object": "list"
+      },
+      "responseStatus": 200,
+      "responseIsText": false
+    },
+    {
+      "method": "GET",
+      "path": "/fine_tuning/jobs/{fine_tuning_job_id}",
+      "call": {
+        "method": "GET",
+        "path": "/fine_tuning/jobs/{gatewayPathSegment(fine_tuning_job_id)}",
+        "source": "src/ai-gateway/runtime-resources-client.ts",
+        "member": "retrieveFineTuningJob",
+        "plane": "gateway",
+        "responseSchema": "GatewayInferenceFineTuningJobSchema",
+        "className": "AIGatewayRuntimeResourcesClient",
+        "parameters": [
+          {
+            "name": "fine_tuning_job_id",
+            "type": "string"
+          },
+          {
+            "name": "options",
+            "type": "GatewayInferenceRequestOptions"
+          }
+        ]
+      },
+      "runtimeClient": true,
+      "query": {},
+      "queryWire": {},
+      "responseBody": {
+        "id": "x",
+        "created_at": 1,
+        "error": {
+          "code": "x",
+          "message": "x",
+          "param": "x"
+        },
+        "fine_tuned_model": "x",
+        "finished_at": 1,
+        "hyperparameters": {
+          "n_epochs": "auto"
+        },
+        "model": "x",
+        "object": "fine_tuning.job",
+        "organization_id": "x",
+        "result_files": ["x"],
+        "status": "validating_files",
+        "trained_tokens": 1,
+        "training_file": "x",
+        "validation_file": "x",
+        "integrations": [
+          {
+            "type": "wandb",
+            "wandb": {
+              "project": "x",
+              "name": "x",
+              "entity": "x",
+              "tags": ["x"]
+            }
+          }
+        ],
+        "seed": 1,
+        "estimated_finish": 1
+      },
+      "responseStatus": 200,
+      "responseIsText": false
+    },
+    {
+      "method": "GET",
+      "path": "/fine_tuning/jobs/{fine_tuning_job_id}/events",
+      "call": {
+        "method": "GET",
+        "path": "/fine_tuning/jobs/{gatewayPathSegment(fine_tuning_job_id)}/events",
+        "source": "src/ai-gateway/runtime-resources-client.ts",
+        "member": "listFineTuningEvents",
+        "plane": "gateway",
+        "responseSchema": "GatewayInferenceListFineTuningJobEventsResponseSchema",
+        "queryType": "GatewayInferenceInputListFineTuningEventsQuery",
+        "className": "AIGatewayRuntimeResourcesClient",
+        "parameters": [
+          {
+            "name": "fine_tuning_job_id",
+            "type": "string"
+          },
+          {
+            "name": "opts",
+            "type": "GatewayInferenceInputListFineTuningEventsQuery"
+          },
+          {
+            "name": "options",
+            "type": "GatewayInferenceRequestOptions"
+          }
+        ]
+      },
+      "runtimeClient": true,
+      "query": {
+        "after": "x",
+        "limit": 1
+      },
+      "queryWire": {
+        "after": ["x"],
+        "limit": ["1"]
+      },
+      "responseBody": {
+        "data": [
+          {
+            "id": "x",
+            "created_at": 1,
+            "level": "info",
+            "message": "x",
+            "object": "fine_tuning.job.event"
+          }
+        ],
+        "object": "list"
+      },
+      "responseStatus": 200,
+      "responseIsText": false
+    },
+    {
+      "method": "POST",
+      "path": "/fine_tuning/jobs/{fine_tuning_job_id}/cancel",
+      "call": {
+        "method": "POST",
+        "path": "/fine_tuning/jobs/{gatewayPathSegment(fine_tuning_job_id)}/cancel",
+        "source": "src/ai-gateway/runtime-resources-client.ts",
+        "member": "cancelFineTuningJob",
+        "plane": "gateway",
+        "responseSchema": "GatewayInferenceFineTuningJobSchema",
+        "className": "AIGatewayRuntimeResourcesClient",
+        "parameters": [
+          {
+            "name": "fine_tuning_job_id",
+            "type": "string"
+          },
+          {
+            "name": "options",
+            "type": "GatewayInferenceRequestOptions"
+          }
+        ]
+      },
+      "runtimeClient": true,
+      "query": {},
+      "queryWire": {},
+      "responseBody": {
+        "id": "x",
+        "created_at": 1,
+        "error": {
+          "code": "x",
+          "message": "x",
+          "param": "x"
+        },
+        "fine_tuned_model": "x",
+        "finished_at": 1,
+        "hyperparameters": {
+          "n_epochs": "auto"
+        },
+        "model": "x",
+        "object": "fine_tuning.job",
+        "organization_id": "x",
+        "result_files": ["x"],
+        "status": "validating_files",
+        "trained_tokens": 1,
+        "training_file": "x",
+        "validation_file": "x",
+        "integrations": [
+          {
+            "type": "wandb",
+            "wandb": {
+              "project": "x",
+              "name": "x",
+              "entity": "x",
+              "tags": ["x"]
+            }
+          }
+        ],
+        "seed": 1,
+        "estimated_finish": 1
+      },
+      "responseStatus": 200,
+      "responseIsText": false
+    },
+    {
+      "method": "GET",
+      "path": "/fine_tuning/jobs/{fine_tuning_job_id}/checkpoints",
+      "call": {
+        "method": "GET",
+        "path": "/fine_tuning/jobs/{gatewayPathSegment(fine_tuning_job_id)}/checkpoints",
+        "source": "src/ai-gateway/runtime-resources-client.ts",
+        "member": "listFineTuningJobCheckpoints",
+        "plane": "gateway",
+        "responseSchema": "GatewayInferenceListFineTuningJobCheckpointsResponseSchema",
+        "queryType": "GatewayInferenceInputListFineTuningJobCheckpointsQuery",
+        "className": "AIGatewayRuntimeResourcesClient",
+        "parameters": [
+          {
+            "name": "fine_tuning_job_id",
+            "type": "string"
+          },
+          {
+            "name": "opts",
+            "type": "GatewayInferenceInputListFineTuningJobCheckpointsQuery"
+          },
+          {
+            "name": "options",
+            "type": "GatewayInferenceRequestOptions"
+          }
+        ]
+      },
+      "runtimeClient": true,
+      "query": {
+        "after": "x",
+        "limit": 1
+      },
+      "queryWire": {
+        "after": ["x"],
+        "limit": ["1"]
+      },
+      "responseBody": {
+        "data": [
+          {
+            "id": "x",
+            "created_at": 1,
+            "fine_tuned_model_checkpoint": "x",
+            "step_number": 1,
+            "metrics": {
+              "step": 1,
+              "train_loss": 1,
+              "train_mean_token_accuracy": 1,
+              "valid_loss": 1,
+              "valid_mean_token_accuracy": 1,
+              "full_valid_loss": 1,
+              "full_valid_mean_token_accuracy": 1
+            },
+            "fine_tuning_job_id": "x",
+            "object": "fine_tuning.job.checkpoint"
+          }
+        ],
+        "object": "list",
+        "first_id": "x",
+        "last_id": "x",
+        "has_more": false
+      },
+      "responseStatus": 200,
+      "responseIsText": false
+    },
+    {
+      "method": "GET",
+      "path": "/models",
+      "call": {
+        "method": "GET",
+        "path": "/models",
+        "source": "src/ai-gateway/runtime-resources-client.ts",
+        "member": "listModels",
+        "plane": "gateway",
+        "responseSchema": "GatewayInferenceListModelsResponseSchema",
+        "queryType": "GatewayInferenceInputListModelsQuery",
+        "className": "AIGatewayRuntimeResourcesClient",
+        "parameters": [
+          {
+            "name": "opts",
+            "type": "GatewayInferenceInputListModelsQuery"
+          },
+          {
+            "name": "options",
+            "type": "GatewayInferenceRequestOptions"
+          }
+        ]
+      },
+      "runtimeClient": true,
+      "query": {
+        "ai_service": "x",
+        "provider": "x",
+        "limit": 1,
+        "offset": 1,
+        "sort": "name",
+        "order": "asc"
+      },
+      "queryWire": {
+        "ai_service": ["x"],
+        "provider": ["x"],
+        "limit": ["1"],
+        "offset": ["1"],
+        "sort": ["name"],
+        "order": ["asc"]
+      },
+      "responseBody": {
+        "object": "list",
+        "data": [
+          {
+            "id": "x",
+            "created": 1,
+            "object": "model",
+            "owned_by": "x"
+          }
+        ]
+      },
+      "responseStatus": 200,
+      "responseIsText": false
+    },
+    {
+      "method": "GET",
+      "path": "/models/{model}",
+      "call": {
+        "method": "GET",
+        "path": "/models/{gatewayPathSegment(model)}",
+        "source": "src/ai-gateway/runtime-resources-client.ts",
+        "member": "retrieveModel",
+        "plane": "gateway",
+        "responseSchema": "GatewayInferenceModelSchema",
+        "className": "AIGatewayRuntimeResourcesClient",
+        "parameters": [
+          {
+            "name": "model",
+            "type": "string"
+          },
+          {
+            "name": "options",
+            "type": "GatewayInferenceRequestOptions"
+          }
+        ]
+      },
+      "runtimeClient": true,
+      "query": {},
+      "queryWire": {},
+      "responseBody": {
+        "id": "x",
+        "created": 1,
+        "object": "model",
+        "owned_by": "x"
+      },
+      "responseStatus": 200,
+      "responseIsText": false
+    },
+    {
+      "method": "DELETE",
+      "path": "/models/{model}",
+      "call": {
+        "method": "DELETE",
+        "path": "/models/{gatewayPathSegment(model)}",
+        "source": "src/ai-gateway/runtime-resources-client.ts",
+        "member": "deleteModel",
+        "plane": "gateway",
+        "responseSchema": "GatewayInferenceDeleteModelResponseSchema",
+        "className": "AIGatewayRuntimeResourcesClient",
+        "parameters": [
+          {
+            "name": "model",
+            "type": "string"
+          },
+          {
+            "name": "options",
+            "type": "GatewayInferenceRequestOptions"
+          }
+        ]
+      },
+      "runtimeClient": true,
+      "query": {},
+      "queryWire": {},
+      "responseBody": {
+        "id": "x",
+        "deleted": false,
+        "object": "x"
+      },
+      "responseStatus": 200,
+      "responseIsText": false
+    },
+    {
+      "method": "POST",
+      "path": "/moderations",
+      "call": {
+        "method": "POST",
+        "path": "/moderations",
+        "source": "src/ai-gateway/runtime-resources-client.ts",
+        "member": "createModeration",
+        "plane": "gateway",
+        "responseSchema": "GatewayInferenceCreateModerationResponseSchema",
+        "requestSchema": "GatewayInferenceInputCreateModerationRequestSchema",
+        "requestType": "GatewayInferenceInputCreateModerationRequest",
+        "className": "AIGatewayRuntimeResourcesClient",
+        "parameters": [
+          {
+            "name": "body",
+            "type": "GatewayInferenceInputCreateModerationRequest"
+          },
+          {
+            "name": "options",
+            "type": "GatewayInferenceRequestOptions"
+          }
+        ]
+      },
+      "runtimeClient": true,
+      "query": {},
+      "queryWire": {},
+      "body": {
+        "input": "x",
+        "model": "x"
+      },
+      "responseBody": {
+        "id": "x",
+        "model": "x",
+        "results": [
+          {
+            "flagged": false,
+            "categories": {
+              "hate": false,
+              "hate/threatening": false,
+              "harassment": false,
+              "harassment/threatening": false,
+              "self-harm": false,
+              "self-harm/intent": false,
+              "self-harm/instructions": false,
+              "sexual": false,
+              "sexual/minors": false,
+              "violence": false,
+              "violence/graphic": false
+            },
+            "category_scores": {
+              "hate": 1,
+              "hate/threatening": 1,
+              "harassment": 1,
+              "harassment/threatening": 1,
+              "self-harm": 1,
+              "self-harm/intent": 1,
+              "self-harm/instructions": 1,
+              "sexual": 1,
+              "sexual/minors": 1,
+              "violence": 1,
+              "violence/graphic": 1
+            }
+          }
+        ]
+      },
+      "responseStatus": 200,
+      "responseIsText": false
+    },
+    {
+      "method": "POST",
+      "path": "/responses",
+      "call": {
+        "method": "POST",
+        "path": "/responses",
+        "source": "src/ai-gateway/inference-client.ts",
+        "member": "createResponse",
+        "plane": "gateway",
+        "responseSchema": "GatewayInferenceResponseSchema",
+        "requestSchema": "GatewayInferenceInputCreateResponseSchema",
+        "requestType": "GatewayInferenceInputCreateResponse",
+        "className": "AIGatewayInferenceClient",
+        "parameters": [
+          {
+            "name": "body",
+            "type": "GatewayInferenceInputCreateResponse"
+          },
+          {
+            "name": "options",
+            "type": "GatewayInferenceRequestOptions"
+          }
+        ]
+      },
+      "runtimeClient": true,
+      "query": {},
+      "queryWire": {},
+      "body": {
+        "metadata": {},
+        "temperature": 0,
+        "top_p": 0,
+        "user": "x",
+        "previous_response_id": "x",
+        "model": "x",
+        "reasoning": {
+          "effort": "low",
+          "generate_summary": "concise"
+        },
+        "max_output_tokens": 1,
+        "instructions": "x",
+        "text": {
+          "format": {
+            "type": "text"
+          }
+        },
+        "tools": [
+          {
+            "type": "file_search",
+            "vector_store_ids": ["x"],
+            "max_num_results": 1,
+            "filters": {
+              "type": "eq",
+              "key": "x",
+              "value": "x"
+            },
+            "ranking_options": {
+              "ranker": "auto",
+              "score_threshold": 0
+            }
+          }
+        ],
+        "tool_choice": "none",
+        "truncation": "auto",
+        "input": "x",
+        "include": ["file_search_call.results"],
+        "parallel_tool_calls": false,
+        "store": false,
+        "stream": false
+      },
+      "responseBody": {
+        "metadata": {},
+        "temperature": 0,
+        "top_p": 0,
+        "user": "x",
+        "previous_response_id": "x",
+        "model": "x",
+        "reasoning": {
+          "effort": "low",
+          "generate_summary": "concise"
+        },
+        "max_output_tokens": 1,
+        "instructions": "x",
+        "text": {
+          "format": {
+            "type": "text"
+          }
+        },
+        "tools": [
+          {
+            "type": "file_search",
+            "vector_store_ids": ["x"],
+            "max_num_results": 1,
+            "filters": {
+              "type": "eq",
+              "key": "x",
+              "value": "x"
+            },
+            "ranking_options": {
+              "ranker": "auto",
+              "score_threshold": 0
+            }
+          }
+        ],
+        "tool_choice": "none",
+        "truncation": "auto",
+        "id": "x",
+        "object": "response",
+        "status": "completed",
+        "created_at": 1,
+        "error": {
+          "code": "server_error",
+          "message": "x"
+        },
+        "incomplete_details": {
+          "reason": "max_output_tokens"
+        },
+        "output": [
+          {
+            "id": "x",
+            "type": "message",
+            "role": "assistant",
+            "content": [
+              {
+                "type": "output_text",
+                "text": "x",
+                "annotations": [
+                  {
+                    "type": "file_citation",
+                    "index": 1,
+                    "file_id": "x"
+                  }
+                ]
+              }
+            ],
+            "status": "in_progress"
+          }
+        ],
+        "output_text": "x",
+        "usage": {
+          "input_tokens": 1,
+          "input_tokens_details": {
+            "cached_tokens": 1
+          },
+          "output_tokens": 1,
+          "output_tokens_details": {
+            "reasoning_tokens": 1
+          },
+          "total_tokens": 1
+        },
+        "parallel_tool_calls": false
+      },
+      "responseStatus": 200,
+      "responseIsText": false
+    },
+    {
+      "method": "GET",
+      "path": "/responses/{response_id}",
+      "call": {
+        "method": "GET",
+        "path": "/responses/{gatewayPathSegment(response_id)}",
+        "source": "src/ai-gateway/runtime-resources-client.ts",
+        "member": "getResponse",
+        "plane": "gateway",
+        "responseSchema": "GatewayInferenceResponseSchema",
+        "queryType": "GatewayInferenceInputGetResponseQuery",
+        "className": "AIGatewayRuntimeResourcesClient",
+        "parameters": [
+          {
+            "name": "response_id",
+            "type": "string"
+          },
+          {
+            "name": "opts",
+            "type": "GatewayInferenceInputGetResponseQuery"
+          },
+          {
+            "name": "options",
+            "type": "GatewayInferenceRequestOptions"
+          }
+        ]
+      },
+      "runtimeClient": true,
+      "query": {
+        "include": ["file_search_call.results", "message.input_image.image_url"]
+      },
+      "queryWire": {
+        "include": ["file_search_call.results", "message.input_image.image_url"]
+      },
+      "responseBody": {
+        "metadata": {},
+        "temperature": 0,
+        "top_p": 0,
+        "user": "x",
+        "previous_response_id": "x",
+        "model": "x",
+        "reasoning": {
+          "effort": "low",
+          "generate_summary": "concise"
+        },
+        "max_output_tokens": 1,
+        "instructions": "x",
+        "text": {
+          "format": {
+            "type": "text"
+          }
+        },
+        "tools": [
+          {
+            "type": "file_search",
+            "vector_store_ids": ["x"],
+            "max_num_results": 1,
+            "filters": {
+              "type": "eq",
+              "key": "x",
+              "value": "x"
+            },
+            "ranking_options": {
+              "ranker": "auto",
+              "score_threshold": 0
+            }
+          }
+        ],
+        "tool_choice": "none",
+        "truncation": "auto",
+        "id": "x",
+        "object": "response",
+        "status": "completed",
+        "created_at": 1,
+        "error": {
+          "code": "server_error",
+          "message": "x"
+        },
+        "incomplete_details": {
+          "reason": "max_output_tokens"
+        },
+        "output": [
+          {
+            "id": "x",
+            "type": "message",
+            "role": "assistant",
+            "content": [
+              {
+                "type": "output_text",
+                "text": "x",
+                "annotations": [
+                  {
+                    "type": "file_citation",
+                    "index": 1,
+                    "file_id": "x"
+                  }
+                ]
+              }
+            ],
+            "status": "in_progress"
+          }
+        ],
+        "output_text": "x",
+        "usage": {
+          "input_tokens": 1,
+          "input_tokens_details": {
+            "cached_tokens": 1
+          },
+          "output_tokens": 1,
+          "output_tokens_details": {
+            "reasoning_tokens": 1
+          },
+          "total_tokens": 1
+        },
+        "parallel_tool_calls": false
+      },
+      "responseStatus": 200,
+      "responseIsText": false
+    },
+    {
+      "method": "DELETE",
+      "path": "/responses/{response_id}",
+      "call": {
+        "method": "DELETE",
+        "path": "/responses/{gatewayPathSegment(response_id)}",
+        "source": "src/ai-gateway/runtime-resources-client.ts",
+        "member": "deleteResponse",
+        "plane": "gateway",
+        "className": "AIGatewayRuntimeResourcesClient",
+        "parameters": [
+          {
+            "name": "response_id",
+            "type": "string"
+          },
+          {
+            "name": "options",
+            "type": "GatewayInferenceRequestOptions"
+          }
+        ]
+      },
+      "runtimeClient": true,
+      "query": {},
+      "queryWire": {},
+      "responseBody": "prompt,goal\n",
+      "responseStatus": 200,
+      "responseIsText": true
+    },
+    {
+      "method": "GET",
+      "path": "/responses/{response_id}/input_items",
+      "call": {
+        "method": "GET",
+        "path": "/responses/{gatewayPathSegment(response_id)}/input_items",
+        "source": "src/ai-gateway/runtime-resources-client.ts",
+        "member": "listInputItems",
+        "plane": "gateway",
+        "responseSchema": "GatewayInferenceResponseItemListSchema",
+        "queryType": "GatewayInferenceInputListInputItemsQuery",
+        "className": "AIGatewayRuntimeResourcesClient",
+        "parameters": [
+          {
+            "name": "response_id",
+            "type": "string"
+          },
+          {
+            "name": "opts",
+            "type": "GatewayInferenceInputListInputItemsQuery"
+          },
+          {
+            "name": "options",
+            "type": "GatewayInferenceRequestOptions"
+          }
+        ]
+      },
+      "runtimeClient": true,
+      "query": {
+        "limit": 1,
+        "order": "asc",
+        "after": "x",
+        "before": "x"
+      },
+      "queryWire": {
+        "limit": ["1"],
+        "order": ["asc"],
+        "after": ["x"],
+        "before": ["x"]
+      },
+      "responseBody": {
+        "object": "list",
+        "data": [
+          {
+            "type": "message",
+            "role": "user",
+            "status": "in_progress",
+            "content": [
+              {
+                "type": "input_text",
+                "text": "x"
+              }
+            ],
+            "id": "x"
+          }
+        ],
+        "has_more": false,
+        "first_id": "x",
+        "last_id": "x"
+      },
+      "responseStatus": 200,
+      "responseIsText": false
+    },
+    {
+      "method": "GET",
+      "path": "/vector_stores",
+      "call": {
+        "method": "GET",
+        "path": "/vector_stores",
+        "source": "src/ai-gateway/runtime-resources-client.ts",
+        "member": "listVectorStores",
+        "plane": "gateway",
+        "responseSchema": "GatewayInferenceListVectorStoresResponseSchema",
+        "queryType": "GatewayInferenceInputListVectorStoresQuery",
+        "className": "AIGatewayRuntimeResourcesClient",
+        "parameters": [
+          {
+            "name": "opts",
+            "type": "GatewayInferenceInputListVectorStoresQuery"
+          },
+          {
+            "name": "options",
+            "type": "GatewayInferenceRequestOptions"
+          }
+        ]
+      },
+      "runtimeClient": true,
+      "query": {
+        "limit": 1,
+        "order": "asc",
+        "after": "x",
+        "before": "x"
+      },
+      "queryWire": {
+        "limit": ["1"],
+        "order": ["asc"],
+        "after": ["x"],
+        "before": ["x"]
+      },
+      "responseBody": {
+        "object": "x",
+        "data": [
+          {
+            "id": "x",
+            "object": "vector_store",
+            "created_at": 1,
+            "name": "x",
+            "usage_bytes": 1,
+            "file_counts": {
+              "in_progress": 1,
+              "completed": 1,
+              "failed": 1,
+              "cancelled": 1,
+              "total": 1
+            },
+            "status": "expired",
+            "expires_after": {
+              "anchor": "last_active_at",
+              "days": 1
+            },
+            "expires_at": 1,
+            "last_active_at": 1,
+            "metadata": {}
+          }
+        ],
+        "first_id": "x",
+        "last_id": "x",
+        "has_more": false
+      },
+      "responseStatus": 200,
+      "responseIsText": false
+    },
+    {
+      "method": "POST",
+      "path": "/vector_stores",
+      "call": {
+        "method": "POST",
+        "path": "/vector_stores",
+        "source": "src/ai-gateway/runtime-resources-client.ts",
+        "member": "createVectorStore",
+        "plane": "gateway",
+        "responseSchema": "GatewayInferenceVectorStoreObjectSchema",
+        "requestSchema": "GatewayInferenceInputCreateVectorStoreRequestSchema",
+        "requestType": "GatewayInferenceInputCreateVectorStoreRequest",
+        "className": "AIGatewayRuntimeResourcesClient",
+        "parameters": [
+          {
+            "name": "body",
+            "type": "GatewayInferenceInputCreateVectorStoreRequest"
+          },
+          {
+            "name": "options",
+            "type": "GatewayInferenceRequestOptions"
+          }
+        ]
+      },
+      "runtimeClient": true,
+      "query": {},
+      "queryWire": {},
+      "body": {
+        "file_ids": ["x"],
+        "name": "x",
+        "expires_after": {
+          "anchor": "last_active_at",
+          "days": 1
+        },
+        "chunking_strategy": {
+          "type": "auto"
+        },
+        "metadata": {}
+      },
+      "responseBody": {
+        "id": "x",
+        "object": "vector_store",
+        "created_at": 1,
+        "name": "x",
+        "usage_bytes": 1,
+        "file_counts": {
+          "in_progress": 1,
+          "completed": 1,
+          "failed": 1,
+          "cancelled": 1,
+          "total": 1
+        },
+        "status": "expired",
+        "expires_after": {
+          "anchor": "last_active_at",
+          "days": 1
+        },
+        "expires_at": 1,
+        "last_active_at": 1,
+        "metadata": {}
+      },
+      "responseStatus": 200,
+      "responseIsText": false
+    },
+    {
+      "method": "GET",
+      "path": "/vector_stores/{vector_store_id}",
+      "call": {
+        "method": "GET",
+        "path": "/vector_stores/{gatewayPathSegment(vector_store_id)}",
+        "source": "src/ai-gateway/runtime-resources-client.ts",
+        "member": "getVectorStore",
+        "plane": "gateway",
+        "responseSchema": "GatewayInferenceVectorStoreObjectSchema",
+        "className": "AIGatewayRuntimeResourcesClient",
+        "parameters": [
+          {
+            "name": "vector_store_id",
+            "type": "string"
+          },
+          {
+            "name": "options",
+            "type": "GatewayInferenceRequestOptions"
+          }
+        ]
+      },
+      "runtimeClient": true,
+      "query": {},
+      "queryWire": {},
+      "responseBody": {
+        "id": "x",
+        "object": "vector_store",
+        "created_at": 1,
+        "name": "x",
+        "usage_bytes": 1,
+        "file_counts": {
+          "in_progress": 1,
+          "completed": 1,
+          "failed": 1,
+          "cancelled": 1,
+          "total": 1
+        },
+        "status": "expired",
+        "expires_after": {
+          "anchor": "last_active_at",
+          "days": 1
+        },
+        "expires_at": 1,
+        "last_active_at": 1,
+        "metadata": {}
+      },
+      "responseStatus": 200,
+      "responseIsText": false
+    },
+    {
+      "method": "POST",
+      "path": "/vector_stores/{vector_store_id}",
+      "call": {
+        "method": "POST",
+        "path": "/vector_stores/{gatewayPathSegment(vector_store_id)}",
+        "source": "src/ai-gateway/runtime-resources-client.ts",
+        "member": "modifyVectorStore",
+        "plane": "gateway",
+        "responseSchema": "GatewayInferenceVectorStoreObjectSchema",
+        "requestSchema": "GatewayInferenceInputUpdateVectorStoreRequestSchema",
+        "requestType": "GatewayInferenceInputUpdateVectorStoreRequest",
+        "className": "AIGatewayRuntimeResourcesClient",
+        "parameters": [
+          {
+            "name": "vector_store_id",
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "type": "GatewayInferenceInputUpdateVectorStoreRequest"
+          },
+          {
+            "name": "options",
+            "type": "GatewayInferenceRequestOptions"
+          }
+        ]
+      },
+      "runtimeClient": true,
+      "query": {},
+      "queryWire": {},
+      "body": {
+        "name": "x",
+        "expires_after": {
+          "anchor": "last_active_at",
+          "days": 1
+        },
+        "metadata": {}
+      },
+      "responseBody": {
+        "id": "x",
+        "object": "vector_store",
+        "created_at": 1,
+        "name": "x",
+        "usage_bytes": 1,
+        "file_counts": {
+          "in_progress": 1,
+          "completed": 1,
+          "failed": 1,
+          "cancelled": 1,
+          "total": 1
+        },
+        "status": "expired",
+        "expires_after": {
+          "anchor": "last_active_at",
+          "days": 1
+        },
+        "expires_at": 1,
+        "last_active_at": 1,
+        "metadata": {}
+      },
+      "responseStatus": 200,
+      "responseIsText": false
+    },
+    {
+      "method": "DELETE",
+      "path": "/vector_stores/{vector_store_id}",
+      "call": {
+        "method": "DELETE",
+        "path": "/vector_stores/{gatewayPathSegment(vector_store_id)}",
+        "source": "src/ai-gateway/runtime-resources-client.ts",
+        "member": "deleteVectorStore",
+        "plane": "gateway",
+        "responseSchema": "GatewayInferenceDeleteVectorStoreResponseSchema",
+        "className": "AIGatewayRuntimeResourcesClient",
+        "parameters": [
+          {
+            "name": "vector_store_id",
+            "type": "string"
+          },
+          {
+            "name": "options",
+            "type": "GatewayInferenceRequestOptions"
+          }
+        ]
+      },
+      "runtimeClient": true,
+      "query": {},
+      "queryWire": {},
+      "responseBody": {
+        "id": "x",
+        "deleted": false,
+        "object": "vector_store.deleted"
+      },
+      "responseStatus": 200,
+      "responseIsText": false
+    },
+    {
+      "method": "GET",
+      "path": "/vector_stores/{vector_store_id}/files",
+      "call": {
+        "method": "GET",
+        "path": "/vector_stores/{gatewayPathSegment(vector_store_id)}/files",
+        "source": "src/ai-gateway/runtime-resources-client.ts",
+        "member": "listVectorStoreFiles",
+        "plane": "gateway",
+        "responseSchema": "GatewayInferenceListVectorStoreFilesResponseSchema",
+        "queryType": "GatewayInferenceInputListVectorStoreFilesQuery",
+        "className": "AIGatewayRuntimeResourcesClient",
+        "parameters": [
+          {
+            "name": "vector_store_id",
+            "type": "string"
+          },
+          {
+            "name": "opts",
+            "type": "GatewayInferenceInputListVectorStoreFilesQuery"
+          },
+          {
+            "name": "options",
+            "type": "GatewayInferenceRequestOptions"
+          }
+        ]
+      },
+      "runtimeClient": true,
+      "query": {
+        "limit": 1,
+        "order": "asc",
+        "after": "x",
+        "before": "x",
+        "filter": "in_progress"
+      },
+      "queryWire": {
+        "limit": ["1"],
+        "order": ["asc"],
+        "after": ["x"],
+        "before": ["x"],
+        "filter": ["in_progress"]
+      },
+      "responseBody": {
+        "object": "x",
+        "data": [
+          {
+            "id": "x",
+            "object": "vector_store.file",
+            "usage_bytes": 1,
+            "created_at": 1,
+            "vector_store_id": "x",
+            "status": "in_progress",
+            "last_error": {
+              "code": "internal_error",
+              "message": "x"
+            },
+            "chunking_strategy": {
+              "type": "static",
+              "static": {
+                "max_chunk_size_tokens": 100,
+                "chunk_overlap_tokens": 1
+              }
+            }
+          }
+        ],
+        "first_id": "x",
+        "last_id": "x",
+        "has_more": false
+      },
+      "responseStatus": 200,
+      "responseIsText": false
+    },
+    {
+      "method": "POST",
+      "path": "/vector_stores/{vector_store_id}/files",
+      "call": {
+        "method": "POST",
+        "path": "/vector_stores/{gatewayPathSegment(vector_store_id)}/files",
+        "source": "src/ai-gateway/runtime-resources-client.ts",
+        "member": "createVectorStoreFile",
+        "plane": "gateway",
+        "responseSchema": "GatewayInferenceVectorStoreFileObjectSchema",
+        "requestSchema": "GatewayInferenceInputCreateVectorStoreFileRequestSchema",
+        "requestType": "GatewayInferenceInputCreateVectorStoreFileRequest",
+        "className": "AIGatewayRuntimeResourcesClient",
+        "parameters": [
+          {
+            "name": "vector_store_id",
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "type": "GatewayInferenceInputCreateVectorStoreFileRequest"
+          },
+          {
+            "name": "options",
+            "type": "GatewayInferenceRequestOptions"
+          }
+        ]
+      },
+      "runtimeClient": true,
+      "query": {},
+      "queryWire": {},
+      "body": {
+        "file_id": "x",
+        "chunking_strategy": {
+          "type": "auto"
+        }
+      },
+      "responseBody": {
+        "id": "x",
+        "object": "vector_store.file",
+        "usage_bytes": 1,
+        "created_at": 1,
+        "vector_store_id": "x",
+        "status": "in_progress",
+        "last_error": {
+          "code": "internal_error",
+          "message": "x"
+        },
+        "chunking_strategy": {
+          "type": "static",
+          "static": {
+            "max_chunk_size_tokens": 100,
+            "chunk_overlap_tokens": 1
+          }
+        }
+      },
+      "responseStatus": 200,
+      "responseIsText": false
+    },
+    {
+      "method": "GET",
+      "path": "/vector_stores/{vector_store_id}/files/{file_id}",
+      "call": {
+        "method": "GET",
+        "path": "/vector_stores/{gatewayPathSegment(vector_store_id)}/files/{gatewayPathSegment(file_id)}",
+        "source": "src/ai-gateway/runtime-resources-client.ts",
+        "member": "getVectorStoreFile",
+        "plane": "gateway",
+        "responseSchema": "GatewayInferenceVectorStoreFileObjectSchema",
+        "className": "AIGatewayRuntimeResourcesClient",
+        "parameters": [
+          {
+            "name": "vector_store_id",
+            "type": "string"
+          },
+          {
+            "name": "file_id",
+            "type": "string"
+          },
+          {
+            "name": "options",
+            "type": "GatewayInferenceRequestOptions"
+          }
+        ]
+      },
+      "runtimeClient": true,
+      "query": {},
+      "queryWire": {},
+      "responseBody": {
+        "id": "x",
+        "object": "vector_store.file",
+        "usage_bytes": 1,
+        "created_at": 1,
+        "vector_store_id": "x",
+        "status": "in_progress",
+        "last_error": {
+          "code": "internal_error",
+          "message": "x"
+        },
+        "chunking_strategy": {
+          "type": "static",
+          "static": {
+            "max_chunk_size_tokens": 100,
+            "chunk_overlap_tokens": 1
+          }
+        }
+      },
+      "responseStatus": 200,
+      "responseIsText": false
+    },
+    {
+      "method": "DELETE",
+      "path": "/vector_stores/{vector_store_id}/files/{file_id}",
+      "call": {
+        "method": "DELETE",
+        "path": "/vector_stores/{gatewayPathSegment(vector_store_id)}/files/{gatewayPathSegment(file_id)}",
+        "source": "src/ai-gateway/runtime-resources-client.ts",
+        "member": "deleteVectorStoreFile",
+        "plane": "gateway",
+        "responseSchema": "GatewayInferenceDeleteVectorStoreFileResponseSchema",
+        "className": "AIGatewayRuntimeResourcesClient",
+        "parameters": [
+          {
+            "name": "vector_store_id",
+            "type": "string"
+          },
+          {
+            "name": "file_id",
+            "type": "string"
+          },
+          {
+            "name": "options",
+            "type": "GatewayInferenceRequestOptions"
+          }
+        ]
+      },
+      "runtimeClient": true,
+      "query": {},
+      "queryWire": {},
+      "responseBody": {
+        "id": "x",
+        "deleted": false,
+        "object": "vector_store.file.deleted"
+      },
+      "responseStatus": 200,
+      "responseIsText": false
+    },
+    {
+      "method": "POST",
+      "path": "/vector_stores/{vector_store_id}/file_batches",
+      "call": {
+        "method": "POST",
+        "path": "/vector_stores/{gatewayPathSegment(vector_store_id)}/file_batches",
+        "source": "src/ai-gateway/runtime-resources-client.ts",
+        "member": "createVectorStoreFileBatch",
+        "plane": "gateway",
+        "responseSchema": "GatewayInferenceVectorStoreFileBatchObjectSchema",
+        "requestSchema": "GatewayInferenceInputCreateVectorStoreFileBatchRequestSchema",
+        "requestType": "GatewayInferenceInputCreateVectorStoreFileBatchRequest",
+        "className": "AIGatewayRuntimeResourcesClient",
+        "parameters": [
+          {
+            "name": "vector_store_id",
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "type": "GatewayInferenceInputCreateVectorStoreFileBatchRequest"
+          },
+          {
+            "name": "options",
+            "type": "GatewayInferenceRequestOptions"
+          }
+        ]
+      },
+      "runtimeClient": true,
+      "query": {},
+      "queryWire": {},
+      "body": {
+        "file_ids": ["x"],
+        "chunking_strategy": {
+          "type": "auto"
+        }
+      },
+      "responseBody": {
+        "id": "x",
+        "object": "vector_store.files_batch",
+        "created_at": 1,
+        "vector_store_id": "x",
+        "status": "in_progress",
+        "file_counts": {
+          "in_progress": 1,
+          "completed": 1,
+          "failed": 1,
+          "cancelled": 1,
+          "total": 1
+        }
+      },
+      "responseStatus": 200,
+      "responseIsText": false
+    },
+    {
+      "method": "GET",
+      "path": "/vector_stores/{vector_store_id}/file_batches/{batch_id}",
+      "call": {
+        "method": "GET",
+        "path": "/vector_stores/{gatewayPathSegment(vector_store_id)}/file_batches/{gatewayPathSegment(batch_id)}",
+        "source": "src/ai-gateway/runtime-resources-client.ts",
+        "member": "getVectorStoreFileBatch",
+        "plane": "gateway",
+        "responseSchema": "GatewayInferenceVectorStoreFileBatchObjectSchema",
+        "className": "AIGatewayRuntimeResourcesClient",
+        "parameters": [
+          {
+            "name": "vector_store_id",
+            "type": "string"
+          },
+          {
+            "name": "batch_id",
+            "type": "string"
+          },
+          {
+            "name": "options",
+            "type": "GatewayInferenceRequestOptions"
+          }
+        ]
+      },
+      "runtimeClient": true,
+      "query": {},
+      "queryWire": {},
+      "responseBody": {
+        "id": "x",
+        "object": "vector_store.files_batch",
+        "created_at": 1,
+        "vector_store_id": "x",
+        "status": "in_progress",
+        "file_counts": {
+          "in_progress": 1,
+          "completed": 1,
+          "failed": 1,
+          "cancelled": 1,
+          "total": 1
+        }
+      },
+      "responseStatus": 200,
+      "responseIsText": false
+    },
+    {
+      "method": "POST",
+      "path": "/vector_stores/{vector_store_id}/file_batches/{batch_id}/cancel",
+      "call": {
+        "method": "POST",
+        "path": "/vector_stores/{gatewayPathSegment(vector_store_id)}/file_batches/{gatewayPathSegment(batch_id)}/cancel",
+        "source": "src/ai-gateway/runtime-resources-client.ts",
+        "member": "cancelVectorStoreFileBatch",
+        "plane": "gateway",
+        "responseSchema": "GatewayInferenceVectorStoreFileBatchObjectSchema",
+        "className": "AIGatewayRuntimeResourcesClient",
+        "parameters": [
+          {
+            "name": "vector_store_id",
+            "type": "string"
+          },
+          {
+            "name": "batch_id",
+            "type": "string"
+          },
+          {
+            "name": "options",
+            "type": "GatewayInferenceRequestOptions"
+          }
+        ]
+      },
+      "runtimeClient": true,
+      "query": {},
+      "queryWire": {},
+      "responseBody": {
+        "id": "x",
+        "object": "vector_store.files_batch",
+        "created_at": 1,
+        "vector_store_id": "x",
+        "status": "in_progress",
+        "file_counts": {
+          "in_progress": 1,
+          "completed": 1,
+          "failed": 1,
+          "cancelled": 1,
+          "total": 1
+        }
+      },
+      "responseStatus": 200,
+      "responseIsText": false
+    },
+    {
+      "method": "GET",
+      "path": "/vector_stores/{vector_store_id}/file_batches/{batch_id}/files",
+      "call": {
+        "method": "GET",
+        "path": "/vector_stores/{gatewayPathSegment(vector_store_id)}/file_batches/{gatewayPathSegment(batch_id)}/files",
+        "source": "src/ai-gateway/runtime-resources-client.ts",
+        "member": "listFilesInVectorStoreBatch",
+        "plane": "gateway",
+        "responseSchema": "GatewayInferenceListVectorStoreFilesResponseSchema",
+        "queryType": "GatewayInferenceInputListFilesInVectorStoreBatchQuery",
+        "className": "AIGatewayRuntimeResourcesClient",
+        "parameters": [
+          {
+            "name": "vector_store_id",
+            "type": "string"
+          },
+          {
+            "name": "batch_id",
+            "type": "string"
+          },
+          {
+            "name": "opts",
+            "type": "GatewayInferenceInputListFilesInVectorStoreBatchQuery"
+          },
+          {
+            "name": "options",
+            "type": "GatewayInferenceRequestOptions"
+          }
+        ]
+      },
+      "runtimeClient": true,
+      "query": {
+        "limit": 1,
+        "order": "asc",
+        "after": "x",
+        "before": "x",
+        "filter": "in_progress"
+      },
+      "queryWire": {
+        "limit": ["1"],
+        "order": ["asc"],
+        "after": ["x"],
+        "before": ["x"],
+        "filter": ["in_progress"]
+      },
+      "responseBody": {
+        "object": "x",
+        "data": [
+          {
+            "id": "x",
+            "object": "vector_store.file",
+            "usage_bytes": 1,
+            "created_at": 1,
+            "vector_store_id": "x",
+            "status": "in_progress",
+            "last_error": {
+              "code": "internal_error",
+              "message": "x"
+            },
+            "chunking_strategy": {
+              "type": "static",
+              "static": {
+                "max_chunk_size_tokens": 100,
+                "chunk_overlap_tokens": 1
+              }
+            }
+          }
+        ],
+        "first_id": "x",
+        "last_id": "x",
+        "has_more": false
+      },
+      "responseStatus": 200,
+      "responseIsText": false
+    },
+    {
+      "method": "POST",
+      "path": "/batches",
+      "call": {
+        "method": "POST",
+        "path": "/batches",
+        "source": "src/ai-gateway/runtime-resources-client.ts",
+        "member": "createBatch",
+        "plane": "gateway",
+        "responseSchema": "GatewayInferenceBatchSchema",
+        "requestSchema": "GatewayInferenceInputCreateBatchRequestSchema",
+        "requestType": "GatewayInferenceInputCreateBatchRequest",
+        "className": "AIGatewayRuntimeResourcesClient",
+        "parameters": [
+          {
+            "name": "body",
+            "type": "GatewayInferenceInputCreateBatchRequest"
+          },
+          {
+            "name": "options",
+            "type": "GatewayInferenceRequestOptions"
+          }
+        ]
+      },
+      "runtimeClient": true,
+      "query": {},
+      "queryWire": {},
+      "body": {
+        "input_file_id": "x",
+        "completion_window": "immediate",
+        "endpoint": "/v1/chat/completions",
+        "metadata": {}
+      },
+      "responseBody": {
+        "id": "x",
+        "object": "batch",
+        "endpoint": "x",
+        "errors": {
+          "object": "x",
+          "data": [
+            {
+              "code": "x",
+              "message": "x",
+              "param": "x",
+              "line": 1
+            }
+          ]
+        },
+        "input_file_id": "x",
+        "completion_window": "x",
+        "status": "validating",
+        "output_file_id": "x",
+        "error_file_id": "x",
+        "created_at": 1,
+        "in_progress_at": 1,
+        "expires_at": 1,
+        "finalizing_at": 1,
+        "completed_at": 1,
+        "failed_at": 1,
+        "expired_at": 1,
+        "cancelling_at": 1,
+        "cancelled_at": 1,
+        "request_counts": {
+          "total": 1,
+          "completed": 1,
+          "failed": 1
+        },
+        "metadata": {}
+      },
+      "responseStatus": 200,
+      "responseIsText": false
+    },
+    {
+      "method": "GET",
+      "path": "/batches",
+      "call": {
+        "method": "GET",
+        "path": "/batches",
+        "source": "src/ai-gateway/runtime-resources-client.ts",
+        "member": "listBatches",
+        "plane": "gateway",
+        "responseSchema": "GatewayInferenceListBatchesResponseSchema",
+        "queryType": "GatewayInferenceInputListBatchesQuery",
+        "className": "AIGatewayRuntimeResourcesClient",
+        "parameters": [
+          {
+            "name": "opts",
+            "type": "GatewayInferenceInputListBatchesQuery"
+          },
+          {
+            "name": "options",
+            "type": "GatewayInferenceRequestOptions"
+          }
+        ]
+      },
+      "runtimeClient": true,
+      "query": {
+        "after": "x",
+        "limit": 1
+      },
+      "queryWire": {
+        "after": ["x"],
+        "limit": ["1"]
+      },
+      "responseBody": {
+        "data": [
+          {
+            "id": "x",
+            "object": "batch",
+            "endpoint": "x",
+            "errors": {
+              "object": "x",
+              "data": [
+                {
+                  "code": "x",
+                  "message": "x",
+                  "param": "x",
+                  "line": 1
+                }
+              ]
+            },
+            "input_file_id": "x",
+            "completion_window": "x",
+            "status": "validating",
+            "output_file_id": "x",
+            "error_file_id": "x",
+            "created_at": 1,
+            "in_progress_at": 1,
+            "expires_at": 1,
+            "finalizing_at": 1,
+            "completed_at": 1,
+            "failed_at": 1,
+            "expired_at": 1,
+            "cancelling_at": 1,
+            "cancelled_at": 1,
+            "request_counts": {
+              "total": 1,
+              "completed": 1,
+              "failed": 1
+            },
+            "metadata": {}
+          }
+        ],
+        "first_id": "x",
+        "last_id": "x",
+        "has_more": false,
+        "object": "list"
+      },
+      "responseStatus": 200,
+      "responseIsText": false
+    },
+    {
+      "method": "GET",
+      "path": "/batches/{batch_id}/output",
+      "call": {
+        "method": "GET",
+        "path": "/batches/{gatewayPathSegment(batch_id)}/output",
+        "source": "src/ai-gateway/runtime-resources-client.ts",
+        "member": "getBatchOutput",
+        "plane": "gateway",
+        "className": "AIGatewayRuntimeResourcesClient",
+        "parameters": [
+          {
+            "name": "batch_id",
+            "type": "string"
+          },
+          {
+            "name": "options",
+            "type": "GatewayInferenceRequestOptions"
+          }
+        ]
+      },
+      "runtimeClient": true,
+      "query": {},
+      "queryWire": {},
+      "responseBody": "prompt,goal\n",
+      "responseStatus": 200,
+      "responseIsText": true
+    },
+    {
+      "method": "GET",
+      "path": "/batches/{batch_id}",
+      "call": {
+        "method": "GET",
+        "path": "/batches/{gatewayPathSegment(batch_id)}",
+        "source": "src/ai-gateway/runtime-resources-client.ts",
+        "member": "retrieveBatch",
+        "plane": "gateway",
+        "responseSchema": "GatewayInferenceBatchSchema",
+        "className": "AIGatewayRuntimeResourcesClient",
+        "parameters": [
+          {
+            "name": "batch_id",
+            "type": "string"
+          },
+          {
+            "name": "options",
+            "type": "GatewayInferenceRequestOptions"
+          }
+        ]
+      },
+      "runtimeClient": true,
+      "query": {},
+      "queryWire": {},
+      "responseBody": {
+        "id": "x",
+        "object": "batch",
+        "endpoint": "x",
+        "errors": {
+          "object": "x",
+          "data": [
+            {
+              "code": "x",
+              "message": "x",
+              "param": "x",
+              "line": 1
+            }
+          ]
+        },
+        "input_file_id": "x",
+        "completion_window": "x",
+        "status": "validating",
+        "output_file_id": "x",
+        "error_file_id": "x",
+        "created_at": 1,
+        "in_progress_at": 1,
+        "expires_at": 1,
+        "finalizing_at": 1,
+        "completed_at": 1,
+        "failed_at": 1,
+        "expired_at": 1,
+        "cancelling_at": 1,
+        "cancelled_at": 1,
+        "request_counts": {
+          "total": 1,
+          "completed": 1,
+          "failed": 1
+        },
+        "metadata": {}
+      },
+      "responseStatus": 200,
+      "responseIsText": false
+    },
+    {
+      "method": "POST",
+      "path": "/batches/{batch_id}/cancel",
+      "call": {
+        "method": "POST",
+        "path": "/batches/{gatewayPathSegment(batch_id)}/cancel",
+        "source": "src/ai-gateway/runtime-resources-client.ts",
+        "member": "cancelBatch",
+        "plane": "gateway",
+        "responseSchema": "GatewayInferenceBatchSchema",
+        "className": "AIGatewayRuntimeResourcesClient",
+        "parameters": [
+          {
+            "name": "batch_id",
+            "type": "string"
+          },
+          {
+            "name": "options",
+            "type": "GatewayInferenceRequestOptions"
+          }
+        ]
+      },
+      "runtimeClient": true,
+      "query": {},
+      "queryWire": {},
+      "responseBody": {
+        "id": "x",
+        "object": "batch",
+        "endpoint": "x",
+        "errors": {
+          "object": "x",
+          "data": [
+            {
+              "code": "x",
+              "message": "x",
+              "param": "x",
+              "line": 1
+            }
+          ]
+        },
+        "input_file_id": "x",
+        "completion_window": "x",
+        "status": "validating",
+        "output_file_id": "x",
+        "error_file_id": "x",
+        "created_at": 1,
+        "in_progress_at": 1,
+        "expires_at": 1,
+        "finalizing_at": 1,
+        "completed_at": 1,
+        "failed_at": 1,
+        "expired_at": 1,
+        "cancelling_at": 1,
+        "cancelled_at": 1,
+        "request_counts": {
+          "total": 1,
+          "completed": 1,
+          "failed": 1
+        },
+        "metadata": {}
+      },
+      "responseStatus": 200,
+      "responseIsText": false
+    },
+    {
+      "method": "POST",
+      "path": "/feedback",
+      "call": {
+        "method": "POST",
+        "path": "/feedback",
+        "source": "src/ai-gateway/runtime-resources-client.ts",
+        "member": "createFeedback",
+        "plane": "gateway",
+        "responseSchema": "GatewayInferenceFeedbackResponseSchema",
+        "requestSchema": "GatewayInferenceInputFeedbackRequestSchema",
+        "requestType": "GatewayInferenceInputFeedbackRequest",
+        "className": "AIGatewayRuntimeResourcesClient",
+        "parameters": [
+          {
+            "name": "body",
+            "type": "GatewayInferenceInputFeedbackRequest"
+          },
+          {
+            "name": "options",
+            "type": "GatewayInferenceRequestOptions"
+          }
+        ]
+      },
+      "runtimeClient": true,
+      "query": {},
+      "queryWire": {},
+      "body": {
+        "trace_id": "x",
+        "value": -10,
+        "weight": 0,
+        "metadata": {}
+      },
+      "responseBody": {
+        "status": "x",
+        "message": "x",
+        "feedback_ids": ["x"]
+      },
+      "responseStatus": 200,
+      "responseIsText": false
+    },
+    {
+      "method": "PUT",
+      "path": "/feedback/{id}",
+      "call": {
+        "method": "PUT",
+        "path": "/feedback/{gatewayPathSegment(id)}",
+        "source": "src/ai-gateway/runtime-resources-client.ts",
+        "member": "updateFeedback",
+        "plane": "gateway",
+        "responseSchema": "GatewayInferenceFeedbackResponseSchema",
+        "requestSchema": "GatewayInferenceInputFeedbackUpdateRequestSchema",
+        "requestType": "GatewayInferenceInputFeedbackUpdateRequest",
+        "className": "AIGatewayRuntimeResourcesClient",
+        "parameters": [
+          {
+            "name": "id",
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "type": "GatewayInferenceInputFeedbackUpdateRequest"
+          },
+          {
+            "name": "options",
+            "type": "GatewayInferenceRequestOptions"
+          }
+        ]
+      },
+      "runtimeClient": true,
+      "query": {},
+      "queryWire": {},
+      "body": {
+        "value": -10,
+        "weight": 0,
+        "metadata": {}
+      },
+      "responseBody": {
+        "status": "x",
+        "message": "x",
+        "feedback_ids": ["x"]
+      },
+      "responseStatus": 200,
+      "responseIsText": false
+    },
+    {
+      "method": "POST",
+      "path": "/logs",
+      "call": {
+        "method": "POST",
+        "path": "/logs",
+        "source": "src/ai-gateway/runtime-resources-client.ts",
+        "member": "createLogs",
+        "plane": "gateway",
+        "requestSchema": "GatewayInferenceInputCreateLogsRequestSchema",
+        "requestType": "GatewayInferenceInputCreateLogsRequest",
+        "className": "AIGatewayRuntimeResourcesClient",
+        "parameters": [
+          {
+            "name": "body",
+            "type": "GatewayInferenceInputCreateLogsRequest"
+          },
+          {
+            "name": "options",
+            "type": "GatewayInferenceRequestOptions"
+          }
+        ]
+      },
+      "runtimeClient": true,
+      "query": {},
+      "queryWire": {},
+      "body": {
+        "request": {
+          "url": "x",
+          "method": "x",
+          "headers": {},
+          "body": {}
+        },
+        "response": {
+          "status": 1,
+          "headers": {},
+          "body": {},
+          "response_time": 1
+        },
+        "metadata": {
+          "trace_id": "x",
+          "span_id": "x",
+          "span_name": "x",
+          "additionalProperties": "x"
+        }
+      },
+      "responseBody": "prompt,goal\n",
+      "responseStatus": 200,
+      "responseIsText": true
+    },
+    {
+      "method": "GET",
+      "path": "/logs/{logId}",
+      "call": {
+        "method": "GET",
+        "path": "/logs/{gatewayPathSegment(logId)}",
+        "source": "src/ai-gateway/runtime-resources-client.ts",
+        "member": "getLog",
+        "plane": "gateway",
+        "responseSchema": "GatewayInferenceLogObjectSchema",
+        "queryType": "GatewayInferenceInputGetLogQuery",
+        "className": "AIGatewayRuntimeResourcesClient",
+        "parameters": [
+          {
+            "name": "logId",
+            "type": "string"
+          },
+          {
+            "name": "opts",
+            "type": "GatewayInferenceInputGetLogQuery"
+          },
+          {
+            "name": "options",
+            "type": "GatewayInferenceRequestOptions"
+          }
+        ]
+      },
+      "runtimeClient": true,
+      "query": {
+        "path_format": "v1",
+        "created_at": "2026-09-06T00:00:00Z",
+        "type": "hooks"
+      },
+      "queryWire": {
+        "path_format": ["v1"],
+        "created_at": ["2026-09-06T00:00:00Z"],
+        "type": ["hooks"]
+      },
+      "responseBody": {
+        "_id": "550e8400-e29b-41d4-a716-446655440000",
+        "request": {
+          "url": "https://example.test",
+          "method": "GET",
+          "headers": {},
+          "body": {},
+          "portkeyHeaders": {}
+        },
+        "response": {
+          "status": 1,
+          "headers": {},
+          "body": {},
+          "responseTime": 1,
+          "lastUsedOptionJsonPath": "x"
+        },
+        "organisation_id": "x",
+        "created_at": "2026-09-06T00:00:00Z",
+        "metrics": {
+          "id": "550e8400-e29b-41d4-a716-446655440000",
+          "organisation_id": "x",
+          "organisation_name": "x",
+          "prompt_id": "x",
+          "prompt_version_id": "x",
+          "config_id": "x",
+          "created_at": "2026-09-06T00:00:00Z",
+          "is_success": false,
+          "ai_org": "x",
+          "ai_model": "x",
+          "req_units": 1,
+          "res_units": 1,
+          "total_units": 1,
+          "cost": 1,
+          "cost_currency": "x",
+          "request_url": "https://example.test",
+          "request_method": "x",
+          "response_status_code": 1,
+          "response_time": 1,
+          "is_proxy_call": false,
+          "cache_status": "x",
+          "cache_type": "x",
+          "stream_mode": 1,
+          "retry_success_count": 1,
+          "trace_id": "x",
+          "span_id": "x",
+          "span_name": "x",
+          "parent_span_id": "x",
+          "mode": "x",
+          "virtual_key": "x",
+          "source": "x",
+          "runtime": "x",
+          "runtime_version": "x",
+          "sdk_version": "x",
+          "config": "x",
+          "internal_trace_id": "x",
+          "last_used_option_index": 1,
+          "config_version_id": "x",
+          "prompt_slug": "x",
+          "workspace_slug": "x",
+          "log_store_file_path_format": "x",
+          "metadata.key": ["x"],
+          "metadata.value": ["x"],
+          "api_key_id": "x",
+          "request_parsing_time": 1,
+          "pre_processing_time": 1,
+          "cache_processing_time": 1,
+          "response_parsing_time": 1,
+          "gateway_processing_time": 1,
+          "upstream_response_time": 1
+        },
+        "finalUntransformedRequest": {
+          "body": {},
+          "headers": {},
+          "url": "https://example.test",
+          "method": "x"
+        },
+        "originalResponse": {
+          "body": {},
+          "headers": {},
+          "url": "https://example.test",
+          "method": "x"
+        },
+        "transformedRequest": {
+          "body": {},
+          "headers": {},
+          "url": "https://example.test",
+          "method": "x"
+        }
+      },
+      "responseStatus": 200,
+      "responseIsText": false
+    }
+  ]
+}

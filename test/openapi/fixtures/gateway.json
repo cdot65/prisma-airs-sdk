@@ -1,0 +1,1932 @@
+{
+  "source": "ai-gateway-openapi/openapi.yaml",
+  "sha256": "de7a1bd98bdb2edb7428a33054d9f6000b9568d1cd5b603d1a8302c053d094d9",
+  "corrections": [
+    "gateway-pricing-overlapping-calculation-nodes",
+    "gateway-prompt-root-hyperparameters",
+    "gateway-prompt-native-completion-response",
+    "gateway-legacy-stream-null-fields",
+    "gateway-audio-overlapping-json-variants",
+    "gateway-audio-verbose-duration",
+    "gateway-provider-prefixed-response-models"
+  ],
+  "cases": [
+    {
+      "method": "PUT",
+      "path": "/guardrails/{guardrailId}/mcp-servers",
+      "call": {
+        "method": "PUT",
+        "path": "/guardrails/{guardrailId}/mcp-servers",
+        "source": "src/ai-gateway/guardrails-client.ts",
+        "member": "syncMcpServers",
+        "plane": "gateway",
+        "responseSchema": "GatewayBulkSyncMcpServerMappingsResponseSchema",
+        "requestSchema": "GatewayBulkSyncMcpServerMappingsRequestSchema",
+        "requestType": "GatewayBulkSyncMcpServerMappingsRequest",
+        "className": "AIGatewayGuardrailsClient",
+        "parameters": [
+          {
+            "name": "guardrailId",
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "type": "GatewayBulkSyncMcpServerMappingsRequest"
+          }
+        ]
+      },
+      "query": {},
+      "queryWire": {},
+      "body": {
+        "mcp_servers": {}
+      },
+      "responseBody": {
+        "changed": false,
+        "added": 0,
+        "updated": 0,
+        "removed": 0
+      },
+      "responseStatus": 200,
+      "responseIsText": false
+    },
+    {
+      "method": "GET",
+      "path": "/guardrails/{guardrailId}/mcp-servers",
+      "call": {
+        "method": "GET",
+        "path": "/guardrails/{guardrailId}/mcp-servers",
+        "source": "src/ai-gateway/guardrails-client.ts",
+        "member": "getMcpServers",
+        "plane": "gateway",
+        "responseSchema": "GatewayMcpServerMappingsResponseSchema",
+        "className": "AIGatewayGuardrailsClient",
+        "parameters": [
+          {
+            "name": "guardrailId",
+            "type": "string"
+          }
+        ]
+      },
+      "query": {},
+      "queryWire": {},
+      "responseBody": [
+        {
+          "id": "550e8400-e29b-41d4-a716-446655440000",
+          "guardrail_id": "550e8400-e29b-41d4-a716-446655440000",
+          "mcp_server_id": "550e8400-e29b-41d4-a716-446655440000",
+          "run_on": ["input"],
+          "capability_ids": ["550e8400-e29b-41d4-a716-446655440000"]
+        }
+      ],
+      "responseStatus": 200,
+      "responseIsText": false
+    },
+    {
+      "method": "PUT",
+      "path": "/guardrails/{guardrailId}/mcp-servers/{mcpServerId}",
+      "call": {
+        "method": "PUT",
+        "path": "/guardrails/{guardrailId}/mcp-servers/{mcpServerId}",
+        "source": "src/ai-gateway/guardrails-client.ts",
+        "member": "upsertMcpServer",
+        "plane": "gateway",
+        "responseSchema": "GatewayUpsertMcpServerMappingResponseSchema",
+        "requestSchema": "GatewayUpsertMcpServerMappingRequestSchema",
+        "requestType": "GatewayUpsertMcpServerMappingRequest",
+        "className": "AIGatewayGuardrailsClient",
+        "parameters": [
+          {
+            "name": "guardrailId",
+            "type": "string"
+          },
+          {
+            "name": "mcpServerId",
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "type": "GatewayUpsertMcpServerMappingRequest"
+          }
+        ]
+      },
+      "query": {},
+      "queryWire": {},
+      "body": {
+        "run_on": ["input"],
+        "mcp_integration_capability_ids": ["550e8400-e29b-41d4-a716-446655440000"]
+      },
+      "responseBody": {
+        "map_id": "550e8400-e29b-41d4-a716-446655440000"
+      },
+      "responseStatus": 200,
+      "responseIsText": false
+    },
+    {
+      "method": "DELETE",
+      "path": "/integrations/{slug}/models",
+      "call": {
+        "method": "DELETE",
+        "path": "/integrations/{encodeURIComponent(integrationId)}/models",
+        "source": "src/ai-gateway/integrations-client.ts",
+        "member": "deleteModels",
+        "plane": "gateway",
+        "responseSchema": "GatewayWriteResponseSchema",
+        "className": "AIGatewayIntegrationsClient",
+        "parameters": [
+          {
+            "name": "integrationId",
+            "type": "string"
+          },
+          {
+            "name": "slugs",
+            "type": "string[]"
+          }
+        ]
+      },
+      "query": {
+        "slugs": "x"
+      },
+      "queryWire": {
+        "slugs": ["x"]
+      },
+      "responseBody": {},
+      "responseStatus": 200,
+      "responseIsText": false
+    },
+    {
+      "method": "GET",
+      "path": "/mcp-integrations/{mcpIntegrationId}/workspaces",
+      "call": {
+        "method": "GET",
+        "path": "/mcp-integrations/{mcpIntegrationId}/workspaces",
+        "source": "src/ai-gateway/mcp-integrations-client.ts",
+        "member": "getWorkspaces",
+        "plane": "gateway",
+        "responseSchema": "z.union([\n        GatewayMcpIntegrationWorkspacesListResponseSchema,\n        GatewayMcpIntegrationWorkspacesLegacyResponseSchema,\n      ])",
+        "queryType": "{ version?: string }",
+        "className": "AIGatewayMcpIntegrationsClient",
+        "parameters": [
+          {
+            "name": "mcpIntegrationId",
+            "type": "string"
+          },
+          {
+            "name": "opts",
+            "type": "{ version?: string }"
+          }
+        ]
+      },
+      "query": {
+        "version": "x"
+      },
+      "queryWire": {
+        "version": ["x"]
+      },
+      "responseBody": {
+        "data": [
+          {
+            "id": "x",
+            "enabled": false,
+            "status": "x",
+            "created_at": "2026-09-06T00:00:00Z",
+            "last_updated_at": "2026-09-06T00:00:00Z"
+          }
+        ],
+        "global_workspace_access": {},
+        "total": 1
+      },
+      "responseStatus": 200,
+      "responseIsText": false
+    },
+    {
+      "method": "POST",
+      "path": "/mcp-servers",
+      "call": {
+        "method": "POST",
+        "path": "/mcp-servers",
+        "source": "src/ai-gateway/mcp-servers-client.ts",
+        "member": "create",
+        "plane": "gateway",
+        "responseSchema": "GatewayMcpServersClientCreateResponseSchema",
+        "requestSchema": "GatewayMcpServersClientCreateRequestSchema",
+        "requestType": "GatewayMcpServersClientCreateRequest",
+        "className": "AIGatewayMcpServersClient",
+        "parameters": [
+          {
+            "name": "body",
+            "type": "GatewayMcpServersClientCreateRequest"
+          }
+        ]
+      },
+      "query": {},
+      "queryWire": {},
+      "body": {
+        "workspace_id": "550e8400-e29b-41d4-a716-446655440000",
+        "name": "x",
+        "description": "x",
+        "mcp_integration_id": "x",
+        "slug": "xxx"
+      },
+      "responseBody": {
+        "id": "550e8400-e29b-41d4-a716-446655440000",
+        "slug": "x"
+      },
+      "responseStatus": 200,
+      "responseIsText": false
+    },
+    {
+      "method": "GET",
+      "path": "/mcp-servers",
+      "call": {
+        "method": "GET",
+        "path": "/mcp-servers",
+        "source": "src/ai-gateway/mcp-servers-client.ts",
+        "member": "list",
+        "plane": "gateway",
+        "responseSchema": "GatewayMcpServersClientListResponseSchema",
+        "queryType": "GatewayMcpServersClientListOptions",
+        "className": "AIGatewayMcpServersClient",
+        "parameters": [
+          {
+            "name": "opts",
+            "type": "GatewayMcpServersClientListOptions"
+          }
+        ]
+      },
+      "query": {
+        "workspace_id": "550e8400-e29b-41d4-a716-446655440000",
+        "current_page": 0,
+        "page_size": 1,
+        "id": "x",
+        "search": "x"
+      },
+      "queryWire": {
+        "workspace_id": ["550e8400-e29b-41d4-a716-446655440000"],
+        "current_page": ["0"],
+        "page_size": ["1"],
+        "id": ["x"],
+        "search": ["x"]
+      },
+      "responseBody": {
+        "data": [
+          {
+            "id": "550e8400-e29b-41d4-a716-446655440000",
+            "organisation_id": "x",
+            "name": "x",
+            "description": "x",
+            "status": "x",
+            "created_at": "2026-09-06T00:00:00Z",
+            "owner_id": "x",
+            "slug": "x",
+            "workspace_id": "x",
+            "mcp_integration_id": "x",
+            "mcp_integration_slug": "x",
+            "mcp_integration_url": "https://example.test",
+            "auth_type": "x",
+            "workspace_name": "x",
+            "workspace_slug": "x",
+            "url": "https://example.test"
+          }
+        ],
+        "total": 1
+      },
+      "responseStatus": 200,
+      "responseIsText": false
+    },
+    {
+      "method": "GET",
+      "path": "/mcp-servers/{mcpServerId}",
+      "call": {
+        "method": "GET",
+        "path": "/mcp-servers/{gatewayPathSegment(mcpServerId)}",
+        "source": "src/ai-gateway/mcp-servers-client.ts",
+        "member": "get",
+        "plane": "gateway",
+        "responseSchema": "GatewayMcpServersClientGetResponseSchema",
+        "className": "AIGatewayMcpServersClient",
+        "parameters": [
+          {
+            "name": "mcpServerId",
+            "type": "string"
+          }
+        ]
+      },
+      "query": {},
+      "queryWire": {},
+      "responseBody": {
+        "id": "550e8400-e29b-41d4-a716-446655440000",
+        "slug": "x",
+        "name": "x",
+        "status": "x",
+        "description": "x",
+        "created_at": "2026-09-06T00:00:00Z",
+        "mcp_integration_id": "x",
+        "mcp_integration_details": {
+          "id": "x",
+          "slug": "x",
+          "status": "x",
+          "configurations": {},
+          "url": "https://example.test",
+          "transport": "x",
+          "auth_type": "x"
+        },
+        "workspace_id": "x"
+      },
+      "responseStatus": 200,
+      "responseIsText": false
+    },
+    {
+      "method": "PUT",
+      "path": "/mcp-servers/{mcpServerId}",
+      "call": {
+        "method": "PUT",
+        "path": "/mcp-servers/{gatewayPathSegment(mcpServerId)}",
+        "source": "src/ai-gateway/mcp-servers-client.ts",
+        "member": "update",
+        "plane": "gateway",
+        "responseSchema": "GatewayMcpServersClientUpdateResponseSchema",
+        "requestSchema": "GatewayMcpServersClientUpdateRequestSchema",
+        "requestType": "GatewayMcpServersClientUpdateRequest",
+        "className": "AIGatewayMcpServersClient",
+        "parameters": [
+          {
+            "name": "mcpServerId",
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "type": "GatewayMcpServersClientUpdateRequest"
+          }
+        ]
+      },
+      "query": {},
+      "queryWire": {},
+      "body": {
+        "name": "x",
+        "description": "x"
+      },
+      "responseBody": {},
+      "responseStatus": 200,
+      "responseIsText": false
+    },
+    {
+      "method": "DELETE",
+      "path": "/mcp-servers/{mcpServerId}",
+      "call": {
+        "method": "DELETE",
+        "path": "/mcp-servers/{gatewayPathSegment(mcpServerId)}",
+        "source": "src/ai-gateway/mcp-servers-client.ts",
+        "member": "delete",
+        "plane": "gateway",
+        "responseSchema": "GatewayMcpServersClientDeleteResponseSchema",
+        "className": "AIGatewayMcpServersClient",
+        "parameters": [
+          {
+            "name": "mcpServerId",
+            "type": "string"
+          }
+        ]
+      },
+      "query": {},
+      "queryWire": {},
+      "responseBody": {},
+      "responseStatus": 200,
+      "responseIsText": false
+    },
+    {
+      "method": "POST",
+      "path": "/mcp-servers/{mcpServerId}/test",
+      "call": {
+        "method": "POST",
+        "path": "/mcp-servers/{gatewayPathSegment(mcpServerId)}/test",
+        "source": "src/ai-gateway/mcp-servers-client.ts",
+        "member": "test",
+        "plane": "gateway",
+        "responseSchema": "GatewayMcpServersClientTestResponseSchema",
+        "className": "AIGatewayMcpServersClient",
+        "parameters": [
+          {
+            "name": "mcpServerId",
+            "type": "string"
+          }
+        ]
+      },
+      "query": {},
+      "queryWire": {},
+      "responseBody": {
+        "success": false,
+        "status_code": 1,
+        "response_time_ms": 1,
+        "url": "https://example.test",
+        "server_name": "x",
+        "error": "x"
+      },
+      "responseStatus": 200,
+      "responseIsText": false
+    },
+    {
+      "method": "GET",
+      "path": "/mcp-servers/{mcpServerId}/capabilities",
+      "call": {
+        "method": "GET",
+        "path": "/mcp-servers/{gatewayPathSegment(mcpServerId)}/capabilities",
+        "source": "src/ai-gateway/mcp-servers-client.ts",
+        "member": "getCapabilities",
+        "plane": "gateway",
+        "responseSchema": "GatewayMcpServersClientGetCapabilitiesResponseSchema",
+        "queryType": "GatewayMcpServersClientGetCapabilitiesOptions",
+        "className": "AIGatewayMcpServersClient",
+        "parameters": [
+          {
+            "name": "mcpServerId",
+            "type": "string"
+          },
+          {
+            "name": "opts",
+            "type": "GatewayMcpServersClientGetCapabilitiesOptions"
+          }
+        ]
+      },
+      "query": {
+        "page": 1,
+        "page_size": 1,
+        "type": "tool"
+      },
+      "queryWire": {
+        "page": ["1"],
+        "page_size": ["1"],
+        "type": ["tool"]
+      },
+      "responseBody": {
+        "data": [
+          {
+            "name": "x",
+            "type": "tool",
+            "title": "x",
+            "description": "x",
+            "icons": [],
+            "enabled": false,
+            "integration_enabled": false,
+            "input_schema": {},
+            "output_schema": {},
+            "execution": {},
+            "annotations": {},
+            "arguments": [],
+            "uri": "x",
+            "uri_template": "x",
+            "mime_type": "x",
+            "size": 1
+          }
+        ],
+        "counts": {
+          "tools": {
+            "total": 1,
+            "enabled": 1
+          },
+          "prompts": {
+            "total": 1,
+            "enabled": 1
+          },
+          "resources": {
+            "total": 1,
+            "enabled": 1
+          },
+          "resource_templates": {
+            "total": 1,
+            "enabled": 1
+          }
+        },
+        "total": 1,
+        "has_more": false
+      },
+      "responseStatus": 200,
+      "responseIsText": false
+    },
+    {
+      "method": "PUT",
+      "path": "/mcp-servers/{mcpServerId}/capabilities",
+      "call": {
+        "method": "PUT",
+        "path": "/mcp-servers/{gatewayPathSegment(mcpServerId)}/capabilities",
+        "source": "src/ai-gateway/mcp-servers-client.ts",
+        "member": "updateCapabilities",
+        "plane": "gateway",
+        "responseSchema": "GatewayMcpServersClientUpdateCapabilitiesResponseSchema",
+        "requestSchema": "GatewayMcpServersClientUpdateCapabilitiesRequestSchema",
+        "requestType": "GatewayMcpServersClientUpdateCapabilitiesRequest",
+        "className": "AIGatewayMcpServersClient",
+        "parameters": [
+          {
+            "name": "mcpServerId",
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "type": "GatewayMcpServersClientUpdateCapabilitiesRequest"
+          }
+        ]
+      },
+      "query": {},
+      "queryWire": {},
+      "body": {
+        "capabilities": [
+          {
+            "name": "x",
+            "type": "tool",
+            "enabled": false
+          }
+        ]
+      },
+      "responseBody": {
+        "success": false
+      },
+      "responseStatus": 200,
+      "responseIsText": false
+    },
+    {
+      "method": "GET",
+      "path": "/mcp-servers/{mcpServerId}/user-access",
+      "call": {
+        "method": "GET",
+        "path": "/mcp-servers/{gatewayPathSegment(mcpServerId)}/user-access",
+        "source": "src/ai-gateway/mcp-servers-client.ts",
+        "member": "getUserAccess",
+        "plane": "gateway",
+        "responseSchema": "GatewayMcpServersClientGetUserAccessResponseSchema",
+        "queryType": "GatewayMcpServersClientGetUserAccessOptions",
+        "className": "AIGatewayMcpServersClient",
+        "parameters": [
+          {
+            "name": "mcpServerId",
+            "type": "string"
+          },
+          {
+            "name": "opts",
+            "type": "GatewayMcpServersClientGetUserAccessOptions"
+          }
+        ]
+      },
+      "query": {
+        "page": 1,
+        "page_size": 1,
+        "search": "x"
+      },
+      "queryWire": {
+        "page": ["1"],
+        "page_size": ["1"],
+        "search": ["x"]
+      },
+      "responseBody": {
+        "data": [
+          {
+            "user_id": "x",
+            "first_name": "x",
+            "last_name": "x",
+            "enabled": false,
+            "has_override": false,
+            "connection_status": "connected"
+          }
+        ],
+        "default_user_access": "allow",
+        "total": 1,
+        "has_more": false
+      },
+      "responseStatus": 200,
+      "responseIsText": false
+    },
+    {
+      "method": "PUT",
+      "path": "/mcp-servers/{mcpServerId}/user-access",
+      "call": {
+        "method": "PUT",
+        "path": "/mcp-servers/{gatewayPathSegment(mcpServerId)}/user-access",
+        "source": "src/ai-gateway/mcp-servers-client.ts",
+        "member": "updateUserAccess",
+        "plane": "gateway",
+        "responseSchema": "GatewayMcpServersClientUpdateUserAccessResponseSchema",
+        "requestSchema": "GatewayMcpServersClientUpdateUserAccessRequestSchema",
+        "requestType": "GatewayMcpServersClientUpdateUserAccessRequest",
+        "className": "AIGatewayMcpServersClient",
+        "parameters": [
+          {
+            "name": "mcpServerId",
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "type": "GatewayMcpServersClientUpdateUserAccessRequest"
+          }
+        ]
+      },
+      "query": {},
+      "queryWire": {},
+      "body": {
+        "user_access": [
+          {
+            "user_id": "x",
+            "enabled": false
+          }
+        ],
+        "default_user_access": "allow"
+      },
+      "responseBody": {
+        "success": false
+      },
+      "responseStatus": 200,
+      "responseIsText": false
+    },
+    {
+      "method": "GET",
+      "path": "/mcp-servers/{mcpServerId}/connections",
+      "call": {
+        "method": "GET",
+        "path": "/mcp-servers/{gatewayPathSegment(mcpServerId)}/connections",
+        "source": "src/ai-gateway/mcp-servers-client.ts",
+        "member": "getConnections",
+        "plane": "gateway",
+        "responseSchema": "GatewayMcpServersClientGetConnectionsResponseSchema",
+        "queryType": "GatewayMcpServersClientGetConnectionsOptions",
+        "className": "AIGatewayMcpServersClient",
+        "parameters": [
+          {
+            "name": "mcpServerId",
+            "type": "string"
+          },
+          {
+            "name": "opts",
+            "type": "GatewayMcpServersClientGetConnectionsOptions"
+          }
+        ]
+      },
+      "query": {
+        "user_id": "550e8400-e29b-41d4-a716-446655440000",
+        "workspace_id": "550e8400-e29b-41d4-a716-446655440000",
+        "current_page": 0,
+        "page_size": 1
+      },
+      "queryWire": {
+        "user_id": ["550e8400-e29b-41d4-a716-446655440000"],
+        "workspace_id": ["550e8400-e29b-41d4-a716-446655440000"],
+        "current_page": ["0"],
+        "page_size": ["1"]
+      },
+      "responseBody": {
+        "data": [
+          {
+            "user_id": "550e8400-e29b-41d4-a716-446655440000",
+            "connected": false,
+            "created_at": "2026-09-06T00:00:00Z",
+            "last_updated_at": "2026-09-06T00:00:00Z"
+          }
+        ],
+        "total": 1,
+        "has_more": false
+      },
+      "responseStatus": 200,
+      "responseIsText": false
+    },
+    {
+      "method": "DELETE",
+      "path": "/mcp-servers/{mcpServerId}/connections",
+      "call": {
+        "method": "DELETE",
+        "path": "/mcp-servers/{gatewayPathSegment(mcpServerId)}/connections",
+        "source": "src/ai-gateway/mcp-servers-client.ts",
+        "member": "deleteConnections",
+        "plane": "gateway",
+        "responseSchema": "GatewayMcpServersClientDeleteConnectionsResponseSchema",
+        "queryType": "GatewayMcpServersClientDeleteConnectionsOptions",
+        "className": "AIGatewayMcpServersClient",
+        "parameters": [
+          {
+            "name": "mcpServerId",
+            "type": "string"
+          },
+          {
+            "name": "opts",
+            "type": "GatewayMcpServersClientDeleteConnectionsOptions"
+          }
+        ]
+      },
+      "query": {
+        "user_id": "550e8400-e29b-41d4-a716-446655440000",
+        "workspace_id": "550e8400-e29b-41d4-a716-446655440000"
+      },
+      "queryWire": {
+        "user_id": ["550e8400-e29b-41d4-a716-446655440000"],
+        "workspace_id": ["550e8400-e29b-41d4-a716-446655440000"]
+      },
+      "responseBody": {
+        "success": false
+      },
+      "responseStatus": 200,
+      "responseIsText": false
+    },
+    {
+      "method": "GET",
+      "path": "/logs/exports/{exportId}",
+      "call": {
+        "method": "GET",
+        "path": "/logs/exports/{gatewayPathSegment(exportId)}",
+        "source": "src/ai-gateway/log-exports-client.ts",
+        "member": "get",
+        "plane": "gateway",
+        "responseSchema": "GatewayLogExportsClientGetResponseSchema",
+        "className": "AIGatewayLogExportsClient",
+        "parameters": [
+          {
+            "name": "exportId",
+            "type": "string"
+          }
+        ]
+      },
+      "query": {},
+      "queryWire": {},
+      "responseBody": {
+        "id": "550e8400-e29b-41d4-a716-446655440000",
+        "organisation_id": "550e8400-e29b-41d4-a716-446655440000",
+        "filters": {
+          "time_of_generation_min": "2026-09-06T00:00:00Z",
+          "time_of_generation_max": "2026-09-06T00:00:00Z",
+          "total_units_min": 1,
+          "total_units_max": 1,
+          "cost_min": 1,
+          "cost_max": 1,
+          "ai_model": "x",
+          "prompt_token_min": 1,
+          "prompt_token_max": 1,
+          "completion_token_min": 1,
+          "completion_token_max": 1,
+          "status_code": "x",
+          "metadata": {},
+          "ai_org_model": "x",
+          "weighted_feedback_min": 1,
+          "weighted_feedback_max": 1,
+          "virtual_keys": "x",
+          "trace_id": "x",
+          "configs": "x",
+          "workspace_slug": "x",
+          "prompt_slug": "x",
+          "page_size": 1,
+          "current_page": 1
+        },
+        "requested_data": ["id"],
+        "status": "draft",
+        "description": "x",
+        "created_at": "2026-09-06T00:00:00Z",
+        "last_updated_at": "2026-09-06T00:00:00Z",
+        "created_by": "550e8400-e29b-41d4-a716-446655440000",
+        "workspace_id": "550e8400-e29b-41d4-a716-446655440000",
+        "object": "export"
+      },
+      "responseStatus": 200,
+      "responseIsText": false
+    },
+    {
+      "method": "PUT",
+      "path": "/logs/exports/{exportId}",
+      "call": {
+        "method": "PUT",
+        "path": "/logs/exports/{gatewayPathSegment(exportId)}",
+        "source": "src/ai-gateway/log-exports-client.ts",
+        "member": "update",
+        "plane": "gateway",
+        "responseSchema": "GatewayLogExportsClientUpdateResponseSchema",
+        "requestSchema": "GatewayLogExportsClientUpdateRequestSchema",
+        "requestType": "GatewayLogExportsClientUpdateRequest",
+        "className": "AIGatewayLogExportsClient",
+        "parameters": [
+          {
+            "name": "exportId",
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "type": "GatewayLogExportsClientUpdateRequest"
+          }
+        ]
+      },
+      "query": {},
+      "queryWire": {},
+      "body": {
+        "workspace_id": "x",
+        "filters": {
+          "time_of_generation_min": "2026-09-06T00:00:00Z",
+          "time_of_generation_max": "2026-09-06T00:00:00Z",
+          "total_units_min": 1,
+          "total_units_max": 1,
+          "cost_min": 1,
+          "cost_max": 1,
+          "ai_model": "x",
+          "prompt_token_min": 1,
+          "prompt_token_max": 1,
+          "completion_token_min": 1,
+          "completion_token_max": 1,
+          "status_code": "x",
+          "metadata": {},
+          "ai_org_model": "x",
+          "weighted_feedback_min": 1,
+          "weighted_feedback_max": 1,
+          "virtual_keys": "x",
+          "trace_id": "x",
+          "configs": "x",
+          "workspace_slug": "x",
+          "prompt_slug": "x",
+          "page_size": 1,
+          "current_page": 1
+        },
+        "requested_data": ["id"],
+        "description": "Offline contract fixture"
+      },
+      "responseBody": {
+        "id": "550e8400-e29b-41d4-a716-446655440000",
+        "total": 1,
+        "object": "export"
+      },
+      "responseStatus": 200,
+      "responseIsText": false
+    },
+    {
+      "method": "GET",
+      "path": "/logs/exports",
+      "call": {
+        "method": "GET",
+        "path": "/logs/exports",
+        "source": "src/ai-gateway/log-exports-client.ts",
+        "member": "list",
+        "plane": "gateway",
+        "responseSchema": "GatewayLogExportsClientListResponseSchema",
+        "queryType": "GatewayLogExportsClientListOptions",
+        "className": "AIGatewayLogExportsClient",
+        "parameters": [
+          {
+            "name": "opts",
+            "type": "GatewayLogExportsClientListOptions"
+          }
+        ]
+      },
+      "query": {
+        "workspace_id": "550e8400-e29b-41d4-a716-446655440000"
+      },
+      "queryWire": {
+        "workspace_id": ["550e8400-e29b-41d4-a716-446655440000"]
+      },
+      "responseBody": {
+        "object": "list",
+        "total": 1,
+        "data": [
+          {
+            "id": "550e8400-e29b-41d4-a716-446655440000",
+            "organisation_id": "550e8400-e29b-41d4-a716-446655440000",
+            "filters": {
+              "time_of_generation_min": "2026-09-06T00:00:00Z",
+              "time_of_generation_max": "2026-09-06T00:00:00Z",
+              "total_units_min": 1,
+              "total_units_max": 1,
+              "cost_min": 1,
+              "cost_max": 1,
+              "ai_model": "x",
+              "prompt_token_min": 1,
+              "prompt_token_max": 1,
+              "completion_token_min": 1,
+              "completion_token_max": 1,
+              "status_code": "x",
+              "metadata": {},
+              "ai_org_model": "x",
+              "weighted_feedback_min": 1,
+              "weighted_feedback_max": 1,
+              "virtual_keys": "x",
+              "trace_id": "x",
+              "configs": "x",
+              "workspace_slug": "x",
+              "prompt_slug": "x",
+              "page_size": 1,
+              "current_page": 1
+            },
+            "requested_data": ["id"],
+            "status": "draft",
+            "description": "x",
+            "created_at": "2026-09-06T00:00:00Z",
+            "last_updated_at": "2026-09-06T00:00:00Z",
+            "created_by": "550e8400-e29b-41d4-a716-446655440000",
+            "workspace_id": "550e8400-e29b-41d4-a716-446655440000",
+            "object": "export"
+          }
+        ]
+      },
+      "responseStatus": 200,
+      "responseIsText": false
+    },
+    {
+      "method": "POST",
+      "path": "/logs/exports",
+      "call": {
+        "method": "POST",
+        "path": "/logs/exports",
+        "source": "src/ai-gateway/log-exports-client.ts",
+        "member": "create",
+        "plane": "gateway",
+        "responseSchema": "GatewayLogExportsClientCreateResponseSchema",
+        "requestSchema": "GatewayLogExportsClientCreateRequestSchema",
+        "requestType": "GatewayLogExportsClientCreateRequest",
+        "className": "AIGatewayLogExportsClient",
+        "parameters": [
+          {
+            "name": "body",
+            "type": "GatewayLogExportsClientCreateRequest"
+          }
+        ]
+      },
+      "query": {},
+      "queryWire": {},
+      "body": {
+        "workspace_id": "x",
+        "filters": {
+          "time_of_generation_min": "2026-09-06T00:00:00Z",
+          "time_of_generation_max": "2026-09-06T00:00:00Z",
+          "total_units_min": 1,
+          "total_units_max": 1,
+          "cost_min": 1,
+          "cost_max": 1,
+          "ai_model": "x",
+          "prompt_token_min": 1,
+          "prompt_token_max": 1,
+          "completion_token_min": 1,
+          "completion_token_max": 1,
+          "status_code": "x",
+          "metadata": {},
+          "ai_org_model": "x",
+          "weighted_feedback_min": 1,
+          "weighted_feedback_max": 1,
+          "virtual_keys": "x",
+          "trace_id": "x",
+          "configs": "x",
+          "workspace_slug": "x",
+          "prompt_slug": "x",
+          "page_size": 1,
+          "current_page": 1
+        },
+        "requested_data": ["id"],
+        "description": "Offline contract fixture"
+      },
+      "responseBody": {
+        "id": "550e8400-e29b-41d4-a716-446655440000",
+        "total": 1,
+        "object": "export"
+      },
+      "responseStatus": 200,
+      "responseIsText": false
+    },
+    {
+      "method": "POST",
+      "path": "/logs/exports/{exportId}/start",
+      "call": {
+        "method": "POST",
+        "path": "/logs/exports/{gatewayPathSegment(exportId)}/start",
+        "source": "src/ai-gateway/log-exports-client.ts",
+        "member": "start",
+        "plane": "gateway",
+        "responseSchema": "GatewayLogExportsClientStartResponseSchema",
+        "className": "AIGatewayLogExportsClient",
+        "parameters": [
+          {
+            "name": "exportId",
+            "type": "string"
+          }
+        ]
+      },
+      "query": {},
+      "queryWire": {},
+      "responseBody": {
+        "message": "x",
+        "object": "export"
+      },
+      "responseStatus": 200,
+      "responseIsText": false
+    },
+    {
+      "method": "POST",
+      "path": "/logs/exports/{exportId}/cancel",
+      "call": {
+        "method": "POST",
+        "path": "/logs/exports/{gatewayPathSegment(exportId)}/cancel",
+        "source": "src/ai-gateway/log-exports-client.ts",
+        "member": "cancel",
+        "plane": "gateway",
+        "responseSchema": "GatewayLogExportsClientCancelResponseSchema",
+        "className": "AIGatewayLogExportsClient",
+        "parameters": [
+          {
+            "name": "exportId",
+            "type": "string"
+          }
+        ]
+      },
+      "query": {},
+      "queryWire": {},
+      "responseBody": {
+        "message": "x",
+        "object": "export"
+      },
+      "responseStatus": 200,
+      "responseIsText": false
+    },
+    {
+      "method": "GET",
+      "path": "/logs/exports/{exportId}/download",
+      "call": {
+        "method": "GET",
+        "path": "/logs/exports/{gatewayPathSegment(exportId)}/download",
+        "source": "src/ai-gateway/log-exports-client.ts",
+        "member": "download",
+        "plane": "gateway",
+        "responseSchema": "GatewayLogExportsClientDownloadResponseSchema",
+        "className": "AIGatewayLogExportsClient",
+        "parameters": [
+          {
+            "name": "exportId",
+            "type": "string"
+          }
+        ]
+      },
+      "query": {},
+      "queryWire": {},
+      "responseBody": {
+        "signed_url": "https://example.test"
+      },
+      "responseStatus": 200,
+      "responseIsText": false
+    },
+    {
+      "method": "POST",
+      "path": "/policies/usage-limits",
+      "call": {
+        "method": "POST",
+        "path": "/policies/usage-limits",
+        "source": "src/ai-gateway/usage-limits-client.ts",
+        "member": "create",
+        "plane": "gateway",
+        "responseSchema": "GatewayUsageLimitsClientCreateResponseSchema",
+        "requestSchema": "GatewayUsageLimitsClientCreateRequestSchema",
+        "requestType": "GatewayUsageLimitsClientCreateRequest",
+        "className": "AIGatewayUsageLimitsClient",
+        "parameters": [
+          {
+            "name": "body",
+            "type": "GatewayUsageLimitsClientCreateRequest"
+          }
+        ]
+      },
+      "query": {},
+      "queryWire": {},
+      "body": {
+        "name": "x",
+        "conditions": [
+          {
+            "key": "x",
+            "value": "x",
+            "excludes": "x"
+          }
+        ],
+        "group_by": [
+          {
+            "key": "x"
+          }
+        ],
+        "type": "cost",
+        "credit_limit": 0,
+        "alert_threshold": 0,
+        "periodic_reset": "monthly",
+        "workspace_id": "x",
+        "organisation_id": "550e8400-e29b-41d4-a716-446655440000"
+      },
+      "responseBody": {
+        "id": "550e8400-e29b-41d4-a716-446655440000",
+        "object": "x"
+      },
+      "responseStatus": 200,
+      "responseIsText": false
+    },
+    {
+      "method": "GET",
+      "path": "/policies/usage-limits",
+      "call": {
+        "method": "GET",
+        "path": "/policies/usage-limits",
+        "source": "src/ai-gateway/usage-limits-client.ts",
+        "member": "list",
+        "plane": "gateway",
+        "responseSchema": "GatewayUsageLimitsClientListResponseSchema",
+        "queryType": "GatewayUsageLimitsClientListOptions",
+        "className": "AIGatewayUsageLimitsClient",
+        "parameters": [
+          {
+            "name": "opts",
+            "type": "GatewayUsageLimitsClientListOptions"
+          }
+        ]
+      },
+      "query": {
+        "workspace_id": "550e8400-e29b-41d4-a716-446655440000",
+        "status": "active",
+        "type": "cost",
+        "page_size": 0,
+        "current_page": 0
+      },
+      "queryWire": {
+        "workspace_id": ["550e8400-e29b-41d4-a716-446655440000"],
+        "status": ["active"],
+        "type": ["cost"],
+        "page_size": ["0"],
+        "current_page": ["0"]
+      },
+      "responseBody": {
+        "object": "x",
+        "data": [
+          {
+            "id": "550e8400-e29b-41d4-a716-446655440000",
+            "name": "x",
+            "conditions": [
+              {
+                "key": "x",
+                "value": "x",
+                "excludes": "x"
+              }
+            ],
+            "group_by": [
+              {
+                "key": "x"
+              }
+            ],
+            "type": "cost",
+            "credit_limit": 1,
+            "alert_threshold": 1,
+            "periodic_reset": "monthly",
+            "periodic_reset_days": 1,
+            "next_usage_reset_at": "2026-09-06T00:00:00Z",
+            "last_reset_at": "2026-09-06T00:00:00Z",
+            "status": "active",
+            "workspace_id": "550e8400-e29b-41d4-a716-446655440000",
+            "organisation_id": "550e8400-e29b-41d4-a716-446655440000",
+            "created_at": "2026-09-06T00:00:00Z",
+            "last_updated_at": "2026-09-06T00:00:00Z",
+            "value_key_usage_map": {}
+          }
+        ],
+        "total": 1
+      },
+      "responseStatus": 200,
+      "responseIsText": false
+    },
+    {
+      "method": "GET",
+      "path": "/policies/usage-limits/{policyUsageLimitsId}",
+      "call": {
+        "method": "GET",
+        "path": "/policies/usage-limits/{gatewayPathSegment(policyUsageLimitsId)}",
+        "source": "src/ai-gateway/usage-limits-client.ts",
+        "member": "get",
+        "plane": "gateway",
+        "responseSchema": "GatewayUsageLimitsClientGetResponseSchema",
+        "queryType": "GatewayUsageLimitsClientGetOptions",
+        "className": "AIGatewayUsageLimitsClient",
+        "parameters": [
+          {
+            "name": "policyUsageLimitsId",
+            "type": "string"
+          },
+          {
+            "name": "opts",
+            "type": "GatewayUsageLimitsClientGetOptions"
+          }
+        ]
+      },
+      "query": {
+        "status": "active",
+        "include_usage": false
+      },
+      "queryWire": {
+        "status": ["active"],
+        "include_usage": ["false"]
+      },
+      "responseBody": {
+        "id": "550e8400-e29b-41d4-a716-446655440000",
+        "name": "x",
+        "conditions": [
+          {
+            "key": "x",
+            "value": "x",
+            "excludes": "x"
+          }
+        ],
+        "group_by": [
+          {
+            "key": "x"
+          }
+        ],
+        "type": "cost",
+        "credit_limit": 1,
+        "alert_threshold": 1,
+        "periodic_reset": "monthly",
+        "periodic_reset_days": 1,
+        "next_usage_reset_at": "2026-09-06T00:00:00Z",
+        "last_reset_at": "2026-09-06T00:00:00Z",
+        "status": "active",
+        "workspace_id": "550e8400-e29b-41d4-a716-446655440000",
+        "organisation_id": "550e8400-e29b-41d4-a716-446655440000",
+        "created_at": "2026-09-06T00:00:00Z",
+        "last_updated_at": "2026-09-06T00:00:00Z",
+        "value_key_usage_map": {},
+        "object": "x"
+      },
+      "responseStatus": 200,
+      "responseIsText": false
+    },
+    {
+      "method": "PUT",
+      "path": "/policies/usage-limits/{policyUsageLimitsId}",
+      "call": {
+        "method": "PUT",
+        "path": "/policies/usage-limits/{gatewayPathSegment(policyUsageLimitsId)}",
+        "source": "src/ai-gateway/usage-limits-client.ts",
+        "member": "update",
+        "plane": "gateway",
+        "responseSchema": "GatewayUsageLimitsClientUpdateResponseSchema",
+        "requestSchema": "GatewayUsageLimitsClientUpdateRequestSchema",
+        "requestType": "GatewayUsageLimitsClientUpdateRequest",
+        "className": "AIGatewayUsageLimitsClient",
+        "parameters": [
+          {
+            "name": "policyUsageLimitsId",
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "type": "GatewayUsageLimitsClientUpdateRequest"
+          }
+        ]
+      },
+      "query": {},
+      "queryWire": {},
+      "body": {
+        "name": "x",
+        "description": "x",
+        "conditions": [
+          {
+            "key": "x",
+            "value": "x",
+            "excludes": "x"
+          }
+        ],
+        "credit_limit": 0,
+        "alert_threshold": 0,
+        "periodic_reset": "monthly",
+        "periodic_reset_days": 1,
+        "next_usage_reset_at": "2026-09-06T00:00:00Z",
+        "reset_usage_for_value": "x"
+      },
+      "responseBody": {},
+      "responseStatus": 200,
+      "responseIsText": false
+    },
+    {
+      "method": "DELETE",
+      "path": "/policies/usage-limits/{policyUsageLimitsId}",
+      "call": {
+        "method": "DELETE",
+        "path": "/policies/usage-limits/{gatewayPathSegment(policyUsageLimitsId)}",
+        "source": "src/ai-gateway/usage-limits-client.ts",
+        "member": "delete",
+        "plane": "gateway",
+        "responseSchema": "GatewayUsageLimitsClientDeleteResponseSchema",
+        "className": "AIGatewayUsageLimitsClient",
+        "parameters": [
+          {
+            "name": "policyUsageLimitsId",
+            "type": "string"
+          }
+        ]
+      },
+      "query": {},
+      "queryWire": {},
+      "responseBody": {},
+      "responseStatus": 200,
+      "responseIsText": false
+    },
+    {
+      "method": "GET",
+      "path": "/policies/usage-limits/{policyUsageLimitsId}/entities",
+      "call": {
+        "method": "GET",
+        "path": "/policies/usage-limits/{gatewayPathSegment(policyUsageLimitsId)}/entities",
+        "source": "src/ai-gateway/usage-limits-client.ts",
+        "member": "listEntities",
+        "plane": "gateway",
+        "responseSchema": "GatewayUsageLimitsClientListEntitiesResponseSchema",
+        "queryType": "GatewayUsageLimitsClientListEntitiesOptions",
+        "className": "AIGatewayUsageLimitsClient",
+        "parameters": [
+          {
+            "name": "policyUsageLimitsId",
+            "type": "string"
+          },
+          {
+            "name": "opts",
+            "type": "GatewayUsageLimitsClientListEntitiesOptions"
+          }
+        ]
+      },
+      "query": {
+        "status": "active",
+        "search": "x",
+        "page_size": 1,
+        "current_page": 0
+      },
+      "queryWire": {
+        "status": ["active"],
+        "search": ["x"],
+        "page_size": ["1"],
+        "current_page": ["0"]
+      },
+      "responseBody": {
+        "object": "x",
+        "data": [
+          {
+            "id": "x",
+            "value_key": "x",
+            "current_usage": 1
+          }
+        ],
+        "total": 1
+      },
+      "responseStatus": 200,
+      "responseIsText": false
+    },
+    {
+      "method": "PUT",
+      "path": "/policies/usage-limits/{policyUsageLimitsId}/entities/{entityId}/reset",
+      "call": {
+        "method": "PUT",
+        "path": "/policies/usage-limits/{gatewayPathSegment(policyUsageLimitsId)}/entities/{gatewayPathSegment(entityId)}/reset",
+        "source": "src/ai-gateway/usage-limits-client.ts",
+        "member": "resetEntity",
+        "plane": "gateway",
+        "responseSchema": "GatewayUsageLimitsClientResetEntityResponseSchema",
+        "className": "AIGatewayUsageLimitsClient",
+        "parameters": [
+          {
+            "name": "policyUsageLimitsId",
+            "type": "string"
+          },
+          {
+            "name": "entityId",
+            "type": "string"
+          }
+        ]
+      },
+      "query": {},
+      "queryWire": {},
+      "responseBody": {},
+      "responseStatus": 200,
+      "responseIsText": false
+    },
+    {
+      "method": "POST",
+      "path": "/policies/rate-limits",
+      "call": {
+        "method": "POST",
+        "path": "/policies/rate-limits",
+        "source": "src/ai-gateway/rate-limits-client.ts",
+        "member": "create",
+        "plane": "gateway",
+        "responseSchema": "GatewayRateLimitsClientCreateResponseSchema",
+        "requestSchema": "GatewayRateLimitsClientCreateRequestSchema",
+        "requestType": "GatewayRateLimitsClientCreateRequest",
+        "className": "AIGatewayRateLimitsClient",
+        "parameters": [
+          {
+            "name": "body",
+            "type": "GatewayRateLimitsClientCreateRequest"
+          }
+        ]
+      },
+      "query": {},
+      "queryWire": {},
+      "body": {
+        "name": "x",
+        "conditions": [
+          {
+            "key": "x",
+            "value": "x",
+            "excludes": "x"
+          }
+        ],
+        "group_by": [
+          {
+            "key": "x"
+          }
+        ],
+        "type": "requests",
+        "unit": "rpm",
+        "value": 1,
+        "target": "llm",
+        "workspace_id": "x",
+        "organisation_id": "550e8400-e29b-41d4-a716-446655440000"
+      },
+      "responseBody": {
+        "id": "550e8400-e29b-41d4-a716-446655440000",
+        "object": "x"
+      },
+      "responseStatus": 200,
+      "responseIsText": false
+    },
+    {
+      "method": "GET",
+      "path": "/policies/rate-limits",
+      "call": {
+        "method": "GET",
+        "path": "/policies/rate-limits",
+        "source": "src/ai-gateway/rate-limits-client.ts",
+        "member": "list",
+        "plane": "gateway",
+        "responseSchema": "GatewayRateLimitsClientListResponseSchema",
+        "queryType": "GatewayRateLimitsClientListOptions",
+        "className": "AIGatewayRateLimitsClient",
+        "parameters": [
+          {
+            "name": "opts",
+            "type": "GatewayRateLimitsClientListOptions"
+          }
+        ]
+      },
+      "query": {
+        "workspace_id": "550e8400-e29b-41d4-a716-446655440000",
+        "status": "active",
+        "type": "requests",
+        "unit": "rpm",
+        "target": "llm",
+        "page_size": 0,
+        "current_page": 0
+      },
+      "queryWire": {
+        "workspace_id": ["550e8400-e29b-41d4-a716-446655440000"],
+        "status": ["active"],
+        "type": ["requests"],
+        "unit": ["rpm"],
+        "target": ["llm"],
+        "page_size": ["0"],
+        "current_page": ["0"]
+      },
+      "responseBody": {
+        "object": "x",
+        "data": [
+          {
+            "id": "550e8400-e29b-41d4-a716-446655440000",
+            "name": "x",
+            "conditions": [
+              {
+                "key": "x",
+                "value": "x",
+                "excludes": "x"
+              }
+            ],
+            "group_by": [
+              {
+                "key": "x"
+              }
+            ],
+            "type": "requests",
+            "unit": "rpm",
+            "value": 1,
+            "status": "active",
+            "workspace_id": "550e8400-e29b-41d4-a716-446655440000",
+            "organisation_id": "550e8400-e29b-41d4-a716-446655440000",
+            "created_at": "2026-09-06T00:00:00Z",
+            "last_updated_at": "2026-09-06T00:00:00Z",
+            "target": "llm"
+          }
+        ],
+        "total": 1
+      },
+      "responseStatus": 200,
+      "responseIsText": false
+    },
+    {
+      "method": "GET",
+      "path": "/policies/rate-limits/{rateLimitsPolicyId}",
+      "call": {
+        "method": "GET",
+        "path": "/policies/rate-limits/{gatewayPathSegment(rateLimitsPolicyId)}",
+        "source": "src/ai-gateway/rate-limits-client.ts",
+        "member": "get",
+        "plane": "gateway",
+        "responseSchema": "GatewayRateLimitsClientGetResponseSchema",
+        "queryType": "GatewayRateLimitsClientGetOptions",
+        "className": "AIGatewayRateLimitsClient",
+        "parameters": [
+          {
+            "name": "rateLimitsPolicyId",
+            "type": "string"
+          },
+          {
+            "name": "opts",
+            "type": "GatewayRateLimitsClientGetOptions"
+          }
+        ]
+      },
+      "query": {
+        "status": "active"
+      },
+      "queryWire": {
+        "status": ["active"]
+      },
+      "responseBody": {
+        "id": "550e8400-e29b-41d4-a716-446655440000",
+        "name": "x",
+        "conditions": [
+          {
+            "key": "x",
+            "value": "x",
+            "excludes": "x"
+          }
+        ],
+        "group_by": [
+          {
+            "key": "x"
+          }
+        ],
+        "type": "requests",
+        "unit": "rpm",
+        "value": 1,
+        "status": "active",
+        "workspace_id": "550e8400-e29b-41d4-a716-446655440000",
+        "organisation_id": "550e8400-e29b-41d4-a716-446655440000",
+        "created_at": "2026-09-06T00:00:00Z",
+        "last_updated_at": "2026-09-06T00:00:00Z",
+        "target": "llm",
+        "object": "x"
+      },
+      "responseStatus": 200,
+      "responseIsText": false
+    },
+    {
+      "method": "PUT",
+      "path": "/policies/rate-limits/{rateLimitsPolicyId}",
+      "call": {
+        "method": "PUT",
+        "path": "/policies/rate-limits/{gatewayPathSegment(rateLimitsPolicyId)}",
+        "source": "src/ai-gateway/rate-limits-client.ts",
+        "member": "update",
+        "plane": "gateway",
+        "responseSchema": "GatewayRateLimitsClientUpdateResponseSchema",
+        "requestSchema": "GatewayRateLimitsClientUpdateRequestSchema",
+        "requestType": "GatewayRateLimitsClientUpdateRequest",
+        "className": "AIGatewayRateLimitsClient",
+        "parameters": [
+          {
+            "name": "rateLimitsPolicyId",
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "type": "GatewayRateLimitsClientUpdateRequest"
+          }
+        ]
+      },
+      "query": {},
+      "queryWire": {},
+      "body": {
+        "name": "x",
+        "unit": "rpm",
+        "value": 1,
+        "conditions": [
+          {
+            "key": "x",
+            "value": "x",
+            "excludes": "x"
+          }
+        ]
+      },
+      "responseBody": {},
+      "responseStatus": 200,
+      "responseIsText": false
+    },
+    {
+      "method": "DELETE",
+      "path": "/policies/rate-limits/{rateLimitsPolicyId}",
+      "call": {
+        "method": "DELETE",
+        "path": "/policies/rate-limits/{gatewayPathSegment(rateLimitsPolicyId)}",
+        "source": "src/ai-gateway/rate-limits-client.ts",
+        "member": "delete",
+        "plane": "gateway",
+        "responseSchema": "GatewayRateLimitsClientDeleteResponseSchema",
+        "className": "AIGatewayRateLimitsClient",
+        "parameters": [
+          {
+            "name": "rateLimitsPolicyId",
+            "type": "string"
+          }
+        ]
+      },
+      "query": {},
+      "queryWire": {},
+      "responseBody": {},
+      "responseStatus": 200,
+      "responseIsText": false
+    },
+    {
+      "method": "GET",
+      "path": "/model-configs/pricing/{provider}/{model}",
+      "call": {
+        "method": "GET",
+        "path": "/model-configs/pricing/{gatewayPathSegment(provider)}/{gatewayPathSegment(model)}",
+        "source": "src/ai-gateway/model-pricing-client.ts",
+        "member": "get",
+        "plane": "gateway",
+        "responseSchema": "GatewayModelPricingConfigSchema",
+        "className": "AIGatewayModelPricingClient",
+        "parameters": [
+          {
+            "name": "provider",
+            "type": "string"
+          },
+          {
+            "name": "model",
+            "type": "string"
+          },
+          {
+            "name": "options",
+            "type": "GatewayModelPricingRequestOptions"
+          }
+        ]
+      },
+      "publicPricingClient": true,
+      "publicEndpoint": "https://api.portkey.ai",
+      "publicSecurity": [],
+      "query": {},
+      "queryWire": {},
+      "responseBody": {
+        "pay_as_you_go": {
+          "request_token": {
+            "price": 1
+          },
+          "response_token": {
+            "price": 1
+          },
+          "cache_write_input_token": {
+            "price": 1
+          },
+          "cache_read_input_token": {
+            "price": 1
+          },
+          "request_audio_token": {
+            "price": 1
+          },
+          "response_audio_token": {
+            "price": 1
+          },
+          "cache_read_audio_input_token": {
+            "price": 1
+          },
+          "additional_units": {},
+          "image": {}
+        },
+        "calculate": {
+          "request": {
+            "operation": "sum",
+            "operands": [
+              {
+                "value": "x"
+              }
+            ]
+          },
+          "response": {
+            "operation": "sum",
+            "operands": [
+              {
+                "value": "x"
+              }
+            ]
+          }
+        },
+        "currency": "USD",
+        "finetune_config": {
+          "pay_per_token": {
+            "price": 1
+          },
+          "pay_per_hour": {
+            "price": 1
+          }
+        }
+      },
+      "responseStatus": 200,
+      "responseIsText": false
+    },
+    {
+      "method": "GET",
+      "path": "/secret-references",
+      "call": {
+        "method": "GET",
+        "path": "/secret-references",
+        "source": "src/ai-gateway/secret-references-client.ts",
+        "member": "list",
+        "plane": "gateway",
+        "responseSchema": "GatewaySecretReferencesClientListResponseSchema",
+        "queryType": "GatewaySecretReferencesClientListOptions",
+        "className": "AIGatewaySecretReferencesClient",
+        "parameters": [
+          {
+            "name": "opts",
+            "type": "GatewaySecretReferencesClientListOptions"
+          }
+        ]
+      },
+      "query": {
+        "manager_type": "aws_sm",
+        "tags": "x",
+        "search": "x",
+        "current_page": 0,
+        "page_size": 1
+      },
+      "queryWire": {
+        "manager_type": ["aws_sm"],
+        "tags": ["x"],
+        "search": ["x"],
+        "current_page": ["0"],
+        "page_size": ["1"]
+      },
+      "responseBody": {
+        "object": "list",
+        "total": 1,
+        "data": [
+          {
+            "id": "550e8400-e29b-41d4-a716-446655440000",
+            "name": "x",
+            "slug": "x",
+            "manager_type": "aws_sm",
+            "status": "ACTIVE",
+            "created_at": "2026-09-06T00:00:00Z",
+            "last_updated_at": "2026-09-06T00:00:00Z",
+            "object": "secret-reference"
+          }
+        ]
+      },
+      "responseStatus": 200,
+      "responseIsText": false
+    },
+    {
+      "method": "POST",
+      "path": "/secret-references",
+      "call": {
+        "method": "POST",
+        "path": "/secret-references",
+        "source": "src/ai-gateway/secret-references-client.ts",
+        "member": "create",
+        "plane": "gateway",
+        "responseSchema": "GatewaySecretReferencesClientCreateResponseSchema",
+        "requestSchema": "GatewaySecretReferencesClientCreateRequestSchema",
+        "requestType": "GatewaySecretReferencesClientCreateRequest",
+        "className": "AIGatewaySecretReferencesClient",
+        "parameters": [
+          {
+            "name": "body",
+            "type": "GatewaySecretReferencesClientCreateRequest"
+          }
+        ]
+      },
+      "query": {},
+      "queryWire": {},
+      "body": {
+        "organisation_id": "550e8400-e29b-41d4-a716-446655440000",
+        "name": "x",
+        "slug": "x",
+        "description": "x",
+        "manager_type": "aws_sm",
+        "auth_config": {
+          "aws_auth_type": "accessKey",
+          "aws_access_key_id": "x",
+          "aws_secret_access_key": "x",
+          "aws_region": "x"
+        },
+        "secret_path": "x",
+        "secret_key": "x",
+        "allow_all_workspaces": false,
+        "allowed_workspaces": ["x"],
+        "tags": {}
+      },
+      "responseBody": {
+        "id": "550e8400-e29b-41d4-a716-446655440000",
+        "slug": "x",
+        "object": "secret-reference"
+      },
+      "responseStatus": 200,
+      "responseIsText": false
+    },
+    {
+      "method": "GET",
+      "path": "/secret-references/{secretReferenceId}",
+      "call": {
+        "method": "GET",
+        "path": "/secret-references/{gatewayPathSegment(secretReferenceId)}",
+        "source": "src/ai-gateway/secret-references-client.ts",
+        "member": "get",
+        "plane": "gateway",
+        "responseSchema": "GatewaySecretReferencesClientGetResponseSchema",
+        "className": "AIGatewaySecretReferencesClient",
+        "parameters": [
+          {
+            "name": "secretReferenceId",
+            "type": "string"
+          }
+        ]
+      },
+      "query": {},
+      "queryWire": {},
+      "responseBody": {
+        "id": "550e8400-e29b-41d4-a716-446655440000",
+        "organisation_id": "550e8400-e29b-41d4-a716-446655440000",
+        "name": "x",
+        "slug": "x",
+        "description": "x",
+        "manager_type": "aws_sm",
+        "secret_path": "x",
+        "secret_key": "x",
+        "allow_all_workspaces": false,
+        "tags": {},
+        "status": "ACTIVE",
+        "created_by": "x",
+        "created_at": "2026-09-06T00:00:00Z",
+        "last_updated_at": "2026-09-06T00:00:00Z",
+        "auth_config": {},
+        "object": "secret-reference"
+      },
+      "responseStatus": 200,
+      "responseIsText": false
+    },
+    {
+      "method": "PUT",
+      "path": "/secret-references/{secretReferenceId}",
+      "call": {
+        "method": "PUT",
+        "path": "/secret-references/{gatewayPathSegment(secretReferenceId)}",
+        "source": "src/ai-gateway/secret-references-client.ts",
+        "member": "update",
+        "plane": "gateway",
+        "responseSchema": "GatewaySecretReferencesClientUpdateResponseSchema",
+        "requestSchema": "GatewaySecretReferencesClientUpdateRequestSchema",
+        "requestType": "GatewaySecretReferencesClientUpdateRequest",
+        "className": "AIGatewaySecretReferencesClient",
+        "parameters": [
+          {
+            "name": "secretReferenceId",
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "type": "GatewaySecretReferencesClientUpdateRequest"
+          }
+        ]
+      },
+      "query": {},
+      "queryWire": {},
+      "body": {
+        "name": "x",
+        "description": "x",
+        "auth_config": {},
+        "secret_path": "x",
+        "secret_key": "x",
+        "allow_all_workspaces": false,
+        "allowed_workspaces": ["x"],
+        "tags": {}
+      },
+      "responseBody": {},
+      "responseStatus": 200,
+      "responseIsText": false
+    },
+    {
+      "method": "DELETE",
+      "path": "/secret-references/{secretReferenceId}",
+      "call": {
+        "method": "DELETE",
+        "path": "/secret-references/{gatewayPathSegment(secretReferenceId)}",
+        "source": "src/ai-gateway/secret-references-client.ts",
+        "member": "delete",
+        "plane": "gateway",
+        "responseSchema": "GatewaySecretReferencesClientDeleteResponseSchema",
+        "className": "AIGatewaySecretReferencesClient",
+        "parameters": [
+          {
+            "name": "secretReferenceId",
+            "type": "string"
+          }
+        ]
+      },
+      "query": {},
+      "queryWire": {},
+      "responseBody": {},
+      "responseStatus": 200,
+      "responseIsText": false
+    }
+  ]
+}

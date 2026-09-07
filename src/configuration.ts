@@ -72,24 +72,28 @@ class Configuration {
       );
     }
 
-    this._apiKey = apiKey;
-    this._apiToken = apiToken;
-
     // Resolve endpoint
     const endpoint = opts.apiEndpoint ?? process.env[AI_SEC_API_ENDPOINT] ?? DEFAULT_ENDPOINT;
-    this._apiEndpoint = endpoint.replace(/\/+$/, ''); // strip trailing slashes
 
     // Resolve retries
     if (opts.numRetries !== undefined) {
-      if (opts.numRetries < 0 || opts.numRetries > MAX_NUMBER_OF_RETRIES) {
+      if (
+        !Number.isInteger(opts.numRetries) ||
+        opts.numRetries < 0 ||
+        opts.numRetries > MAX_NUMBER_OF_RETRIES
+      ) {
         throw new AISecSDKException(
-          `numRetries must be between 0 and ${MAX_NUMBER_OF_RETRIES}`,
+          `numRetries must be an integer between 0 and ${MAX_NUMBER_OF_RETRIES}`,
           ErrorType.USER_REQUEST_PAYLOAD_ERROR,
         );
       }
-      this._numRetries = opts.numRetries;
     }
 
+    // Commit only after validation, so an invalid init cannot corrupt a working scanner.
+    this._apiKey = apiKey;
+    this._apiToken = apiToken;
+    this._apiEndpoint = endpoint.replace(/\/+$/, '');
+    this._numRetries = opts.numRetries ?? MAX_NUMBER_OF_RETRIES;
     this._initialized = true;
   }
 

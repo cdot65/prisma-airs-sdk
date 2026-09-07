@@ -1,3 +1,4 @@
+import { reportExampleError } from './example-support.js';
 import { RedTeamClient, AISecSDKException } from '@cdot65/prisma-airs-sdk';
 
 async function main() {
@@ -50,13 +51,8 @@ async function main() {
       console.log(`  - ${ps.uuid}: ${ps.name}`);
     }
   } catch (error) {
-    if (error instanceof AISecSDKException) {
-      console.error('Error:', error.message);
-      console.error('Type:', error.errorType);
-    } else {
-      throw error;
-    }
+    reportExampleError(error);
   }
 }
 
-main().catch(console.error);
+main().catch(reportExampleError);

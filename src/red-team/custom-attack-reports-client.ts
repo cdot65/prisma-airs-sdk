@@ -10,13 +10,13 @@ import {
   PromptDetailResponseSchema,
   CustomAttacksListResponseSchema,
   CustomAttackOutputSchema,
-  PropertyStatisticSchema,
+  PropertyStatisticResultSchema,
   type CustomAttackReportResponse,
   type PromptSetsReportResponse,
   type PromptDetailResponse,
   type CustomAttacksListResponse,
   type CustomAttackOutput,
-  type PropertyStatistic,
+  type PropertyStatisticResult,
 } from '../models/red-team.js';
 import type { RedTeamListOptions } from './scans-client.js';
 
@@ -27,9 +27,16 @@ export interface PromptsBySetListOptions extends RedTeamListOptions {
 
 /** Filter options for listing custom attacks in a report. */
 export interface CustomAttacksReportListOptions extends RedTeamListOptions {
+  status?: string;
   threat?: boolean;
   prompt_set_id?: string;
   property_value?: string;
+}
+
+/** Filters and pagination for the prompt-set report endpoint. */
+export interface PromptSetsReportOptions extends RedTeamListOptions {
+  property_filters?: string;
+  is_threat?: boolean;
 }
 
 /** @internal */
@@ -91,12 +98,19 @@ export class RedTeamCustomAttackReportsClient {
    * // { total_prompt_sets: 1, prompt_sets: [{ uuid: '550e8400-...', name: 'jailbreaks' }] }
    * ```
    */
-  async getPromptSets(jobId: string): Promise<PromptSetsReportResponse> {
+  async getPromptSets(
+    jobId: string,
+    opts?: PromptSetsReportOptions,
+  ): Promise<PromptSetsReportResponse> {
     assertUuid(jobId, 'job id');
+    const params = serializeListing(opts);
+    if (opts?.property_filters !== undefined) params.property_filters = opts.property_filters;
+    if (opts?.is_threat !== undefined) params.is_threat = String(opts.is_threat);
     return request({
       method: 'GET',
       baseUrl: this.baseUrl,
       path: `${RED_TEAM_CUSTOM_ATTACKS_REPORT_PATH}/report/${jobId}/prompt-sets`,
+      params,
       responseSchema: PromptSetsReportResponseSchema,
       auth: this.auth,
       numRetries: this.numRetries,
@@ -201,6 +215,7 @@ export class RedTeamCustomAttackReportsClient {
   ): Promise<CustomAttacksListResponse> {
     assertUuid(jobId, 'job id');
     const params = serializeListing(opts);
+    if (opts?.status !== undefined) params.status = opts.status;
     if (opts?.threat !== undefined) params.threat = String(opts.threat);
     if (opts?.prompt_set_id !== undefined) params.prompt_set_id = opts.prompt_set_id;
     if (opts?.property_value !== undefined) params.property_value = opts.property_value;
@@ -262,13 +277,13 @@ export class RedTeamCustomAttackReportsClient {
    * // [{ property_name: 'category', values: [{ value: 'jailbreak', count: 12 }] }]
    * ```
    */
-  async getPropertyStats(jobId: string): Promise<PropertyStatistic[]> {
+  async getPropertyStats(jobId: string): Promise<PropertyStatisticResult[]> {
     assertUuid(jobId, 'job id');
     return request({
       method: 'GET',
       baseUrl: this.baseUrl,
       path: `${RED_TEAM_CUSTOM_ATTACKS_REPORT_PATH}/job/${jobId}/property-stats`,
-      responseSchema: z.array(PropertyStatisticSchema),
+      responseSchema: z.array(PropertyStatisticResultSchema),
       auth: this.auth,
       numRetries: this.numRetries,
     });

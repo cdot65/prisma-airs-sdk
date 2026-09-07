@@ -1,4 +1,4 @@
-import type { z } from 'zod';
+import { z } from 'zod';
 import {
   AI_GW_CHARTS_PATH,
   AI_GW_GROUPS_PATH,
@@ -39,7 +39,32 @@ import {
   type UserGroupResponse,
   type GatewayLogsResponse,
 } from '../models/ai-gateway.js';
-import { serializeWindow, type AIGatewayWindowOptions } from './window.js';
+import { serializeWindow, telemetryWindowSchema, type AIGatewayWindowOptions } from './window.js';
+import { AISecSDKException, ErrorType } from '../errors.js';
+import { GatewayJsonObjectSchema } from '../models/ai-gateway-routing.js';
+
+const nonBlankString = z
+  .string()
+  .min(1)
+  .refine((value) => value.trim().length > 0);
+const groupOptionsSchema = telemetryWindowSchema
+  .extend({
+    columns: z.array(z.enum(AI_GW_GROUP_COLUMNS)).optional(),
+  })
+  .strict();
+const logsOptionsSchema = telemetryWindowSchema
+  .extend({
+    pageSize: z.number().int().nonnegative().safe().optional(),
+    traceId: nonBlankString.optional(),
+    statusCode: z.number().int().nonnegative().safe().optional(),
+  })
+  .strict();
+const requestChartOptionsSchema = telemetryWindowSchema
+  .extend({
+    traceId: nonBlankString.optional(),
+    metadata: GatewayJsonObjectSchema.pipe(z.record(z.string())).optional(),
+  })
+  .strict();
 
 /** @internal */
 export interface AIGatewayTelemetryClientOptions {
@@ -52,10 +77,18 @@ export interface AIGatewayTelemetryClientOptions {
 /** Options for a `logs/groups/{dimension}` query. */
 export interface AIGatewayGroupOptions extends AIGatewayWindowOptions {
   /**
-   * Extra columns to aggregate. Invalid names are silently dropped by the API rather than
-   * erroring. See {@link AI_GW_GROUP_COLUMNS} for the valid set.
+   * Extra columns to aggregate. The SDK rejects unsupported names before I/O; the API would
+   * silently drop them. See {@link AI_GW_GROUP_COLUMNS} for the valid set.
    */
   columns?: (typeof AI_GW_GROUP_COLUMNS)[number][];
+}
+
+/** Verified filters for the request-count chart. Other chart methods retain their own contracts. */
+export interface AIGatewayRequestChartOptions extends AIGatewayWindowOptions {
+  /** One trace ID. Serialized as SCM `traceId`, not the ignored upstream `trace_id`. */
+  traceId?: string;
+  /** Exact string-valued metadata matches. Serialized as JSON in the `metadata` query parameter. */
+  metadata?: Record<string, string>;
 }
 
 /**
@@ -100,12 +133,13 @@ export class AIGatewayTelemetryClient {
     // built with .passthrough() have input ≠ output and fail a stricter constraint.
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     schema: z.ZodType<T, any, any>,
+    validatedParams?: Record<string, string>,
   ): Promise<T> {
     return request<T>({
       method: 'GET',
       baseUrl: this.baseUrl,
       path: `${AI_GW_CHARTS_PATH}/${metric}`,
-      params: serializeWindow(this.tsgId, opts),
+      params: validatedParams ?? serializeWindow(this.tsgId, opts),
       responseSchema: schema,
       auth: this.auth,
       numRetries: this.numRetries,
@@ -131,8 +165,8 @@ export class AIGatewayTelemetryClient {
 
   /**
    * Per-day request counts.
-   * @param opts - Workspace slug and time window.
-   * @returns Request-count series plus the period total.
+   * @param opts - Workspace slug, time window and optional verified trace/metadata filters.
+   * @returns Request-count series plus the filtered period total.
    * @example
    * ```ts
    * import { AIGatewayClient } from '@cdot65/prisma-airs-sdk';
@@ -142,8 +176,11 @@ export class AIGatewayTelemetryClient {
    * // r.data.total => 25746
    * ```
    */
-  async requests(opts: AIGatewayWindowOptions): Promise<CountChartResponse> {
-    return this.chart('requests', opts, CountChartResponseSchema);
+  async requests(opts: AIGatewayRequestChartOptions): Promise<CountChartResponse> {
+    const params = serializeWindow(this.tsgId, opts, requestChartOptionsSchema);
+    if (opts.traceId !== undefined) params.traceId = opts.traceId;
+    if (opts.metadata !== undefined) params.metadata = JSON.stringify(opts.metadata);
+    return this.chart('requests', opts, CountChartResponseSchema, params);
   }
 
   /**
@@ -335,7 +372,8 @@ export class AIGatewayTelemetryClient {
   }
 
   /**
-   * Distribution of feedback scores. Feedback is binary: +5 (thumbs up) or -5 (thumbs down).
+   * Distribution of feedback scores. Runtime feedback accepts integer scores from -10 to 10;
+   * the SCM UI commonly uses +5/-5 for thumbs up/down, but feedback is not limited to those values.
    * @param opts - Workspace slug and time window.
    * @returns Score histogram as `{x: score, y: count}` records.
    * @example
@@ -391,7 +429,12 @@ export class AIGatewayTelemetryClient {
     dimension: (typeof AI_GW_GROUP_DIMENSIONS)[number],
     opts: AIGatewayGroupOptions,
   ): Promise<GroupListResponse> {
-    const params = serializeWindow(this.tsgId, opts);
+    if (!AI_GW_GROUP_DIMENSIONS.includes(dimension))
+      throw new AISecSDKException(
+        'Invalid telemetry grouping dimension',
+        ErrorType.USER_REQUEST_PAYLOAD_ERROR,
+      );
+    const params = serializeWindow(this.tsgId, opts, groupOptionsSchema);
     if (opts.columns?.length) params.columns = opts.columns.join(',');
 
     return request({
@@ -447,7 +490,7 @@ export class AIGatewayTelemetryClient {
    * ```
    */
   async byStatusCode(opts: AIGatewayGroupOptions): Promise<GroupListResponse> {
-    const params = serializeWindow(this.tsgId, opts);
+    const params = serializeWindow(this.tsgId, opts, groupOptionsSchema);
     if (opts.columns?.length) params.columns = opts.columns.join(',');
 
     return request({
@@ -485,7 +528,7 @@ export class AIGatewayTelemetryClient {
    * ```
    */
   async logs(opts: AIGatewayLogsOptions): Promise<GatewayLogsResponse> {
-    const params = serializeWindow(this.tsgId, opts);
+    const params = serializeWindow(this.tsgId, opts, logsOptionsSchema);
     if (opts.pageSize !== undefined) params.pageSize = String(opts.pageSize);
     if (opts.traceId !== undefined) params.traceId = opts.traceId;
     if (opts.statusCode !== undefined) params.statusCode = String(opts.statusCode);

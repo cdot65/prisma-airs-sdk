@@ -19,7 +19,7 @@ export type ChannelStatusType = z.infer<typeof ChannelStatusSchema>;
 /** Request body for creating a network broker channel. */
 export const CreateChannelRequestSchema = z
   .object({
-    name: z.string(),
+    name: z.string().min(1).max(64),
     description: z.string().optional(),
   })
   .passthrough();
@@ -28,7 +28,7 @@ export type CreateChannelRequest = z.infer<typeof CreateChannelRequestSchema>;
 /** Request body for updating a network broker channel. */
 export const UpdateChannelRequestSchema = z
   .object({
-    name: z.string().optional(),
+    name: z.string().min(1).max(64).optional(),
     description: z.string().optional(),
   })
   .passthrough();

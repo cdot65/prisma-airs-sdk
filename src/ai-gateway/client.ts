@@ -20,9 +20,20 @@ import { AIGatewayDeploymentsClient } from './deployments-client.js';
 import { AIGatewayPluginsClient } from './plugins-client.js';
 import { AIGatewayOrganisationsClient } from './organisations-client.js';
 import { AIGatewayAuditLogsClient } from './audit-logs-client.js';
+import { AIGatewayMcpServersClient } from './mcp-servers-client.js';
+import { AIGatewayUsageLimitsClient } from './usage-limits-client.js';
+import { AIGatewayRateLimitsClient } from './rate-limits-client.js';
+import { AIGatewayLogExportsClient } from './log-exports-client.js';
+import { AIGatewaySecretReferencesClient } from './secret-references-client.js';
+import {
+  AIGatewayInferenceClient,
+  type AIGatewayInferenceClientOptions,
+} from './inference-client.js';
 
 /** Options for constructing an {@link AIGatewayClient}. */
 export interface AIGatewayClientOptions {
+  /** Separate runtime endpoint/key configuration, resolved lazily when inference is accessed. */
+  inference?: AIGatewayInferenceClientOptions;
   /** OAuth2 client ID. Falls back to `PANW_AI_GW_CLIENT_ID`, then `PANW_MGMT_CLIENT_ID`. */
   clientId?: string;
   /** OAuth2 client secret. Falls back to `PANW_AI_GW_CLIENT_SECRET`, then `PANW_MGMT_CLIENT_SECRET`. */
@@ -70,6 +81,14 @@ export interface AIGatewayClientOptions {
  * ```
  */
 export class AIGatewayClient {
+  private readonly inferenceFactory: () => AIGatewayInferenceClient;
+  private inferenceClient?: AIGatewayInferenceClient;
+  /** Runtime gateway-key client; never sends management OAuth credentials to the runtime host.
+   * @example `const result = await gw.inference.createEmbedding({ model: '@provider/embedding', input: 'Hello' });`
+   */
+  get inference(): AIGatewayInferenceClient {
+    return (this.inferenceClient ??= this.inferenceFactory());
+  }
   /** Runtime telemetry: charts, group-bys, and raw request logs. */
   public readonly telemetry: AIGatewayTelemetryClient;
   /** Workspace reads (data plane). */
@@ -94,8 +113,20 @@ export class AIGatewayClient {
   public readonly organisations: AIGatewayOrganisationsClient;
   /** Organisation audit logs (admin plane). */
   public readonly auditLogs: AIGatewayAuditLogsClient;
+  /** Workspace MCP servers, capabilities, user access, and connections. */
+  public readonly mcpServers: AIGatewayMcpServersClient;
+  /** Workspace cost/token usage-limit policies. Deletion archives a policy. */
+  public readonly usageLimits: AIGatewayUsageLimitsClient;
+  /** Workspace request/token rate-limit policies. */
+  public readonly rateLimits: AIGatewayRateLimitsClient;
+  /** Asynchronous request-log exports. Downloads return a signed URL, not fetched log content. */
+  public readonly logExports: AIGatewayLogExportsClient;
+  /** External secret-manager references (admin plane). CRUD does not resolve the referenced secret. */
+  public readonly secretReferences: AIGatewaySecretReferencesClient;
 
   constructor(opts: AIGatewayClientOptions = {}) {
+    const inferenceOptions = opts.inference ? { ...opts.inference } : undefined;
+    this.inferenceFactory = () => new AIGatewayInferenceClient(inferenceOptions);
     const dataEndpoint =
       opts.dataEndpoint ?? process.env[AI_GW_DATA_ENDPOINT] ?? DEFAULT_AI_GW_DATA_ENDPOINT;
     const adminEndpoint =
@@ -125,6 +156,10 @@ export class AIGatewayClient {
     this.guardrails = new AIGatewayGuardrailsClient(dataOpts);
     this.providers = new AIGatewayProvidersClient(dataOpts);
     this.apiKeys = new AIGatewayApiKeysClient(dataOpts);
+    this.mcpServers = new AIGatewayMcpServersClient(dataOpts);
+    this.usageLimits = new AIGatewayUsageLimitsClient(dataOpts);
+    this.rateLimits = new AIGatewayRateLimitsClient(dataOpts);
+    this.logExports = new AIGatewayLogExportsClient(dataOpts);
 
     this.integrations = new AIGatewayIntegrationsClient(adminOpts);
     this.mcpIntegrations = new AIGatewayMcpIntegrationsClient(adminOpts);
@@ -132,5 +167,6 @@ export class AIGatewayClient {
     this.plugins = new AIGatewayPluginsClient(adminOpts);
     this.organisations = new AIGatewayOrganisationsClient(adminOpts);
     this.auditLogs = new AIGatewayAuditLogsClient(adminOpts);
+    this.secretReferences = new AIGatewaySecretReferencesClient(adminOpts);
   }
 }

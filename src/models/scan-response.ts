@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { TopicGuardrailDetailsSchema } from './scan-detail.js';
 import { PromptDetectedSchema, PromptDetectionDetailsSchema } from './prompt-detected.js';
 import { ResponseDetectedSchema, ResponseDetectionDetailsSchema } from './response-detected.js';
 import { ToolEventMetadataSchema } from './tool-event.js';
@@ -41,7 +42,7 @@ export type ToolDetectionFlags = z.infer<typeof ToolDetectionFlagsSchema>;
 /** Zod schema for nested per-tool detection details (e.g. topic guardrails). */
 export const ToolDetectionDetailsSchema = z
   .object({
-    topic_guardrails_details: z.unknown().optional(),
+    topic_guardrails_details: TopicGuardrailDetailsSchema.optional(),
   })
   .passthrough();
 

@@ -24,6 +24,8 @@ const sidebars: SidebarsConfig = {
         'guides/model-security-api',
         'guides/red-team-api',
         'guides/ai-gateway-api',
+        'guides/ai-gateway-inference',
+        'guides/ai-gateway-model-pricing',
         'guides/examples',
         {
           type: 'category',
@@ -47,6 +49,9 @@ const sidebars: SidebarsConfig = {
       label: 'Developer',
       items: [
         'developer/architecture',
+        'developer/openapi-conformance',
+        'developer/live-validation-results',
+        'developer/gateway-coverage',
         'developer/ai-gateway-expansion-plan',
         'developer/sdk-0.20-request-model-plan',
         'developer/vocabulary',

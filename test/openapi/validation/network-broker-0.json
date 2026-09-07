@@ -1,0 +1,216 @@
+{
+  "source": "prisma-airs-redteam/network-broker/AIRS-Red-Teaming-Network-Broker.yaml",
+  "sha256": "0cf2176db90da796fdd086a5f8bd6b3dcf3dcd9065d42c4230e10603bb1ea4b5",
+  "corrections": [],
+  "contracts": [
+    {
+      "direction": "response",
+      "validator": "ChannelListResponseSchema",
+      "operations": ["GET /v1/channels"],
+      "schema": {
+        "type": "object",
+        "properties": {
+          "pagination": {
+            "type": "object",
+            "properties": {
+              "total_items": {
+                "type": "integer",
+                "example": 10
+              }
+            }
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "uuid": {
+                  "type": "string",
+                  "format": "uuid",
+                  "example": "3f838d08-dcd9-11ef-bcba-3a6d5ddfc830"
+                },
+                "created_at": {
+                  "type": "string",
+                  "format": "date-time",
+                  "example": "2025-01-27T18:05:10.670578Z"
+                },
+                "updated_at": {
+                  "type": "string",
+                  "format": "date-time",
+                  "example": "2025-01-27T18:05:10.670578Z"
+                },
+                "name": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 64,
+                  "example": "first"
+                },
+                "description": {
+                  "type": "string",
+                  "example": "First One!!"
+                },
+                "added_by": {
+                  "type": "string",
+                  "format": "uuid",
+                  "example": "3f838d08-dcd9-11ef-bcba-3a6d5ddfc830"
+                },
+                "status": {
+                  "allOf": [
+                    {
+                      "type": "string",
+                      "enum": ["ONLINE", "OFFLINE", "DRAFT"]
+                    }
+                  ],
+                  "example": "OFFLINE"
+                },
+                "last_online_at": {
+                  "type": "string",
+                  "format": "date-time",
+                  "example": "2025-01-27T18:09:08.311825Z"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "direction": "request",
+      "validator": "CreateChannelRequestSchema",
+      "operations": ["POST /v1/channels"],
+      "schema": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 64,
+            "example": "first"
+          },
+          "description": {
+            "type": "string",
+            "example": "First One!!"
+          }
+        },
+        "required": ["name"]
+      }
+    },
+    {
+      "direction": "response",
+      "validator": "ChannelSchema",
+      "operations": [
+        "POST /v1/channels",
+        "GET /v1/channels/{channelId}",
+        "PATCH /v1/channels/{channelId}"
+      ],
+      "schema": {
+        "type": "object",
+        "properties": {
+          "uuid": {
+            "type": "string",
+            "format": "uuid",
+            "example": "3f838d08-dcd9-11ef-bcba-3a6d5ddfc830"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2025-01-27T18:05:10.670578Z"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2025-01-27T18:05:10.670578Z"
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 64,
+            "example": "first"
+          },
+          "description": {
+            "type": "string",
+            "example": "First One!!"
+          },
+          "added_by": {
+            "type": "string",
+            "format": "uuid",
+            "example": "3f838d08-dcd9-11ef-bcba-3a6d5ddfc830"
+          },
+          "status": {
+            "allOf": [
+              {
+                "type": "string",
+                "enum": ["ONLINE", "OFFLINE", "DRAFT"]
+              }
+            ],
+            "example": "OFFLINE"
+          },
+          "last_online_at": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2025-01-27T18:09:08.311825Z"
+          }
+        }
+      }
+    },
+    {
+      "direction": "response",
+      "validator": "ChannelStatsSchema",
+      "operations": ["GET /v1/channels/stats"],
+      "schema": {
+        "type": "object",
+        "properties": {
+          "network_channels_server_domain": {
+            "type": "string",
+            "example": "localhost:8010/tunnels"
+          },
+          "docker_registry": {
+            "type": "string",
+            "format": "domain",
+            "example": "registry-proxy.prod.ai-red-teaming.paloaltonetworks.com"
+          },
+          "helm_chart": {
+            "type": "string",
+            "format": "domain",
+            "example": "charts/network-channels-client"
+          },
+          "docker_image": {
+            "type": "string",
+            "format": "domain",
+            "example": "images/network-channels-client"
+          },
+          "online_channels": {
+            "type": "integer",
+            "minimum": 0,
+            "example": 0
+          },
+          "total_channels": {
+            "type": "integer",
+            "minimum": 0,
+            "example": 1
+          }
+        }
+      }
+    },
+    {
+      "direction": "request",
+      "validator": "UpdateChannelRequestSchema",
+      "operations": ["PATCH /v1/channels/{channelId}"],
+      "schema": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 64,
+            "example": "updated-name"
+          },
+          "description": {
+            "type": "string",
+            "example": "Updated description"
+          }
+        }
+      }
+    }
+  ]
+}

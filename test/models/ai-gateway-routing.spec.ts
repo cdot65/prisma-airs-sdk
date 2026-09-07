@@ -52,12 +52,14 @@ describe('GatewayJsonValueSchema', () => {
     },
   );
 
-  it.each([new Date(), new Map(), new Set(), Object.create({ inherited: true })])(
-    'rejects non-plain object %s',
-    (value) => {
-      expect(GatewayJsonValueSchema.safeParse(value).success).toBe(false);
-    },
-  );
+  it.each([
+    new Date('2026-01-01T00:00:00.000Z'),
+    new Map(),
+    new Set(),
+    Object.create({ inherited: true }),
+  ])('rejects non-plain object %s', (value) => {
+    expect(GatewayJsonValueSchema.safeParse(value).success).toBe(false);
+  });
 
   it('rejects cycles and prototype-shaped object keys without recursing indefinitely', () => {
     const circular: Record<string, unknown> = {};

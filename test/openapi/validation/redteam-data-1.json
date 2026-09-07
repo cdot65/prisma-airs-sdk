@@ -1,0 +1,2364 @@
+{
+  "source": "prisma-airs-redteam/data-plane/dp-openapi.yaml",
+  "sha256": "667ce2ea6842c5f96de7a41786d055fa6032d64186bdce4d23edfeeabf10d76d",
+  "corrections": [],
+  "contracts": [
+    {
+      "direction": "response",
+      "validator": "StaticJobReportSchema",
+      "operations": ["GET /v1/report/static/{job_id}/report"],
+      "schema": {
+        "properties": {
+          "asr": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 100,
+                "minimum": 0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Asr",
+            "description": "Attack Success Rate percentage (0-100)"
+          },
+          "score": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 100,
+                "minimum": 0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Score",
+            "description": "Overall job performance score (0-100)"
+          },
+          "security_report": {
+            "anyOf": [
+              {
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "title": "Id",
+                    "description": "Unique identifier"
+                  },
+                  "display_name": {
+                    "type": "string",
+                    "title": "Display Name",
+                    "description": "Frontend display name"
+                  },
+                  "description": {
+                    "type": "string",
+                    "title": "Description",
+                    "description": "Description"
+                  },
+                  "preselect": {
+                    "type": "boolean",
+                    "title": "Preselect",
+                    "description": "Whether this category should be preselected in UI",
+                    "default": true
+                  },
+                  "sub_categories": {
+                    "items": {
+                      "properties": {
+                        "id": {
+                          "type": "string",
+                          "title": "Id",
+                          "description": "Unique identifier"
+                        },
+                        "display_name": {
+                          "type": "string",
+                          "title": "Display Name",
+                          "description": "Frontend display name"
+                        },
+                        "description": {
+                          "type": "string",
+                          "title": "Description",
+                          "description": "Description"
+                        },
+                        "preselect": {
+                          "type": "boolean",
+                          "title": "Preselect",
+                          "description": "Whether this subcategory should be preselected in UI",
+                          "default": true
+                        },
+                        "prerequisites": {
+                          "anyOf": [
+                            {
+                              "items": {
+                                "properties": {
+                                  "id": {
+                                    "type": "string",
+                                    "title": "Id",
+                                    "description": "Prerequisite unique identifier"
+                                  },
+                                  "display_name": {
+                                    "type": "string",
+                                    "title": "Display Name",
+                                    "description": "Prerequisite display name for frontend"
+                                  },
+                                  "description": {
+                                    "type": "string",
+                                    "title": "Description",
+                                    "description": "Prerequisite description"
+                                  }
+                                },
+                                "type": "object",
+                                "required": ["id", "display_name", "description"],
+                                "title": "PrerequisiteModel",
+                                "description": "Pydantic model for prerequisite data"
+                              },
+                              "type": "array"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ],
+                          "title": "Prerequisites",
+                          "description": "List of prerequisites for this subcategory"
+                        },
+                        "active": {
+                          "type": "boolean",
+                          "title": "Active",
+                          "description": "Whether this subcategory is active",
+                          "default": true
+                        },
+                        "file_supported": {
+                          "type": "boolean",
+                          "title": "File Supported",
+                          "description": "Whether this subcategory has multimodal file (document) attacks in the library — drives the file-upload icon in the scan wizard",
+                          "default": false
+                        },
+                        "successful": {
+                          "type": "integer",
+                          "title": "Successful",
+                          "description": "Number of successful attacks (threat=True)"
+                        },
+                        "failed": {
+                          "type": "integer",
+                          "title": "Failed",
+                          "description": "Number of failed attacks (threat=False)"
+                        },
+                        "total": {
+                          "type": "integer",
+                          "title": "Total",
+                          "description": "Total attacks for this subcategory (successful + failed)",
+                          "default": 0
+                        }
+                      },
+                      "type": "object",
+                      "required": ["id", "display_name", "description", "successful", "failed"],
+                      "title": "SubCategoryStatsSchema",
+                      "description": "Statistics for a specific subcategory."
+                    },
+                    "type": "array",
+                    "title": "Sub Categories",
+                    "description": "Statistics per subcategory (e.g., ADVERSARIAL_SUFFIX, BIAS)"
+                  },
+                  "asr": {
+                    "type": "number",
+                    "maximum": 100,
+                    "minimum": 0,
+                    "title": "Asr",
+                    "description": "Attack success rate percentage"
+                  },
+                  "total_prompts": {
+                    "type": "integer",
+                    "title": "Total Prompts",
+                    "description": "Total unique prompts used"
+                  },
+                  "total_attacks": {
+                    "type": "integer",
+                    "title": "Total Attacks",
+                    "description": "Total attacks executed"
+                  },
+                  "successful": {
+                    "type": "integer",
+                    "title": "Successful",
+                    "description": "Total successful attacks"
+                  },
+                  "failed": {
+                    "type": "integer",
+                    "title": "Failed",
+                    "description": "Total failed attacks"
+                  }
+                },
+                "type": "object",
+                "required": [
+                  "id",
+                  "display_name",
+                  "description",
+                  "sub_categories",
+                  "asr",
+                  "total_prompts",
+                  "total_attacks",
+                  "successful",
+                  "failed"
+                ],
+                "title": "CategoryReportSchema",
+                "description": "Security or Safety risk overview widget data."
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Security risk overview widget"
+          },
+          "safety_report": {
+            "anyOf": [
+              {
+                "$ref": "#/properties/security_report/anyOf/0"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Safety risk overview widget"
+          },
+          "brand_report": {
+            "anyOf": [
+              {
+                "$ref": "#/properties/security_report/anyOf/0"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Brand reputation risk overview widget"
+          },
+          "compliance_report": {
+            "anyOf": [
+              {
+                "items": {
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "title": "Id",
+                      "description": "Compliance framework unique identifier"
+                    },
+                    "display_name": {
+                      "type": "string",
+                      "title": "Display Name",
+                      "description": "Compliance framework display name for frontend"
+                    },
+                    "description": {
+                      "type": "string",
+                      "title": "Description",
+                      "description": "Compliance framework description"
+                    },
+                    "active": {
+                      "type": "boolean",
+                      "title": "Active",
+                      "description": "Whether compliance framework is active"
+                    },
+                    "version": {
+                      "type": "string",
+                      "title": "Version",
+                      "description": "Compliance framework version"
+                    },
+                    "link": {
+                      "type": "string",
+                      "title": "Link",
+                      "description": "Compliance framework documentation link"
+                    },
+                    "techniques": {
+                      "items": {
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "title": "Id",
+                            "description": "Technique unique identifier"
+                          },
+                          "display_name": {
+                            "type": "string",
+                            "title": "Display Name",
+                            "description": "Technique display name for frontend"
+                          },
+                          "compliance_id": {
+                            "type": "string",
+                            "title": "Compliance Id",
+                            "description": "Associated compliance framework ID"
+                          },
+                          "description": {
+                            "type": "string",
+                            "title": "Description",
+                            "description": "Technique description"
+                          },
+                          "link": {
+                            "type": "string",
+                            "title": "Link",
+                            "description": "Technique documentation link"
+                          },
+                          "version": {
+                            "type": "string",
+                            "title": "Version",
+                            "description": "Technique version"
+                          },
+                          "active": {
+                            "type": "boolean",
+                            "title": "Active",
+                            "description": "Whether technique is active"
+                          },
+                          "successful": {
+                            "type": "integer",
+                            "title": "Successful",
+                            "description": "Number of successful attacks",
+                            "default": 0
+                          },
+                          "failed": {
+                            "type": "integer",
+                            "title": "Failed",
+                            "description": "Number of failed attacks",
+                            "default": 0
+                          },
+                          "total": {
+                            "type": "integer",
+                            "title": "Total",
+                            "description": "Total attacks for this technique",
+                            "default": 0
+                          }
+                        },
+                        "type": "object",
+                        "required": [
+                          "id",
+                          "display_name",
+                          "compliance_id",
+                          "description",
+                          "link",
+                          "version",
+                          "active"
+                        ],
+                        "title": "ComplianceTechniqueSchema",
+                        "description": "Compliance Technique Model"
+                      },
+                      "type": "array",
+                      "title": "Techniques"
+                    },
+                    "score": {
+                      "type": "integer",
+                      "title": "Score",
+                      "description": "Compliance score: (1 - ASR%) % 5",
+                      "default": 0
+                    }
+                  },
+                  "type": "object",
+                  "required": [
+                    "id",
+                    "display_name",
+                    "description",
+                    "active",
+                    "version",
+                    "link",
+                    "techniques"
+                  ],
+                  "title": "ComplianceReportSchema"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Compliance Report",
+            "description": "Compliance widget with all frameworks"
+          },
+          "severity_report": {
+            "description": "Breakdown of all successful attacks by severity level for the entire job",
+            "properties": {
+              "stats": {
+                "items": {
+                  "properties": {
+                    "severity": {
+                      "type": "string",
+                      "description": "Severity level (LOW, MEDIUM, HIGH, CRITICAL)"
+                    },
+                    "successful": {
+                      "type": "integer",
+                      "title": "Successful",
+                      "description": "Number of successful attacks at this severity",
+                      "default": 0
+                    },
+                    "failed": {
+                      "type": "integer",
+                      "title": "Failed",
+                      "description": "Number of failed attacks at this severity",
+                      "default": 0
+                    }
+                  },
+                  "type": "object",
+                  "required": ["severity"],
+                  "title": "SeverityStatsSchema",
+                  "description": "Breakdown for a single severity level."
+                },
+                "type": "array",
+                "title": "Stats",
+                "description": "List of severity statistics"
+              },
+              "successful": {
+                "type": "integer",
+                "title": "Successful",
+                "description": "Total successful attacks across all severities",
+                "default": 0
+              },
+              "failed": {
+                "type": "integer",
+                "title": "Failed",
+                "description": "Total failed attacks across all severities",
+                "default": 0
+              },
+              "total_attacks": {
+                "type": "integer",
+                "title": "Total Attacks",
+                "description": "Total number of attacks across all severities",
+                "default": 0
+              }
+            },
+            "type": "object",
+            "required": ["stats"],
+            "title": "SeverityReportSchema"
+          },
+          "report_summary": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Report Summary",
+            "description": "Report summary from the LLM for the statics job run"
+          },
+          "recommendations": {
+            "anyOf": [
+              {
+                "properties": {
+                  "runtime_security_policy_configuration": {
+                    "anyOf": [
+                      {
+                        "items": {
+                          "properties": {
+                            "policy_id": {
+                              "description": "Runtime Security Policy type",
+                              "type": "string",
+                              "enum": [
+                                "PROMPT_INJECTION",
+                                "TOXIC_CONTENT",
+                                "CUSTOM_TOPIC_GUARDRAILS",
+                                "MALICIOUS_CODE_DETECTION",
+                                "MALICIOUS_URL_DETECTION",
+                                "SENSITIVE_DATA_PROTECTION"
+                              ],
+                              "title": "PolicyType"
+                            },
+                            "display_name": {
+                              "type": "string",
+                              "title": "Display Name",
+                              "description": "Runtime Security Policy display name"
+                            },
+                            "config": {
+                              "anyOf": [
+                                {
+                                  "properties": {
+                                    "action": {
+                                      "description": "Action to take: 'allow', 'block'",
+                                      "default": "BLOCK",
+                                      "type": "string",
+                                      "enum": ["ALLOW", "BLOCK"],
+                                      "title": "GuardrailAction"
+                                    }
+                                  },
+                                  "type": "object",
+                                  "title": "PromptInjectionGuardrailSchema",
+                                  "description": "Guardrail configuration for prompt injection."
+                                },
+                                {
+                                  "properties": {
+                                    "moderate": {
+                                      "description": "Action for moderate toxicity: 'allow', 'block'",
+                                      "default": "BLOCK",
+                                      "type": "string",
+                                      "enum": ["ALLOW", "BLOCK"],
+                                      "title": "GuardrailAction"
+                                    },
+                                    "high": {
+                                      "description": "Action for high toxicity: 'allow', 'block'",
+                                      "default": "BLOCK",
+                                      "type": "string",
+                                      "enum": ["ALLOW", "BLOCK"],
+                                      "title": "GuardrailAction"
+                                    }
+                                  },
+                                  "type": "object",
+                                  "title": "ToxicContentGuardrailSchema",
+                                  "description": "Guardrail configuration for toxic content with severity levels."
+                                },
+                                {
+                                  "properties": {
+                                    "action": {
+                                      "description": "Action to take: 'allow', 'block'",
+                                      "default": "BLOCK",
+                                      "type": "string",
+                                      "enum": ["ALLOW", "BLOCK"],
+                                      "title": "GuardrailAction"
+                                    },
+                                    "blocked_topics": {
+                                      "items": {
+                                        "type": "string"
+                                      },
+                                      "type": "array",
+                                      "title": "Blocked Topics",
+                                      "description": "List of blocked topics"
+                                    }
+                                  },
+                                  "type": "object",
+                                  "title": "CustomTopicGuardrailsSchema",
+                                  "description": "Custom topic guardrails with blocked topics."
+                                },
+                                {
+                                  "properties": {
+                                    "action": {
+                                      "description": "Action to take: 'allow', 'block'",
+                                      "default": "BLOCK",
+                                      "type": "string",
+                                      "enum": ["ALLOW", "BLOCK"],
+                                      "title": "GuardrailAction"
+                                    }
+                                  },
+                                  "type": "object",
+                                  "title": "MaliciousCodeDetectionSchema",
+                                  "description": "Guardrail configuration for malicious code detection."
+                                },
+                                {
+                                  "properties": {
+                                    "action": {
+                                      "description": "Action to take: 'allow', 'block'",
+                                      "default": "BLOCK",
+                                      "type": "string",
+                                      "enum": ["ALLOW", "BLOCK"],
+                                      "title": "GuardrailAction"
+                                    }
+                                  },
+                                  "type": "object",
+                                  "title": "MaliciousURLDetectionSchema",
+                                  "description": "Guardrail configuration for malicious URL detection."
+                                },
+                                {
+                                  "properties": {
+                                    "action": {
+                                      "description": "Action to take: 'allow', 'block'",
+                                      "default": "BLOCK",
+                                      "type": "string",
+                                      "enum": ["ALLOW", "BLOCK"],
+                                      "title": "GuardrailAction"
+                                    },
+                                    "masking_sensitive_data": {
+                                      "type": "boolean",
+                                      "title": "Masking Sensitive Data",
+                                      "description": "Whether to mask sensitive data in responses",
+                                      "default": true
+                                    }
+                                  },
+                                  "type": "object",
+                                  "title": "SensitiveDataProtectionSchema",
+                                  "description": "Guardrail configuration for sensitive data protection."
+                                }
+                              ],
+                              "title": "Config",
+                              "description": "Runtime Security Policy configuration"
+                            }
+                          },
+                          "type": "object",
+                          "required": ["policy_id", "display_name", "config"],
+                          "title": "RuntimeSecurityPolicySchema",
+                          "description": "Runtime security policy configuration."
+                        },
+                        "type": "array"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "title": "Runtime Security Policy Configuration",
+                    "description": "Recommended runtime security policy configuration"
+                  },
+                  "other_measures": {
+                    "items": {
+                      "properties": {
+                        "mapping_remediation_id": {
+                          "anyOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ],
+                          "title": "Mapping Remediation Id",
+                          "description": "UUID from remediations.csv identifying this remediation"
+                        },
+                        "subcategories": {
+                          "anyOf": [
+                            {
+                              "items": {
+                                "type": "string"
+                              },
+                              "type": "array"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ],
+                          "title": "Subcategories",
+                          "description": "Subcategories this remediation applies to"
+                        },
+                        "effectiveness": {
+                          "type": "integer",
+                          "title": "Effectiveness",
+                          "description": "Effectiveness rating of this remediation (higher is more effective)",
+                          "default": 0
+                        },
+                        "ease_of_implementation": {
+                          "type": "integer",
+                          "title": "Ease Of Implementation",
+                          "description": "Ease of implementation rating (higher is easier to implement)",
+                          "default": 0
+                        },
+                        "priority": {
+                          "type": "integer",
+                          "title": "Priority",
+                          "description": "Priority level for implementing this remediation (LOW, MEDIUM, HIGH)",
+                          "default": 0
+                        },
+                        "remediation": {
+                          "type": "string",
+                          "title": "Remediation",
+                          "description": "Remediation recommendation title"
+                        },
+                        "description": {
+                          "type": "string",
+                          "title": "Description",
+                          "description": "Detailed description of the remediation"
+                        },
+                        "resource_links": {
+                          "items": {
+                            "type": "string"
+                          },
+                          "type": "array",
+                          "title": "Resource Links",
+                          "description": "URLs for additional resources and documentation"
+                        },
+                        "categories": {
+                          "anyOf": [
+                            {
+                              "items": {
+                                "type": "string"
+                              },
+                              "type": "array"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ],
+                          "title": "Categories",
+                          "description": "Categories this remediation applies to (e.g., Security, Safety)"
+                        }
+                      },
+                      "type": "object",
+                      "required": ["remediation", "description"],
+                      "title": "StaticJobRemediationSchema",
+                      "description": "Static Job Individual remediation."
+                    },
+                    "type": "array",
+                    "title": "Other Measures",
+                    "description": "List of applicable remediations for static job"
+                  }
+                },
+                "type": "object",
+                "title": "StaticJobRemediationRecommendationSchema",
+                "description": "Remediation recommendations with security profile and other remediations. To build and store in db"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Remediation recommendations with security profile and actionable fixes"
+          }
+        },
+        "type": "object",
+        "required": ["severity_report"],
+        "title": "StaticJobReportSchema",
+        "description": "Complete static job report data structure."
+      }
+    },
+    {
+      "direction": "response",
+      "validator": "RuntimeSecurityProfileResponseSchema",
+      "operations": [
+        "GET /v1/report/static/{job_id}/runtime-policy-config",
+        "GET /v1/report/dynamic/{job_id}/runtime-policy-config"
+      ],
+      "schema": {
+        "properties": {
+          "runtime_security_profile": {
+            "anyOf": [
+              {
+                "items": {
+                  "properties": {
+                    "policy_id": {
+                      "description": "Runtime Security Policy type",
+                      "type": "string",
+                      "enum": [
+                        "PROMPT_INJECTION",
+                        "TOXIC_CONTENT",
+                        "CUSTOM_TOPIC_GUARDRAILS",
+                        "MALICIOUS_CODE_DETECTION",
+                        "MALICIOUS_URL_DETECTION",
+                        "SENSITIVE_DATA_PROTECTION"
+                      ],
+                      "title": "PolicyType"
+                    },
+                    "display_name": {
+                      "type": "string",
+                      "title": "Display Name",
+                      "description": "Runtime Security Policy display name"
+                    },
+                    "config": {
+                      "anyOf": [
+                        {
+                          "properties": {
+                            "action": {
+                              "description": "Action to take: 'allow', 'block'",
+                              "default": "BLOCK",
+                              "type": "string",
+                              "enum": ["ALLOW", "BLOCK"],
+                              "title": "GuardrailAction"
+                            }
+                          },
+                          "type": "object",
+                          "title": "PromptInjectionGuardrailSchema",
+                          "description": "Guardrail configuration for prompt injection."
+                        },
+                        {
+                          "properties": {
+                            "moderate": {
+                              "description": "Action for moderate toxicity: 'allow', 'block'",
+                              "default": "BLOCK",
+                              "type": "string",
+                              "enum": ["ALLOW", "BLOCK"],
+                              "title": "GuardrailAction"
+                            },
+                            "high": {
+                              "description": "Action for high toxicity: 'allow', 'block'",
+                              "default": "BLOCK",
+                              "type": "string",
+                              "enum": ["ALLOW", "BLOCK"],
+                              "title": "GuardrailAction"
+                            }
+                          },
+                          "type": "object",
+                          "title": "ToxicContentGuardrailSchema",
+                          "description": "Guardrail configuration for toxic content with severity levels."
+                        },
+                        {
+                          "properties": {
+                            "action": {
+                              "description": "Action to take: 'allow', 'block'",
+                              "default": "BLOCK",
+                              "type": "string",
+                              "enum": ["ALLOW", "BLOCK"],
+                              "title": "GuardrailAction"
+                            },
+                            "blocked_topics": {
+                              "items": {
+                                "type": "string"
+                              },
+                              "type": "array",
+                              "title": "Blocked Topics",
+                              "description": "List of blocked topics"
+                            }
+                          },
+                          "type": "object",
+                          "title": "CustomTopicGuardrailsSchema",
+                          "description": "Custom topic guardrails with blocked topics."
+                        },
+                        {
+                          "properties": {
+                            "action": {
+                              "description": "Action to take: 'allow', 'block'",
+                              "default": "BLOCK",
+                              "type": "string",
+                              "enum": ["ALLOW", "BLOCK"],
+                              "title": "GuardrailAction"
+                            }
+                          },
+                          "type": "object",
+                          "title": "MaliciousCodeDetectionSchema",
+                          "description": "Guardrail configuration for malicious code detection."
+                        },
+                        {
+                          "properties": {
+                            "action": {
+                              "description": "Action to take: 'allow', 'block'",
+                              "default": "BLOCK",
+                              "type": "string",
+                              "enum": ["ALLOW", "BLOCK"],
+                              "title": "GuardrailAction"
+                            }
+                          },
+                          "type": "object",
+                          "title": "MaliciousURLDetectionSchema",
+                          "description": "Guardrail configuration for malicious URL detection."
+                        },
+                        {
+                          "properties": {
+                            "action": {
+                              "description": "Action to take: 'allow', 'block'",
+                              "default": "BLOCK",
+                              "type": "string",
+                              "enum": ["ALLOW", "BLOCK"],
+                              "title": "GuardrailAction"
+                            },
+                            "masking_sensitive_data": {
+                              "type": "boolean",
+                              "title": "Masking Sensitive Data",
+                              "description": "Whether to mask sensitive data in responses",
+                              "default": true
+                            }
+                          },
+                          "type": "object",
+                          "title": "SensitiveDataProtectionSchema",
+                          "description": "Guardrail configuration for sensitive data protection."
+                        }
+                      ],
+                      "title": "Config",
+                      "description": "Runtime Security Policy configuration"
+                    }
+                  },
+                  "type": "object",
+                  "required": ["policy_id", "display_name", "config"],
+                  "title": "RuntimeSecurityPolicySchema",
+                  "description": "Runtime security policy configuration."
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Runtime Security Profile",
+            "description": "Recommended runtime security profile configuration"
+          }
+        },
+        "type": "object",
+        "title": "RuntimeSecurityProfileResponseSchema"
+      }
+    },
+    {
+      "direction": "response",
+      "validator": "RemediationResponseSchema",
+      "operations": [
+        "GET /v1/report/static/{job_id}/remediation",
+        "GET /v1/report/dynamic/{job_id}/remediation"
+      ],
+      "schema": {
+        "properties": {
+          "remediations": {
+            "items": {
+              "properties": {
+                "remediation": {
+                  "type": "string",
+                  "title": "Remediation",
+                  "description": "Remediation recommendation title"
+                },
+                "description": {
+                  "type": "string",
+                  "title": "Description",
+                  "description": "Detailed description of the remediation"
+                },
+                "resource_links": {
+                  "items": {
+                    "type": "string"
+                  },
+                  "type": "array",
+                  "title": "Resource Links",
+                  "description": "URLs for additional resources and documentation"
+                },
+                "priority_level": {
+                  "type": "string",
+                  "description": "Priority level for this remediation"
+                },
+                "ease_of_implementation_level": {
+                  "type": "string",
+                  "description": "Ease of implementation level for this remediation"
+                },
+                "effectiveness_level": {
+                  "type": "string",
+                  "description": "Effectiveness rating for this remediation"
+                }
+              },
+              "type": "object",
+              "required": ["remediation", "description"],
+              "title": "RemediationDetailSchema"
+            },
+            "type": "array",
+            "title": "Remediations",
+            "description": "List of applicable remediation recommendations for static and dynamic jobs"
+          }
+        },
+        "type": "object",
+        "title": "RemediationResponseSchema"
+      }
+    },
+    {
+      "direction": "response",
+      "validator": "DynamicJobReportSchema",
+      "operations": ["GET /v1/report/dynamic/{job_id}/report"],
+      "schema": {
+        "properties": {
+          "total_goals": {
+            "type": "integer",
+            "minimum": 0,
+            "title": "Total Goals",
+            "description": "Total number of goals tested",
+            "default": 0
+          },
+          "total_streams": {
+            "type": "integer",
+            "minimum": 0,
+            "title": "Total Streams",
+            "description": "Total number of attack streams",
+            "default": 0
+          },
+          "total_threats": {
+            "type": "integer",
+            "minimum": 0,
+            "title": "Total Threats",
+            "description": "Total number of threats detected",
+            "default": 0
+          },
+          "goals_achieved": {
+            "type": "integer",
+            "minimum": 0,
+            "title": "Goals Achieved",
+            "description": "Number of goals with at least one threat",
+            "default": 0
+          },
+          "report_summary": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Report Summary",
+            "description": "LLM-generated executive summary for the dynamic job"
+          },
+          "score": {
+            "type": "number",
+            "maximum": 100,
+            "minimum": 0,
+            "title": "Score",
+            "description": "Overall security score (0-100)",
+            "default": 0
+          },
+          "asr": {
+            "type": "number",
+            "maximum": 100,
+            "minimum": 0,
+            "title": "Asr",
+            "description": "Attack Success Rate (0-100)",
+            "default": 0
+          }
+        },
+        "type": "object",
+        "title": "DynamicJobReportSchema",
+        "description": "Core metrics for report generation."
+      }
+    },
+    {
+      "direction": "response",
+      "validator": "GoalListResponseSchema",
+      "operations": ["GET /v1/report/dynamic/{job_id}/list-goals"],
+      "schema": {
+        "properties": {
+          "pagination": {
+            "properties": {
+              "total_items": {
+                "anyOf": [
+                  {
+                    "type": "integer"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "title": "Total Items"
+              }
+            },
+            "type": "object",
+            "title": "PaginationSchema"
+          },
+          "data": {
+            "items": {
+              "properties": {
+                "goal": {
+                  "type": "string",
+                  "title": "Goal",
+                  "description": "The test goal/prompt"
+                },
+                "safe_response": {
+                  "type": "string",
+                  "title": "Safe Response",
+                  "description": "The complete safe response with proper refusal"
+                },
+                "jailbroken_response": {
+                  "type": "string",
+                  "minLength": 1,
+                  "title": "Jailbroken Response",
+                  "description": "The complete jailbroken response without disclaimers"
+                },
+                "goal_metadata": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Goal Metadata",
+                  "description": "Additional metadata"
+                },
+                "custom_goal": {
+                  "type": "boolean",
+                  "title": "Custom Goal",
+                  "description": "Indicates if it is a custom goal",
+                  "default": false
+                },
+                "goal_type": {
+                  "description": "Goal type: BASE, TOOL_MISUSE, GOAL_MANIPULATION, PRIVILEGE_MISUSE, TOOL_CHAINING",
+                  "default": "BASE",
+                  "type": "string",
+                  "enum": [
+                    "BASE",
+                    "TOOL_MISUSE",
+                    "GOAL_MANIPULATION",
+                    "PRIVILEGE_MISUSE",
+                    "TOOL_CHAINING"
+                  ],
+                  "title": "GoalType"
+                },
+                "goal_category": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "enum": [
+                        "GOAL_MANIPULATION",
+                        "PRIVILEGE_MISUSE",
+                        "TOOL_MISUSE",
+                        "TOOL_CHAINING",
+                        "TOXIC_CONTENT_GENERATION",
+                        "CUSTOM"
+                      ],
+                      "title": "GoalCategory"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "description": "Goal category for customizable allocation and filtering"
+                },
+                "uuid": {
+                  "type": "string",
+                  "format": "uuid",
+                  "title": "Uuid"
+                },
+                "tsg_id": {
+                  "type": "string",
+                  "title": "Tsg Id"
+                },
+                "job_id": {
+                  "type": "string",
+                  "format": "uuid",
+                  "title": "Job Id",
+                  "description": "Job identifier"
+                },
+                "goal_to_show": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "title": "Goal To Show",
+                  "description": "Goal to use in the backend"
+                },
+                "threat": {
+                  "type": "boolean",
+                  "title": "Threat",
+                  "description": "Indicates if it is a threat",
+                  "default": false
+                },
+                "version": {
+                  "anyOf": [
+                    {
+                      "type": "integer"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "title": "Version",
+                  "description": "Goal schema version"
+                },
+                "extra_info": {
+                  "anyOf": [
+                    {
+                      "additionalProperties": true,
+                      "type": "object"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "title": "Extra Info",
+                  "description": "Extra info"
+                },
+                "error": {
+                  "anyOf": [
+                    {
+                      "type": "boolean"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "title": "Error",
+                  "description": "Whether this goal has errors"
+                }
+              },
+              "type": "object",
+              "required": [
+                "goal",
+                "safe_response",
+                "jailbroken_response",
+                "uuid",
+                "tsg_id",
+                "job_id"
+              ],
+              "title": "GoalResponseSchema",
+              "description": "API response schema for Goals."
+            },
+            "type": "array",
+            "title": "Data",
+            "description": "List of Goals"
+          }
+        },
+        "type": "object",
+        "required": ["pagination", "data"],
+        "title": "GoalListResponseSchema",
+        "description": "Response schema for listing attacks following common pagination pattern."
+      }
+    },
+    {
+      "direction": "response",
+      "validator": "StreamListResponseSchema",
+      "operations": ["GET /v1/report/dynamic/{job_id}/goal/{goal_id}/list-streams"],
+      "schema": {
+        "properties": {
+          "pagination": {
+            "properties": {
+              "total_items": {
+                "anyOf": [
+                  {
+                    "type": "integer"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "title": "Total Items"
+              }
+            },
+            "type": "object",
+            "title": "PaginationSchema"
+          },
+          "data": {
+            "items": {
+              "properties": {
+                "uuid": {
+                  "type": "string",
+                  "format": "uuid",
+                  "title": "Uuid"
+                },
+                "tsg_id": {
+                  "type": "string",
+                  "title": "Tsg Id"
+                },
+                "job_id": {
+                  "type": "string",
+                  "format": "uuid",
+                  "title": "Job Id",
+                  "description": "Job identifier"
+                },
+                "target_id": {
+                  "type": "string",
+                  "format": "uuid",
+                  "title": "Target Id",
+                  "description": "Target identifier"
+                },
+                "stream_idx": {
+                  "type": "integer",
+                  "title": "Stream Idx",
+                  "description": "Stream index",
+                  "default": 0
+                },
+                "iteration": {
+                  "type": "integer",
+                  "title": "Iteration",
+                  "description": "Iteration",
+                  "default": 0
+                },
+                "goal_id": {
+                  "type": "string",
+                  "format": "uuid",
+                  "title": "Goal Id",
+                  "description": "Goal identifier"
+                },
+                "goal": {
+                  "anyOf": [
+                    {
+                      "properties": {
+                        "goal": {
+                          "type": "string",
+                          "title": "Goal",
+                          "description": "The test goal/prompt"
+                        },
+                        "goal_english": {
+                          "anyOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ],
+                          "title": "Goal English",
+                          "description": "English version of goal for judge"
+                        },
+                        "safe_response": {
+                          "type": "string",
+                          "title": "Safe Response",
+                          "description": "The complete safe response with proper refusal"
+                        },
+                        "jailbroken_response": {
+                          "type": "string",
+                          "minLength": 1,
+                          "title": "Jailbroken Response",
+                          "description": "The complete jailbroken response without disclaimers"
+                        },
+                        "goal_metadata": {
+                          "additionalProperties": true,
+                          "type": "object",
+                          "title": "Goal Metadata",
+                          "description": "Additional metadata"
+                        },
+                        "custom_goal": {
+                          "type": "boolean",
+                          "title": "Custom Goal",
+                          "description": "Indicates if it is a custom goal",
+                          "default": false
+                        },
+                        "goal_type": {
+                          "description": "Goal type: BASE, TOOL_MISUSE, GOAL_MANIPULATION, PRIVILEGE_MISUSE, TOOL_CHAINING",
+                          "default": "BASE",
+                          "type": "string",
+                          "enum": [
+                            "BASE",
+                            "TOOL_MISUSE",
+                            "GOAL_MANIPULATION",
+                            "PRIVILEGE_MISUSE",
+                            "TOOL_CHAINING"
+                          ],
+                          "title": "GoalType"
+                        },
+                        "goal_category": {
+                          "anyOf": [
+                            {
+                              "type": "string",
+                              "enum": [
+                                "GOAL_MANIPULATION",
+                                "PRIVILEGE_MISUSE",
+                                "TOOL_MISUSE",
+                                "TOOL_CHAINING",
+                                "TOXIC_CONTENT_GENERATION",
+                                "CUSTOM"
+                              ],
+                              "title": "GoalCategory"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ],
+                          "description": "Goal category for customizable allocation and filtering"
+                        },
+                        "uuid": {
+                          "type": "string",
+                          "format": "uuid",
+                          "title": "Uuid"
+                        },
+                        "tsg_id": {
+                          "type": "string",
+                          "title": "Tsg Id"
+                        },
+                        "job_id": {
+                          "type": "string",
+                          "format": "uuid",
+                          "title": "Job Id",
+                          "description": "Job identifier"
+                        },
+                        "goal_to_show": {
+                          "anyOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ],
+                          "title": "Goal To Show",
+                          "description": "Goal to use in the backend"
+                        },
+                        "threat": {
+                          "type": "boolean",
+                          "title": "Threat",
+                          "description": "Indicates if it is a threat",
+                          "default": false
+                        },
+                        "version": {
+                          "anyOf": [
+                            {
+                              "type": "integer"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ],
+                          "title": "Version",
+                          "description": "Goal schema version"
+                        },
+                        "extra_info": {
+                          "anyOf": [
+                            {
+                              "additionalProperties": true,
+                              "type": "object"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ],
+                          "title": "Extra Info",
+                          "description": "Extra info"
+                        },
+                        "error": {
+                          "anyOf": [
+                            {
+                              "type": "boolean"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ],
+                          "title": "Error",
+                          "description": "Whether this goal has errors"
+                        }
+                      },
+                      "type": "object",
+                      "required": [
+                        "goal",
+                        "safe_response",
+                        "jailbroken_response",
+                        "uuid",
+                        "tsg_id",
+                        "job_id"
+                      ],
+                      "title": "GoalSchema"
+                    },
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "title": "Goal",
+                  "description": "Goal to use in the backend"
+                },
+                "marked_safe": {
+                  "type": "boolean",
+                  "title": "Marked Safe",
+                  "description": "Marked safe",
+                  "default": false
+                },
+                "stream_type": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "enum": ["NORMAL", "ADVERSARIAL"],
+                      "title": "StreamType"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "default": "NORMAL"
+                },
+                "threat": {
+                  "type": "boolean",
+                  "title": "Threat",
+                  "description": "Indicates if it is a threat",
+                  "default": false
+                },
+                "first_threat_iteration": {
+                  "anyOf": [
+                    {
+                      "properties": {
+                        "uuid": {
+                          "type": "string",
+                          "format": "uuid",
+                          "title": "Uuid"
+                        },
+                        "tsg_id": {
+                          "type": "string",
+                          "title": "Tsg Id"
+                        },
+                        "job_id": {
+                          "type": "string",
+                          "format": "uuid",
+                          "title": "Job Id",
+                          "description": "Job identifier"
+                        },
+                        "stream_id": {
+                          "type": "string",
+                          "format": "uuid",
+                          "title": "Stream Id",
+                          "description": "Stream identifier"
+                        },
+                        "goal_id": {
+                          "type": "string",
+                          "format": "uuid",
+                          "title": "Goal Id",
+                          "description": "Goal identifier"
+                        },
+                        "iteration": {
+                          "type": "integer",
+                          "minimum": 0,
+                          "title": "Iteration",
+                          "description": "Iteration number"
+                        },
+                        "prompt": {
+                          "type": "string",
+                          "minLength": 1,
+                          "title": "Prompt",
+                          "description": "The attack prompt"
+                        },
+                        "prompt_english": {
+                          "anyOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ],
+                          "title": "Prompt English",
+                          "description": "English version of prompt for judge"
+                        },
+                        "techniques": {
+                          "type": "string",
+                          "title": "Techniques",
+                          "description": "Techniques used in the attack"
+                        },
+                        "improvement": {
+                          "type": "string",
+                          "title": "Improvement",
+                          "description": "Improvement strategy for next iteration"
+                        },
+                        "prompts_objective": {
+                          "type": "string",
+                          "title": "Prompts Objective",
+                          "description": "Objective of the prompt"
+                        },
+                        "summary": {
+                          "type": "string",
+                          "title": "Summary",
+                          "description": "Summary of the attack"
+                        },
+                        "output": {
+                          "anyOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ],
+                          "title": "Output",
+                          "description": "Best target output (highest score)"
+                        },
+                        "output_english": {
+                          "anyOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ],
+                          "title": "Output English",
+                          "description": "English version of output for judge"
+                        },
+                        "score": {
+                          "anyOf": [
+                            {
+                              "type": "integer",
+                              "maximum": 10,
+                              "minimum": 0
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ],
+                          "title": "Score",
+                          "description": "Best judge score",
+                          "default": 0
+                        },
+                        "judge_reasoning": {
+                          "anyOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ],
+                          "title": "Judge Reasoning",
+                          "description": "Judge reasoning for best output"
+                        },
+                        "threat": {
+                          "type": "boolean",
+                          "title": "Threat",
+                          "description": "Whether this is a threat (score == 3)",
+                          "default": false
+                        },
+                        "created_at": {
+                          "anyOf": [
+                            {
+                              "type": "string",
+                              "format": "date-time"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ],
+                          "title": "Created At"
+                        },
+                        "updated_at": {
+                          "anyOf": [
+                            {
+                              "type": "string",
+                              "format": "date-time"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ],
+                          "title": "Updated At"
+                        },
+                        "extra_info": {
+                          "anyOf": [
+                            {
+                              "additionalProperties": true,
+                              "type": "object"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ],
+                          "title": "Extra Info",
+                          "description": "Extra information"
+                        },
+                        "version": {
+                          "anyOf": [
+                            {
+                              "type": "integer"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ],
+                          "title": "Version",
+                          "description": "Stream Iter data schema version"
+                        },
+                        "error": {
+                          "anyOf": [
+                            {
+                              "type": "boolean"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ],
+                          "title": "Error",
+                          "description": "Whether this iteration had an error"
+                        },
+                        "error_message": {
+                          "anyOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ],
+                          "title": "Error Message",
+                          "description": "Error message for this iteration"
+                        }
+                      },
+                      "type": "object",
+                      "required": [
+                        "uuid",
+                        "tsg_id",
+                        "job_id",
+                        "stream_id",
+                        "goal_id",
+                        "iteration",
+                        "prompt",
+                        "techniques",
+                        "improvement",
+                        "prompts_objective",
+                        "summary"
+                      ],
+                      "title": "StreamIterationDataSchema",
+                      "description": "Main stream iteration data - one row per iteration."
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "description": "First threat iteration data (denormalized JSONB for performance)"
+                },
+                "created_at": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "title": "Created At"
+                },
+                "updated_at": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "title": "Updated At"
+                },
+                "extra_info": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Extra Info",
+                  "description": "Extra information"
+                },
+                "version": {
+                  "anyOf": [
+                    {
+                      "type": "integer"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "title": "Version",
+                  "description": "Stream schema version"
+                },
+                "error": {
+                  "anyOf": [
+                    {
+                      "type": "boolean"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "title": "Error",
+                  "description": "Whether this stream encountered errors"
+                },
+                "error_message": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "title": "Error Message",
+                  "description": "Error message details"
+                }
+              },
+              "type": "object",
+              "required": ["uuid", "tsg_id", "job_id", "target_id", "goal_id"],
+              "title": "StreamSchema"
+            },
+            "type": "array",
+            "title": "Data",
+            "description": "List of streams"
+          }
+        },
+        "type": "object",
+        "required": ["pagination", "data"],
+        "title": "StreamListResponseSchema",
+        "description": "Response schema for listing attacks following common pagination pattern."
+      }
+    },
+    {
+      "direction": "response",
+      "validator": "StreamDetailResponseSchema",
+      "operations": ["GET /v1/report/dynamic/stream/{stream_id}"],
+      "schema": {
+        "properties": {
+          "uuid": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Uuid"
+          },
+          "tsg_id": {
+            "type": "string",
+            "title": "Tsg Id"
+          },
+          "job_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Job Id",
+            "description": "Job identifier"
+          },
+          "target_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Target Id",
+            "description": "Target identifier"
+          },
+          "stream_idx": {
+            "type": "integer",
+            "title": "Stream Idx",
+            "description": "Stream index",
+            "default": 0
+          },
+          "iteration": {
+            "type": "integer",
+            "title": "Iteration",
+            "description": "Iteration",
+            "default": 0
+          },
+          "goal_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Goal Id",
+            "description": "Goal identifier"
+          },
+          "goal": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Goal",
+            "description": "Goal to use in the backend"
+          },
+          "marked_safe": {
+            "type": "boolean",
+            "title": "Marked Safe",
+            "description": "Marked safe",
+            "default": false
+          },
+          "stream_type": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": ["NORMAL", "ADVERSARIAL"],
+                "title": "StreamType"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": "NORMAL"
+          },
+          "threat": {
+            "type": "boolean",
+            "title": "Threat",
+            "description": "Indicates if it is a threat",
+            "default": false
+          },
+          "first_threat_iteration": {
+            "anyOf": [
+              {
+                "properties": {
+                  "uuid": {
+                    "type": "string",
+                    "format": "uuid",
+                    "title": "Uuid"
+                  },
+                  "tsg_id": {
+                    "type": "string",
+                    "title": "Tsg Id"
+                  },
+                  "job_id": {
+                    "type": "string",
+                    "format": "uuid",
+                    "title": "Job Id",
+                    "description": "Job identifier"
+                  },
+                  "stream_id": {
+                    "type": "string",
+                    "format": "uuid",
+                    "title": "Stream Id",
+                    "description": "Stream identifier"
+                  },
+                  "goal_id": {
+                    "type": "string",
+                    "format": "uuid",
+                    "title": "Goal Id",
+                    "description": "Goal identifier"
+                  },
+                  "iteration": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "title": "Iteration",
+                    "description": "Iteration number"
+                  },
+                  "prompt": {
+                    "type": "string",
+                    "minLength": 1,
+                    "title": "Prompt",
+                    "description": "The attack prompt"
+                  },
+                  "prompt_english": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "title": "Prompt English",
+                    "description": "English version of prompt for judge"
+                  },
+                  "techniques": {
+                    "type": "string",
+                    "title": "Techniques",
+                    "description": "Techniques used in the attack"
+                  },
+                  "improvement": {
+                    "type": "string",
+                    "title": "Improvement",
+                    "description": "Improvement strategy for next iteration"
+                  },
+                  "prompts_objective": {
+                    "type": "string",
+                    "title": "Prompts Objective",
+                    "description": "Objective of the prompt"
+                  },
+                  "summary": {
+                    "type": "string",
+                    "title": "Summary",
+                    "description": "Summary of the attack"
+                  },
+                  "output": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "title": "Output",
+                    "description": "Best target output (highest score)"
+                  },
+                  "output_english": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "title": "Output English",
+                    "description": "English version of output for judge"
+                  },
+                  "score": {
+                    "anyOf": [
+                      {
+                        "type": "integer",
+                        "maximum": 10,
+                        "minimum": 0
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "title": "Score",
+                    "description": "Best judge score",
+                    "default": 0
+                  },
+                  "judge_reasoning": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "title": "Judge Reasoning",
+                    "description": "Judge reasoning for best output"
+                  },
+                  "threat": {
+                    "type": "boolean",
+                    "title": "Threat",
+                    "description": "Whether this is a threat (score == 3)",
+                    "default": false
+                  },
+                  "created_at": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "format": "date-time"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "title": "Created At"
+                  },
+                  "updated_at": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "format": "date-time"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "title": "Updated At"
+                  },
+                  "extra_info": {
+                    "anyOf": [
+                      {
+                        "additionalProperties": true,
+                        "type": "object"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "title": "Extra Info",
+                    "description": "Extra information"
+                  },
+                  "version": {
+                    "anyOf": [
+                      {
+                        "type": "integer"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "title": "Version",
+                    "description": "Stream Iter data schema version"
+                  },
+                  "error": {
+                    "anyOf": [
+                      {
+                        "type": "boolean"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "title": "Error",
+                    "description": "Whether this iteration had an error"
+                  },
+                  "error_message": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "title": "Error Message",
+                    "description": "Error message for this iteration"
+                  }
+                },
+                "type": "object",
+                "required": [
+                  "uuid",
+                  "tsg_id",
+                  "job_id",
+                  "stream_id",
+                  "goal_id",
+                  "iteration",
+                  "prompt",
+                  "techniques",
+                  "improvement",
+                  "prompts_objective",
+                  "summary"
+                ],
+                "title": "StreamIterationDataSchema",
+                "description": "Main stream iteration data - one row per iteration."
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "First threat iteration data (denormalized JSONB for performance)"
+          },
+          "created_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Created At"
+          },
+          "updated_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Updated At"
+          },
+          "extra_info": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Extra Info",
+            "description": "Extra information"
+          },
+          "version": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Version",
+            "description": "Stream schema version"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error",
+            "description": "Whether this stream encountered errors"
+          },
+          "error_message": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error Message",
+            "description": "Error message details"
+          },
+          "iterations": {
+            "items": {
+              "properties": {
+                "uuid": {
+                  "type": "string",
+                  "format": "uuid",
+                  "title": "Uuid"
+                },
+                "tsg_id": {
+                  "type": "string",
+                  "title": "Tsg Id"
+                },
+                "job_id": {
+                  "type": "string",
+                  "format": "uuid",
+                  "title": "Job Id",
+                  "description": "Job identifier"
+                },
+                "stream_id": {
+                  "type": "string",
+                  "format": "uuid",
+                  "title": "Stream Id",
+                  "description": "Stream identifier"
+                },
+                "goal_id": {
+                  "type": "string",
+                  "format": "uuid",
+                  "title": "Goal Id",
+                  "description": "Goal identifier"
+                },
+                "iteration": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "title": "Iteration",
+                  "description": "Iteration number"
+                },
+                "prompt": {
+                  "type": "string",
+                  "minLength": 1,
+                  "title": "Prompt",
+                  "description": "The attack prompt"
+                },
+                "techniques": {
+                  "type": "string",
+                  "title": "Techniques",
+                  "description": "Techniques used in the attack"
+                },
+                "improvement": {
+                  "type": "string",
+                  "title": "Improvement",
+                  "description": "Improvement strategy for next iteration"
+                },
+                "prompts_objective": {
+                  "type": "string",
+                  "title": "Prompts Objective",
+                  "description": "Objective of the prompt"
+                },
+                "summary": {
+                  "type": "string",
+                  "title": "Summary",
+                  "description": "Summary of the attack"
+                },
+                "output": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "title": "Output",
+                  "description": "Best target output (highest score)"
+                },
+                "score": {
+                  "anyOf": [
+                    {
+                      "type": "integer",
+                      "maximum": 10,
+                      "minimum": 0
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "title": "Score",
+                  "description": "Best judge score",
+                  "default": 0
+                },
+                "judge_reasoning": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "title": "Judge Reasoning",
+                  "description": "Judge reasoning for best output"
+                },
+                "threat": {
+                  "type": "boolean",
+                  "title": "Threat",
+                  "description": "Whether this is a threat (score == 3)",
+                  "default": false
+                },
+                "created_at": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "title": "Created At"
+                },
+                "updated_at": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "title": "Updated At"
+                },
+                "extra_info": {
+                  "anyOf": [
+                    {
+                      "additionalProperties": true,
+                      "type": "object"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "title": "Extra Info",
+                  "description": "Extra information"
+                },
+                "version": {
+                  "anyOf": [
+                    {
+                      "type": "integer"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "title": "Version",
+                  "description": "Stream Iter data schema version"
+                },
+                "error": {
+                  "anyOf": [
+                    {
+                      "type": "boolean"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "title": "Error",
+                  "description": "Whether this iteration had an error"
+                },
+                "error_message": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "title": "Error Message",
+                  "description": "Error message for this iteration"
+                }
+              },
+              "type": "object",
+              "required": [
+                "uuid",
+                "tsg_id",
+                "job_id",
+                "stream_id",
+                "goal_id",
+                "iteration",
+                "prompt",
+                "techniques",
+                "improvement",
+                "prompts_objective",
+                "summary"
+              ],
+              "title": "StreamIterationDataResponseSchema",
+              "description": "API response schema for Stream Iteration Data."
+            },
+            "type": "array",
+            "title": "Iterations",
+            "description": "List of iterations"
+          },
+          "goal_category": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "GOAL_MANIPULATION",
+                  "PRIVILEGE_MISUSE",
+                  "TOOL_MISUSE",
+                  "TOOL_CHAINING",
+                  "TOXIC_CONTENT_GENERATION",
+                  "CUSTOM"
+                ],
+                "title": "GoalCategory"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Goal category for filtering and allocation"
+          },
+          "goal_metadata": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Goal Metadata",
+            "description": "Per-goal metadata (e.g. TOOL_CHAINING tool_sequence, trigger_text, data_flow_narrative, success_markers)"
+          }
+        },
+        "type": "object",
+        "required": ["uuid", "tsg_id", "job_id", "target_id", "goal_id"],
+        "title": "StreamDetailResponseSchema"
+      }
+    },
+    {
+      "direction": "response",
+      "validator": "z.unknown()",
+      "operations": [
+        "GET /v1/report/{job_id}/download",
+        "POST /v1/report/{job_id}/generate-partial-report"
+      ],
+      "schema": {}
+    }
+  ]
+}

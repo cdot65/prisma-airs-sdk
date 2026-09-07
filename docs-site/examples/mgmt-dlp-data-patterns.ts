@@ -1,7 +1,10 @@
-import { ManagementClient, AISecSDKException } from '@cdot65/prisma-airs-sdk';
+import { reportExampleError } from './example-support.js';
+import { exampleName, recordExampleFixture } from './example-support.js';
+import { ManagementClient } from '@cdot65/prisma-airs-sdk';
 
 async function main() {
-  const client = new ManagementClient();
+  const client = new ManagementClient({ numRetries: 0 });
+  let ownedId: string | undefined;
 
   try {
     console.log('Listing data patterns...');
@@ -11,9 +14,13 @@ async function main() {
       console.log(`  - ${p.name ?? '(unnamed)'} id=${p.id ?? '?'} type=${p.type ?? '?'}`);
     }
 
+    if (!process.argv.includes('--writes')) {
+      console.log('Read-only: pass --writes for an owned pattern lifecycle.');
+      return;
+    }
     console.log('\nCreating example custom pattern...');
     const created = await client.dlp.dataPatterns.create({
-      name: `sdk-example-${Date.now()}`,
+      name: exampleName,
       type: 'custom',
       detection_config: { technique: 'regex' },
       matching_rules: {
@@ -24,6 +31,8 @@ async function main() {
 
     const id = created.id;
     if (id) {
+      ownedId = id;
+      recordExampleFixture('dlp.pattern', id);
       console.log(`\nGetting ${id}...`);
       const got = await client.dlp.dataPatterns.get(id);
       console.log(`  name=${got.name}`);
@@ -39,16 +48,14 @@ async function main() {
 
       console.log('\nDeleting...');
       await client.dlp.dataPatterns.delete(id);
+      ownedId = undefined;
       console.log('  deleted (204)');
     }
   } catch (error) {
-    if (error instanceof AISecSDKException) {
-      console.error('Error:', error.message);
-      console.error('Type:', error.errorType);
-    } else {
-      throw error;
-    }
+    reportExampleError(error);
+  } finally {
+    if (ownedId) await client.dlp.dataPatterns.delete(ownedId);
   }
 }
 
-main().catch(console.error);
+main().catch(reportExampleError);

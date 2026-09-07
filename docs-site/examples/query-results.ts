@@ -1,11 +1,18 @@
-import { init, Scanner, AISecSDKException } from '@cdot65/prisma-airs-sdk';
+import { reportExampleError } from './example-support.js';
+import { init, Scanner } from '@cdot65/prisma-airs-sdk';
 
 // Pass real IDs from an earlier scan (e.g. the output of basic-scan.ts or async-scan.ts):
 //   SCAN_IDS='uuid-1,uuid-2' REPORT_IDS='Ruuid-1' npx tsx docs-site/examples/query-results.ts
-const scanIds = (process.env.SCAN_IDS ?? '550e8400-e29b-41d4-a716-446655440000').split(',');
-const reportIds = (process.env.REPORT_IDS ?? 'R550e8400-e29b-41d4-a716-446655440000').split(',');
+const scanIds = process.env.SCAN_IDS?.split(',')
+  .map((id) => id.trim())
+  .filter(Boolean);
+const reportIds = process.env.REPORT_IDS?.split(',')
+  .map((id) => id.trim())
+  .filter(Boolean);
 
 async function main() {
+  if (!scanIds?.length || !reportIds?.length)
+    throw new Error('Set SCAN_IDS and REPORT_IDS to real IDs from an earlier scan');
   init();
 
   const scanner = new Scanner();
@@ -33,10 +40,8 @@ async function main() {
       }
     }
   } catch (error) {
-    if (error instanceof AISecSDKException) {
-      console.error('Error:', error.message);
-    }
+    reportExampleError(error);
   }
 }
 
-main().catch(console.error);
+main().catch(reportExampleError);

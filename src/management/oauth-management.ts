@@ -1,3 +1,4 @@
+import { ClientIdAndCustomerAppSchema } from '../models/index.js';
 import { z } from 'zod';
 import { MGMT_OAUTH_INVALIDATE_PATH, MGMT_OAUTH_TOKEN_PATH } from '../constants.js';
 import { request } from '../http/request.js';
@@ -56,6 +57,7 @@ export class OAuthManagementClient {
    */
   async invalidateToken(token: string, body: ClientIdAndCustomerApp): Promise<string> {
     return request({
+      requestSchema: ClientIdAndCustomerAppSchema,
       method: 'POST',
       baseUrl: this.baseUrl,
       path: MGMT_OAUTH_INVALIDATE_PATH,
@@ -92,6 +94,7 @@ export class OAuthManagementClient {
     if (opts.tokenTtlUnit !== undefined) params.tokenTtlUnit = opts.tokenTtlUnit;
 
     return request({
+      requestSchema: ClientIdAndCustomerAppSchema,
       method: 'POST',
       baseUrl: this.baseUrl,
       path: MGMT_OAUTH_TOKEN_PATH,

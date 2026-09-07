@@ -118,8 +118,8 @@ describe('LabelsCreateRequestSchema', () => {
     expect(LabelsCreateRequestSchema.parse(req).labels).toHaveLength(1);
   });
 
-  it('accepts empty labels array', () => {
-    expect(LabelsCreateRequestSchema.parse({ labels: [] }).labels).toHaveLength(0);
+  it('rejects an empty labels array, as required by OpenAPI minItems', () => {
+    expect(LabelsCreateRequestSchema.safeParse({ labels: [] }).success).toBe(false);
   });
 });
 

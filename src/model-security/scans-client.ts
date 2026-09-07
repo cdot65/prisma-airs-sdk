@@ -1,3 +1,4 @@
+import { LabelsCreateRequestSchema, ScanCreateRequestSchema } from '../models/index.js';
 import {
   MODEL_SEC_SCANS_PATH,
   MODEL_SEC_EVALUATIONS_PATH,
@@ -39,6 +40,8 @@ import {
 
 /** Pagination + filter options for model security scan listing. */
 export interface ModelSecurityScanListOptions extends ListingOptions {
+  /** Limit scans to a particular model version. */
+  model_version_uuid?: string;
   /** Sort field: 'created_at' or 'updated_at'. */
   sort_by?: string;
   /** Sort order: 'asc' or 'desc'. */
@@ -75,6 +78,8 @@ export interface ModelSecurityEvaluationListOptions extends ListingOptions {
 
 /** Options for listing files within a scan. */
 export interface ModelSecurityFileListOptions extends ListingOptions {
+  /** Include descendants of query_path. */
+  recursive?: boolean;
   /** Sort field: 'path' or 'type'. */
   sort_field?: string;
   /** Sort direction: 'asc' or 'desc'. */
@@ -104,6 +109,7 @@ function buildScanListParams(
   opts?: ModelSecurityScanListOptions,
 ): Record<string, string | string[]> {
   const params: Record<string, string | string[]> = serializeListing(opts);
+  if (opts?.model_version_uuid !== undefined) params.model_version_uuid = opts.model_version_uuid;
   if (opts?.sort_by !== undefined) params.sort_by = opts.sort_by;
   if (opts?.sort_order !== undefined) params.sort_order = opts.sort_order;
   if (opts?.search_query !== undefined) params.search_query = opts.search_query;
@@ -130,6 +136,7 @@ function buildEvaluationListParams(
 
 function buildFileListParams(opts?: ModelSecurityFileListOptions): Record<string, string> {
   const params = serializeListing(opts);
+  if (opts?.recursive !== undefined) params.recursive = String(opts.recursive);
   if (opts?.sort_field !== undefined) params.sort_field = opts.sort_field;
   if (opts?.sort_dir !== undefined) params.sort_dir = opts.sort_dir;
   if (opts?.type !== undefined) params.type = opts.type;
@@ -170,6 +177,7 @@ export class ModelSecurityScansClient {
    */
   async create(body: ScanCreateRequest): Promise<ScanBaseResponse> {
     return request({
+      requestSchema: ScanCreateRequestSchema,
       method: 'POST',
       baseUrl: this.baseUrl,
       path: MODEL_SEC_SCANS_PATH,
@@ -322,6 +330,7 @@ export class ModelSecurityScansClient {
   async addLabels(scanUuid: string, body: LabelsCreateRequest): Promise<LabelsResponse> {
     assertUuid(scanUuid, 'scan uuid');
     return request({
+      requestSchema: LabelsCreateRequestSchema,
       method: 'POST',
       baseUrl: this.baseUrl,
       path: `${MODEL_SEC_SCANS_PATH}/${scanUuid}/labels`,
@@ -351,6 +360,7 @@ export class ModelSecurityScansClient {
   async setLabels(scanUuid: string, body: LabelsCreateRequest): Promise<LabelsResponse> {
     assertUuid(scanUuid, 'scan uuid');
     return request({
+      requestSchema: LabelsCreateRequestSchema,
       method: 'PUT',
       baseUrl: this.baseUrl,
       path: `${MODEL_SEC_SCANS_PATH}/${scanUuid}/labels`,

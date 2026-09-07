@@ -51,6 +51,17 @@ const empty = [] as const;
  * A generic field named `key` is not considered secret without an operation context.
  */
 export const AI_GATEWAY_SECRET_FIELDS = {
+  'secretReferences.list': { request: empty, response: [subtree('data', '*', 'auth_config')] },
+  'secretReferences.create': {
+    request: [subtree('auth_config')],
+    response: [subtree('auth_config')],
+  },
+  'secretReferences.get': { request: empty, response: [subtree('auth_config')] },
+  'secretReferences.update': {
+    request: [subtree('auth_config')],
+    response: [subtree('auth_config')],
+  },
+  'secretReferences.delete': { request: empty, response: [subtree('auth_config')] },
   'apiKeys.createService': { request: empty, response: [oneTime('key')] },
   'apiKeys.createUser': { request: empty, response: [oneTime('key')] },
   'apiKeys.rotateService': { request: empty, response: [oneTime('key')] },

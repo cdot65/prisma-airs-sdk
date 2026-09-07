@@ -221,7 +221,7 @@ describe('RedTeamCustomAttacksClient', () => {
       });
 
       await expect(client.downloadTemplate(validUuid)).rejects.toThrow(
-        /Download template failed \(404\)/,
+        /AISEC_CLIENT_SIDE_ERROR:API error 404/,
       );
     });
 
@@ -234,8 +234,8 @@ describe('RedTeamCustomAttacksClient', () => {
     it('POSTs to /v1/custom-attack/custom-prompt-set/custom-prompt', async () => {
       mockFetch(promptMock(), 201);
       const result = await client.createPrompt({
-        prompt_set_uuid: validUuid,
-        text: 'test prompt',
+        prompt_set_id: validUuid,
+        prompt: 'test prompt',
       });
 
       expect(result.uuid).toBe(validUuid);
@@ -428,7 +428,7 @@ describe('RedTeamCustomAttacksClient', () => {
       mockFetch(baseResponseMock());
       const result = await client.createPropertyValue({
         property_name: 'severity',
-        value: 'CRITICAL',
+        property_value: 'CRITICAL',
       });
 
       expect(result.message).toBe('ok');
@@ -451,6 +451,10 @@ describe('RedTeamCustomAttacksClient', () => {
       expect(url).toContain(`prompt_set_uuid=${validUuid}`);
       expect(init.method).toBe('POST');
       expect(init.body).toBeInstanceOf(FormData);
+      const uploaded = init.body.get('file') as File;
+      expect(uploaded.name).toBe('prompts.csv');
+      expect(await uploaded.text()).toBe(csvContent);
+      expect(init.headers['Content-Type']).toBeUndefined();
     });
 
     it('rejects invalid prompt set UUID', async () => {

@@ -8,8 +8,22 @@ import { AISecSDKException, ErrorType } from './errors.js';
  * Sleep for the given number of milliseconds.
  * @param ms - Milliseconds to wait.
  */
-export function sleep(ms: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms));
+export function sleep(ms: number, signal?: AbortSignal): Promise<void> {
+  return new Promise((resolve, reject) => {
+    if (signal?.aborted) {
+      reject(signal.reason);
+      return;
+    }
+    const onAbort = () => {
+      clearTimeout(timer);
+      reject(signal?.reason);
+    };
+    const timer = setTimeout(() => {
+      signal?.removeEventListener('abort', onAbort);
+      resolve();
+    }, ms);
+    signal?.addEventListener('abort', onAbort, { once: true });
+  });
 }
 
 /**
@@ -134,10 +148,23 @@ export function parseRetryAfterBody(body: string): number | undefined {
 export interface RetryOptions {
   /** Maximum number of retry attempts. */
   maxRetries: number;
+  /** Cancel attempts and backoff when the caller stops the operation. */
+  signal?: AbortSignal;
   /** Function that performs the HTTP request for each attempt. */
   execute: (attempt: number) => Promise<Response>;
   /** Optional callback for handling special failure cases (e.g. 401 token refresh). Return true to retry without consuming the retry budget. */
   onRetryableFailure?: (response: Response, attempt: number) => Promise<boolean>;
+  /** Optional body reader carrying the attempt deadline through HTTP error handling. */
+  readErrorBody?: (response: Response) => Promise<string>;
+}
+
+/** Release an unused retry response without letting a broken stream mask the HTTP failure. */
+function discardResponse(response: Response): void {
+  try {
+    void response.body?.cancel().catch(() => {});
+  } catch {
+    /* Already locked/closed stream. */
+  }
 }
 
 /**
@@ -148,18 +175,27 @@ export interface RetryOptions {
  * @throws {AISecSDKException} After exhausting retries or on non-retryable errors.
  */
 export async function executeWithRetry(opts: RetryOptions): Promise<Response> {
-  const { maxRetries, execute, onRetryableFailure } = opts;
+  const { maxRetries, execute, onRetryableFailure, signal } = opts;
+  if (!Number.isInteger(maxRetries) || maxRetries < 0 || maxRetries > 5) {
+    throw new AISecSDKException(
+      'maxRetries must be an integer between 0 and 5',
+      ErrorType.USER_REQUEST_PAYLOAD_ERROR,
+    );
+  }
   let lastError: Error | undefined;
+  let specialRetryUsed = false;
 
   for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    signal?.throwIfAborted();
     let response: Response;
     try {
       response = await execute(attempt);
     } catch (err) {
+      if (signal?.aborted) throw signal.reason;
       if (err instanceof AISecSDKException) throw err;
-      lastError = err as Error;
+      lastError = err instanceof Error ? err : new Error('Network error');
       if (attempt < maxRetries) {
-        await sleep(backoffDelay(attempt));
+        await sleep(backoffDelay(attempt), signal);
         continue;
       }
       throw new AISecSDKException(
@@ -173,21 +209,31 @@ export async function executeWithRetry(opts: RetryOptions): Promise<Response> {
 
     // Let caller handle special status codes (e.g. 401 token refresh)
     // When handled, decrement attempt so it doesn't count against retry budget
-    if (onRetryableFailure) {
+    if (onRetryableFailure && !specialRetryUsed) {
       const handled = await onRetryableFailure(response, attempt);
       if (handled) {
+        specialRetryUsed = true;
+        discardResponse(response);
         attempt--;
         continue;
       }
     }
 
     if (isRetryableStatus(response.status) && attempt < maxRetries) {
-      await sleep(backoffDelay(attempt));
+      const retryAfterMs = parseRetryAfterHeader(response.headers?.get?.('Retry-After') ?? null);
+      discardResponse(response);
+      // Bound server-directed waits so a CLI cannot be parked for an unbounded duration.
+      await sleep(Math.min(retryAfterMs ?? backoffDelay(attempt), 60_000), signal);
       continue;
     }
 
     // Non-retryable error
-    const errorText = await response.text();
+    let errorText = '';
+    try {
+      errorText = await (opts.readErrorBody ? opts.readErrorBody(response) : response.text());
+    } catch {
+      if (signal?.aborted) throw signal.reason;
+    }
     const errorMessage = extractErrorMessage(errorText, response.status);
     const retryAfterHeader = response.headers?.get?.('Retry-After') ?? null;
     const headerRetryAfterMs = parseRetryAfterHeader(retryAfterHeader);

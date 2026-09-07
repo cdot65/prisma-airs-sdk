@@ -17,6 +17,12 @@ TypeScript SDK for Palo Alto Networks **Prisma AIRS** — covering the full life
 
 ## Installation
 
+Version **0.21.0** includes the September 2026 conformance update. See [SDK-ASSESSMENT.md](SDK-ASSESSMENT.md)
+for validation results and remaining live-service limitations, and the
+[OpenAPI report](docs-site/docs/developer/openapi-conformance.md) for the exact coverage denominator.
+`npm run openapi:check` runs the pinned offline contract suite; `npm run openapi:audit` compares local
+upstream checkouts. All 149 AIRS operations are modeled; this is not a claim of full Portkey runtime support.
+
 ```bash
 npm install @cdot65/prisma-airs-sdk
 ```
@@ -25,15 +31,22 @@ Requires Node.js 18+. Zero external HTTP dependencies (native `fetch` + `crypto`
 
 ## What's Included
 
-| Service                 | Client                | Auth    | Capabilities                                               |
-| ----------------------- | --------------------- | ------- | ---------------------------------------------------------- |
-| **AI Runtime Security** | `Scanner`             | API Key | Sync/async content scanning, prompt injection detection    |
-| **Management**          | `ManagementClient`    | OAuth2  | Profiles, topics, API keys, apps, DLP, deployment, logs    |
-| **Model Security**      | `ModelSecurityClient` | OAuth2  | ML model scanning, security groups, rule management        |
-| **AI Gateway**          | `AIGatewayClient`     | OAuth2  | SCM-managed gateway telemetry and configuration            |
-| **AI Red Teaming**      | `RedTeamClient`       | OAuth2  | Automated red team scans, reports, targets, custom attacks |
+| Service                  | Client                        | Auth        | Capabilities                                                           |
+| ------------------------ | ----------------------------- | ----------- | ---------------------------------------------------------------------- |
+| **AI Runtime Security**  | `Scanner`                     | API Key     | Sync/async content scanning, prompt injection detection                |
+| **Management**           | `ManagementClient`            | OAuth2      | Profiles, topics, API keys, apps, DLP, deployment, logs                |
+| **Model Security**       | `ModelSecurityClient`         | OAuth2      | ML model scanning, security groups, rule management                    |
+| **AI Gateway**           | `AIGatewayClient`             | OAuth2      | SCM-managed gateway telemetry and configuration                        |
+| **Gateway runtime**      | `AIGatewayInferenceClient`    | Gateway key | Chat, Responses, embeddings, bounded SSE and provider resources        |
+| **Public model pricing** | `AIGatewayModelPricingClient` | None        | Explicit public catalog endpoint; typed rates and unevaluated formulas |
+| **AI Red Teaming**       | `RedTeamClient`               | OAuth2      | Automated red team scans, reports, targets, custom attacks             |
 
 All OAuth2 services share credentials and handle token lifecycle automatically (caching, proactive refresh, 401/403 auto-retry).
+
+Gateway inference uses an explicitly configured runtime endpoint and `x-portkey-api-key`, with
+zero automatic retries by default. It does not reuse management OAuth credentials.
+See the [runtime inference guide](docs-site/docs/guides/ai-gateway-inference.md) for live results,
+stream cancellation, CLI integration and the remaining experimental operations.
 
 ## Quick Start
 
@@ -80,10 +93,16 @@ and returns the highest revision. `getByName()` returns the highest revision for
 
 ## AI Gateway
 
-`AIGatewayClient` covers the SCM-managed Prisma AIRS **AI Gateway** — runtime telemetry and configuration across two planes behind one credential set: a data plane (`/ai_gw/v2`, telemetry + workspace-scoped config) and an admin plane (`/ai_gw/admin/v2`, organisation-level config). Twelve sub-clients: `telemetry`, `workspaces`, `configs`, `guardrails`, `providers`, `apiKeys` (data plane) and `integrations`, `mcpIntegrations`, `deployments`, `plugins`, `organisations`, `auditLogs` (admin plane).
+`AIGatewayClient` covers the SCM-managed Prisma AIRS **AI Gateway** through 17 SCM sub-clients. The data plane (`/ai_gw/v2`) provides `telemetry`, `workspaces`, `configs`, `guardrails`, `providers`, `apiKeys`, `mcpServers`, `usageLimits`, `rateLimits`, and `logExports`. The admin plane (`/ai_gw/admin/v2`) provides `integrations`, `mcpIntegrations`, `deployments`, `plugins`, `organisations`, `auditLogs`, and `secretReferences`; workspace writes also use the admin plane. The separate `inference` client uses an explicit runtime endpoint/key, not SCM OAuth.
+
+Runtime observability uses that same explicit runtime client: `inference.createFeedback()` creates trace feedback, and `inference.createLogs()` accepts a single log or an array and returns the plain-text acknowledgement. These routes are live-verified on Prisma AIRS; SCM denies the corresponding writes. Log/feedback audit records have no deletion API. Experimental `inference.updateFeedback()` and `inference.getLog()` model the confirmed runtime detail routes, but both still return HTTP 500 on owned records because of deployed storage-handler limitations. Their typed contracts are not passing live update/retrieval claims; no storage backend is changed. Log v2 paths require an ISO timestamp with a timezone, and log bodies are omitted from SDK debug output.
+
+Experimental runtime methods also model image/audio/moderation/rerank/OCR, legacy completions, prompt completions and prompt rendering. They have independent offline contracts, not successful live certification with the prescribed model and tenant. Prompt parameters belong at the request root, not inside `hyperparameters`; JSON and bounded SSE preserve the declared provider response shapes. These methods remain outside stability guarantees until verified. See the [runtime guide and actual diagnostic output](docs-site/docs/guides/ai-gateway-inference.md).
+
+Secret-reference CRUD is verified using owned, unbound synthetic references; external secret resolution is not certified. See the [captured lifecycle output](docs-site/docs/guides/examples.mdx#secret-reference-management-lifecycle). Portkey compatibility remains partial; retired upstream endpoints and tenant-unverified families stay visible in the [complete operation ledger](docs-site/docs/developer/gateway-coverage.md).
 
 All AI Gateway write bodies have exported Zod schemas and inferred TypeScript types. Validation
-happens before OAuth and network access; partial updates reject empty bodies. The package also
+happens before OAuth and network access; documented nonempty-update requirements are enforced. The package also
 exports typed routing/provider configuration, deterministic known-value catalogs,
 `buildDottedObject()` / `setDottedValue()` for CLI-style nested settings, and operation-scoped
 secret metadata used by SDK debug redaction.

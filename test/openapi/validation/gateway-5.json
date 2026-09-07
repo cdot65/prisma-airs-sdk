@@ -1,0 +1,878 @@
+{
+  "source": "/home/cdot/development/others/ai-gateway-openapi/openapi.yaml",
+  "sha256": "de7a1bd98bdb2edb7428a33054d9f6000b9568d1cd5b603d1a8302c053d094d9",
+  "corrections": [
+    "gateway-pricing-overlapping-calculation-nodes",
+    "gateway-prompt-root-hyperparameters",
+    "gateway-prompt-native-completion-response",
+    "gateway-legacy-stream-null-fields",
+    "gateway-audio-overlapping-json-variants",
+    "gateway-audio-verbose-duration",
+    "gateway-provider-prefixed-response-models"
+  ],
+  "contracts": [
+    {
+      "direction": "response",
+      "validator": "GatewayInferenceListVectorStoreFilesResponseSchema",
+      "operations": [
+        "GET /vector_stores/{vector_store_id}/files",
+        "GET /vector_stores/{vector_store_id}/file_batches/{batch_id}/files"
+      ],
+      "schema": {
+        "properties": {
+          "object": {
+            "type": "string",
+            "example": "list"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "title": "Vector store files",
+              "description": "A list of files attached to a vector store.",
+              "properties": {
+                "id": {
+                  "description": "The identifier, which can be referenced in API endpoints.",
+                  "type": "string"
+                },
+                "object": {
+                  "description": "The object type, which is always `vector_store.file`.",
+                  "type": "string",
+                  "enum": ["vector_store.file"]
+                },
+                "usage_bytes": {
+                  "description": "The total vector store usage in bytes. Note that this may be different from the original file size.",
+                  "type": "integer"
+                },
+                "created_at": {
+                  "description": "The Unix timestamp (in seconds) for when the vector store file was created.",
+                  "type": "integer"
+                },
+                "vector_store_id": {
+                  "description": "The ID of the [vector store](https://platform.openai.com/docs/api-reference/vector-stores/object) that the [File](https://platform.openai.com/docs/api-reference/files) is attached to.",
+                  "type": "string"
+                },
+                "status": {
+                  "description": "The status of the vector store file, which can be either `in_progress`, `completed`, `cancelled`, or `failed`. The status `completed` indicates that the vector store file is ready for use.",
+                  "type": "string",
+                  "enum": ["in_progress", "completed", "cancelled", "failed"]
+                },
+                "last_error": {
+                  "type": "object",
+                  "description": "The last error associated with this vector store file. Will be `null` if there are no errors.",
+                  "nullable": true,
+                  "properties": {
+                    "code": {
+                      "type": "string",
+                      "description": "One of `server_error` or `rate_limit_exceeded`.",
+                      "enum": [
+                        "internal_error",
+                        "file_not_found",
+                        "parsing_error",
+                        "unhandled_mime_type"
+                      ]
+                    },
+                    "message": {
+                      "type": "string",
+                      "description": "A human-readable description of the error."
+                    }
+                  },
+                  "required": ["code", "message"]
+                },
+                "chunking_strategy": {
+                  "type": "object",
+                  "description": "The strategy used to chunk the file.",
+                  "oneOf": [
+                    {
+                      "type": "object",
+                      "title": "Static Chunking Strategy",
+                      "additionalProperties": false,
+                      "properties": {
+                        "type": {
+                          "type": "string",
+                          "description": "Always `static`.",
+                          "enum": ["static"]
+                        },
+                        "static": {
+                          "type": "object",
+                          "additionalProperties": false,
+                          "properties": {
+                            "max_chunk_size_tokens": {
+                              "type": "integer",
+                              "minimum": 100,
+                              "maximum": 4096,
+                              "description": "The maximum number of tokens in each chunk. The default value is `800`. The minimum value is `100` and the maximum value is `4096`."
+                            },
+                            "chunk_overlap_tokens": {
+                              "type": "integer",
+                              "description": "The number of tokens that overlap between chunks. The default value is `400`.\n\nNote that the overlap must not exceed half of `max_chunk_size_tokens`.\n"
+                            }
+                          },
+                          "required": ["max_chunk_size_tokens", "chunk_overlap_tokens"]
+                        }
+                      },
+                      "required": ["type", "static"]
+                    },
+                    {
+                      "type": "object",
+                      "title": "Other Chunking Strategy",
+                      "description": "This is returned when the chunking strategy is unknown. Typically, this is because the file was indexed before the `chunking_strategy` concept was introduced in the API.",
+                      "additionalProperties": false,
+                      "properties": {
+                        "type": {
+                          "type": "string",
+                          "description": "Always `other`.",
+                          "enum": ["other"]
+                        }
+                      },
+                      "required": ["type"]
+                    }
+                  ],
+                  "x-oaiExpandable": true
+                }
+              },
+              "required": [
+                "id",
+                "object",
+                "usage_bytes",
+                "created_at",
+                "vector_store_id",
+                "status",
+                "last_error"
+              ],
+              "x-code-samples": {
+                "name": "The vector store file object",
+                "beta": true,
+                "example": "{\n  \"id\": \"file-abc123\",\n  \"object\": \"vector_store.file\",\n  \"usage_bytes\": 1234,\n  \"created_at\": 1698107661,\n  \"vector_store_id\": \"vs_abc123\",\n  \"status\": \"completed\",\n  \"last_error\": null,\n  \"chunking_strategy\": {\n    \"type\": \"static\",\n    \"static\": {\n      \"max_chunk_size_tokens\": 800,\n      \"chunk_overlap_tokens\": 400\n    }\n  }\n}\n"
+              }
+            }
+          },
+          "first_id": {
+            "type": "string",
+            "example": "file-abc123"
+          },
+          "last_id": {
+            "type": "string",
+            "example": "file-abc456"
+          },
+          "has_more": {
+            "type": "boolean",
+            "example": false
+          }
+        },
+        "required": ["object", "data", "first_id", "last_id", "has_more"]
+      }
+    },
+    {
+      "direction": "request",
+      "validator": "GatewayInferenceInputCreateVectorStoreFileRequestSchema",
+      "operations": ["POST /vector_stores/{vector_store_id}/files"],
+      "schema": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "file_id": {
+            "description": "A [File](https://platform.openai.com/docs/api-reference/files) ID that the vector store should use. Useful for tools like `file_search` that can access files.",
+            "type": "string"
+          },
+          "chunking_strategy": {
+            "type": "object",
+            "description": "The chunking strategy used to chunk the file(s). If not set, will use the `auto` strategy.",
+            "oneOf": [
+              {
+                "type": "object",
+                "title": "Auto Chunking Strategy",
+                "description": "The default strategy. This strategy currently uses a `max_chunk_size_tokens` of `800` and `chunk_overlap_tokens` of `400`.",
+                "additionalProperties": false,
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "description": "Always `auto`.",
+                    "enum": ["auto"]
+                  }
+                },
+                "required": ["type"]
+              },
+              {
+                "type": "object",
+                "title": "Static Chunking Strategy",
+                "additionalProperties": false,
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "description": "Always `static`.",
+                    "enum": ["static"]
+                  },
+                  "static": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                      "max_chunk_size_tokens": {
+                        "type": "integer",
+                        "minimum": 100,
+                        "maximum": 4096,
+                        "description": "The maximum number of tokens in each chunk. The default value is `800`. The minimum value is `100` and the maximum value is `4096`."
+                      },
+                      "chunk_overlap_tokens": {
+                        "type": "integer",
+                        "description": "The number of tokens that overlap between chunks. The default value is `400`.\n\nNote that the overlap must not exceed half of `max_chunk_size_tokens`.\n"
+                      }
+                    },
+                    "required": ["max_chunk_size_tokens", "chunk_overlap_tokens"]
+                  }
+                },
+                "required": ["type", "static"]
+              }
+            ],
+            "x-oaiExpandable": true
+          }
+        },
+        "required": ["file_id"]
+      }
+    },
+    {
+      "direction": "response",
+      "validator": "GatewayInferenceVectorStoreFileObjectSchema",
+      "operations": [
+        "POST /vector_stores/{vector_store_id}/files",
+        "GET /vector_stores/{vector_store_id}/files/{file_id}"
+      ],
+      "schema": {
+        "type": "object",
+        "title": "Vector store files",
+        "description": "A list of files attached to a vector store.",
+        "properties": {
+          "id": {
+            "description": "The identifier, which can be referenced in API endpoints.",
+            "type": "string"
+          },
+          "object": {
+            "description": "The object type, which is always `vector_store.file`.",
+            "type": "string",
+            "enum": ["vector_store.file"]
+          },
+          "usage_bytes": {
+            "description": "The total vector store usage in bytes. Note that this may be different from the original file size.",
+            "type": "integer"
+          },
+          "created_at": {
+            "description": "The Unix timestamp (in seconds) for when the vector store file was created.",
+            "type": "integer"
+          },
+          "vector_store_id": {
+            "description": "The ID of the [vector store](https://platform.openai.com/docs/api-reference/vector-stores/object) that the [File](https://platform.openai.com/docs/api-reference/files) is attached to.",
+            "type": "string"
+          },
+          "status": {
+            "description": "The status of the vector store file, which can be either `in_progress`, `completed`, `cancelled`, or `failed`. The status `completed` indicates that the vector store file is ready for use.",
+            "type": "string",
+            "enum": ["in_progress", "completed", "cancelled", "failed"]
+          },
+          "last_error": {
+            "type": "object",
+            "description": "The last error associated with this vector store file. Will be `null` if there are no errors.",
+            "nullable": true,
+            "properties": {
+              "code": {
+                "type": "string",
+                "description": "One of `server_error` or `rate_limit_exceeded`.",
+                "enum": ["internal_error", "file_not_found", "parsing_error", "unhandled_mime_type"]
+              },
+              "message": {
+                "type": "string",
+                "description": "A human-readable description of the error."
+              }
+            },
+            "required": ["code", "message"]
+          },
+          "chunking_strategy": {
+            "type": "object",
+            "description": "The strategy used to chunk the file.",
+            "oneOf": [
+              {
+                "type": "object",
+                "title": "Static Chunking Strategy",
+                "additionalProperties": false,
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "description": "Always `static`.",
+                    "enum": ["static"]
+                  },
+                  "static": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                      "max_chunk_size_tokens": {
+                        "type": "integer",
+                        "minimum": 100,
+                        "maximum": 4096,
+                        "description": "The maximum number of tokens in each chunk. The default value is `800`. The minimum value is `100` and the maximum value is `4096`."
+                      },
+                      "chunk_overlap_tokens": {
+                        "type": "integer",
+                        "description": "The number of tokens that overlap between chunks. The default value is `400`.\n\nNote that the overlap must not exceed half of `max_chunk_size_tokens`.\n"
+                      }
+                    },
+                    "required": ["max_chunk_size_tokens", "chunk_overlap_tokens"]
+                  }
+                },
+                "required": ["type", "static"]
+              },
+              {
+                "type": "object",
+                "title": "Other Chunking Strategy",
+                "description": "This is returned when the chunking strategy is unknown. Typically, this is because the file was indexed before the `chunking_strategy` concept was introduced in the API.",
+                "additionalProperties": false,
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "description": "Always `other`.",
+                    "enum": ["other"]
+                  }
+                },
+                "required": ["type"]
+              }
+            ],
+            "x-oaiExpandable": true
+          }
+        },
+        "required": [
+          "id",
+          "object",
+          "usage_bytes",
+          "created_at",
+          "vector_store_id",
+          "status",
+          "last_error"
+        ],
+        "x-code-samples": {
+          "name": "The vector store file object",
+          "beta": true,
+          "example": "{\n  \"id\": \"file-abc123\",\n  \"object\": \"vector_store.file\",\n  \"usage_bytes\": 1234,\n  \"created_at\": 1698107661,\n  \"vector_store_id\": \"vs_abc123\",\n  \"status\": \"completed\",\n  \"last_error\": null,\n  \"chunking_strategy\": {\n    \"type\": \"static\",\n    \"static\": {\n      \"max_chunk_size_tokens\": 800,\n      \"chunk_overlap_tokens\": 400\n    }\n  }\n}\n"
+        }
+      }
+    },
+    {
+      "direction": "response",
+      "validator": "GatewayInferenceDeleteVectorStoreFileResponseSchema",
+      "operations": ["DELETE /vector_stores/{vector_store_id}/files/{file_id}"],
+      "schema": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "deleted": {
+            "type": "boolean"
+          },
+          "object": {
+            "type": "string",
+            "enum": ["vector_store.file.deleted"]
+          }
+        },
+        "required": ["id", "object", "deleted"]
+      }
+    },
+    {
+      "direction": "request",
+      "validator": "GatewayInferenceInputCreateVectorStoreFileBatchRequestSchema",
+      "operations": ["POST /vector_stores/{vector_store_id}/file_batches"],
+      "schema": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "file_ids": {
+            "description": "A list of [File](https://platform.openai.com/docs/api-reference/files) IDs that the vector store should use. Useful for tools like `file_search` that can access files.",
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 500,
+            "items": {
+              "type": "string"
+            }
+          },
+          "chunking_strategy": {
+            "type": "object",
+            "description": "The chunking strategy used to chunk the file(s). If not set, will use the `auto` strategy.",
+            "oneOf": [
+              {
+                "type": "object",
+                "title": "Auto Chunking Strategy",
+                "description": "The default strategy. This strategy currently uses a `max_chunk_size_tokens` of `800` and `chunk_overlap_tokens` of `400`.",
+                "additionalProperties": false,
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "description": "Always `auto`.",
+                    "enum": ["auto"]
+                  }
+                },
+                "required": ["type"]
+              },
+              {
+                "type": "object",
+                "title": "Static Chunking Strategy",
+                "additionalProperties": false,
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "description": "Always `static`.",
+                    "enum": ["static"]
+                  },
+                  "static": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                      "max_chunk_size_tokens": {
+                        "type": "integer",
+                        "minimum": 100,
+                        "maximum": 4096,
+                        "description": "The maximum number of tokens in each chunk. The default value is `800`. The minimum value is `100` and the maximum value is `4096`."
+                      },
+                      "chunk_overlap_tokens": {
+                        "type": "integer",
+                        "description": "The number of tokens that overlap between chunks. The default value is `400`.\n\nNote that the overlap must not exceed half of `max_chunk_size_tokens`.\n"
+                      }
+                    },
+                    "required": ["max_chunk_size_tokens", "chunk_overlap_tokens"]
+                  }
+                },
+                "required": ["type", "static"]
+              }
+            ],
+            "x-oaiExpandable": true
+          }
+        },
+        "required": ["file_ids"]
+      }
+    },
+    {
+      "direction": "response",
+      "validator": "GatewayInferenceVectorStoreFileBatchObjectSchema",
+      "operations": [
+        "POST /vector_stores/{vector_store_id}/file_batches",
+        "GET /vector_stores/{vector_store_id}/file_batches/{batch_id}",
+        "POST /vector_stores/{vector_store_id}/file_batches/{batch_id}/cancel"
+      ],
+      "schema": {
+        "type": "object",
+        "title": "Vector store file batch",
+        "description": "A batch of files attached to a vector store.",
+        "properties": {
+          "id": {
+            "description": "The identifier, which can be referenced in API endpoints.",
+            "type": "string"
+          },
+          "object": {
+            "description": "The object type, which is always `vector_store.file_batch`.",
+            "type": "string",
+            "enum": ["vector_store.files_batch"]
+          },
+          "created_at": {
+            "description": "The Unix timestamp (in seconds) for when the vector store files batch was created.",
+            "type": "integer"
+          },
+          "vector_store_id": {
+            "description": "The ID of the [vector store](https://platform.openai.com/docs/api-reference/vector-stores/object) that the [File](https://platform.openai.com/docs/api-reference/files) is attached to.",
+            "type": "string"
+          },
+          "status": {
+            "description": "The status of the vector store files batch, which can be either `in_progress`, `completed`, `cancelled` or `failed`.",
+            "type": "string",
+            "enum": ["in_progress", "completed", "cancelled", "failed"]
+          },
+          "file_counts": {
+            "type": "object",
+            "properties": {
+              "in_progress": {
+                "description": "The number of files that are currently being processed.",
+                "type": "integer"
+              },
+              "completed": {
+                "description": "The number of files that have been processed.",
+                "type": "integer"
+              },
+              "failed": {
+                "description": "The number of files that have failed to process.",
+                "type": "integer"
+              },
+              "cancelled": {
+                "description": "The number of files that where cancelled.",
+                "type": "integer"
+              },
+              "total": {
+                "description": "The total number of files.",
+                "type": "integer"
+              }
+            },
+            "required": ["in_progress", "completed", "cancelled", "failed", "total"]
+          }
+        },
+        "required": ["id", "object", "created_at", "vector_store_id", "status", "file_counts"],
+        "x-code-samples": {
+          "name": "The vector store files batch object",
+          "beta": true,
+          "example": "{\n  \"id\": \"vsfb_123\",\n  \"object\": \"vector_store.files_batch\",\n  \"created_at\": 1698107661,\n  \"vector_store_id\": \"vs_abc123\",\n  \"status\": \"completed\",\n  \"file_counts\": {\n    \"in_progress\": 0,\n    \"completed\": 100,\n    \"failed\": 0,\n    \"cancelled\": 0,\n    \"total\": 100\n  }\n}\n"
+        }
+      }
+    },
+    {
+      "direction": "request",
+      "validator": "GatewayInferenceInputCreateBatchRequestSchema",
+      "operations": ["POST /batches"],
+      "schema": {
+        "anyOf": [
+          {
+            "type": "object",
+            "required": ["input_file_id", "completion_window", "endpoint"],
+            "properties": {
+              "input_file_id": {
+                "type": "string",
+                "description": "The input file to use for the batch job"
+              },
+              "completion_window": {
+                "type": "string",
+                "enum": ["immediate", "24h"],
+                "description": "Completion window for the batch job, `immediate` is only supported with Portkey Managed Batching."
+              },
+              "endpoint": {
+                "type": "string",
+                "enum": ["/v1/chat/completions", "/v1/completions", "/v1/embeddings"],
+                "description": "Inference endpoint"
+              },
+              "metadata": {
+                "description": "metadata related for the batch job",
+                "type": "object",
+                "additionalProperties": true,
+                "nullable": true
+              }
+            },
+            "description": "Gateway supported body params for OpenAI, Azure OpenAI and VertexAI.",
+            "title": "OpenAI Params"
+          },
+          {
+            "type": "object",
+            "required": ["model", "role_arn"],
+            "properties": {
+              "job_name": {
+                "type": "string",
+                "description": "Job name for the batch job"
+              },
+              "output_data_config": {
+                "type": "string",
+                "description": "Batch job's output storage location, will be constructed based on `input_file_id` if not provided"
+              },
+              "model": {
+                "type": "string",
+                "description": "Model to start batch job with"
+              },
+              "role_arn": {
+                "type": "string",
+                "description": "Role ARN for the bedrock batch job"
+              }
+            },
+            "allOf": [
+              {
+                "$ref": "#/anyOf/0"
+              }
+            ],
+            "description": "Gateway supported body params for bedrock fine-tuning.",
+            "title": "Bedrock Params"
+          },
+          {
+            "type": "object",
+            "required": ["model"],
+            "properties": {
+              "job_name": {
+                "type": "string",
+                "description": "Job name for the batch job"
+              },
+              "output_data_config": {
+                "type": "string",
+                "description": "Batch job's output storage location, will be constructed based on `input_file_id` if not provided"
+              },
+              "model": {
+                "type": "string",
+                "description": "Model to start batch job with"
+              }
+            },
+            "allOf": [
+              {
+                "$ref": "#/anyOf/0"
+              }
+            ],
+            "description": "Gateway supported body params for Vertext fine-tuning.",
+            "title": "Vertex Params"
+          },
+          {
+            "type": "object",
+            "required": ["model"],
+            "properties": {
+              "job_name": {
+                "type": "string",
+                "description": "Job name for the batch job"
+              },
+              "output_data_config": {
+                "type": "string",
+                "description": "Batch job's output storage location, will be constructed based on `input_file_id` if not provided"
+              },
+              "model": {
+                "type": "string",
+                "description": "Model to start batch job with"
+              },
+              "role_arn": {
+                "type": "string",
+                "description": "Role ARN for the bedrock batch job"
+              },
+              "portkey_options": {
+                "allOf": [
+                  {
+                    "type": "object",
+                    "required": ["x-portkey-virtual-key"],
+                    "properties": {
+                      "x-portkey-virtual-key": {
+                        "type": "string",
+                        "description": "The virtual key to communicate with the provider"
+                      },
+                      "x-portkey-aws-s3-bucket": {
+                        "type": "string",
+                        "description": "The AWS S3 bucket to use for file upload during finetune"
+                      },
+                      "x-portkey-vertex-storage-bucket-name": {
+                        "type": "string",
+                        "description": "Google Storage bucket to use for file upload during finetune"
+                      },
+                      "x-portkey-provider-model": {
+                        "type": "string",
+                        "description": "Model to use for the batch job also for file transformation for model specific inference input."
+                      }
+                    },
+                    "example": {
+                      "x-portkey-virtual-key": "vkey-1234567890",
+                      "x-portkey-aws-s3-bucket": "my-bucket",
+                      "x-portkey-provider-model": "meta.llama3-1-8b-instruct-v1:0",
+                      "x-portkey-vertex-storage-bucket-name": "my-bucket"
+                    },
+                    "description": "Options to be passed to the provider, supports all options supported by the provider from gateway."
+                  }
+                ],
+                "description": "Portkey Gateway Provider specific headers to be passed to the provider, if portkey is used as a provider"
+              },
+              "provider_options": {
+                "anyOf": [
+                  {
+                    "type": "object",
+                    "title": "Bedrock Options",
+                    "properties": {
+                      "job_name": {
+                        "type": "string",
+                        "description": "Job name for the batch job"
+                      },
+                      "output_data_config": {
+                        "type": "string",
+                        "description": "Batch job's output storage location, will be constructed based on `input_file_id` if not provided"
+                      },
+                      "model": {
+                        "type": "string",
+                        "description": "Model to start batch job with"
+                      },
+                      "role_arn": {
+                        "type": "string",
+                        "description": "Role ARN for the bedrock batch job"
+                      }
+                    },
+                    "required": ["model", "role_arn"]
+                  },
+                  {
+                    "type": "object",
+                    "title": "Vertex Options",
+                    "properties": {
+                      "job_name": {
+                        "type": "string",
+                        "description": "Job name for the batch job"
+                      },
+                      "output_data_config": {
+                        "type": "string",
+                        "description": "Batch job's output storage location, will be constructed based on `input_file_id` if not provided"
+                      },
+                      "model": {
+                        "type": "string",
+                        "description": "Model to start batch job with"
+                      }
+                    },
+                    "required": ["model"]
+                  }
+                ],
+                "description": "Provider specific options to be passed to the provider, optional can be passed directly as well."
+              }
+            },
+            "allOf": [
+              {
+                "$ref": "#/anyOf/0"
+              }
+            ],
+            "description": "Gateway supported body params for portkey managed batching.",
+            "title": "Portkey Params"
+          }
+        ]
+      }
+    },
+    {
+      "direction": "response",
+      "validator": "GatewayInferenceBatchSchema",
+      "operations": ["POST /batches", "GET /batches/{batch_id}", "POST /batches/{batch_id}/cancel"],
+      "schema": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "object": {
+            "type": "string",
+            "enum": ["batch"],
+            "description": "The object type, which is always `batch`."
+          },
+          "endpoint": {
+            "type": "string",
+            "description": "The Portkey API endpoint used by the batch."
+          },
+          "errors": {
+            "type": "object",
+            "properties": {
+              "object": {
+                "type": "string",
+                "description": "The object type, which is always `list`."
+              },
+              "data": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string",
+                      "description": "An error code identifying the error type."
+                    },
+                    "message": {
+                      "type": "string",
+                      "description": "A human-readable message providing more details about the error."
+                    },
+                    "param": {
+                      "type": "string",
+                      "description": "The name of the parameter that caused the error, if applicable.",
+                      "nullable": true
+                    },
+                    "line": {
+                      "type": "integer",
+                      "description": "The line number of the input file where the error occurred, if applicable.",
+                      "nullable": true
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "input_file_id": {
+            "type": "string",
+            "description": "The ID of the input file for the batch."
+          },
+          "completion_window": {
+            "type": "string",
+            "description": "The time frame within which the batch should be processed."
+          },
+          "status": {
+            "type": "string",
+            "description": "The current status of the batch.",
+            "enum": [
+              "validating",
+              "failed",
+              "in_progress",
+              "finalizing",
+              "completed",
+              "expired",
+              "cancelling",
+              "cancelled"
+            ]
+          },
+          "output_file_id": {
+            "type": "string",
+            "description": "The ID of the file containing the outputs of successfully executed requests."
+          },
+          "error_file_id": {
+            "type": "string",
+            "description": "The ID of the file containing the outputs of requests with errors."
+          },
+          "created_at": {
+            "type": "integer",
+            "description": "The Unix timestamp (in seconds) for when the batch was created."
+          },
+          "in_progress_at": {
+            "type": "integer",
+            "description": "The Unix timestamp (in seconds) for when the batch started processing."
+          },
+          "expires_at": {
+            "type": "integer",
+            "description": "The Unix timestamp (in seconds) for when the batch will expire."
+          },
+          "finalizing_at": {
+            "type": "integer",
+            "description": "The Unix timestamp (in seconds) for when the batch started finalizing."
+          },
+          "completed_at": {
+            "type": "integer",
+            "description": "The Unix timestamp (in seconds) for when the batch was completed."
+          },
+          "failed_at": {
+            "type": "integer",
+            "description": "The Unix timestamp (in seconds) for when the batch failed."
+          },
+          "expired_at": {
+            "type": "integer",
+            "description": "The Unix timestamp (in seconds) for when the batch expired."
+          },
+          "cancelling_at": {
+            "type": "integer",
+            "description": "The Unix timestamp (in seconds) for when the batch started cancelling."
+          },
+          "cancelled_at": {
+            "type": "integer",
+            "description": "The Unix timestamp (in seconds) for when the batch was cancelled."
+          },
+          "request_counts": {
+            "type": "object",
+            "properties": {
+              "total": {
+                "type": "integer",
+                "description": "Total number of requests in the batch."
+              },
+              "completed": {
+                "type": "integer",
+                "description": "Number of requests that have been completed successfully."
+              },
+              "failed": {
+                "type": "integer",
+                "description": "Number of requests that have failed."
+              }
+            },
+            "required": ["total", "completed", "failed"],
+            "description": "The request counts for different statuses within the batch."
+          },
+          "metadata": {
+            "description": "Set of 16 key-value pairs that can be attached to an object. This can be useful for storing additional information about the object in a structured format. Keys can be a maximum of 64 characters long and values can be a maxium of 512 characters long.\n",
+            "type": "object",
+            "x-oaiTypeLabel": "map",
+            "nullable": true
+          }
+        },
+        "required": [
+          "id",
+          "object",
+          "endpoint",
+          "input_file_id",
+          "completion_window",
+          "status",
+          "created_at"
+        ]
+      }
+    }
+  ]
+}

@@ -5,13 +5,34 @@ sidebar_position: 5
 
 # AI Gateway API expansion plan
 
+## September 2026 implementation checkpoint
+
+The local SDK now adds MCP server, usage/rate policy and log-export clients, MCP guardrail mappings,
+MCP integration workspace reads and custom integration-model deletion. These follow the existing
+SCM OAuth/plane design. The user-authorized 2026-09-06 runtime expansion additionally introduces
+`AIGatewayInferenceClient` and `AIGatewayClient.inference`, with explicit runtime endpoint and
+API-key configuration. This supersedes the earlier runtime deferral; SCM defaults remain unchanged.
+The [operation ledger](./gateway-coverage.md) records all 242 upstream operations and live exceptions.
+The [conformance report](./openapi-conformance.md) explains request validation, fixture evidence and
+the explicit denominator. Experimental methods remain labeled pending successful tenant validation.
+
+Subsequent dev-scoped discovery verified admin-plane `/secret-references` without a workspace query. The focused `secretReferences` client now has five typed CRUD methods, a seven-check live owned-fixture lifecycle and explicit credential-subtree redaction. Only unbound references with invalid synthetic credentials were used; external secret resolution remains untested. The remaining Assistants/Threads routes in the pinned Portkey document are retired on the configured OpenAI backend as of August 26, 2026 ([official notice](https://developers.openai.com/api/docs/assistants/migration)). They remain gaps in the full 242-operation denominator, not substituted with Responses coverage.
+
 This document scopes the next AI Gateway SDK additions while Palo Alto Networks does not yet publish an AI Gateway OpenAPI document. It is an implementation plan, not a claim that every endpoint described below is currently available from Strata Cloud Manager (SCM).
+
+The later runtime increment adds experimental image/audio/moderation/rerank/OCR and legacy/prompt completion/rendering contracts. Both exact deployed gateway replicas register the three completion/render routes; prompt completion dispatches to the ordinary chat/legacy handlers. The pinned prompt schema's educational hyperparameter nesting is corrected to its explicitly documented root-level wire format. Successful provider/template workflows remain unverified, so these additions do not satisfy the release-ready gate below.
+
+A subsequent bounded realtime probe completed the WebSocket upgrade but received `invalid_model` before session creation using the prescribed model. Same-key authentication and socket/key cleanup passed; no generation was requested or alternate model selected. The route is registered on both deployed replicas, but no successful realtime lifecycle or SDK implementation is claimed. Test-only WebSocket discovery does not add a production dependency or count as implementation coverage.
 
 The focused implementation design for exported write schemas, structured routing configuration,
 pre-network validation, dotted-value builders, and secret metadata is in the
 [SDK 0.20 request model plan](sdk-0.20-request-model-plan.md).
 
 ## Evidence and authority
+
+Runtime observability was subsequently verified on September 6: `POST /feedback` and `POST /logs` succeed with a runtime key on the explicitly configured gateway even though SCM denies both. Typed feedback creation and single/batch log ingestion pass live checks, with independent SCM reads confirming retained synthetic records. `PUT /feedback/{id}` returned HTTP 500 on an owned record and remained an implementation gap at that checkpoint. These findings refine plane selection; they do not authorize sending runtime keys to SCM or imply full Portkey coverage.
+
+The September 7 follow-up implements `updateFeedback` and `getLog` as experimental runtime contracts after confirming both deployed handlers. It adds strict score/UUID/query validation, the v2 storage timestamp dependency, additive response types and body-log suppression tests. Typed live calls reproduce both storage-handler HTTP 500s; they remain failed workflows, not release-ready methods. This closes two implementation gaps without implying that the backend limitations are fixed or changing storage settings.
 
 The Portkey OpenAPI 2.0.0 document at commit `9d7eca77222db12623c044a862b5873cae758956` is the capability and payload-shape research source. Prisma AIRS uses Portkey technology, so the document is useful for discovering likely resources and relationships. It is not authoritative for Prisma routing, authentication, authorization, or response envelopes.
 
@@ -26,6 +47,13 @@ If these disagree, SCM-observed behavior wins. Each new operation must record it
 
 ## Transport contract that must not change
 
+The September 7 public-pricing addition is an explicit exception to SCM/runtime plane selection:
+the pinned pricing operation declares `https://api.portkey.ai` (without `/v1`) and `security: []`.
+Both prescribed models returned 200 there. `AIGatewayModelPricingClient` therefore stands alone
+with an explicit endpoint and no credentials, without changing SCM or inference defaults. Its
+catalog values are not Prisma tenant billing. Earlier SCM denial on that relative path did not
+establish public-service unavailability. See [public pricing](../guides/ai-gateway-model-pricing.md).
+
 New clients will reuse `AIGatewayClient` and its existing transport:
 
 - SCM OAuth client-credentials authentication through the SDK's current OAuth resolver.
@@ -33,7 +61,11 @@ New clients will reuse `AIGatewayClient` and its existing transport:
 - The configured Prisma data-plane and admin-plane base URLs, whose defaults currently end in `/ai_gw/v2` and `/ai_gw/admin/v2`.
 - Existing retry, timeout, error normalization, and debug behavior.
 
-Portkey hostnames, Portkey API keys, and Portkey-specific authentication headers must not become defaults or leak into the Prisma public API. A Portkey path is appended to an SCM base only after that combination has been verified. In particular, Portkey's `/admin/workspaces` does not supersede Prisma's verified admin-base `/workspaces` route.
+Portkey hostnames and credentials must not become implicit SCM defaults. The separate runtime
+client deliberately uses `x-portkey-api-key`, as verified by the supplied working Prisma request;
+it requires an explicit endpoint/key and never sends management OAuth or TSG credentials.
+A Portkey path is appended to an SCM base only after that combination has been verified.
+In particular, Portkey's `/admin/workspaces` does not supersede Prisma's verified admin-base `/workspaces` route.
 
 ## Current coverage and nearest gaps
 
@@ -123,9 +155,20 @@ The current telemetry client remains the authority for SCM-verified analytics. P
 
 ### Phase 4: inference-compatible APIs
 
+Runtime authority is established as of 2026-09-06: the dev deployment accepts a gateway service
+key on its `/v1` runtime URL, provider-prefixed model IDs, and `x-portkey-provider` for provider
+resource operations. Chat and Responses support SSE; embeddings support float/base64. Files
+use native multipart uploads and byte-preserving downloads. These contracts are implemented
+with native fetch, strict inputs, additive response fields, bounded cancellable SSE, and zero
+automatic retries by default (generation can be billable). No runtime hostname or model is
+silently selected by the SDK. See [runtime inference](../guides/ai-gateway-inference.md) for
+verification results and explicit compatibility corrections. WebSocket realtime and the retired
+Assistants/Threads surface remain gaps. The newly modeled provider HTTP and legacy/prompt
+methods are experimental, not successful tenant-verification claims.
+
 Chat completions, Responses, embeddings, reranking, OCR, audio, images, files, batches, assistants, threads, vector stores, fine-tuning, models, and moderations form a distinct surface. They should not be added merely because they appear in Portkey's specification.
 
-Before designing this layer, verify:
+For each additional family, continue to verify:
 
 - Whether inference requests use SCM OAuth or a generated gateway API key.
 - The actual gateway hostname and path prefix.

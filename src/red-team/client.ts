@@ -1,3 +1,4 @@
+import { SentimentRequestSchema } from '../models/index.js';
 import {
   DEFAULT_RED_TEAM_DATA_ENDPOINT,
   DEFAULT_RED_TEAM_MGMT_ENDPOINT,
@@ -14,7 +15,13 @@ import {
   RED_TEAM_MGMT_DASHBOARD_PATH,
 } from '../constants.js';
 import { OAuthAuth } from '../http/auth/oauth.js';
+import { AISecSDKException } from '../errors.js';
 import { request } from '../http/request.js';
+import { z } from 'zod';
+import {
+  GoalCategoryListResponseSchema,
+  type GoalCategoryListResponse,
+} from '../models/red-team-capabilities.js';
 import type { AuthAdapter } from '../http/types.js';
 import { serializeListing } from '../listing.js';
 import { resolveOAuthConfig } from '../oauth-config.js';
@@ -81,6 +88,37 @@ export interface RedTeamClientOptions {
  * ```
  */
 export class RedTeamClient {
+  /** Read scan target metadata. @example `const metadata = await rt.getScanMetadata();` */
+  async getScanMetadata(): Promise<Record<string, unknown>> {
+    try {
+      return await request({
+        method: 'GET',
+        baseUrl: this.dataEndpoint,
+        path: '/v1/scan/scan-metadata',
+        responseSchema: z.object({}).passthrough(),
+        auth: this.auth,
+        numRetries: this.numRetries,
+      });
+    } catch (error) {
+      // Some deployments route the documented static path through their job-ID validator.
+      // This parameterless read cannot itself contain an invalid job ID. The management
+      // metadata endpoint exposes the same scan-target configuration on those deployments.
+      if (error instanceof AISecSDKException && error.statusCode === 422)
+        return this.targets.getTargetMetadata();
+      throw error;
+    }
+  }
+  /** Get available goal categories for a target type. @example `const categories = await rt.getGoalCategories('APPLICATION');` */
+  async getGoalCategories(targetType: string): Promise<GoalCategoryListResponse> {
+    return request({
+      method: 'GET',
+      baseUrl: this.dataEndpoint,
+      path: `/v1/goal-categories/${encodeURIComponent(targetType)}`,
+      responseSchema: GoalCategoryListResponseSchema,
+      auth: this.auth,
+      numRetries: this.numRetries,
+    });
+  }
   /** Data plane scan operations. */
   public readonly scans: RedTeamScansClient;
   /** Data plane report operations. */
@@ -206,13 +244,20 @@ export class RedTeamClient {
    * // { labels: ['2026-04', '2026-05'], series: [{ name: 'risk', data: [42, 38] }] }
    * ```
    */
-  async getScoreTrend(targetId: string): Promise<ScoreTrendResponse> {
+  async getScoreTrend(
+    targetId: string,
+    opts: { date_range?: string; start_date?: string; end_date?: string } = {},
+  ): Promise<ScoreTrendResponse> {
     assertUuid(targetId, 'target id');
+    const params: Record<string, string> = { target_id: targetId };
+    if (opts.date_range !== undefined) params.date_range = opts.date_range;
+    if (opts.start_date !== undefined) params.start_date = opts.start_date;
+    if (opts.end_date !== undefined) params.end_date = opts.end_date;
     return request({
       method: 'GET',
       baseUrl: this.dataEndpoint,
       path: `${RED_TEAM_DASHBOARD_PATH}/score-trend`,
-      params: { target_id: targetId },
+      params,
       responseSchema: ScoreTrendResponseSchema,
       auth: this.auth,
       numRetries: this.numRetries,
@@ -372,6 +417,7 @@ export class RedTeamClient {
    */
   async updateSentiment(body: SentimentRequest): Promise<SentimentResponse> {
     return request({
+      requestSchema: SentimentRequestSchema,
       method: 'POST',
       baseUrl: this.dataEndpoint,
       path: RED_TEAM_SENTIMENT_PATH,

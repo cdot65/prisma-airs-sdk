@@ -1,0 +1,246 @@
+{
+  "source": "ai-gateway-openapi/openapi.yaml",
+  "sha256": "de7a1bd98bdb2edb7428a33054d9f6000b9568d1cd5b603d1a8302c053d094d9",
+  "cases": [
+    {
+      "path": "/images/edits",
+      "method": "createImageEdit",
+      "validator": "GatewayInferenceInputCreateImageEditRequestSchema",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "image": {
+            "description": "The image to edit. Must be a valid PNG file, less than 4MB, and square. If mask is not provided, image must have transparency, which will be used as the mask.",
+            "type": "string",
+            "format": "binary"
+          },
+          "prompt": {
+            "description": "A text description of the desired image(s). The maximum length is 1000 characters.",
+            "type": "string",
+            "example": "A cute baby sea otter wearing a beret"
+          },
+          "mask": {
+            "description": "An additional image whose fully transparent areas (e.g. where alpha is zero) indicate where `image` should be edited. Must be a valid PNG file, less than 4MB, and have the same dimensions as `image`.",
+            "type": "string",
+            "format": "binary"
+          },
+          "model": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "string",
+                "enum": ["dall-e-2"]
+              }
+            ],
+            "x-oaiTypeLabel": "string",
+            "default": "dall-e-2",
+            "example": "dall-e-2",
+            "nullable": true,
+            "description": "The model to use for image generation. Only `dall-e-2` is supported at this time."
+          },
+          "n": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 10,
+            "default": 1,
+            "example": 1,
+            "nullable": true,
+            "description": "The number of images to generate. Must be between 1 and 10."
+          },
+          "size": {
+            "type": "string",
+            "enum": ["256x256", "512x512", "1024x1024"],
+            "default": "1024x1024",
+            "example": "1024x1024",
+            "nullable": true,
+            "description": "The size of the generated images. Must be one of `256x256`, `512x512`, or `1024x1024`."
+          },
+          "response_format": {
+            "type": "string",
+            "enum": ["url", "b64_json"],
+            "default": "url",
+            "example": "url",
+            "nullable": true,
+            "description": "The format in which the generated images are returned. Must be one of `url` or `b64_json`. URLs are only valid for 60 minutes after the image has been generated."
+          },
+          "user": {
+            "type": "string",
+            "example": "user-1234",
+            "description": "A unique identifier representing your end-user, which can help OpenAI to monitor and detect abuse. [Learn more](https://platform.openai.com/docs/guides/safety-best-practices/end-user-ids).\n"
+          }
+        },
+        "required": ["prompt", "image"]
+      }
+    },
+    {
+      "path": "/images/variations",
+      "method": "createImageVariation",
+      "validator": "GatewayInferenceInputCreateImageVariationRequestSchema",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "image": {
+            "description": "The image to use as the basis for the variation(s). Must be a valid PNG file, less than 4MB, and square.",
+            "type": "string",
+            "format": "binary"
+          },
+          "model": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "string",
+                "enum": ["dall-e-2"]
+              }
+            ],
+            "x-oaiTypeLabel": "string",
+            "default": "dall-e-2",
+            "example": "dall-e-2",
+            "nullable": true,
+            "description": "The model to use for image generation. Only `dall-e-2` is supported at this time."
+          },
+          "n": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 10,
+            "default": 1,
+            "example": 1,
+            "nullable": true,
+            "description": "The number of images to generate. Must be between 1 and 10. For `dall-e-3`, only `n=1` is supported."
+          },
+          "response_format": {
+            "type": "string",
+            "enum": ["url", "b64_json"],
+            "default": "url",
+            "example": "url",
+            "nullable": true,
+            "description": "The format in which the generated images are returned. Must be one of `url` or `b64_json`. URLs are only valid for 60 minutes after the image has been generated."
+          },
+          "size": {
+            "type": "string",
+            "enum": ["256x256", "512x512", "1024x1024"],
+            "default": "1024x1024",
+            "example": "1024x1024",
+            "nullable": true,
+            "description": "The size of the generated images. Must be one of `256x256`, `512x512`, or `1024x1024`."
+          },
+          "user": {
+            "type": "string",
+            "example": "user-1234",
+            "description": "A unique identifier representing your end-user, which can help OpenAI to monitor and detect abuse. [Learn more](https://platform.openai.com/docs/guides/safety-best-practices/end-user-ids).\n"
+          }
+        },
+        "required": ["image"]
+      }
+    },
+    {
+      "path": "/audio/transcriptions",
+      "method": "createTranscription",
+      "validator": "GatewayInferenceInputCreateTranscriptionRequestSchema",
+      "schema": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "file": {
+            "description": "The audio file object (not file name) to transcribe, in one of these formats: flac, mp3, mp4, mpeg, mpga, m4a, ogg, wav, or webm.\n",
+            "type": "string",
+            "x-oaiTypeLabel": "file",
+            "format": "binary"
+          },
+          "model": {
+            "description": "ID of the model to use. The options are `gpt-4o-transcribe`, `gpt-4o-mini-transcribe`, and `whisper-1`.\n",
+            "example": "whisper-1",
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "string",
+                "enum": ["whisper-1"]
+              }
+            ],
+            "x-oaiTypeLabel": "string"
+          },
+          "language": {
+            "description": "The language of the input audio. Supplying the input language in [ISO-639-1](https://en.wikipedia.org/wiki/List_of_ISO_639-1_codes) format will improve accuracy and latency.\n",
+            "type": "string"
+          },
+          "prompt": {
+            "description": "An optional text to guide the model's style or continue a previous audio segment. The [prompt](https://platform.openai.com/docs/guides/speech-to-text/prompting) should match the audio language.\n",
+            "type": "string"
+          },
+          "response_format": {
+            "description": "The format of the transcript output, in one of these options: `json`, `text`, `srt`, `verbose_json`, or `vtt`.\n",
+            "type": "string",
+            "enum": ["json", "text", "srt", "verbose_json", "vtt"],
+            "default": "json"
+          },
+          "temperature": {
+            "description": "The sampling temperature, between 0 and 1. Higher values like 0.8 will make the output more random, while lower values like 0.2 will make it more focused and deterministic. If set to 0, the model will use [log probability](https://en.wikipedia.org/wiki/Log_probability) to automatically increase the temperature until certain thresholds are hit.\n",
+            "type": "number",
+            "default": 0
+          },
+          "timestamp_granularities[]": {
+            "description": "The timestamp granularities to populate for this transcription. `response_format` must be set `verbose_json` to use timestamp granularities. Either or both of these options are supported: `word`, or `segment`. Note: There is no additional latency for segment timestamps, but generating word timestamps incurs additional latency.\n",
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": ["word", "segment"]
+            },
+            "default": ["segment"]
+          }
+        },
+        "required": ["file", "model"]
+      }
+    },
+    {
+      "path": "/audio/translations",
+      "method": "createTranslation",
+      "validator": "GatewayInferenceInputCreateTranslationRequestSchema",
+      "schema": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "file": {
+            "description": "The audio file object (not file name) translate, in one of these formats: flac, mp3, mp4, mpeg, mpga, m4a, ogg, wav, or webm.\n",
+            "type": "string",
+            "x-oaiTypeLabel": "file",
+            "format": "binary"
+          },
+          "model": {
+            "description": "ID of the model to use. The options are `gpt-4o-transcribe`, `gpt-4o-mini-transcribe`, and `whisper-1`.\n",
+            "example": "whisper-1",
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "string",
+                "enum": ["whisper-1"]
+              }
+            ],
+            "x-oaiTypeLabel": "string"
+          },
+          "prompt": {
+            "description": "An optional text to guide the model's style or continue a previous audio segment. The [prompt](https://platform.openai.com/docs/guides/speech-to-text/prompting) should be in English.\n",
+            "type": "string"
+          },
+          "response_format": {
+            "description": "The format of the transcript output, in one of these options: `json`, `text`, `srt`, `verbose_json`, or `vtt`.\n",
+            "type": "string",
+            "default": "json"
+          },
+          "temperature": {
+            "description": "The sampling temperature, between 0 and 1. Higher values like 0.8 will make the output more random, while lower values like 0.2 will make it more focused and deterministic. If set to 0, the model will use [log probability](https://en.wikipedia.org/wiki/Log_probability) to automatically increase the temperature until certain thresholds are hit.\n",
+            "type": "number",
+            "default": 0
+          }
+        },
+        "required": ["file", "model"]
+      }
+    }
+  ]
+}

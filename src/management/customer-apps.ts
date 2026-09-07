@@ -24,6 +24,20 @@ export interface CustomerAppsClientOptions {
 
 /** Client for AIRS customer application management operations. */
 export class CustomerAppsClient {
+  /** List applications using the OpenAPI route scoped by the token. @example `const page = await mgmt.customerApps.listForToken({ limit: 20 });` */
+  async listForToken(
+    opts: Omit<PaginationOptions, 'latest'> = {},
+  ): Promise<CustomerAppListResponse> {
+    return request({
+      method: 'GET',
+      baseUrl: this.baseUrl,
+      path: '/v1/mgmt/customerapps',
+      params: { offset: String(opts.offset ?? 0), limit: String(opts.limit ?? 100) },
+      responseSchema: CustomerAppListResponseSchema,
+      auth: this.auth,
+      numRetries: this.numRetries,
+    });
+  }
   private readonly baseUrl: string;
   private readonly auth: AuthAdapter;
   private readonly tsgId: string;
@@ -128,6 +142,7 @@ export class CustomerAppsClient {
    */
   async update(customerAppId: string, body: CustomerApp): Promise<CustomerApp> {
     return request({
+      requestSchema: CustomerAppSchema,
       method: 'PUT',
       baseUrl: this.baseUrl,
       path: MGMT_CUSTOMER_APP_PATH,

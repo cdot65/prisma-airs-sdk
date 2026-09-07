@@ -6,6 +6,8 @@ export {
   ContentErrorType,
   ErrorStatus,
 } from './enums.js';
+export * from './ai-gateway-extensions.js';
+export * from './ai-gateway-model-pricing.js';
 export type {
   Verdict as VerdictType,
   Action as ActionType,
@@ -373,9 +375,14 @@ export {
 } from './dlp-data-filtering-profile.js';
 export * from './model-security-enums.js';
 export * from './model-security.js';
+export * from './model-security-custom-rules.js';
+export * from './red-team-capabilities.js';
+export * from './red-team-details.js';
+export * from './scan-detail.js';
 export * from './red-team-enums.js';
 export * from './red-team.js';
 export * from './red-team-network-broker.js';
 export * from './ai-gateway.js';
 export * from './ai-gateway-routing.js';
 export * from './ai-gateway-requests.js';
+export * from './ai-gateway-inference.js';

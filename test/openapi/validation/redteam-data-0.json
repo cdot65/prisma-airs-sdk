@@ -1,0 +1,4865 @@
+{
+  "source": "prisma-airs-redteam/data-plane/dp-openapi.yaml",
+  "sha256": "667ce2ea6842c5f96de7a41786d055fa6032d64186bdce4d23edfeeabf10d76d",
+  "corrections": [],
+  "contracts": [
+    {
+      "direction": "request",
+      "validator": "JobCreateRequestSchema",
+      "operations": ["POST /v1/scan"],
+      "schema": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 255,
+            "minLength": 3,
+            "title": "Name",
+            "description": "Job name (3-255 characters)"
+          },
+          "target": {
+            "description": "Target reference for job creation",
+            "properties": {
+              "uuid": {
+                "type": "string",
+                "format": "uuid",
+                "title": "Uuid",
+                "description": "Target UUID"
+              },
+              "version": {
+                "anyOf": [
+                  {
+                    "type": "integer"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "title": "Version",
+                "description": "Target configuration version"
+              }
+            },
+            "type": "object",
+            "required": ["uuid"],
+            "title": "TargetJobRequest"
+          },
+          "job_type": {
+            "description": "Type of job to execute",
+            "type": "string",
+            "enum": ["STATIC", "DYNAMIC", "CUSTOM", "CLARA"],
+            "title": "JobType"
+          },
+          "job_metadata": {
+            "anyOf": [
+              {
+                "properties": {
+                  "rate_limit_enabled": {
+                    "type": "boolean",
+                    "title": "Rate Limit Enabled",
+                    "default": false
+                  },
+                  "rate_limit": {
+                    "anyOf": [
+                      {
+                        "type": "integer"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "title": "Rate Limit"
+                  },
+                  "rate_limit_error_code": {
+                    "anyOf": [
+                      {
+                        "type": "integer"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "title": "Rate Limit Error Code"
+                  },
+                  "rate_limit_error_message": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "title": "Rate Limit Error Message"
+                  },
+                  "rate_limit_error_json": {
+                    "anyOf": [
+                      {
+                        "additionalProperties": true,
+                        "type": "object"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "title": "Rate Limit Error Json"
+                  },
+                  "content_filter_enabled": {
+                    "type": "boolean",
+                    "title": "Content Filter Enabled",
+                    "description": "Enable content filtering",
+                    "default": false
+                  },
+                  "content_filter_error_code": {
+                    "anyOf": [
+                      {
+                        "type": "integer",
+                        "maximum": 599,
+                        "minimum": 400
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "title": "Content Filter Error Code",
+                    "description": "HTTP error code for content filter (400-599)"
+                  },
+                  "content_filter_error_message": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "title": "Content Filter Error Message",
+                    "description": "Content filter error message"
+                  },
+                  "content_filter_error_json": {
+                    "anyOf": [
+                      {
+                        "additionalProperties": true,
+                        "type": "object"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "title": "Content Filter Error Json"
+                  },
+                  "language": {
+                    "anyOf": [
+                      {
+                        "properties": {
+                          "code": {
+                            "type": "string",
+                            "title": "Code"
+                          },
+                          "name": {
+                            "type": "string",
+                            "title": "Name"
+                          }
+                        },
+                        "type": "object",
+                        "required": ["code", "name"],
+                        "title": "LanguageOptionSchema",
+                        "description": "Language representation with code and display name."
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "description": "Language for this scan. None = English."
+                  },
+                  "categories": {
+                    "additionalProperties": {
+                      "items": {
+                        "anyOf": [
+                          {
+                            "type": "string",
+                            "enum": [
+                              "ADVERSARIAL_SUFFIX",
+                              "EVASION",
+                              "INDIRECT_PROMPT_INJECTION",
+                              "JAILBREAK",
+                              "MULTI_TURN",
+                              "PROMPT_INJECTION",
+                              "REMOTE_CODE_EXECUTION",
+                              "SYSTEM_PROMPT_LEAK",
+                              "TOOL_LEAK",
+                              "MALWARE_GENERATION"
+                            ],
+                            "title": "SecuritySubCategory"
+                          },
+                          {
+                            "type": "string",
+                            "enum": [
+                              "BIAS",
+                              "CBRN",
+                              "CYBERCRIME",
+                              "DRUGS",
+                              "HATE_TOXIC_ABUSE",
+                              "NON_VIOLENT_CRIMES",
+                              "POLITICAL",
+                              "SELF_HARM",
+                              "SEXUAL",
+                              "VIOLENT_CRIMES_WEAPONS"
+                            ],
+                            "title": "SafetySubCategory"
+                          },
+                          {
+                            "type": "string",
+                            "enum": [
+                              "COMPETITOR_ENDORSEMENTS",
+                              "BRAND_TARNISHING_SELF_CRITICISM",
+                              "DISCRIMINATING_CLAIMS",
+                              "POLITICAL_ENDORSEMENTS"
+                            ],
+                            "title": "BrandSubCategory"
+                          },
+                          {
+                            "type": "string",
+                            "enum": ["OWASP", "MITRE_ATLAS", "NIST", "DASF_V2"],
+                            "title": "ComplianceSubCategory"
+                          }
+                        ]
+                      },
+                      "type": "array"
+                    },
+                    "propertyNames": {
+                      "type": "string",
+                      "enum": ["SECURITY", "SAFETY", "COMPLIANCE", "BRAND"],
+                      "title": "Category"
+                    },
+                    "type": "object",
+                    "title": "Categories",
+                    "description": "Attack categories and their subcategories",
+                    "example": {
+                      "COMPLIANCE": ["OWASP", "NIST"],
+                      "SAFETY": ["BIAS"],
+                      "SECURITY": ["ADVERSARIAL_SUFFIX", "JAILBREAK"]
+                    }
+                  },
+                  "include_file_attacks": {
+                    "type": "boolean",
+                    "title": "Include File Attacks",
+                    "description": "Start-scan toggle: when true, include multimodal file (document) attacks alongside text for the selected categories — but only for targets whose validation probe found them file-capable. When false (default), the scan is text-only.",
+                    "default": false
+                  }
+                },
+                "type": "object",
+                "required": ["categories"],
+                "title": "StaticJobMetadata",
+                "description": "Enhanced metadata for static attack jobs with validation."
+              },
+              {
+                "properties": {
+                  "rate_limit_enabled": {
+                    "type": "boolean",
+                    "title": "Rate Limit Enabled",
+                    "default": false
+                  },
+                  "rate_limit": {
+                    "anyOf": [
+                      {
+                        "type": "integer"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "title": "Rate Limit"
+                  },
+                  "rate_limit_error_code": {
+                    "anyOf": [
+                      {
+                        "type": "integer"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "title": "Rate Limit Error Code"
+                  },
+                  "rate_limit_error_message": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "title": "Rate Limit Error Message"
+                  },
+                  "rate_limit_error_json": {
+                    "anyOf": [
+                      {
+                        "additionalProperties": true,
+                        "type": "object"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "title": "Rate Limit Error Json"
+                  },
+                  "content_filter_enabled": {
+                    "type": "boolean",
+                    "title": "Content Filter Enabled",
+                    "description": "Enable content filtering",
+                    "default": false
+                  },
+                  "content_filter_error_code": {
+                    "anyOf": [
+                      {
+                        "type": "integer",
+                        "maximum": 599,
+                        "minimum": 400
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "title": "Content Filter Error Code",
+                    "description": "HTTP error code for content filter (400-599)"
+                  },
+                  "content_filter_error_message": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "title": "Content Filter Error Message",
+                    "description": "Content filter error message"
+                  },
+                  "content_filter_error_json": {
+                    "anyOf": [
+                      {
+                        "additionalProperties": true,
+                        "type": "object"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "title": "Content Filter Error Json"
+                  },
+                  "language": {
+                    "anyOf": [
+                      {
+                        "$ref": "#/properties/job_metadata/anyOf/0/properties/language/anyOf/0"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "description": "Language for this scan. None = English."
+                  },
+                  "stream_breadth": {
+                    "type": "integer",
+                    "maximum": 20,
+                    "minimum": 1,
+                    "title": "Stream Breadth",
+                    "description": "Number of parallel attack streams (1-20)",
+                    "default": 6
+                  },
+                  "stream_depth": {
+                    "type": "integer",
+                    "maximum": 20,
+                    "minimum": 1,
+                    "title": "Stream Depth",
+                    "description": "Depth of each attack stream (1-20)",
+                    "default": 10
+                  },
+                  "max_tokens": {
+                    "type": "integer",
+                    "maximum": 4096,
+                    "minimum": 128,
+                    "title": "Max Tokens",
+                    "description": "Maximum tokens per response (128-4096)",
+                    "default": 256
+                  },
+                  "context_size": {
+                    "type": "integer",
+                    "maximum": 20,
+                    "minimum": 1,
+                    "title": "Context Size",
+                    "description": "Context window size (1-20)",
+                    "default": 10
+                  },
+                  "attack_goals": {
+                    "items": {
+                      "type": "string"
+                    },
+                    "type": "array",
+                    "title": "Attack Goals",
+                    "description": "List of attack objectives"
+                  },
+                  "base_model": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "title": "Base Model",
+                    "description": "Base model identifier"
+                  },
+                  "use_case": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "title": "Use Case",
+                    "description": "Attack use case description"
+                  },
+                  "system_prompt": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "title": "System Prompt",
+                    "description": "Custom system prompt"
+                  },
+                  "goal_categories": {
+                    "anyOf": [
+                      {
+                        "items": {
+                          "type": "string",
+                          "enum": [
+                            "GOAL_MANIPULATION",
+                            "PRIVILEGE_MISUSE",
+                            "TOOL_MISUSE",
+                            "TOOL_CHAINING",
+                            "TOXIC_CONTENT_GENERATION",
+                            "CUSTOM"
+                          ],
+                          "title": "GoalCategory"
+                        },
+                        "type": "array"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "title": "Goal Categories",
+                    "description": "Selected goal categories for this scan. Valid values: GOAL_MANIPULATION, PRIVILEGE_MISUSE, TOOL_MISUSE, TOOL_CHAINING, TOXIC_CONTENT_GENERATION. Only used when goal_categories feature flag is enabled."
+                  }
+                },
+                "type": "object",
+                "title": "DynamicJobMetadata",
+                "description": "Enhanced metadata for dynamic attack jobs with proper constraints."
+              },
+              {
+                "properties": {
+                  "rate_limit_enabled": {
+                    "type": "boolean",
+                    "title": "Rate Limit Enabled",
+                    "default": false
+                  },
+                  "rate_limit": {
+                    "anyOf": [
+                      {
+                        "type": "integer"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "title": "Rate Limit"
+                  },
+                  "rate_limit_error_code": {
+                    "anyOf": [
+                      {
+                        "type": "integer"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "title": "Rate Limit Error Code"
+                  },
+                  "rate_limit_error_message": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "title": "Rate Limit Error Message"
+                  },
+                  "rate_limit_error_json": {
+                    "anyOf": [
+                      {
+                        "additionalProperties": true,
+                        "type": "object"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "title": "Rate Limit Error Json"
+                  },
+                  "content_filter_enabled": {
+                    "type": "boolean",
+                    "title": "Content Filter Enabled",
+                    "description": "Enable content filtering",
+                    "default": false
+                  },
+                  "content_filter_error_code": {
+                    "anyOf": [
+                      {
+                        "type": "integer",
+                        "maximum": 599,
+                        "minimum": 400
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "title": "Content Filter Error Code",
+                    "description": "HTTP error code for content filter (400-599)"
+                  },
+                  "content_filter_error_message": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "title": "Content Filter Error Message",
+                    "description": "Content filter error message"
+                  },
+                  "content_filter_error_json": {
+                    "anyOf": [
+                      {
+                        "additionalProperties": true,
+                        "type": "object"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "title": "Content Filter Error Json"
+                  },
+                  "language": {
+                    "anyOf": [
+                      {
+                        "$ref": "#/properties/job_metadata/anyOf/0/properties/language/anyOf/0"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "description": "Language for this scan. None = English."
+                  },
+                  "custom_prompt_sets": {
+                    "items": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "type": "array",
+                    "minItems": 1,
+                    "title": "Custom Prompt Sets",
+                    "description": "List of custom prompt set UUIDs"
+                  }
+                },
+                "type": "object",
+                "required": ["custom_prompt_sets"],
+                "title": "CustomJobMetadata",
+                "description": "Enhanced metadata for custom attack jobs."
+              },
+              {
+                "properties": {
+                  "scan_name": {
+                    "type": "string",
+                    "maxLength": 255,
+                    "minLength": 3,
+                    "title": "Scan Name"
+                  },
+                  "categories": {
+                    "additionalProperties": {
+                      "items": {
+                        "anyOf": [
+                          {
+                            "$ref": "#/properties/job_metadata/anyOf/0/properties/categories/additionalProperties/items/anyOf/0"
+                          },
+                          {
+                            "$ref": "#/properties/job_metadata/anyOf/0/properties/categories/additionalProperties/items/anyOf/1"
+                          },
+                          {
+                            "$ref": "#/properties/job_metadata/anyOf/0/properties/categories/additionalProperties/items/anyOf/2"
+                          },
+                          {
+                            "$ref": "#/properties/job_metadata/anyOf/0/properties/categories/additionalProperties/items/anyOf/3"
+                          }
+                        ]
+                      },
+                      "type": "array"
+                    },
+                    "propertyNames": {
+                      "type": "string",
+                      "enum": ["SECURITY", "SAFETY", "COMPLIANCE", "BRAND"],
+                      "title": "Category"
+                    },
+                    "type": "object",
+                    "title": "Categories",
+                    "description": "Auto-derived from uploaded prompt data — determines report sections"
+                  },
+                  "language": {
+                    "type": "null",
+                    "title": "Language",
+                    "description": "Always None — CLARA is English-only"
+                  }
+                },
+                "type": "object",
+                "required": ["scan_name"],
+                "title": "ClaraJobMetadata",
+                "description": "Metadata for CLARA scan jobs. Intentionally minimal —\nno rate_limit/content_filter since CLARA doesn't execute attacks.\n"
+              }
+            ],
+            "title": "Job Metadata",
+            "description": "Job-specific metadata"
+          },
+          "version": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Version",
+            "description": "Job version"
+          },
+          "extra_info": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Extra Info"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": ["name", "target", "job_type", "job_metadata"],
+        "title": "JobCreateRequestSchema",
+        "description": "Request schema for creating jobs."
+      }
+    },
+    {
+      "direction": "response",
+      "validator": "JobResponseSchema",
+      "operations": ["POST /v1/scan", "GET /v1/scan/{job_id}"],
+      "schema": {
+        "properties": {
+          "uuid": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Uuid"
+          },
+          "tsg_id": {
+            "type": "string",
+            "title": "Tsg Id"
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 255,
+            "minLength": 3,
+            "title": "Name",
+            "description": "Job name (3-255 characters)"
+          },
+          "target": {
+            "description": "Full target configuration",
+            "properties": {
+              "uuid": {
+                "type": "string",
+                "format": "uuid",
+                "title": "Uuid"
+              },
+              "tsg_id": {
+                "type": "string",
+                "title": "Tsg Id"
+              },
+              "name": {
+                "type": "string",
+                "title": "Name",
+                "description": "Target name",
+                "examples": ["GPT 4.1 Nano"]
+              },
+              "description": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "title": "Description",
+                "description": "Optional target description",
+                "default": null,
+                "examples": ["AI model for testing"]
+              },
+              "target_type": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "enum": ["APPLICATION", "AGENT", "MODEL"],
+                    "title": "TargetType",
+                    "description": "Target Types Available"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "description": "Type of target"
+              },
+              "connection_type": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "enum": [
+                      "DATABRICKS",
+                      "BEDROCK",
+                      "OPENAI",
+                      "HUGGING_FACE",
+                      "CUSTOM",
+                      "REST",
+                      "STREAMING",
+                      "WEBSOCKET",
+                      "WEBSOCKET_STREAMING",
+                      "MS_COPILOT_STUDIO",
+                      "CUSTOM_TARGET_ADAPTER"
+                    ],
+                    "title": "TargetConnectionType",
+                    "description": "Connection type/provider for the target."
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "description": "Connection type/provider for the target",
+                "examples": ["CUSTOM", "OPENAI", "BEDROCK"]
+              },
+              "api_endpoint_type": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "enum": ["PUBLIC", "PRIVATE", "NETWORK_BROKER"],
+                    "title": "ApiEndpointType",
+                    "description": "API endpoint accessibility type."
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "description": "Accessibility type of the API endpoint",
+                "examples": ["PUBLIC", "PRIVATE", "NETWORK_BROKER"]
+              },
+              "response_mode": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "enum": ["REST", "STREAMING", "WEBSOCKET", "WEBSOCKET_STREAMING"],
+                    "title": "ResponseMode",
+                    "description": "Response mode for target interactions."
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "description": "Response mode for API interactions",
+                "examples": ["REST", "STREAMING", "WEBSOCKET"]
+              },
+              "auth_type": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "enum": ["HEADERS", "BASIC_AUTH", "OAUTH2", "CUSTOM_TARGET_ADAPTER"],
+                    "title": "AuthType",
+                    "description": "Authentication method for target API access."
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "description": "Authentication method for target API access",
+                "examples": ["HEADERS", "BASIC_AUTH", "OAUTH2"]
+              },
+              "session_supported": {
+                "type": "boolean",
+                "title": "Session Supported",
+                "description": "Whether target supports session for multi-turn conversations",
+                "default": false
+              },
+              "extra_info": {
+                "anyOf": [
+                  {
+                    "additionalProperties": true,
+                    "type": "object"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "title": "Extra Info",
+                "description": "Additional configuration or metadata for the target",
+                "default": {},
+                "examples": [
+                  {
+                    "custom_key": "custom_value"
+                  }
+                ]
+              },
+              "adapter_uuid": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "title": "Adapter Uuid",
+                "description": "Custom adapter this target uses. Required when connection_type is CUSTOM_TARGET_ADAPTER; must be null for every other connection type."
+              },
+              "status": {
+                "description": "Target status",
+                "type": "string",
+                "enum": [
+                  "DRAFT",
+                  "VALIDATING",
+                  "VALIDATED",
+                  "ACTIVE",
+                  "INACTIVE",
+                  "FAILED",
+                  "PENDING_AUTH"
+                ],
+                "title": "TargetStatus"
+              },
+              "active": {
+                "type": "boolean",
+                "title": "Active",
+                "description": "Whether target is active"
+              },
+              "validated": {
+                "type": "boolean",
+                "title": "Validated",
+                "description": "Whether target is validated"
+              },
+              "version": {
+                "anyOf": [
+                  {
+                    "type": "integer"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "title": "Version",
+                "description": "Configuration version"
+              },
+              "secret_version": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "title": "Secret Version",
+                "description": "Secret Manager version for connection_params. When present, sensitive connection data is stored in Secret Manager. When None, connection_params are stored in GCS (legacy)."
+              },
+              "created_by_user_id": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "title": "Created By User Id",
+                "description": "User ID of target creator"
+              },
+              "updated_by_user_id": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "title": "Updated By User Id",
+                "description": "User ID of last target updater"
+              },
+              "created_at": {
+                "type": "string",
+                "format": "date-time",
+                "title": "Created At",
+                "description": "Creation timestamp"
+              },
+              "updated_at": {
+                "type": "string",
+                "format": "date-time",
+                "title": "Updated At",
+                "description": "Last update timestamp"
+              },
+              "profiling_status": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "enum": [
+                      "INIT",
+                      "QUEUED",
+                      "IN_PROGRESS",
+                      "COMPLETED",
+                      "FAILED",
+                      "PARTIALLY_COMPLETE"
+                    ],
+                    "title": "ProfilingStatus",
+                    "description": "Status of target profiling workflow."
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "description": "Status of the profiling workflow"
+              },
+              "canonical_id": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "title": "Canonical Id",
+                "description": "Partner-supplied stable identifier. Null for targets without partner integration metadata (most targets)."
+              },
+              "target_metadata": {
+                "description": "Target metadata and configuration options",
+                "properties": {
+                  "multi_turn": {
+                    "type": "boolean",
+                    "title": "Multi Turn",
+                    "description": "Whether target supports multi-turn conversations (Probe 2 result)",
+                    "default": false
+                  },
+                  "multi_turn_error_message": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "title": "Multi Turn Error Message",
+                    "description": "Concise error message if Probe 2 failed",
+                    "examples": ["Session ID extraction failed", "Assistant role not configured"]
+                  },
+                  "supports_multimodal_files": {
+                    "type": "boolean",
+                    "title": "Supports Multimodal Files",
+                    "description": "Whether the target accepted a sample file attack at validation time (Probe 3). When False, scans against this target run text-only.",
+                    "default": false
+                  },
+                  "supports_multimodal_files_error_message": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "title": "Supports Multimodal Files Error Message",
+                    "description": "Concise error message if the multimodal file probe failed",
+                    "examples": [
+                      "HTTP 400: target rejected file payload",
+                      "File delivery not configured"
+                    ]
+                  },
+                  "rate_limit": {
+                    "anyOf": [
+                      {
+                        "type": "integer"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "title": "Rate Limit",
+                    "description": "Current rate limit value",
+                    "examples": [996]
+                  },
+                  "rate_limit_enabled": {
+                    "type": "boolean",
+                    "title": "Rate Limit Enabled",
+                    "description": "Whether rate limiting is enabled",
+                    "default": false
+                  },
+                  "rate_limit_error_code": {
+                    "anyOf": [
+                      {
+                        "type": "integer"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "title": "Rate Limit Error Code",
+                    "description": "HTTP status code for rate limit errors",
+                    "examples": [429]
+                  },
+                  "rate_limit_error_json": {
+                    "anyOf": [
+                      {
+                        "additionalProperties": true,
+                        "type": "object"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "title": "Rate Limit Error Json",
+                    "description": "JSON structure of rate limit error response",
+                    "examples": [
+                      {
+                        "error": {
+                          "code": "rate_limit_exceeded",
+                          "message": "Rate limit reached for o1-preview on requests per min (RPM): Limit 20, Used 20, Requested 1. Please try again in 3s. Visit https://platform.openai.com/account/rate-limits to learn more.",
+                          "param": "null",
+                          "type": "requests"
+                        }
+                      }
+                    ]
+                  },
+                  "rate_limit_error_message": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "title": "Rate Limit Error Message",
+                    "description": "Raw error message string for rate limit errors",
+                    "examples": [
+                      "Rate limit reached for o1-preview on requests per min (RPM): Limit 20, Used 20, Requested 1. Please try again in 3s."
+                    ]
+                  },
+                  "content_filter_enabled": {
+                    "type": "boolean",
+                    "title": "Content Filter Enabled",
+                    "description": "Whether content filtering is enabled",
+                    "default": false
+                  },
+                  "content_filter_error_code": {
+                    "anyOf": [
+                      {
+                        "type": "integer"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "title": "Content Filter Error Code",
+                    "description": "HTTP status code for content filter errors",
+                    "examples": [400]
+                  },
+                  "content_filter_error_json": {
+                    "anyOf": [
+                      {
+                        "additionalProperties": true,
+                        "type": "object"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "title": "Content Filter Error Json",
+                    "description": "JSON structure of content filter error response",
+                    "examples": [
+                      {
+                        "error": {
+                          "code": "invalid_prompt",
+                          "message": "Invalid prompt: your prompt was flagged as potentially violating our usage policy. Please try again with a different prompt.",
+                          "type": "invalid_request_error"
+                        }
+                      }
+                    ]
+                  },
+                  "content_filter_error_message": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "title": "Content Filter Error Message",
+                    "description": "Raw error message string for content filter errors",
+                    "examples": [
+                      "Invalid prompt: your prompt was flagged as potentially violating our usage policy. Please try again with a different prompt."
+                    ]
+                  },
+                  "probe_message": {
+                    "type": "string",
+                    "title": "Probe Message",
+                    "default": "Hello, this is a test message from the red team validation system."
+                  },
+                  "request_timeout": {
+                    "type": "number",
+                    "title": "Request Timeout",
+                    "description": "Request timeout in seconds",
+                    "default": 110,
+                    "examples": [110]
+                  }
+                },
+                "type": "object",
+                "title": "TargetMetadata"
+              },
+              "adapter_secret_version": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "title": "Adapter Secret Version",
+                "description": "Frozen Secret Manager version of the referenced adapter, pinned at scan (job) creation so an adapter edited mid-scan doesn't change the script/secrets that scan uses. Server-managed; null for non-adapter targets."
+              },
+              "target_background": {
+                "anyOf": [
+                  {
+                    "properties": {
+                      "industry": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "title": "Industry",
+                        "description": "Target's industry (e.g., Healthcare, Finance)"
+                      },
+                      "use_case": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "title": "Use Case",
+                        "description": "Primary use case (e.g., Customer Support, Code Assistant)"
+                      },
+                      "competitors": {
+                        "anyOf": [
+                          {
+                            "items": {
+                              "type": "string"
+                            },
+                            "type": "array"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "title": "Competitors",
+                        "description": "Known competitor products"
+                      },
+                      "agentic_profiling_enabled": {
+                        "type": "boolean",
+                        "title": "Agentic Profiling Enabled",
+                        "description": "Whether agentic profiling is enabled for this target",
+                        "default": true
+                      }
+                    },
+                    "type": "object",
+                    "title": "TargetBackground",
+                    "description": "Target background - used in create/update API requests and stored in DB/GCS.\n\nRequired fields for activation:\n- industry (string, required)\n- use_case (string, required)\n\nOptional field:\n- competitors (list of strings)\n"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "description": "Target background info: industry, use_case, competitors"
+              },
+              "profiling_progress": {
+                "anyOf": [
+                  {
+                    "type": "integer"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "title": "Profiling Progress",
+                "description": "Profiling progress percentage (0–100)"
+              },
+              "additional_context": {
+                "anyOf": [
+                  {
+                    "properties": {
+                      "base_model": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "title": "Base Model",
+                        "description": "Base model name (e.g., GPT-4, Claude)"
+                      },
+                      "core_architecture": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "title": "Core Architecture",
+                        "description": "Core architecture details"
+                      },
+                      "system_prompt": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "title": "System Prompt",
+                        "description": "System prompt"
+                      },
+                      "languages_supported": {
+                        "anyOf": [
+                          {
+                            "items": {
+                              "type": "string"
+                            },
+                            "type": "array"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "title": "Languages Supported",
+                        "description": "Supported languages"
+                      },
+                      "banned_keywords": {
+                        "anyOf": [
+                          {
+                            "items": {
+                              "type": "string"
+                            },
+                            "type": "array"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "title": "Banned Keywords",
+                        "description": "Banned keywords/phrases"
+                      },
+                      "tools_accessible": {
+                        "anyOf": [
+                          {
+                            "items": {
+                              "type": "string"
+                            },
+                            "type": "array"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "title": "Tools Accessible",
+                        "description": "Accessible tools/capabilities"
+                      }
+                    },
+                    "type": "object",
+                    "title": "TargetAdditionalContext",
+                    "description": "Additional context - used in create/update API requests and stored in DB/GCS.\n\nSingle value fields are strings.\nList fields are lists of strings.\n"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "description": "Additional context with source tracking (user + profiler)"
+              }
+            },
+            "type": "object",
+            "required": [
+              "uuid",
+              "tsg_id",
+              "name",
+              "status",
+              "active",
+              "validated",
+              "created_at",
+              "updated_at"
+            ],
+            "title": "TargetReferenceSchema"
+          },
+          "job_type": {
+            "description": "Type of job to execute",
+            "type": "string",
+            "enum": ["STATIC", "DYNAMIC", "CUSTOM", "CLARA"],
+            "title": "JobType"
+          },
+          "job_metadata": {
+            "anyOf": [
+              {
+                "properties": {
+                  "rate_limit_enabled": {
+                    "type": "boolean",
+                    "title": "Rate Limit Enabled",
+                    "default": false
+                  },
+                  "rate_limit": {
+                    "anyOf": [
+                      {
+                        "type": "integer"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "title": "Rate Limit"
+                  },
+                  "rate_limit_error_code": {
+                    "anyOf": [
+                      {
+                        "type": "integer"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "title": "Rate Limit Error Code"
+                  },
+                  "rate_limit_error_message": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "title": "Rate Limit Error Message"
+                  },
+                  "rate_limit_error_json": {
+                    "anyOf": [
+                      {
+                        "additionalProperties": true,
+                        "type": "object"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "title": "Rate Limit Error Json"
+                  },
+                  "content_filter_enabled": {
+                    "type": "boolean",
+                    "title": "Content Filter Enabled",
+                    "description": "Enable content filtering",
+                    "default": false
+                  },
+                  "content_filter_error_code": {
+                    "anyOf": [
+                      {
+                        "type": "integer",
+                        "maximum": 599,
+                        "minimum": 400
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "title": "Content Filter Error Code",
+                    "description": "HTTP error code for content filter (400-599)"
+                  },
+                  "content_filter_error_message": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "title": "Content Filter Error Message",
+                    "description": "Content filter error message"
+                  },
+                  "content_filter_error_json": {
+                    "anyOf": [
+                      {
+                        "additionalProperties": true,
+                        "type": "object"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "title": "Content Filter Error Json"
+                  },
+                  "language": {
+                    "anyOf": [
+                      {
+                        "properties": {
+                          "code": {
+                            "type": "string",
+                            "title": "Code"
+                          },
+                          "name": {
+                            "type": "string",
+                            "title": "Name"
+                          }
+                        },
+                        "type": "object",
+                        "required": ["code", "name"],
+                        "title": "LanguageOptionSchema",
+                        "description": "Language representation with code and display name."
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "description": "Language for this scan. None = English."
+                  },
+                  "categories": {
+                    "additionalProperties": {
+                      "items": {
+                        "anyOf": [
+                          {
+                            "type": "string",
+                            "enum": [
+                              "ADVERSARIAL_SUFFIX",
+                              "EVASION",
+                              "INDIRECT_PROMPT_INJECTION",
+                              "JAILBREAK",
+                              "MULTI_TURN",
+                              "PROMPT_INJECTION",
+                              "REMOTE_CODE_EXECUTION",
+                              "SYSTEM_PROMPT_LEAK",
+                              "TOOL_LEAK",
+                              "MALWARE_GENERATION"
+                            ],
+                            "title": "SecuritySubCategory"
+                          },
+                          {
+                            "type": "string",
+                            "enum": [
+                              "BIAS",
+                              "CBRN",
+                              "CYBERCRIME",
+                              "DRUGS",
+                              "HATE_TOXIC_ABUSE",
+                              "NON_VIOLENT_CRIMES",
+                              "POLITICAL",
+                              "SELF_HARM",
+                              "SEXUAL",
+                              "VIOLENT_CRIMES_WEAPONS"
+                            ],
+                            "title": "SafetySubCategory"
+                          },
+                          {
+                            "type": "string",
+                            "enum": [
+                              "COMPETITOR_ENDORSEMENTS",
+                              "BRAND_TARNISHING_SELF_CRITICISM",
+                              "DISCRIMINATING_CLAIMS",
+                              "POLITICAL_ENDORSEMENTS"
+                            ],
+                            "title": "BrandSubCategory"
+                          },
+                          {
+                            "type": "string",
+                            "enum": ["OWASP", "MITRE_ATLAS", "NIST", "DASF_V2"],
+                            "title": "ComplianceSubCategory"
+                          }
+                        ]
+                      },
+                      "type": "array"
+                    },
+                    "propertyNames": {
+                      "type": "string",
+                      "enum": ["SECURITY", "SAFETY", "COMPLIANCE", "BRAND"],
+                      "title": "Category"
+                    },
+                    "type": "object",
+                    "title": "Categories",
+                    "description": "Attack categories and their subcategories",
+                    "example": {
+                      "COMPLIANCE": ["OWASP", "NIST"],
+                      "SAFETY": ["BIAS"],
+                      "SECURITY": ["ADVERSARIAL_SUFFIX", "JAILBREAK"]
+                    }
+                  },
+                  "include_file_attacks": {
+                    "type": "boolean",
+                    "title": "Include File Attacks",
+                    "description": "Start-scan toggle: when true, include multimodal file (document) attacks alongside text for the selected categories — but only for targets whose validation probe found them file-capable. When false (default), the scan is text-only.",
+                    "default": false
+                  }
+                },
+                "type": "object",
+                "required": ["categories"],
+                "title": "StaticJobMetadata",
+                "description": "Enhanced metadata for static attack jobs with validation."
+              },
+              {
+                "properties": {
+                  "rate_limit_enabled": {
+                    "type": "boolean",
+                    "title": "Rate Limit Enabled",
+                    "default": false
+                  },
+                  "rate_limit": {
+                    "anyOf": [
+                      {
+                        "type": "integer"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "title": "Rate Limit"
+                  },
+                  "rate_limit_error_code": {
+                    "anyOf": [
+                      {
+                        "type": "integer"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "title": "Rate Limit Error Code"
+                  },
+                  "rate_limit_error_message": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "title": "Rate Limit Error Message"
+                  },
+                  "rate_limit_error_json": {
+                    "anyOf": [
+                      {
+                        "additionalProperties": true,
+                        "type": "object"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "title": "Rate Limit Error Json"
+                  },
+                  "content_filter_enabled": {
+                    "type": "boolean",
+                    "title": "Content Filter Enabled",
+                    "description": "Enable content filtering",
+                    "default": false
+                  },
+                  "content_filter_error_code": {
+                    "anyOf": [
+                      {
+                        "type": "integer",
+                        "maximum": 599,
+                        "minimum": 400
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "title": "Content Filter Error Code",
+                    "description": "HTTP error code for content filter (400-599)"
+                  },
+                  "content_filter_error_message": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "title": "Content Filter Error Message",
+                    "description": "Content filter error message"
+                  },
+                  "content_filter_error_json": {
+                    "anyOf": [
+                      {
+                        "additionalProperties": true,
+                        "type": "object"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "title": "Content Filter Error Json"
+                  },
+                  "language": {
+                    "anyOf": [
+                      {
+                        "$ref": "#/properties/job_metadata/anyOf/0/properties/language/anyOf/0"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "description": "Language for this scan. None = English."
+                  },
+                  "stream_breadth": {
+                    "type": "integer",
+                    "maximum": 20,
+                    "minimum": 1,
+                    "title": "Stream Breadth",
+                    "description": "Number of parallel attack streams (1-20)",
+                    "default": 6
+                  },
+                  "stream_depth": {
+                    "type": "integer",
+                    "maximum": 20,
+                    "minimum": 1,
+                    "title": "Stream Depth",
+                    "description": "Depth of each attack stream (1-20)",
+                    "default": 10
+                  },
+                  "max_tokens": {
+                    "type": "integer",
+                    "maximum": 4096,
+                    "minimum": 128,
+                    "title": "Max Tokens",
+                    "description": "Maximum tokens per response (128-4096)",
+                    "default": 256
+                  },
+                  "context_size": {
+                    "type": "integer",
+                    "maximum": 20,
+                    "minimum": 1,
+                    "title": "Context Size",
+                    "description": "Context window size (1-20)",
+                    "default": 10
+                  },
+                  "attack_goals": {
+                    "items": {
+                      "type": "string"
+                    },
+                    "type": "array",
+                    "title": "Attack Goals",
+                    "description": "List of attack objectives"
+                  },
+                  "base_model": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "title": "Base Model",
+                    "description": "Base model identifier"
+                  },
+                  "use_case": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "title": "Use Case",
+                    "description": "Attack use case description"
+                  },
+                  "system_prompt": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "title": "System Prompt",
+                    "description": "Custom system prompt"
+                  },
+                  "goal_categories": {
+                    "anyOf": [
+                      {
+                        "items": {
+                          "type": "string",
+                          "enum": [
+                            "GOAL_MANIPULATION",
+                            "PRIVILEGE_MISUSE",
+                            "TOOL_MISUSE",
+                            "TOOL_CHAINING",
+                            "TOXIC_CONTENT_GENERATION",
+                            "CUSTOM"
+                          ],
+                          "title": "GoalCategory"
+                        },
+                        "type": "array"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "title": "Goal Categories",
+                    "description": "Selected goal categories for this scan. Valid values: GOAL_MANIPULATION, PRIVILEGE_MISUSE, TOOL_MISUSE, TOOL_CHAINING, TOXIC_CONTENT_GENERATION. Only used when goal_categories feature flag is enabled."
+                  }
+                },
+                "type": "object",
+                "title": "DynamicJobMetadata",
+                "description": "Enhanced metadata for dynamic attack jobs with proper constraints."
+              },
+              {
+                "properties": {
+                  "rate_limit_enabled": {
+                    "type": "boolean",
+                    "title": "Rate Limit Enabled",
+                    "default": false
+                  },
+                  "rate_limit": {
+                    "anyOf": [
+                      {
+                        "type": "integer"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "title": "Rate Limit"
+                  },
+                  "rate_limit_error_code": {
+                    "anyOf": [
+                      {
+                        "type": "integer"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "title": "Rate Limit Error Code"
+                  },
+                  "rate_limit_error_message": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "title": "Rate Limit Error Message"
+                  },
+                  "rate_limit_error_json": {
+                    "anyOf": [
+                      {
+                        "additionalProperties": true,
+                        "type": "object"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "title": "Rate Limit Error Json"
+                  },
+                  "content_filter_enabled": {
+                    "type": "boolean",
+                    "title": "Content Filter Enabled",
+                    "description": "Enable content filtering",
+                    "default": false
+                  },
+                  "content_filter_error_code": {
+                    "anyOf": [
+                      {
+                        "type": "integer",
+                        "maximum": 599,
+                        "minimum": 400
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "title": "Content Filter Error Code",
+                    "description": "HTTP error code for content filter (400-599)"
+                  },
+                  "content_filter_error_message": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "title": "Content Filter Error Message",
+                    "description": "Content filter error message"
+                  },
+                  "content_filter_error_json": {
+                    "anyOf": [
+                      {
+                        "additionalProperties": true,
+                        "type": "object"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "title": "Content Filter Error Json"
+                  },
+                  "language": {
+                    "anyOf": [
+                      {
+                        "$ref": "#/properties/job_metadata/anyOf/0/properties/language/anyOf/0"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "description": "Language for this scan. None = English."
+                  },
+                  "custom_prompt_sets": {
+                    "items": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "type": "array",
+                    "minItems": 1,
+                    "title": "Custom Prompt Sets",
+                    "description": "List of custom prompt set UUIDs"
+                  }
+                },
+                "type": "object",
+                "required": ["custom_prompt_sets"],
+                "title": "CustomJobMetadata",
+                "description": "Enhanced metadata for custom attack jobs."
+              },
+              {
+                "properties": {
+                  "scan_name": {
+                    "type": "string",
+                    "maxLength": 255,
+                    "minLength": 3,
+                    "title": "Scan Name"
+                  },
+                  "categories": {
+                    "additionalProperties": {
+                      "items": {
+                        "anyOf": [
+                          {
+                            "$ref": "#/properties/job_metadata/anyOf/0/properties/categories/additionalProperties/items/anyOf/0"
+                          },
+                          {
+                            "$ref": "#/properties/job_metadata/anyOf/0/properties/categories/additionalProperties/items/anyOf/1"
+                          },
+                          {
+                            "$ref": "#/properties/job_metadata/anyOf/0/properties/categories/additionalProperties/items/anyOf/2"
+                          },
+                          {
+                            "$ref": "#/properties/job_metadata/anyOf/0/properties/categories/additionalProperties/items/anyOf/3"
+                          }
+                        ]
+                      },
+                      "type": "array"
+                    },
+                    "propertyNames": {
+                      "type": "string",
+                      "enum": ["SECURITY", "SAFETY", "COMPLIANCE", "BRAND"],
+                      "title": "Category"
+                    },
+                    "type": "object",
+                    "title": "Categories",
+                    "description": "Auto-derived from uploaded prompt data — determines report sections"
+                  },
+                  "language": {
+                    "type": "null",
+                    "title": "Language",
+                    "description": "Always None — CLARA is English-only"
+                  }
+                },
+                "type": "object",
+                "required": ["scan_name"],
+                "title": "ClaraJobMetadata",
+                "description": "Metadata for CLARA scan jobs. Intentionally minimal —\nno rate_limit/content_filter since CLARA doesn't execute attacks.\n"
+              }
+            ],
+            "title": "Job Metadata",
+            "description": "Job-specific metadata"
+          },
+          "version": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Version",
+            "description": "Job version"
+          },
+          "extra_info": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Extra Info"
+          },
+          "target_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Target Id",
+            "description": "Target UUID (denormalized)"
+          },
+          "target_type": {
+            "type": "string",
+            "title": "Target Type",
+            "description": "Target type (APPLICATION, AGENT, MODEL)"
+          },
+          "total": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Total",
+            "description": "Total tasks in job"
+          },
+          "completed": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Completed",
+            "description": "Completed tasks"
+          },
+          "status": {
+            "description": "Current job status",
+            "default": "INIT",
+            "type": "string",
+            "enum": [
+              "INIT",
+              "QUEUED",
+              "RUNNING",
+              "COMPLETED",
+              "PARTIALLY_COMPLETE",
+              "FAILED",
+              "ABORTED"
+            ],
+            "title": "JobStatus"
+          },
+          "score": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 100,
+                "minimum": 0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Score",
+            "description": "Overall job performance score (0-100)"
+          },
+          "asr": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 100,
+                "minimum": 0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Asr",
+            "description": "Updated Attack Success Rate (0-100)"
+          },
+          "time_record": {
+            "anyOf": [
+              {
+                "properties": {
+                  "queued_at": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "format": "date-time"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "title": "Queued At",
+                    "description": "Job queue timestamp"
+                  },
+                  "started_at": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "format": "date-time"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "title": "Started At",
+                    "description": "Job start timestamp"
+                  },
+                  "completed_at": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "format": "date-time"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "title": "Completed At",
+                    "description": "Job completion timestamp"
+                  },
+                  "time_taken": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "format": "duration"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "title": "Time Taken",
+                    "description": "Total execution time"
+                  }
+                },
+                "type": "object",
+                "title": "JobTimeRecord",
+                "description": "Enhanced time tracking with validation."
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Job timing information"
+          },
+          "created_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Created At",
+            "description": "Creation timestamp"
+          },
+          "updated_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Updated At",
+            "description": "Last update timestamp"
+          },
+          "created_by_user_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Created By User Id",
+            "description": "UUID of the user creating this job"
+          },
+          "report_stats": {
+            "anyOf": [
+              {
+                "properties": {
+                  "output_completion_percentage": {
+                    "type": "number",
+                    "minimum": 0,
+                    "title": "Output Completion Percentage",
+                    "description": "Percentage of attack outputs that completed successfully (0-100)"
+                  },
+                  "partial_report_unlocked": {
+                    "type": "boolean",
+                    "title": "Partial Report Unlocked",
+                    "description": "Whether user has unlocked this partial report with a credit",
+                    "default": false
+                  },
+                  "partial_report_unlocked_at": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "format": "date-time"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "title": "Partial Report Unlocked At",
+                    "description": "Timestamp when the partial report was unlocked"
+                  },
+                  "report_summary": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "title": "Report Summary",
+                    "description": "Report summary from the LLM for the statics job run"
+                  }
+                },
+                "type": "object",
+                "required": ["output_completion_percentage"],
+                "title": "StaticJobReportStats",
+                "description": "Report statistics for static jobs stored in job.report_stats JSONB field.\nTracks output completion and partial report unlock status.\n"
+              },
+              {
+                "properties": {
+                  "total_goals": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "title": "Total Goals",
+                    "description": "Total number of goals tested",
+                    "default": 0
+                  },
+                  "total_streams": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "title": "Total Streams",
+                    "description": "Total number of attack streams",
+                    "default": 0
+                  },
+                  "total_threats": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "title": "Total Threats",
+                    "description": "Total number of threats detected",
+                    "default": 0
+                  },
+                  "goals_achieved": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "title": "Goals Achieved",
+                    "description": "Number of goals with at least one threat",
+                    "default": 0
+                  },
+                  "report_summary": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "title": "Report Summary",
+                    "description": "LLM-generated executive summary for the dynamic job"
+                  }
+                },
+                "type": "object",
+                "title": "DynamicJobReportStats"
+              },
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Report Stats",
+            "description": "Report statistics (StaticJobReportStats for STATIC/CUSTOM jobs, DynamicJobReportStats for DYNAMIC jobs)"
+          },
+          "metering_quota_uuid": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Metering Quota Uuid",
+            "description": "UUID of the metering quota used for this job"
+          },
+          "counted_towards_quota": {
+            "description": "Whether this job is counted towards quota consumption",
+            "default": "HELD",
+            "type": "string",
+            "enum": ["HELD", "COUNTED", "NOT_COUNTED"],
+            "title": "CountedQuotaEnum"
+          },
+          "invocation_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Invocation Id",
+            "description": "Restate invocationId of this job"
+          }
+        },
+        "type": "object",
+        "required": [
+          "uuid",
+          "tsg_id",
+          "name",
+          "target",
+          "job_type",
+          "job_metadata",
+          "target_id",
+          "target_type"
+        ],
+        "title": "JobResponseSchema",
+        "description": "Job response schema. ONLY to be used in API response."
+      }
+    },
+    {
+      "direction": "response",
+      "validator": "JobListResponseSchema",
+      "operations": ["GET /v1/scan"],
+      "schema": {
+        "properties": {
+          "pagination": {
+            "properties": {
+              "total_items": {
+                "anyOf": [
+                  {
+                    "type": "integer"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "title": "Total Items"
+              }
+            },
+            "type": "object",
+            "title": "PaginationSchema"
+          },
+          "data": {
+            "items": {
+              "properties": {
+                "uuid": {
+                  "type": "string",
+                  "format": "uuid",
+                  "title": "Uuid"
+                },
+                "tsg_id": {
+                  "type": "string",
+                  "title": "Tsg Id"
+                },
+                "name": {
+                  "type": "string",
+                  "maxLength": 255,
+                  "minLength": 3,
+                  "title": "Name",
+                  "description": "Job name (3-255 characters)"
+                },
+                "target": {
+                  "description": "Full target configuration",
+                  "properties": {
+                    "uuid": {
+                      "type": "string",
+                      "format": "uuid",
+                      "title": "Uuid"
+                    },
+                    "tsg_id": {
+                      "type": "string",
+                      "title": "Tsg Id"
+                    },
+                    "name": {
+                      "type": "string",
+                      "title": "Name",
+                      "description": "Target name",
+                      "examples": ["GPT 4.1 Nano"]
+                    },
+                    "description": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "title": "Description",
+                      "description": "Optional target description",
+                      "default": null,
+                      "examples": ["AI model for testing"]
+                    },
+                    "target_type": {
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "enum": ["APPLICATION", "AGENT", "MODEL"],
+                          "title": "TargetType",
+                          "description": "Target Types Available"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "description": "Type of target"
+                    },
+                    "connection_type": {
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "enum": [
+                            "DATABRICKS",
+                            "BEDROCK",
+                            "OPENAI",
+                            "HUGGING_FACE",
+                            "CUSTOM",
+                            "REST",
+                            "STREAMING",
+                            "WEBSOCKET",
+                            "WEBSOCKET_STREAMING",
+                            "MS_COPILOT_STUDIO",
+                            "CUSTOM_TARGET_ADAPTER"
+                          ],
+                          "title": "TargetConnectionType",
+                          "description": "Connection type/provider for the target."
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "description": "Connection type/provider for the target",
+                      "examples": ["CUSTOM", "OPENAI", "BEDROCK"]
+                    },
+                    "api_endpoint_type": {
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "enum": ["PUBLIC", "PRIVATE", "NETWORK_BROKER"],
+                          "title": "ApiEndpointType",
+                          "description": "API endpoint accessibility type."
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "description": "Accessibility type of the API endpoint",
+                      "examples": ["PUBLIC", "PRIVATE", "NETWORK_BROKER"]
+                    },
+                    "response_mode": {
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "enum": ["REST", "STREAMING", "WEBSOCKET", "WEBSOCKET_STREAMING"],
+                          "title": "ResponseMode",
+                          "description": "Response mode for target interactions."
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "description": "Response mode for API interactions",
+                      "examples": ["REST", "STREAMING", "WEBSOCKET"]
+                    },
+                    "auth_type": {
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "enum": ["HEADERS", "BASIC_AUTH", "OAUTH2", "CUSTOM_TARGET_ADAPTER"],
+                          "title": "AuthType",
+                          "description": "Authentication method for target API access."
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "description": "Authentication method for target API access",
+                      "examples": ["HEADERS", "BASIC_AUTH", "OAUTH2"]
+                    },
+                    "session_supported": {
+                      "type": "boolean",
+                      "title": "Session Supported",
+                      "description": "Whether target supports session for multi-turn conversations",
+                      "default": false
+                    },
+                    "extra_info": {
+                      "anyOf": [
+                        {
+                          "additionalProperties": true,
+                          "type": "object"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "title": "Extra Info",
+                      "description": "Additional configuration or metadata for the target",
+                      "default": {},
+                      "examples": [
+                        {
+                          "custom_key": "custom_value"
+                        }
+                      ]
+                    },
+                    "adapter_uuid": {
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "format": "uuid"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "title": "Adapter Uuid",
+                      "description": "Custom adapter this target uses. Required when connection_type is CUSTOM_TARGET_ADAPTER; must be null for every other connection type."
+                    },
+                    "status": {
+                      "description": "Target status",
+                      "type": "string",
+                      "enum": [
+                        "DRAFT",
+                        "VALIDATING",
+                        "VALIDATED",
+                        "ACTIVE",
+                        "INACTIVE",
+                        "FAILED",
+                        "PENDING_AUTH"
+                      ],
+                      "title": "TargetStatus"
+                    },
+                    "active": {
+                      "type": "boolean",
+                      "title": "Active",
+                      "description": "Whether target is active"
+                    },
+                    "validated": {
+                      "type": "boolean",
+                      "title": "Validated",
+                      "description": "Whether target is validated"
+                    },
+                    "version": {
+                      "anyOf": [
+                        {
+                          "type": "integer"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "title": "Version",
+                      "description": "Configuration version"
+                    },
+                    "secret_version": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "title": "Secret Version",
+                      "description": "Secret Manager version for connection_params. When present, sensitive connection data is stored in Secret Manager. When None, connection_params are stored in GCS (legacy)."
+                    },
+                    "created_by_user_id": {
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "format": "uuid"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "title": "Created By User Id",
+                      "description": "User ID of target creator"
+                    },
+                    "updated_by_user_id": {
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "format": "uuid"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "title": "Updated By User Id",
+                      "description": "User ID of last target updater"
+                    },
+                    "created_at": {
+                      "type": "string",
+                      "format": "date-time",
+                      "title": "Created At",
+                      "description": "Creation timestamp"
+                    },
+                    "updated_at": {
+                      "type": "string",
+                      "format": "date-time",
+                      "title": "Updated At",
+                      "description": "Last update timestamp"
+                    },
+                    "profiling_status": {
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "enum": [
+                            "INIT",
+                            "QUEUED",
+                            "IN_PROGRESS",
+                            "COMPLETED",
+                            "FAILED",
+                            "PARTIALLY_COMPLETE"
+                          ],
+                          "title": "ProfilingStatus",
+                          "description": "Status of target profiling workflow."
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "description": "Status of the profiling workflow"
+                    },
+                    "canonical_id": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "title": "Canonical Id",
+                      "description": "Partner-supplied stable identifier. Null for targets without partner integration metadata (most targets)."
+                    },
+                    "target_metadata": {
+                      "description": "Target metadata and configuration options",
+                      "properties": {
+                        "multi_turn": {
+                          "type": "boolean",
+                          "title": "Multi Turn",
+                          "description": "Whether target supports multi-turn conversations (Probe 2 result)",
+                          "default": false
+                        },
+                        "multi_turn_error_message": {
+                          "anyOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ],
+                          "title": "Multi Turn Error Message",
+                          "description": "Concise error message if Probe 2 failed",
+                          "examples": [
+                            "Session ID extraction failed",
+                            "Assistant role not configured"
+                          ]
+                        },
+                        "supports_multimodal_files": {
+                          "type": "boolean",
+                          "title": "Supports Multimodal Files",
+                          "description": "Whether the target accepted a sample file attack at validation time (Probe 3). When False, scans against this target run text-only.",
+                          "default": false
+                        },
+                        "supports_multimodal_files_error_message": {
+                          "anyOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ],
+                          "title": "Supports Multimodal Files Error Message",
+                          "description": "Concise error message if the multimodal file probe failed",
+                          "examples": [
+                            "HTTP 400: target rejected file payload",
+                            "File delivery not configured"
+                          ]
+                        },
+                        "rate_limit": {
+                          "anyOf": [
+                            {
+                              "type": "integer"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ],
+                          "title": "Rate Limit",
+                          "description": "Current rate limit value",
+                          "examples": [996]
+                        },
+                        "rate_limit_enabled": {
+                          "type": "boolean",
+                          "title": "Rate Limit Enabled",
+                          "description": "Whether rate limiting is enabled",
+                          "default": false
+                        },
+                        "rate_limit_error_code": {
+                          "anyOf": [
+                            {
+                              "type": "integer"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ],
+                          "title": "Rate Limit Error Code",
+                          "description": "HTTP status code for rate limit errors",
+                          "examples": [429]
+                        },
+                        "rate_limit_error_json": {
+                          "anyOf": [
+                            {
+                              "additionalProperties": true,
+                              "type": "object"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ],
+                          "title": "Rate Limit Error Json",
+                          "description": "JSON structure of rate limit error response",
+                          "examples": [
+                            {
+                              "error": {
+                                "code": "rate_limit_exceeded",
+                                "message": "Rate limit reached for o1-preview on requests per min (RPM): Limit 20, Used 20, Requested 1. Please try again in 3s. Visit https://platform.openai.com/account/rate-limits to learn more.",
+                                "param": "null",
+                                "type": "requests"
+                              }
+                            }
+                          ]
+                        },
+                        "rate_limit_error_message": {
+                          "anyOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ],
+                          "title": "Rate Limit Error Message",
+                          "description": "Raw error message string for rate limit errors",
+                          "examples": [
+                            "Rate limit reached for o1-preview on requests per min (RPM): Limit 20, Used 20, Requested 1. Please try again in 3s."
+                          ]
+                        },
+                        "content_filter_enabled": {
+                          "type": "boolean",
+                          "title": "Content Filter Enabled",
+                          "description": "Whether content filtering is enabled",
+                          "default": false
+                        },
+                        "content_filter_error_code": {
+                          "anyOf": [
+                            {
+                              "type": "integer"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ],
+                          "title": "Content Filter Error Code",
+                          "description": "HTTP status code for content filter errors",
+                          "examples": [400]
+                        },
+                        "content_filter_error_json": {
+                          "anyOf": [
+                            {
+                              "additionalProperties": true,
+                              "type": "object"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ],
+                          "title": "Content Filter Error Json",
+                          "description": "JSON structure of content filter error response",
+                          "examples": [
+                            {
+                              "error": {
+                                "code": "invalid_prompt",
+                                "message": "Invalid prompt: your prompt was flagged as potentially violating our usage policy. Please try again with a different prompt.",
+                                "type": "invalid_request_error"
+                              }
+                            }
+                          ]
+                        },
+                        "content_filter_error_message": {
+                          "anyOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ],
+                          "title": "Content Filter Error Message",
+                          "description": "Raw error message string for content filter errors",
+                          "examples": [
+                            "Invalid prompt: your prompt was flagged as potentially violating our usage policy. Please try again with a different prompt."
+                          ]
+                        },
+                        "probe_message": {
+                          "type": "string",
+                          "title": "Probe Message",
+                          "default": "Hello, this is a test message from the red team validation system."
+                        },
+                        "request_timeout": {
+                          "type": "number",
+                          "title": "Request Timeout",
+                          "description": "Request timeout in seconds",
+                          "default": 110,
+                          "examples": [110]
+                        }
+                      },
+                      "type": "object",
+                      "title": "TargetMetadata"
+                    },
+                    "adapter_secret_version": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "title": "Adapter Secret Version",
+                      "description": "Frozen Secret Manager version of the referenced adapter, pinned at scan (job) creation so an adapter edited mid-scan doesn't change the script/secrets that scan uses. Server-managed; null for non-adapter targets."
+                    },
+                    "target_background": {
+                      "anyOf": [
+                        {
+                          "properties": {
+                            "industry": {
+                              "anyOf": [
+                                {
+                                  "type": "string"
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ],
+                              "title": "Industry",
+                              "description": "Target's industry (e.g., Healthcare, Finance)"
+                            },
+                            "use_case": {
+                              "anyOf": [
+                                {
+                                  "type": "string"
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ],
+                              "title": "Use Case",
+                              "description": "Primary use case (e.g., Customer Support, Code Assistant)"
+                            },
+                            "competitors": {
+                              "anyOf": [
+                                {
+                                  "items": {
+                                    "type": "string"
+                                  },
+                                  "type": "array"
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ],
+                              "title": "Competitors",
+                              "description": "Known competitor products"
+                            },
+                            "agentic_profiling_enabled": {
+                              "type": "boolean",
+                              "title": "Agentic Profiling Enabled",
+                              "description": "Whether agentic profiling is enabled for this target",
+                              "default": true
+                            }
+                          },
+                          "type": "object",
+                          "title": "TargetBackground",
+                          "description": "Target background - used in create/update API requests and stored in DB/GCS.\n\nRequired fields for activation:\n- industry (string, required)\n- use_case (string, required)\n\nOptional field:\n- competitors (list of strings)\n"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "description": "Target background info: industry, use_case, competitors"
+                    },
+                    "profiling_progress": {
+                      "anyOf": [
+                        {
+                          "type": "integer"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "title": "Profiling Progress",
+                      "description": "Profiling progress percentage (0–100)"
+                    },
+                    "additional_context": {
+                      "anyOf": [
+                        {
+                          "properties": {
+                            "base_model": {
+                              "anyOf": [
+                                {
+                                  "type": "string"
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ],
+                              "title": "Base Model",
+                              "description": "Base model name (e.g., GPT-4, Claude)"
+                            },
+                            "core_architecture": {
+                              "anyOf": [
+                                {
+                                  "type": "string"
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ],
+                              "title": "Core Architecture",
+                              "description": "Core architecture details"
+                            },
+                            "system_prompt": {
+                              "anyOf": [
+                                {
+                                  "type": "string"
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ],
+                              "title": "System Prompt",
+                              "description": "System prompt"
+                            },
+                            "languages_supported": {
+                              "anyOf": [
+                                {
+                                  "items": {
+                                    "type": "string"
+                                  },
+                                  "type": "array"
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ],
+                              "title": "Languages Supported",
+                              "description": "Supported languages"
+                            },
+                            "banned_keywords": {
+                              "anyOf": [
+                                {
+                                  "items": {
+                                    "type": "string"
+                                  },
+                                  "type": "array"
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ],
+                              "title": "Banned Keywords",
+                              "description": "Banned keywords/phrases"
+                            },
+                            "tools_accessible": {
+                              "anyOf": [
+                                {
+                                  "items": {
+                                    "type": "string"
+                                  },
+                                  "type": "array"
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ],
+                              "title": "Tools Accessible",
+                              "description": "Accessible tools/capabilities"
+                            }
+                          },
+                          "type": "object",
+                          "title": "TargetAdditionalContext",
+                          "description": "Additional context - used in create/update API requests and stored in DB/GCS.\n\nSingle value fields are strings.\nList fields are lists of strings.\n"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "description": "Additional context with source tracking (user + profiler)"
+                    }
+                  },
+                  "type": "object",
+                  "required": [
+                    "uuid",
+                    "tsg_id",
+                    "name",
+                    "status",
+                    "active",
+                    "validated",
+                    "created_at",
+                    "updated_at"
+                  ],
+                  "title": "TargetReferenceSchema"
+                },
+                "job_type": {
+                  "description": "Type of job to execute",
+                  "type": "string",
+                  "enum": ["STATIC", "DYNAMIC", "CUSTOM", "CLARA"],
+                  "title": "JobType"
+                },
+                "job_metadata": {
+                  "anyOf": [
+                    {
+                      "properties": {
+                        "rate_limit_enabled": {
+                          "type": "boolean",
+                          "title": "Rate Limit Enabled",
+                          "default": false
+                        },
+                        "rate_limit": {
+                          "anyOf": [
+                            {
+                              "type": "integer"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ],
+                          "title": "Rate Limit"
+                        },
+                        "rate_limit_error_code": {
+                          "anyOf": [
+                            {
+                              "type": "integer"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ],
+                          "title": "Rate Limit Error Code"
+                        },
+                        "rate_limit_error_message": {
+                          "anyOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ],
+                          "title": "Rate Limit Error Message"
+                        },
+                        "rate_limit_error_json": {
+                          "anyOf": [
+                            {
+                              "additionalProperties": true,
+                              "type": "object"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ],
+                          "title": "Rate Limit Error Json"
+                        },
+                        "content_filter_enabled": {
+                          "type": "boolean",
+                          "title": "Content Filter Enabled",
+                          "description": "Enable content filtering",
+                          "default": false
+                        },
+                        "content_filter_error_code": {
+                          "anyOf": [
+                            {
+                              "type": "integer",
+                              "maximum": 599,
+                              "minimum": 400
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ],
+                          "title": "Content Filter Error Code",
+                          "description": "HTTP error code for content filter (400-599)"
+                        },
+                        "content_filter_error_message": {
+                          "anyOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ],
+                          "title": "Content Filter Error Message",
+                          "description": "Content filter error message"
+                        },
+                        "content_filter_error_json": {
+                          "anyOf": [
+                            {
+                              "additionalProperties": true,
+                              "type": "object"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ],
+                          "title": "Content Filter Error Json"
+                        },
+                        "language": {
+                          "anyOf": [
+                            {
+                              "properties": {
+                                "code": {
+                                  "type": "string",
+                                  "title": "Code"
+                                },
+                                "name": {
+                                  "type": "string",
+                                  "title": "Name"
+                                }
+                              },
+                              "type": "object",
+                              "required": ["code", "name"],
+                              "title": "LanguageOptionSchema",
+                              "description": "Language representation with code and display name."
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ],
+                          "description": "Language for this scan. None = English."
+                        },
+                        "categories": {
+                          "additionalProperties": {
+                            "items": {
+                              "anyOf": [
+                                {
+                                  "type": "string",
+                                  "enum": [
+                                    "ADVERSARIAL_SUFFIX",
+                                    "EVASION",
+                                    "INDIRECT_PROMPT_INJECTION",
+                                    "JAILBREAK",
+                                    "MULTI_TURN",
+                                    "PROMPT_INJECTION",
+                                    "REMOTE_CODE_EXECUTION",
+                                    "SYSTEM_PROMPT_LEAK",
+                                    "TOOL_LEAK",
+                                    "MALWARE_GENERATION"
+                                  ],
+                                  "title": "SecuritySubCategory"
+                                },
+                                {
+                                  "type": "string",
+                                  "enum": [
+                                    "BIAS",
+                                    "CBRN",
+                                    "CYBERCRIME",
+                                    "DRUGS",
+                                    "HATE_TOXIC_ABUSE",
+                                    "NON_VIOLENT_CRIMES",
+                                    "POLITICAL",
+                                    "SELF_HARM",
+                                    "SEXUAL",
+                                    "VIOLENT_CRIMES_WEAPONS"
+                                  ],
+                                  "title": "SafetySubCategory"
+                                },
+                                {
+                                  "type": "string",
+                                  "enum": [
+                                    "COMPETITOR_ENDORSEMENTS",
+                                    "BRAND_TARNISHING_SELF_CRITICISM",
+                                    "DISCRIMINATING_CLAIMS",
+                                    "POLITICAL_ENDORSEMENTS"
+                                  ],
+                                  "title": "BrandSubCategory"
+                                },
+                                {
+                                  "type": "string",
+                                  "enum": ["OWASP", "MITRE_ATLAS", "NIST", "DASF_V2"],
+                                  "title": "ComplianceSubCategory"
+                                }
+                              ]
+                            },
+                            "type": "array"
+                          },
+                          "propertyNames": {
+                            "type": "string",
+                            "enum": ["SECURITY", "SAFETY", "COMPLIANCE", "BRAND"],
+                            "title": "Category"
+                          },
+                          "type": "object",
+                          "title": "Categories",
+                          "description": "Attack categories and their subcategories",
+                          "example": {
+                            "COMPLIANCE": ["OWASP", "NIST"],
+                            "SAFETY": ["BIAS"],
+                            "SECURITY": ["ADVERSARIAL_SUFFIX", "JAILBREAK"]
+                          }
+                        },
+                        "include_file_attacks": {
+                          "type": "boolean",
+                          "title": "Include File Attacks",
+                          "description": "Start-scan toggle: when true, include multimodal file (document) attacks alongside text for the selected categories — but only for targets whose validation probe found them file-capable. When false (default), the scan is text-only.",
+                          "default": false
+                        }
+                      },
+                      "type": "object",
+                      "required": ["categories"],
+                      "title": "StaticJobMetadata",
+                      "description": "Enhanced metadata for static attack jobs with validation."
+                    },
+                    {
+                      "properties": {
+                        "rate_limit_enabled": {
+                          "type": "boolean",
+                          "title": "Rate Limit Enabled",
+                          "default": false
+                        },
+                        "rate_limit": {
+                          "anyOf": [
+                            {
+                              "type": "integer"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ],
+                          "title": "Rate Limit"
+                        },
+                        "rate_limit_error_code": {
+                          "anyOf": [
+                            {
+                              "type": "integer"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ],
+                          "title": "Rate Limit Error Code"
+                        },
+                        "rate_limit_error_message": {
+                          "anyOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ],
+                          "title": "Rate Limit Error Message"
+                        },
+                        "rate_limit_error_json": {
+                          "anyOf": [
+                            {
+                              "additionalProperties": true,
+                              "type": "object"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ],
+                          "title": "Rate Limit Error Json"
+                        },
+                        "content_filter_enabled": {
+                          "type": "boolean",
+                          "title": "Content Filter Enabled",
+                          "description": "Enable content filtering",
+                          "default": false
+                        },
+                        "content_filter_error_code": {
+                          "anyOf": [
+                            {
+                              "type": "integer",
+                              "maximum": 599,
+                              "minimum": 400
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ],
+                          "title": "Content Filter Error Code",
+                          "description": "HTTP error code for content filter (400-599)"
+                        },
+                        "content_filter_error_message": {
+                          "anyOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ],
+                          "title": "Content Filter Error Message",
+                          "description": "Content filter error message"
+                        },
+                        "content_filter_error_json": {
+                          "anyOf": [
+                            {
+                              "additionalProperties": true,
+                              "type": "object"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ],
+                          "title": "Content Filter Error Json"
+                        },
+                        "language": {
+                          "anyOf": [
+                            {
+                              "$ref": "#/properties/data/items/properties/job_metadata/anyOf/0/properties/language/anyOf/0"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ],
+                          "description": "Language for this scan. None = English."
+                        },
+                        "stream_breadth": {
+                          "type": "integer",
+                          "maximum": 20,
+                          "minimum": 1,
+                          "title": "Stream Breadth",
+                          "description": "Number of parallel attack streams (1-20)",
+                          "default": 6
+                        },
+                        "stream_depth": {
+                          "type": "integer",
+                          "maximum": 20,
+                          "minimum": 1,
+                          "title": "Stream Depth",
+                          "description": "Depth of each attack stream (1-20)",
+                          "default": 10
+                        },
+                        "max_tokens": {
+                          "type": "integer",
+                          "maximum": 4096,
+                          "minimum": 128,
+                          "title": "Max Tokens",
+                          "description": "Maximum tokens per response (128-4096)",
+                          "default": 256
+                        },
+                        "context_size": {
+                          "type": "integer",
+                          "maximum": 20,
+                          "minimum": 1,
+                          "title": "Context Size",
+                          "description": "Context window size (1-20)",
+                          "default": 10
+                        },
+                        "attack_goals": {
+                          "items": {
+                            "type": "string"
+                          },
+                          "type": "array",
+                          "title": "Attack Goals",
+                          "description": "List of attack objectives"
+                        },
+                        "base_model": {
+                          "anyOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ],
+                          "title": "Base Model",
+                          "description": "Base model identifier"
+                        },
+                        "use_case": {
+                          "anyOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ],
+                          "title": "Use Case",
+                          "description": "Attack use case description"
+                        },
+                        "system_prompt": {
+                          "anyOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ],
+                          "title": "System Prompt",
+                          "description": "Custom system prompt"
+                        },
+                        "goal_categories": {
+                          "anyOf": [
+                            {
+                              "items": {
+                                "type": "string",
+                                "enum": [
+                                  "GOAL_MANIPULATION",
+                                  "PRIVILEGE_MISUSE",
+                                  "TOOL_MISUSE",
+                                  "TOOL_CHAINING",
+                                  "TOXIC_CONTENT_GENERATION",
+                                  "CUSTOM"
+                                ],
+                                "title": "GoalCategory"
+                              },
+                              "type": "array"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ],
+                          "title": "Goal Categories",
+                          "description": "Selected goal categories for this scan. Valid values: GOAL_MANIPULATION, PRIVILEGE_MISUSE, TOOL_MISUSE, TOOL_CHAINING, TOXIC_CONTENT_GENERATION. Only used when goal_categories feature flag is enabled."
+                        }
+                      },
+                      "type": "object",
+                      "title": "DynamicJobMetadata",
+                      "description": "Enhanced metadata for dynamic attack jobs with proper constraints."
+                    },
+                    {
+                      "properties": {
+                        "rate_limit_enabled": {
+                          "type": "boolean",
+                          "title": "Rate Limit Enabled",
+                          "default": false
+                        },
+                        "rate_limit": {
+                          "anyOf": [
+                            {
+                              "type": "integer"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ],
+                          "title": "Rate Limit"
+                        },
+                        "rate_limit_error_code": {
+                          "anyOf": [
+                            {
+                              "type": "integer"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ],
+                          "title": "Rate Limit Error Code"
+                        },
+                        "rate_limit_error_message": {
+                          "anyOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ],
+                          "title": "Rate Limit Error Message"
+                        },
+                        "rate_limit_error_json": {
+                          "anyOf": [
+                            {
+                              "additionalProperties": true,
+                              "type": "object"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ],
+                          "title": "Rate Limit Error Json"
+                        },
+                        "content_filter_enabled": {
+                          "type": "boolean",
+                          "title": "Content Filter Enabled",
+                          "description": "Enable content filtering",
+                          "default": false
+                        },
+                        "content_filter_error_code": {
+                          "anyOf": [
+                            {
+                              "type": "integer",
+                              "maximum": 599,
+                              "minimum": 400
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ],
+                          "title": "Content Filter Error Code",
+                          "description": "HTTP error code for content filter (400-599)"
+                        },
+                        "content_filter_error_message": {
+                          "anyOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ],
+                          "title": "Content Filter Error Message",
+                          "description": "Content filter error message"
+                        },
+                        "content_filter_error_json": {
+                          "anyOf": [
+                            {
+                              "additionalProperties": true,
+                              "type": "object"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ],
+                          "title": "Content Filter Error Json"
+                        },
+                        "language": {
+                          "anyOf": [
+                            {
+                              "$ref": "#/properties/data/items/properties/job_metadata/anyOf/0/properties/language/anyOf/0"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ],
+                          "description": "Language for this scan. None = English."
+                        },
+                        "custom_prompt_sets": {
+                          "items": {
+                            "type": "string",
+                            "format": "uuid"
+                          },
+                          "type": "array",
+                          "minItems": 1,
+                          "title": "Custom Prompt Sets",
+                          "description": "List of custom prompt set UUIDs"
+                        }
+                      },
+                      "type": "object",
+                      "required": ["custom_prompt_sets"],
+                      "title": "CustomJobMetadata",
+                      "description": "Enhanced metadata for custom attack jobs."
+                    },
+                    {
+                      "properties": {
+                        "scan_name": {
+                          "type": "string",
+                          "maxLength": 255,
+                          "minLength": 3,
+                          "title": "Scan Name"
+                        },
+                        "categories": {
+                          "additionalProperties": {
+                            "items": {
+                              "anyOf": [
+                                {
+                                  "$ref": "#/properties/data/items/properties/job_metadata/anyOf/0/properties/categories/additionalProperties/items/anyOf/0"
+                                },
+                                {
+                                  "$ref": "#/properties/data/items/properties/job_metadata/anyOf/0/properties/categories/additionalProperties/items/anyOf/1"
+                                },
+                                {
+                                  "$ref": "#/properties/data/items/properties/job_metadata/anyOf/0/properties/categories/additionalProperties/items/anyOf/2"
+                                },
+                                {
+                                  "$ref": "#/properties/data/items/properties/job_metadata/anyOf/0/properties/categories/additionalProperties/items/anyOf/3"
+                                }
+                              ]
+                            },
+                            "type": "array"
+                          },
+                          "propertyNames": {
+                            "type": "string",
+                            "enum": ["SECURITY", "SAFETY", "COMPLIANCE", "BRAND"],
+                            "title": "Category"
+                          },
+                          "type": "object",
+                          "title": "Categories",
+                          "description": "Auto-derived from uploaded prompt data — determines report sections"
+                        },
+                        "language": {
+                          "type": "null",
+                          "title": "Language",
+                          "description": "Always None — CLARA is English-only"
+                        }
+                      },
+                      "type": "object",
+                      "required": ["scan_name"],
+                      "title": "ClaraJobMetadata",
+                      "description": "Metadata for CLARA scan jobs. Intentionally minimal —\nno rate_limit/content_filter since CLARA doesn't execute attacks.\n"
+                    }
+                  ],
+                  "title": "Job Metadata",
+                  "description": "Job-specific metadata"
+                },
+                "version": {
+                  "anyOf": [
+                    {
+                      "type": "integer"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "title": "Version",
+                  "description": "Job version"
+                },
+                "extra_info": {
+                  "anyOf": [
+                    {
+                      "additionalProperties": true,
+                      "type": "object"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "title": "Extra Info"
+                },
+                "target_id": {
+                  "type": "string",
+                  "format": "uuid",
+                  "title": "Target Id",
+                  "description": "Target UUID (denormalized)"
+                },
+                "target_type": {
+                  "type": "string",
+                  "title": "Target Type",
+                  "description": "Target type (APPLICATION, AGENT, MODEL)"
+                },
+                "total": {
+                  "anyOf": [
+                    {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "title": "Total",
+                  "description": "Total tasks in job"
+                },
+                "completed": {
+                  "anyOf": [
+                    {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "title": "Completed",
+                  "description": "Completed tasks"
+                },
+                "status": {
+                  "description": "Current job status",
+                  "default": "INIT",
+                  "type": "string",
+                  "enum": [
+                    "INIT",
+                    "QUEUED",
+                    "RUNNING",
+                    "COMPLETED",
+                    "PARTIALLY_COMPLETE",
+                    "FAILED",
+                    "ABORTED"
+                  ],
+                  "title": "JobStatus"
+                },
+                "score": {
+                  "anyOf": [
+                    {
+                      "type": "number",
+                      "maximum": 100,
+                      "minimum": 0
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "title": "Score",
+                  "description": "Overall job performance score (0-100)"
+                },
+                "asr": {
+                  "anyOf": [
+                    {
+                      "type": "number",
+                      "maximum": 100,
+                      "minimum": 0
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "title": "Asr",
+                  "description": "Updated Attack Success Rate (0-100)"
+                },
+                "time_record": {
+                  "anyOf": [
+                    {
+                      "properties": {
+                        "queued_at": {
+                          "anyOf": [
+                            {
+                              "type": "string",
+                              "format": "date-time"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ],
+                          "title": "Queued At",
+                          "description": "Job queue timestamp"
+                        },
+                        "started_at": {
+                          "anyOf": [
+                            {
+                              "type": "string",
+                              "format": "date-time"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ],
+                          "title": "Started At",
+                          "description": "Job start timestamp"
+                        },
+                        "completed_at": {
+                          "anyOf": [
+                            {
+                              "type": "string",
+                              "format": "date-time"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ],
+                          "title": "Completed At",
+                          "description": "Job completion timestamp"
+                        },
+                        "time_taken": {
+                          "anyOf": [
+                            {
+                              "type": "string",
+                              "format": "duration"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ],
+                          "title": "Time Taken",
+                          "description": "Total execution time"
+                        }
+                      },
+                      "type": "object",
+                      "title": "JobTimeRecord",
+                      "description": "Enhanced time tracking with validation."
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "description": "Job timing information"
+                },
+                "created_at": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "title": "Created At",
+                  "description": "Creation timestamp"
+                },
+                "updated_at": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "title": "Updated At",
+                  "description": "Last update timestamp"
+                },
+                "created_by_user_id": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "title": "Created By User Id",
+                  "description": "UUID of the user creating this job"
+                },
+                "report_stats": {
+                  "anyOf": [
+                    {
+                      "properties": {
+                        "output_completion_percentage": {
+                          "type": "number",
+                          "minimum": 0,
+                          "title": "Output Completion Percentage",
+                          "description": "Percentage of attack outputs that completed successfully (0-100)"
+                        },
+                        "partial_report_unlocked": {
+                          "type": "boolean",
+                          "title": "Partial Report Unlocked",
+                          "description": "Whether user has unlocked this partial report with a credit",
+                          "default": false
+                        },
+                        "partial_report_unlocked_at": {
+                          "anyOf": [
+                            {
+                              "type": "string",
+                              "format": "date-time"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ],
+                          "title": "Partial Report Unlocked At",
+                          "description": "Timestamp when the partial report was unlocked"
+                        },
+                        "report_summary": {
+                          "anyOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ],
+                          "title": "Report Summary",
+                          "description": "Report summary from the LLM for the statics job run"
+                        }
+                      },
+                      "type": "object",
+                      "required": ["output_completion_percentage"],
+                      "title": "StaticJobReportStats",
+                      "description": "Report statistics for static jobs stored in job.report_stats JSONB field.\nTracks output completion and partial report unlock status.\n"
+                    },
+                    {
+                      "properties": {
+                        "total_goals": {
+                          "type": "integer",
+                          "minimum": 0,
+                          "title": "Total Goals",
+                          "description": "Total number of goals tested",
+                          "default": 0
+                        },
+                        "total_streams": {
+                          "type": "integer",
+                          "minimum": 0,
+                          "title": "Total Streams",
+                          "description": "Total number of attack streams",
+                          "default": 0
+                        },
+                        "total_threats": {
+                          "type": "integer",
+                          "minimum": 0,
+                          "title": "Total Threats",
+                          "description": "Total number of threats detected",
+                          "default": 0
+                        },
+                        "goals_achieved": {
+                          "type": "integer",
+                          "minimum": 0,
+                          "title": "Goals Achieved",
+                          "description": "Number of goals with at least one threat",
+                          "default": 0
+                        },
+                        "report_summary": {
+                          "anyOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ],
+                          "title": "Report Summary",
+                          "description": "LLM-generated executive summary for the dynamic job"
+                        }
+                      },
+                      "type": "object",
+                      "title": "DynamicJobReportStats"
+                    },
+                    {
+                      "additionalProperties": true,
+                      "type": "object"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "title": "Report Stats",
+                  "description": "Report statistics (StaticJobReportStats for STATIC/CUSTOM jobs, DynamicJobReportStats for DYNAMIC jobs)"
+                },
+                "metering_quota_uuid": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "title": "Metering Quota Uuid",
+                  "description": "UUID of the metering quota used for this job"
+                },
+                "counted_towards_quota": {
+                  "description": "Whether this job is counted towards quota consumption",
+                  "default": "HELD",
+                  "type": "string",
+                  "enum": ["HELD", "COUNTED", "NOT_COUNTED"],
+                  "title": "CountedQuotaEnum"
+                },
+                "invocation_id": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "title": "Invocation Id",
+                  "description": "Restate invocationId of this job"
+                }
+              },
+              "type": "object",
+              "required": [
+                "uuid",
+                "tsg_id",
+                "name",
+                "target",
+                "job_type",
+                "job_metadata",
+                "target_id",
+                "target_type"
+              ],
+              "title": "JobResponseSchema",
+              "description": "Job response schema. ONLY to be used in API response."
+            },
+            "type": "array",
+            "title": "Data",
+            "description": "List of jobs"
+          }
+        },
+        "type": "object",
+        "required": ["pagination", "data"],
+        "title": "JobListResponseSchema",
+        "description": "Response schema for listing jobs following common pagination pattern."
+      }
+    },
+    {
+      "direction": "response",
+      "validator": "JobAbortResponseSchema",
+      "operations": ["POST /v1/scan/{job_id}/abort"],
+      "schema": {
+        "properties": {
+          "job_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Job Id",
+            "description": "UUID of the aborted job"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "description": "Status message"
+          }
+        },
+        "type": "object",
+        "required": ["job_id", "message"],
+        "title": "JobAbortResponseSchema",
+        "description": "Response schema for job abort operation."
+      }
+    },
+    {
+      "direction": "response",
+      "validator": "z.array(CategoryModelSchema)",
+      "operations": ["GET /v1/categories"],
+      "schema": {
+        "items": {
+          "properties": {
+            "id": {
+              "type": "string",
+              "title": "Id",
+              "description": "Unique identifier"
+            },
+            "display_name": {
+              "type": "string",
+              "title": "Display Name",
+              "description": "Frontend display name"
+            },
+            "description": {
+              "type": "string",
+              "title": "Description",
+              "description": "Description"
+            },
+            "preselect": {
+              "type": "boolean",
+              "title": "Preselect",
+              "description": "Whether this category should be preselected in UI",
+              "default": true
+            },
+            "sub_categories": {
+              "items": {
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "title": "Id",
+                    "description": "Unique identifier"
+                  },
+                  "display_name": {
+                    "type": "string",
+                    "title": "Display Name",
+                    "description": "Frontend display name"
+                  },
+                  "description": {
+                    "type": "string",
+                    "title": "Description",
+                    "description": "Description"
+                  },
+                  "preselect": {
+                    "type": "boolean",
+                    "title": "Preselect",
+                    "description": "Whether this subcategory should be preselected in UI",
+                    "default": true
+                  },
+                  "prerequisites": {
+                    "anyOf": [
+                      {
+                        "items": {
+                          "properties": {
+                            "id": {
+                              "type": "string",
+                              "title": "Id",
+                              "description": "Prerequisite unique identifier"
+                            },
+                            "display_name": {
+                              "type": "string",
+                              "title": "Display Name",
+                              "description": "Prerequisite display name for frontend"
+                            },
+                            "description": {
+                              "type": "string",
+                              "title": "Description",
+                              "description": "Prerequisite description"
+                            }
+                          },
+                          "type": "object",
+                          "required": ["id", "display_name", "description"],
+                          "title": "PrerequisiteModel",
+                          "description": "Pydantic model for prerequisite data"
+                        },
+                        "type": "array"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "title": "Prerequisites",
+                    "description": "List of prerequisites for this subcategory"
+                  },
+                  "active": {
+                    "type": "boolean",
+                    "title": "Active",
+                    "description": "Whether this subcategory is active",
+                    "default": true
+                  },
+                  "file_supported": {
+                    "type": "boolean",
+                    "title": "File Supported",
+                    "description": "Whether this subcategory has multimodal file (document) attacks in the library — drives the file-upload icon in the scan wizard",
+                    "default": false
+                  }
+                },
+                "type": "object",
+                "required": ["id", "display_name", "description"],
+                "title": "SubCategoryModel",
+                "description": "Pydantic model for subcategory data"
+              },
+              "type": "array",
+              "title": "Sub Categories",
+              "description": "List of subcategories"
+            }
+          },
+          "type": "object",
+          "required": ["id", "display_name", "description", "sub_categories"],
+          "title": "CategoryModel",
+          "description": "Pydantic model for category data"
+        },
+        "type": "array",
+        "title": "Response Get All Categories V1 Categories Get"
+      }
+    },
+    {
+      "direction": "response",
+      "validator": "z.object({}).passthrough()",
+      "operations": ["GET /v1/scan/scan-metadata"],
+      "schema": {
+        "additionalProperties": true,
+        "type": "object",
+        "title": "Response Get Scan Metadata V1 Scan Scan Metadata Get"
+      }
+    },
+    {
+      "direction": "response",
+      "validator": "AttackListResponseSchema",
+      "operations": ["GET /v1/report/static/{job_id}/list-attacks"],
+      "schema": {
+        "properties": {
+          "pagination": {
+            "properties": {
+              "total_items": {
+                "anyOf": [
+                  {
+                    "type": "integer"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "title": "Total Items"
+              }
+            },
+            "type": "object",
+            "title": "PaginationSchema"
+          },
+          "data": {
+            "items": {
+              "properties": {
+                "uuid": {
+                  "type": "string",
+                  "format": "uuid",
+                  "title": "Uuid"
+                },
+                "tsg_id": {
+                  "type": "string",
+                  "title": "Tsg Id"
+                },
+                "job_id": {
+                  "type": "string",
+                  "format": "uuid",
+                  "title": "Job Id",
+                  "description": "Associated job UUID"
+                },
+                "target_id": {
+                  "type": "string",
+                  "format": "uuid",
+                  "title": "Target Id",
+                  "description": "Target UUID"
+                },
+                "prompt": {
+                  "type": "string",
+                  "title": "Prompt",
+                  "description": "The actual prompt text used"
+                },
+                "status": {
+                  "type": "string",
+                  "enum": ["INIT", "ATTACK", "DETECTION", "REPORT", "COMPLETED", "FAILED"],
+                  "title": "AttackStatus",
+                  "description": "Attack status",
+                  "default": "INIT"
+                },
+                "marked_safe": {
+                  "anyOf": [
+                    {
+                      "type": "boolean"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "title": "Marked Safe",
+                  "description": "Manual safety marking"
+                },
+                "extra_info": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Extra Info",
+                  "description": "Additional metadata"
+                },
+                "threat": {
+                  "anyOf": [
+                    {
+                      "type": "boolean"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "title": "Threat",
+                  "description": "Threat detection result"
+                },
+                "attack_type": {
+                  "type": "string",
+                  "enum": ["NORMAL", "CUSTOM"],
+                  "title": "AttackType",
+                  "description": "Type of attack",
+                  "default": "NORMAL"
+                },
+                "multi_turn": {
+                  "type": "boolean",
+                  "title": "Multi Turn",
+                  "description": "Multi-turn conversation flag",
+                  "default": false
+                },
+                "asr": {
+                  "anyOf": [
+                    {
+                      "type": "number",
+                      "maximum": 100,
+                      "minimum": 0
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "title": "Asr",
+                  "description": "Attack Success Rate (0-100)"
+                },
+                "version": {
+                  "anyOf": [
+                    {
+                      "type": "integer"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "title": "Version",
+                  "description": "Attack version"
+                },
+                "error": {
+                  "anyOf": [
+                    {
+                      "type": "boolean"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "title": "Error",
+                  "description": "True if all attack attempts failed (zero outputs produced)"
+                },
+                "prompt_mapping_id": {
+                  "type": "string",
+                  "format": "uuid",
+                  "title": "Prompt Mapping Id",
+                  "description": "Prompt mapping UUID"
+                },
+                "prompt_id": {
+                  "type": "string",
+                  "format": "uuid",
+                  "title": "Prompt Id",
+                  "description": "Prompt UUID"
+                },
+                "category": {
+                  "type": "string",
+                  "enum": ["SECURITY", "SAFETY", "COMPLIANCE", "BRAND"],
+                  "title": "Category",
+                  "description": "Attack category"
+                },
+                "sub_category": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "enum": [
+                        "ADVERSARIAL_SUFFIX",
+                        "EVASION",
+                        "INDIRECT_PROMPT_INJECTION",
+                        "JAILBREAK",
+                        "MULTI_TURN",
+                        "PROMPT_INJECTION",
+                        "REMOTE_CODE_EXECUTION",
+                        "SYSTEM_PROMPT_LEAK",
+                        "TOOL_LEAK",
+                        "MALWARE_GENERATION"
+                      ],
+                      "title": "SecuritySubCategory"
+                    },
+                    {
+                      "type": "string",
+                      "enum": [
+                        "BIAS",
+                        "CBRN",
+                        "CYBERCRIME",
+                        "DRUGS",
+                        "HATE_TOXIC_ABUSE",
+                        "NON_VIOLENT_CRIMES",
+                        "POLITICAL",
+                        "SELF_HARM",
+                        "SEXUAL",
+                        "VIOLENT_CRIMES_WEAPONS"
+                      ],
+                      "title": "SafetySubCategory"
+                    },
+                    {
+                      "type": "string",
+                      "enum": [
+                        "COMPETITOR_ENDORSEMENTS",
+                        "BRAND_TARNISHING_SELF_CRITICISM",
+                        "DISCRIMINATING_CLAIMS",
+                        "POLITICAL_ENDORSEMENTS"
+                      ],
+                      "title": "BrandSubCategory"
+                    },
+                    {
+                      "type": "string",
+                      "enum": ["OWASP", "MITRE_ATLAS", "NIST", "DASF_V2"],
+                      "title": "ComplianceSubCategory"
+                    }
+                  ],
+                  "title": "Sub Category",
+                  "description": "Attack subcategory"
+                },
+                "severity": {
+                  "type": "string",
+                  "description": "Attack severity level"
+                },
+                "category_display_name": {
+                  "type": "string",
+                  "title": "Category Display Name"
+                },
+                "sub_category_display_name": {
+                  "type": "string",
+                  "title": "Sub Category Display Name"
+                },
+                "attack_modality": {
+                  "type": "string",
+                  "enum": ["TEXT", "FILE"],
+                  "title": "AttackModality",
+                  "description": "Per-attack delivery modality for report display + filtering.\n\nFILE = the attack carries a document (file_url set); TEXT = text-only. This is\na per-row value (distinct from the scan-level include_file_attacks toggle).\n",
+                  "default": "TEXT"
+                }
+              },
+              "type": "object",
+              "required": [
+                "uuid",
+                "tsg_id",
+                "job_id",
+                "target_id",
+                "prompt",
+                "prompt_mapping_id",
+                "prompt_id",
+                "category",
+                "sub_category",
+                "category_display_name",
+                "sub_category_display_name"
+              ],
+              "title": "AttackListSchema"
+            },
+            "type": "array",
+            "title": "Data",
+            "description": "List of Attacks"
+          }
+        },
+        "type": "object",
+        "required": ["pagination", "data"],
+        "title": "AttackListResponseSchema",
+        "description": "Response schema for listing attacks following common pagination pattern."
+      }
+    },
+    {
+      "direction": "response",
+      "validator": "AttackDetailResponseSchema",
+      "operations": ["GET /v1/report/static/{job_id}/attack/{attack_id}"],
+      "schema": {
+        "properties": {
+          "uuid": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Uuid"
+          },
+          "tsg_id": {
+            "type": "string",
+            "title": "Tsg Id"
+          },
+          "job_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Job Id",
+            "description": "Associated job UUID"
+          },
+          "target_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Target Id",
+            "description": "Target UUID"
+          },
+          "prompt": {
+            "type": "string",
+            "title": "Prompt",
+            "description": "The actual prompt text used"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["INIT", "ATTACK", "DETECTION", "REPORT", "COMPLETED", "FAILED"],
+            "title": "AttackStatus",
+            "description": "Attack status",
+            "default": "INIT"
+          },
+          "marked_safe": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Marked Safe",
+            "description": "Manual safety marking"
+          },
+          "extra_info": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Extra Info",
+            "description": "Additional metadata"
+          },
+          "threat": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Threat",
+            "description": "Threat detection result"
+          },
+          "attack_type": {
+            "type": "string",
+            "enum": ["NORMAL", "CUSTOM"],
+            "title": "AttackType",
+            "description": "Type of attack",
+            "default": "NORMAL"
+          },
+          "multi_turn": {
+            "type": "boolean",
+            "title": "Multi Turn",
+            "description": "Multi-turn conversation flag",
+            "default": false
+          },
+          "asr": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 100,
+                "minimum": 0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Asr",
+            "description": "Attack Success Rate (0-100)"
+          },
+          "version": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Version",
+            "description": "Attack version"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error",
+            "description": "True if all attack attempts failed (zero outputs produced)"
+          },
+          "prompt_mapping_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Prompt Mapping Id",
+            "description": "Prompt mapping UUID"
+          },
+          "prompt_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Prompt Id",
+            "description": "Prompt UUID"
+          },
+          "category": {
+            "type": "string",
+            "enum": ["SECURITY", "SAFETY", "COMPLIANCE", "BRAND"],
+            "title": "Category",
+            "description": "Attack category"
+          },
+          "sub_category": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "ADVERSARIAL_SUFFIX",
+                  "EVASION",
+                  "INDIRECT_PROMPT_INJECTION",
+                  "JAILBREAK",
+                  "MULTI_TURN",
+                  "PROMPT_INJECTION",
+                  "REMOTE_CODE_EXECUTION",
+                  "SYSTEM_PROMPT_LEAK",
+                  "TOOL_LEAK",
+                  "MALWARE_GENERATION"
+                ],
+                "title": "SecuritySubCategory"
+              },
+              {
+                "type": "string",
+                "enum": [
+                  "BIAS",
+                  "CBRN",
+                  "CYBERCRIME",
+                  "DRUGS",
+                  "HATE_TOXIC_ABUSE",
+                  "NON_VIOLENT_CRIMES",
+                  "POLITICAL",
+                  "SELF_HARM",
+                  "SEXUAL",
+                  "VIOLENT_CRIMES_WEAPONS"
+                ],
+                "title": "SafetySubCategory"
+              },
+              {
+                "type": "string",
+                "enum": [
+                  "COMPETITOR_ENDORSEMENTS",
+                  "BRAND_TARNISHING_SELF_CRITICISM",
+                  "DISCRIMINATING_CLAIMS",
+                  "POLITICAL_ENDORSEMENTS"
+                ],
+                "title": "BrandSubCategory"
+              },
+              {
+                "type": "string",
+                "enum": ["OWASP", "MITRE_ATLAS", "NIST", "DASF_V2"],
+                "title": "ComplianceSubCategory"
+              }
+            ],
+            "title": "Sub Category",
+            "description": "Attack subcategory"
+          },
+          "severity": {
+            "type": "string",
+            "description": "Attack severity level"
+          },
+          "category_display_name": {
+            "type": "string",
+            "title": "Category Display Name"
+          },
+          "sub_category_display_name": {
+            "type": "string",
+            "title": "Sub Category Display Name"
+          },
+          "compliance_frameworks": {
+            "items": {
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "title": "Id",
+                  "description": "Compliance framework unique identifier"
+                },
+                "display_name": {
+                  "type": "string",
+                  "title": "Display Name",
+                  "description": "Compliance framework display name for frontend"
+                },
+                "description": {
+                  "type": "string",
+                  "title": "Description",
+                  "description": "Compliance framework description"
+                },
+                "active": {
+                  "type": "boolean",
+                  "title": "Active",
+                  "description": "Whether compliance framework is active"
+                },
+                "version": {
+                  "type": "string",
+                  "title": "Version",
+                  "description": "Compliance framework version"
+                },
+                "link": {
+                  "type": "string",
+                  "title": "Link",
+                  "description": "Compliance framework documentation link"
+                },
+                "techniques": {
+                  "items": {
+                    "properties": {
+                      "id": {
+                        "type": "string",
+                        "title": "Id",
+                        "description": "Technique unique identifier"
+                      },
+                      "display_name": {
+                        "type": "string",
+                        "title": "Display Name",
+                        "description": "Technique display name for frontend"
+                      },
+                      "compliance_id": {
+                        "type": "string",
+                        "title": "Compliance Id",
+                        "description": "Associated compliance framework ID"
+                      },
+                      "description": {
+                        "type": "string",
+                        "title": "Description",
+                        "description": "Technique description"
+                      },
+                      "link": {
+                        "type": "string",
+                        "title": "Link",
+                        "description": "Technique documentation link"
+                      },
+                      "version": {
+                        "type": "string",
+                        "title": "Version",
+                        "description": "Technique version"
+                      },
+                      "active": {
+                        "type": "boolean",
+                        "title": "Active",
+                        "description": "Whether technique is active"
+                      }
+                    },
+                    "type": "object",
+                    "required": [
+                      "id",
+                      "display_name",
+                      "compliance_id",
+                      "description",
+                      "link",
+                      "version",
+                      "active"
+                    ],
+                    "title": "TechniqueModel",
+                    "description": "Pydantic model for technique data"
+                  },
+                  "type": "array",
+                  "title": "Techniques",
+                  "description": "List of Techniques"
+                }
+              },
+              "type": "object",
+              "required": [
+                "id",
+                "display_name",
+                "description",
+                "active",
+                "version",
+                "link",
+                "techniques"
+              ],
+              "title": "ComplianceWithTechniqueModel"
+            },
+            "type": "array",
+            "title": "Compliance Frameworks"
+          },
+          "outputs": {
+            "items": {
+              "properties": {
+                "uuid": {
+                  "type": "string",
+                  "format": "uuid",
+                  "title": "Uuid"
+                },
+                "tsg_id": {
+                  "type": "string",
+                  "title": "Tsg Id"
+                },
+                "attack_id": {
+                  "type": "string",
+                  "format": "uuid",
+                  "title": "Attack Id",
+                  "description": "Associated attack UUID"
+                },
+                "job_id": {
+                  "type": "string",
+                  "format": "uuid",
+                  "title": "Job Id",
+                  "description": "Associated job UUID"
+                },
+                "target_id": {
+                  "type": "string",
+                  "format": "uuid",
+                  "title": "Target Id",
+                  "description": "Target UUID"
+                },
+                "output": {
+                  "type": "string",
+                  "title": "Output",
+                  "description": "Attack output. String for single-turn, dict for multi-turn."
+                },
+                "threat": {
+                  "anyOf": [
+                    {
+                      "type": "boolean"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "title": "Threat",
+                  "description": "Threat detection result"
+                },
+                "marked_safe": {
+                  "anyOf": [
+                    {
+                      "type": "boolean"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "title": "Marked Safe",
+                  "description": "Manual safety marking"
+                },
+                "error": {
+                  "anyOf": [
+                    {
+                      "type": "boolean"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "title": "Error",
+                  "description": "Whether this output is an error"
+                },
+                "error_message": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "title": "Error Message",
+                  "description": "Error message in format 'errType: description'"
+                }
+              },
+              "type": "object",
+              "required": ["uuid", "tsg_id", "attack_id", "job_id", "target_id", "output"],
+              "title": "AttackOutputResponseSchema",
+              "description": "API response schema — excludes internal/debug fields from client responses."
+            },
+            "type": "array",
+            "title": "Outputs",
+            "description": "Outputs for attacks"
+          },
+          "goal": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Goal"
+          },
+          "attack_modality": {
+            "type": "string",
+            "enum": ["TEXT", "FILE"],
+            "title": "AttackModality",
+            "description": "Per-attack delivery modality for report display + filtering.\n\nFILE = the attack carries a document (file_url set); TEXT = text-only. This is\na per-row value (distinct from the scan-level include_file_attacks toggle).\n",
+            "default": "TEXT"
+          },
+          "file": {
+            "anyOf": [
+              {
+                "properties": {
+                  "file_name": {
+                    "type": "string",
+                    "title": "File Name",
+                    "description": "Document filename (basename of the GCS object key)"
+                  },
+                  "signed_url": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "title": "Signed Url",
+                    "description": "Short-lived signed GCS download URL; null if the object could not be signed (e.g. missing signBlob permission)."
+                  },
+                  "file_type": {
+                    "type": "string",
+                    "title": "File Type",
+                    "description": "Short document type, e.g. PDF / DOCX / MD"
+                  }
+                },
+                "type": "object",
+                "required": ["file_name", "file_type"],
+                "title": "AttackFileSchema",
+                "description": "Structured file reference for a multimodal (document) attack in the report.\n\nExposed only on the attack **detail** response. The list response conveys type via\n``attack_modality`` (FILE/TEXT) and carries no file object.\n"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "File-attack document (name + signed download URL + short type); null for text attacks"
+          }
+        },
+        "type": "object",
+        "required": [
+          "uuid",
+          "tsg_id",
+          "job_id",
+          "target_id",
+          "prompt",
+          "prompt_mapping_id",
+          "prompt_id",
+          "category",
+          "sub_category",
+          "category_display_name",
+          "sub_category_display_name",
+          "compliance_frameworks",
+          "goal"
+        ],
+        "title": "AttackDetailResponseSchema"
+      }
+    }
+  ]
+}

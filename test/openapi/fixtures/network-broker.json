@@ -1,0 +1,201 @@
+{
+  "source": "prisma-airs-redteam/network-broker/AIRS-Red-Teaming-Network-Broker.yaml",
+  "sha256": "0cf2176db90da796fdd086a5f8bd6b3dcf3dcd9065d42c4230e10603bb1ea4b5",
+  "corrections": [],
+  "cases": [
+    {
+      "method": "GET",
+      "path": "/v1/channels",
+      "call": {
+        "method": "GET",
+        "path": "/v1/channels",
+        "source": "src/red-team/network-broker-client.ts",
+        "member": "listChannels",
+        "plane": "network-broker",
+        "responseSchema": "ChannelListResponseSchema",
+        "queryType": "ChannelListOptions",
+        "className": "RedTeamNetworkBrokerClient",
+        "parameters": [
+          {
+            "name": "opts",
+            "type": "ChannelListOptions"
+          }
+        ]
+      },
+      "query": {
+        "status": ["ONLINE", "OFFLINE"],
+        "search": "x",
+        "include_all_if_empty": false,
+        "limit": 1,
+        "skip": 0
+      },
+      "queryWire": {
+        "status": ["ONLINE", "OFFLINE"],
+        "search": ["x"],
+        "include_all_if_empty": ["false"],
+        "limit": ["1"],
+        "skip": ["0"]
+      },
+      "responseBody": {
+        "pagination": {
+          "total_items": 1
+        },
+        "data": [
+          {
+            "uuid": "550e8400-e29b-41d4-a716-446655440000",
+            "created_at": "2026-09-06T00:00:00Z",
+            "updated_at": "2026-09-06T00:00:00Z",
+            "name": "x",
+            "description": "x",
+            "added_by": "550e8400-e29b-41d4-a716-446655440000",
+            "status": "ONLINE",
+            "last_online_at": "2026-09-06T00:00:00Z"
+          }
+        ]
+      },
+      "responseStatus": 200,
+      "responseIsText": false
+    },
+    {
+      "method": "POST",
+      "path": "/v1/channels",
+      "call": {
+        "method": "POST",
+        "path": "/v1/channels",
+        "source": "src/red-team/network-broker-client.ts",
+        "member": "createChannel",
+        "plane": "network-broker",
+        "responseSchema": "ChannelSchema",
+        "requestSchema": "CreateChannelRequestSchema",
+        "requestType": "CreateChannelRequest",
+        "className": "RedTeamNetworkBrokerClient",
+        "parameters": [
+          {
+            "name": "body",
+            "type": "CreateChannelRequest"
+          }
+        ]
+      },
+      "query": {},
+      "queryWire": {},
+      "body": {
+        "name": "x",
+        "description": "x"
+      },
+      "responseBody": {
+        "uuid": "550e8400-e29b-41d4-a716-446655440000",
+        "created_at": "2026-09-06T00:00:00Z",
+        "updated_at": "2026-09-06T00:00:00Z",
+        "name": "x",
+        "description": "x",
+        "added_by": "550e8400-e29b-41d4-a716-446655440000",
+        "status": "ONLINE",
+        "last_online_at": "2026-09-06T00:00:00Z"
+      },
+      "responseStatus": 200,
+      "responseIsText": false
+    },
+    {
+      "method": "GET",
+      "path": "/v1/channels/stats",
+      "call": {
+        "method": "GET",
+        "path": "/v1/channels/stats",
+        "source": "src/red-team/network-broker-client.ts",
+        "member": "getChannelStats",
+        "plane": "network-broker",
+        "responseSchema": "ChannelStatsSchema",
+        "className": "RedTeamNetworkBrokerClient",
+        "parameters": []
+      },
+      "query": {},
+      "queryWire": {},
+      "responseBody": {
+        "network_channels_server_domain": "x",
+        "docker_registry": "x",
+        "helm_chart": "x",
+        "docker_image": "x",
+        "online_channels": 0,
+        "total_channels": 0
+      },
+      "responseStatus": 200,
+      "responseIsText": false
+    },
+    {
+      "method": "GET",
+      "path": "/v1/channels/{channelId}",
+      "call": {
+        "method": "GET",
+        "path": "/v1/channels/{channelId}",
+        "source": "src/red-team/network-broker-client.ts",
+        "member": "getChannel",
+        "plane": "network-broker",
+        "responseSchema": "ChannelSchema",
+        "className": "RedTeamNetworkBrokerClient",
+        "parameters": [
+          {
+            "name": "channelId",
+            "type": "string"
+          }
+        ]
+      },
+      "query": {},
+      "queryWire": {},
+      "responseBody": {
+        "uuid": "550e8400-e29b-41d4-a716-446655440000",
+        "created_at": "2026-09-06T00:00:00Z",
+        "updated_at": "2026-09-06T00:00:00Z",
+        "name": "x",
+        "description": "x",
+        "added_by": "550e8400-e29b-41d4-a716-446655440000",
+        "status": "ONLINE",
+        "last_online_at": "2026-09-06T00:00:00Z"
+      },
+      "responseStatus": 200,
+      "responseIsText": false
+    },
+    {
+      "method": "PATCH",
+      "path": "/v1/channels/{channelId}",
+      "call": {
+        "method": "PATCH",
+        "path": "/v1/channels/{channelId}",
+        "source": "src/red-team/network-broker-client.ts",
+        "member": "updateChannel",
+        "plane": "network-broker",
+        "responseSchema": "ChannelSchema",
+        "requestSchema": "UpdateChannelRequestSchema",
+        "requestType": "UpdateChannelRequest",
+        "className": "RedTeamNetworkBrokerClient",
+        "parameters": [
+          {
+            "name": "channelId",
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "type": "UpdateChannelRequest"
+          }
+        ]
+      },
+      "query": {},
+      "queryWire": {},
+      "body": {
+        "name": "x",
+        "description": "x"
+      },
+      "responseBody": {
+        "uuid": "550e8400-e29b-41d4-a716-446655440000",
+        "created_at": "2026-09-06T00:00:00Z",
+        "updated_at": "2026-09-06T00:00:00Z",
+        "name": "x",
+        "description": "x",
+        "added_by": "550e8400-e29b-41d4-a716-446655440000",
+        "status": "ONLINE",
+        "last_online_at": "2026-09-06T00:00:00Z"
+      },
+      "responseStatus": 200,
+      "responseIsText": false
+    }
+  ]
+}

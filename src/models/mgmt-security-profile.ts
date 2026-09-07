@@ -6,7 +6,7 @@ import { z } from 'zod';
 export const PolicyLatencySchema = z
   .object({
     'inline-timeout-action': z.string().optional(),
-    'max-inline-latency': z.number().optional(),
+    'max-inline-latency': z.number().int().optional(),
   })
   .passthrough();
 
@@ -102,7 +102,7 @@ export const TopicObjectSchema = z
   .object({
     topic_name: z.string(),
     topic_id: z.string(),
-    revision: z.number(),
+    revision: z.number().int(),
   })
   .passthrough();
 
@@ -128,8 +128,11 @@ export type TopicArray = z.infer<typeof TopicArraySchema>;
 /** Zod schema for a model-protection array item. */
 export const ModelProtectionItemSchema = z
   .object({
-    name: z.string(),
-    action: z.string(),
+    'toxic-category-list': z
+      .array(z.object({ category: z.string(), action: z.string() }).passthrough())
+      .optional(),
+    name: z.string().optional(),
+    action: z.string().optional(),
     'topic-list': z.array(TopicArraySchema).optional(),
     options: z.array(z.unknown()).optional(),
   })
@@ -259,6 +262,7 @@ export interface CreateSecurityProfileRequest {
   tsg_id?: string;
   revision?: number;
   active?: boolean;
+  /** Required at submission; optional in this legacy builder type for incremental CLI construction. */
   policy?: Policy;
   created_by?: string;
   updated_by?: string;
@@ -273,12 +277,12 @@ export const CreateSecurityProfileRequestSchema: z.ZodType<CreateSecurityProfile
     profile_name: z.string(),
     csp_id: z.string().optional(),
     tsg_id: z.string().optional(),
-    revision: z.number().optional(),
+    revision: z.number().int().optional(),
     active: z.boolean().optional(),
-    policy: PolicySchema.optional(),
+    policy: PolicySchema,
     created_by: z.string().optional(),
     updated_by: z.string().optional(),
-    last_modified_ts: z.string().optional(),
+    last_modified_ts: z.string().datetime({ offset: true }).optional(),
   })
   .passthrough();
 
@@ -290,9 +294,13 @@ export interface SecurityProfileListResponse {
 }
 
 /** Zod schema for a paginated security profile list response. */
-export const SecurityProfileListResponseSchema: z.ZodType<SecurityProfileListResponse> = z
+export const SecurityProfileListResponseSchema: z.ZodType<
+  SecurityProfileListResponse,
+  z.ZodTypeDef,
+  unknown
+> = z
   .object({
-    ai_profiles: z.array(SecurityProfileSchema),
+    ai_profiles: z.array(SecurityProfileSchema).default([]),
     next_offset: z.number().optional(),
   })
   .passthrough();
@@ -304,7 +312,7 @@ export const SecurityProfileListResponseSchema: z.ZodType<SecurityProfileListRes
 /** Zod schema for a profile deletion response. */
 export const DeleteProfileResponseSchema = z.union([
   z.string().transform((message) => ({ message })),
-  z.object({ message: z.string() }).passthrough(),
+  z.object({ message: z.string().optional() }).passthrough(),
 ]);
 
 /** Response from deleting a security profile. */

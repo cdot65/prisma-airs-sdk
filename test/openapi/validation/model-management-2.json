@@ -1,0 +1,441 @@
+{
+  "source": "prisma-airs-model-security/management/mgmt-plane.yml",
+  "sha256": "92b010dbe1b2ba96984aaaadfca95e4a2ff68a1fa98209765cfa1b0bcffcc808",
+  "corrections": [],
+  "contracts": [
+    {
+      "direction": "response",
+      "validator": "ListModelSecurityRulesResponseSchema",
+      "operations": ["GET /v1/security-rules"],
+      "schema": {
+        "properties": {
+          "pagination": {
+            "properties": {
+              "total_items": {
+                "anyOf": [
+                  {
+                    "type": "integer"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "title": "Total Items"
+              }
+            },
+            "title": "PaginationSchema",
+            "type": "object"
+          },
+          "rules": {
+            "items": {
+              "properties": {
+                "compatible_sources": {
+                  "items": {
+                    "enum": [
+                      "LOCAL",
+                      "HUGGING_FACE",
+                      "S3",
+                      "GCS",
+                      "AZURE",
+                      "ARTIFACTORY",
+                      "GITLAB",
+                      "ALL"
+                    ],
+                    "title": "SourceType",
+                    "type": "string"
+                  },
+                  "title": "Compatible Sources",
+                  "type": "array"
+                },
+                "constant_values": {
+                  "additionalProperties": true,
+                  "propertyNames": {
+                    "maxLength": 256
+                  },
+                  "title": "Constant Values",
+                  "type": "object"
+                },
+                "default_state": {
+                  "anyOf": [
+                    {
+                      "description": "Rule evaluation states.",
+                      "enum": ["DISABLED", "ALLOWING", "BLOCKING"],
+                      "title": "RuleState",
+                      "type": "string"
+                    },
+                    {
+                      "type": "string"
+                    }
+                  ],
+                  "title": "Default State"
+                },
+                "default_values": {
+                  "additionalProperties": true,
+                  "propertyNames": {
+                    "enum": [
+                      "approved_formats",
+                      "approved_locations",
+                      "approved_licenses",
+                      "deny_orgs",
+                      "denied_org_models",
+                      "approved_org_models"
+                    ],
+                    "title": "RuleFieldValueKey",
+                    "type": "string"
+                  },
+                  "title": "Default Values",
+                  "type": "object"
+                },
+                "description": {
+                  "title": "Description",
+                  "type": "string"
+                },
+                "editable_fields": {
+                  "items": {
+                    "properties": {
+                      "attribute_name": {
+                        "maxLength": 256,
+                        "title": "Attribute Name",
+                        "type": "string"
+                      },
+                      "description": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "title": "Description"
+                      },
+                      "display_name": {
+                        "maxLength": 256,
+                        "title": "Display Name",
+                        "type": "string"
+                      },
+                      "display_type": {
+                        "description": "Editable field types are used by rule structure for UI rendering",
+                        "enum": ["SELECT", "LIST"],
+                        "title": "RuleEditableFieldType",
+                        "type": "string"
+                      },
+                      "dropdown_values": {
+                        "anyOf": [
+                          {
+                            "items": {
+                              "properties": {
+                                "label": {
+                                  "maxLength": 256,
+                                  "title": "Label",
+                                  "type": "string"
+                                },
+                                "value": {
+                                  "maxLength": 256,
+                                  "title": "Value",
+                                  "type": "string"
+                                }
+                              },
+                              "required": ["value", "label"],
+                              "title": "RuleEditableFieldDropdownSchema",
+                              "type": "object"
+                            },
+                            "type": "array"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "title": "Dropdown Values"
+                      },
+                      "type": {
+                        "maxLength": 256,
+                        "title": "Type",
+                        "type": "string"
+                      }
+                    },
+                    "required": ["attribute_name", "type", "display_name", "display_type"],
+                    "title": "RuleEditableFieldSchema",
+                    "type": "object"
+                  },
+                  "title": "Editable Fields",
+                  "type": "array"
+                },
+                "enabled_security_group_count": {
+                  "anyOf": [
+                    {
+                      "type": "integer"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "default": 0,
+                  "description": "Number of security groups that currently have this rule enabled. Null when reading a historical snapshot (via ?generation=N), since the count is a live value not captured in the snapshot.",
+                  "title": "Enabled Security Group Count"
+                },
+                "name": {
+                  "title": "Name",
+                  "type": "string"
+                },
+                "remediation": {
+                  "description": "Remediation steps for each rule",
+                  "properties": {
+                    "description": {
+                      "maxLength": 256,
+                      "title": "Description",
+                      "type": "string"
+                    },
+                    "steps": {
+                      "items": {
+                        "maxLength": 1024,
+                        "type": "string"
+                      },
+                      "title": "Steps",
+                      "type": "array"
+                    },
+                    "url": {
+                      "maxLength": 256,
+                      "title": "Url",
+                      "type": "string"
+                    }
+                  },
+                  "required": ["description", "steps", "url"],
+                  "title": "RuleRemediationSchema",
+                  "type": "object"
+                },
+                "rule_type": {
+                  "description": "Rule types for different scanning approaches.",
+                  "enum": ["METADATA", "ARTIFACT"],
+                  "title": "RuleType",
+                  "type": "string"
+                },
+                "uuid": {
+                  "format": "uuid",
+                  "title": "Uuid",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "uuid",
+                "name",
+                "description",
+                "rule_type",
+                "compatible_sources",
+                "default_state",
+                "remediation",
+                "editable_fields",
+                "constant_values",
+                "default_values"
+              ],
+              "title": "ModelSecurityRuleListItemSchema",
+              "type": "object"
+            },
+            "title": "Rules",
+            "type": "array"
+          }
+        },
+        "required": ["pagination", "rules"],
+        "title": "ListModelSecurityRulesResponseSchema",
+        "type": "object"
+      }
+    },
+    {
+      "direction": "response",
+      "validator": "ModelSecurityRuleResponseSchema",
+      "operations": ["GET /v1/security-rules/{uuid}"],
+      "schema": {
+        "description": "Response schema for model security rules - excludes internal fields like opa_path",
+        "properties": {
+          "compatible_sources": {
+            "items": {
+              "enum": [
+                "LOCAL",
+                "HUGGING_FACE",
+                "S3",
+                "GCS",
+                "AZURE",
+                "ARTIFACTORY",
+                "GITLAB",
+                "ALL"
+              ],
+              "title": "SourceType",
+              "type": "string"
+            },
+            "title": "Compatible Sources",
+            "type": "array"
+          },
+          "constant_values": {
+            "additionalProperties": true,
+            "propertyNames": {
+              "maxLength": 256
+            },
+            "title": "Constant Values",
+            "type": "object"
+          },
+          "default_state": {
+            "anyOf": [
+              {
+                "description": "Rule evaluation states.",
+                "enum": ["DISABLED", "ALLOWING", "BLOCKING"],
+                "title": "RuleState",
+                "type": "string"
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "title": "Default State"
+          },
+          "default_values": {
+            "additionalProperties": true,
+            "propertyNames": {
+              "enum": [
+                "approved_formats",
+                "approved_locations",
+                "approved_licenses",
+                "deny_orgs",
+                "denied_org_models",
+                "approved_org_models"
+              ],
+              "title": "RuleFieldValueKey",
+              "type": "string"
+            },
+            "title": "Default Values",
+            "type": "object"
+          },
+          "description": {
+            "title": "Description",
+            "type": "string"
+          },
+          "editable_fields": {
+            "items": {
+              "properties": {
+                "attribute_name": {
+                  "maxLength": 256,
+                  "title": "Attribute Name",
+                  "type": "string"
+                },
+                "description": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "title": "Description"
+                },
+                "display_name": {
+                  "maxLength": 256,
+                  "title": "Display Name",
+                  "type": "string"
+                },
+                "display_type": {
+                  "description": "Editable field types are used by rule structure for UI rendering",
+                  "enum": ["SELECT", "LIST"],
+                  "title": "RuleEditableFieldType",
+                  "type": "string"
+                },
+                "dropdown_values": {
+                  "anyOf": [
+                    {
+                      "items": {
+                        "properties": {
+                          "label": {
+                            "maxLength": 256,
+                            "title": "Label",
+                            "type": "string"
+                          },
+                          "value": {
+                            "maxLength": 256,
+                            "title": "Value",
+                            "type": "string"
+                          }
+                        },
+                        "required": ["value", "label"],
+                        "title": "RuleEditableFieldDropdownSchema",
+                        "type": "object"
+                      },
+                      "type": "array"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "title": "Dropdown Values"
+                },
+                "type": {
+                  "maxLength": 256,
+                  "title": "Type",
+                  "type": "string"
+                }
+              },
+              "required": ["attribute_name", "type", "display_name", "display_type"],
+              "title": "RuleEditableFieldSchema",
+              "type": "object"
+            },
+            "title": "Editable Fields",
+            "type": "array"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "remediation": {
+            "description": "Remediation steps for each rule",
+            "properties": {
+              "description": {
+                "maxLength": 256,
+                "title": "Description",
+                "type": "string"
+              },
+              "steps": {
+                "items": {
+                  "maxLength": 1024,
+                  "type": "string"
+                },
+                "title": "Steps",
+                "type": "array"
+              },
+              "url": {
+                "maxLength": 256,
+                "title": "Url",
+                "type": "string"
+              }
+            },
+            "required": ["description", "steps", "url"],
+            "title": "RuleRemediationSchema",
+            "type": "object"
+          },
+          "rule_type": {
+            "description": "Rule types for different scanning approaches.",
+            "enum": ["METADATA", "ARTIFACT"],
+            "title": "RuleType",
+            "type": "string"
+          },
+          "uuid": {
+            "format": "uuid",
+            "title": "Uuid",
+            "type": "string"
+          }
+        },
+        "required": [
+          "uuid",
+          "name",
+          "description",
+          "rule_type",
+          "compatible_sources",
+          "default_state",
+          "remediation",
+          "editable_fields",
+          "constant_values",
+          "default_values"
+        ],
+        "title": "ModelSecurityRuleResponseSchema",
+        "type": "object"
+      }
+    }
+  ]
+}

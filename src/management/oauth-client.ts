@@ -1,6 +1,7 @@
 import { DEFAULT_TOKEN_ENDPOINT } from '../constants.js';
 import { AISecSDKException, ErrorType } from '../errors.js';
 import { OAuthTokenResponseSchema } from '../models/oauth-token.js';
+import { abortable, deadline } from '../http/abort.js';
 
 /** Snapshot of the current token state (never exposes the actual token). */
 export interface TokenInfo {
@@ -36,10 +37,22 @@ export interface OAuthClientOptions {
 
 const DEFAULT_TOKEN_BUFFER_MS = 30_000; // refresh 30s before expiry
 
+/** Release unused token bodies without allowing stream cleanup to delay token failure. */
+function discardTokenResponse(response: Response): void {
+  try {
+    void response.body?.cancel().catch(() => {});
+  } catch {
+    // A reader may already own or have closed the body. The deadline remains authoritative.
+  }
+}
+
 /**
  * OAuth2 client_credentials token manager.
  * Caches tokens, refreshes before expiry, and deduplicates concurrent requests.
  * Backs {@link ManagementClient} auth; can also be constructed standalone.
+ * A single 30-second deadline bounds token headers and JSON-body reads, including
+ * transports that ignore cancellation. A timed-out refresh cannot cache a late token;
+ * subsequent calls may start a fresh refresh. Successful requests dispose their timer.
  * @example
  * ```ts
  * import { OAuthClient } from '@cdot65/prisma-airs-sdk';
@@ -197,49 +210,89 @@ export class OAuthClient {
       scope: `tsg_id:${this.tsgId}`,
     });
 
-    let response: Response;
+    const attempt = deadline(30_000);
+    let response: Response | undefined;
     try {
-      response = await fetch(this.tokenEndpoint, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-          Authorization: `Basic ${credentials}`,
-        },
-        body: body.toString(),
-      });
-    } catch (err) {
-      throw new AISecSDKException(
-        `Token request failed: ${(err as Error).message}`,
-        ErrorType.OAUTH_ERROR,
-      );
-    }
-
-    if (!response.ok) {
-      let errorMsg: string;
       try {
-        const errorBody = (await response.json()) as Record<string, unknown>;
-        errorMsg =
-          (errorBody.error_description as string) ??
-          (errorBody.error as string) ??
-          `Token request failed with status ${response.status}`;
-      } catch {
-        errorMsg = `Token request failed with status ${response.status}`;
+        response = await abortable<Response>(
+          fetch(this.tokenEndpoint, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/x-www-form-urlencoded',
+              Authorization: `Basic ${credentials}`,
+            },
+            body: body.toString(),
+            signal: attempt.signal,
+          }).then((received) => {
+            // A fetch wrapper can settle after abortable() has released every waiter.
+            if (attempt.signal.aborted) discardTokenResponse(received);
+            return received;
+          }),
+          attempt.signal,
+        );
+      } catch (err) {
+        throw new AISecSDKException(
+          `Token request failed: ${(err as Error).message}`,
+          ErrorType.OAUTH_ERROR,
+        );
       }
-      throw new AISecSDKException(errorMsg, ErrorType.OAUTH_ERROR);
-    }
 
-    const data = OAuthTokenResponseSchema.parse(await response.json());
-    this.accessToken = data.access_token;
-    this.expiresAt = Date.now() + data.expires_in * 1000;
+      if (!response.ok) {
+        let errorMsg: string;
+        try {
+          const errorBody = (await abortable(response.json(), attempt.signal)) as Record<
+            string,
+            unknown
+          >;
+          errorMsg =
+            (errorBody.error_description as string) ??
+            (errorBody.error as string) ??
+            `Token request failed with status ${response.status}`;
+        } catch {
+          errorMsg = `Token request failed with status ${response.status}`;
+        }
+        throw new AISecSDKException(errorMsg, ErrorType.OAUTH_ERROR, {
+          failureKind: 'http',
+          statusCode: response.status,
+        });
+      }
 
-    if (this.onTokenRefresh) {
+      let payload: unknown;
       try {
-        this.onTokenRefresh(this.getTokenInfo());
+        payload = await abortable(response.json(), attempt.signal);
       } catch {
-        // Don't let callback errors block token delivery
+        throw new AISecSDKException('Token response is not valid JSON', ErrorType.OAUTH_ERROR);
       }
-    }
+      const parsed = OAuthTokenResponseSchema.safeParse(payload);
+      if (!parsed.success) {
+        throw new AISecSDKException(
+          'Token response did not match the OAuth schema',
+          ErrorType.OAUTH_ERROR,
+        );
+      }
+      const data = parsed.data;
+      this.accessToken = data.access_token;
+      this.expiresAt = Date.now() + data.expires_in * 1000;
 
-    return this.accessToken;
+      if (this.onTokenRefresh) {
+        try {
+          this.onTokenRefresh(this.getTokenInfo());
+        } catch {
+          // Don't let callback errors block token delivery
+        }
+      }
+
+      return this.accessToken;
+    } catch (error) {
+      if (attempt.signal.aborted) {
+        if (response) discardTokenResponse(response);
+        throw new AISecSDKException('Token request timed out', ErrorType.OAUTH_ERROR, {
+          failureKind: 'network',
+        });
+      }
+      throw error;
+    } finally {
+      attempt.dispose();
+    }
   }
 }

@@ -1,3 +1,4 @@
+import { CreateSecurityProfileRequestSchema } from '../models/index.js';
 import { MGMT_PROFILE_PATH, MGMT_PROFILES_TSG_PATH } from '../constants.js';
 import { AISecSDKException, ErrorType } from '../errors.js';
 import { request } from '../http/request.js';
@@ -38,6 +39,23 @@ export interface ProfilesClientOptions {
 
 /** Client for AIRS security profile CRUD operations. */
 export class ProfilesClient {
+  /** List profiles using the OpenAPI route scoped by the authenticated token. @example `const page = await mgmt.profiles.listForToken({ latest: true });` */
+  async listForToken(opts: PaginationOptions = {}): Promise<SecurityProfileListResponse> {
+    const params: Record<string, string> = {
+      offset: String(opts.offset ?? 0),
+      limit: String(opts.limit ?? 100),
+    };
+    if (opts.latest !== undefined) params.latest = String(opts.latest);
+    return request({
+      method: 'GET',
+      baseUrl: this.baseUrl,
+      path: '/v1/mgmt/profiles',
+      params,
+      responseSchema: SecurityProfileListResponseSchema,
+      auth: this.auth,
+      numRetries: this.numRetries,
+    });
+  }
   private readonly baseUrl: string;
   private readonly auth: AuthAdapter;
   private readonly tsgId: string;
@@ -71,6 +89,7 @@ export class ProfilesClient {
    */
   async create(body: CreateSecurityProfileRequest): Promise<SecurityProfile> {
     return request({
+      requestSchema: CreateSecurityProfileRequestSchema,
       method: 'POST',
       baseUrl: this.baseUrl,
       path: MGMT_PROFILE_PATH,
@@ -209,6 +228,7 @@ export class ProfilesClient {
   async update(profileId: string, body: CreateSecurityProfileRequest): Promise<SecurityProfile> {
     assertUuid(profileId, 'profile_id');
     return request({
+      requestSchema: CreateSecurityProfileRequestSchema,
       method: 'PUT',
       baseUrl: this.baseUrl,
       path: `${MGMT_PROFILE_PATH}/uuid/${profileId}`,

@@ -1,5 +1,14 @@
+import {
+  AdapterCreateRequestSchema,
+  AdapterUpdateRequestSchema,
+  AdapterValidateRequestSchema,
+} from '../models/index.js';
 import { RED_TEAM_ADAPTER_PATH, RED_TEAM_ADAPTER_VALIDATE_PATH } from '../constants.js';
 import { request } from '../http/request.js';
+import {
+  AdapterConfigResponseSchema,
+  type AdapterConfigResponse,
+} from '../models/red-team-capabilities.js';
 import type { AuthAdapter } from '../http/types.js';
 import { serializeListing } from '../listing.js';
 import { assertUuid } from '../validators.js';
@@ -19,8 +28,13 @@ import {
 import type { RedTeamListOptions } from './scans-client.js';
 import { collectSkipPages, type CollectAllOptions } from '../listing.js';
 
+/** Adapter lifecycle filters and optional reference counts. */
+export interface AdapterListOptions extends RedTeamListOptions {
+  status?: 'DRAFT' | 'ACTIVE';
+  include_target_count?: boolean;
+}
 export interface AdapterListAllOptions
-  extends Omit<RedTeamListOptions, 'skip'>, CollectAllOptions {}
+  extends Omit<AdapterListOptions, 'skip'>, CollectAllOptions {}
 
 /** Options for adapter create/update operations. */
 export interface AdapterOperationOptions {
@@ -67,6 +81,17 @@ export interface RedTeamAdaptersClientOptions {
  * ```
  */
 export class RedTeamAdaptersClient {
+  /** Read adapter script and test-prompt defaults. @example `const config = await rt.adapters.getConfig();` */
+  async getConfig(): Promise<AdapterConfigResponse> {
+    return request({
+      method: 'GET',
+      baseUrl: this.baseUrl,
+      path: `${RED_TEAM_ADAPTER_PATH}/config`,
+      responseSchema: AdapterConfigResponseSchema,
+      auth: this.auth,
+      numRetries: this.numRetries,
+    });
+  }
   private readonly baseUrl: string;
   private readonly auth: AuthAdapter;
   private readonly numRetries: number;
@@ -99,6 +124,7 @@ export class RedTeamAdaptersClient {
   ): Promise<AdapterResponse> {
     const validate = opts?.validate ?? true;
     return request({
+      requestSchema: AdapterCreateRequestSchema,
       method: 'POST',
       baseUrl: this.baseUrl,
       path: RED_TEAM_ADAPTER_PATH,
@@ -120,12 +146,16 @@ export class RedTeamAdaptersClient {
    * // data => [{ uuid: '...', name: 'my-adapter', status: 'ACTIVE' }]
    * ```
    */
-  async list(opts?: RedTeamListOptions): Promise<AdapterList> {
+  async list(opts?: AdapterListOptions): Promise<AdapterList> {
+    const params = serializeListing(opts);
+    if (opts?.status !== undefined) params.status = opts.status;
+    if (opts?.include_target_count !== undefined)
+      params.include_target_count = String(opts.include_target_count);
     return request({
       method: 'GET',
       baseUrl: this.baseUrl,
       path: RED_TEAM_ADAPTER_PATH,
-      params: serializeListing(opts),
+      params,
       responseSchema: AdapterListSchema,
       auth: this.auth,
       numRetries: this.numRetries,
@@ -192,6 +222,7 @@ export class RedTeamAdaptersClient {
     assertUuid(uuid, 'adapter uuid');
     const validate = opts?.validate ?? true;
     return request({
+      requestSchema: AdapterUpdateRequestSchema,
       method: 'PUT',
       baseUrl: this.baseUrl,
       path: `${RED_TEAM_ADAPTER_PATH}/${uuid}`,
@@ -246,6 +277,7 @@ export class RedTeamAdaptersClient {
    */
   async validate(body: AdapterValidateRequest): Promise<AdapterValidateResponse> {
     return request({
+      requestSchema: AdapterValidateRequestSchema,
       method: 'POST',
       baseUrl: this.baseUrl,
       path: RED_TEAM_ADAPTER_VALIDATE_PATH,

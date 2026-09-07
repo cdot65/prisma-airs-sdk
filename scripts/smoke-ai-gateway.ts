@@ -26,6 +26,9 @@ export interface CheckResult {
   name: string;
   ok: boolean;
   detail: string;
+  durationMs: number;
+  errorType?: string;
+  statusCode?: number;
 }
 
 const gw = new AIGatewayClient();
@@ -39,6 +42,7 @@ function printResult(result: CheckResult): void {
 }
 
 async function check(name: string, fn: () => Promise<unknown>): Promise<void> {
+  const started = Date.now();
   try {
     const r = await fn();
     let shape = '';
@@ -50,7 +54,7 @@ async function check(name: string, fn: () => Promise<unknown>): Promise<void> {
       else if (o.data && typeof o.data === 'object') shape = 'envelope';
       else shape = `${Object.keys(o).length} fields`;
     }
-    const result = { name, ok: true, detail: shape };
+    const result = { name, ok: true, detail: shape, durationMs: Date.now() - started };
     results.push(result);
     printResult(result);
   } catch (e) {
@@ -60,13 +64,22 @@ async function check(name: string, fn: () => Promise<unknown>): Promise<void> {
         : String(e);
     const msg =
       logLevel === 'verbose' ? rawMessage.slice(0, 4_000) : rawMessage.split('\n')[0].slice(0, 120);
-    const result = { name, ok: false, detail: msg };
+    const result = {
+      name,
+      ok: false,
+      detail: msg,
+      durationMs: Date.now() - started,
+      ...(e instanceof AISecSDKException
+        ? { errorType: e.errorType, statusCode: e.statusCode }
+        : { errorType: e instanceof Error ? e.name : 'UnknownError' }),
+    };
     results.push(result);
     printResult(result);
   }
 }
 
 export async function main(): Promise<CheckResult[]> {
+  results.length = 0;
   const ws = await gw.workspaces.list();
   const slug = ws.data[0].slug;
   const wsId = ws.data[0].id;

@@ -36,6 +36,12 @@ export interface RequestSpec<TResponse = void> {
   baseUrl: string;
   path: string;
   params?: Record<string, string | string[]>;
+  /** Additional headers, applied before the authentication adapter. */
+  headers?: Record<string, string>;
+  /** Optional caller-owned transport, for explicit proxy/custom network integration. */
+  fetch?: typeof globalThis.fetch;
+  /** Inference credentials must not follow redirects to other origins. */
+  redirect?: 'error' | 'follow' | 'manual';
   body?: unknown;
   /**
    * Optional runtime schema for a JSON request body. Validation occurs before authentication or
@@ -46,6 +52,8 @@ export interface RequestSpec<TResponse = void> {
   requestSchema?: z.ZodType<unknown, any, any>;
   /** AI Gateway operation context used to redact marked request/response debug bodies. */
   secretOperation?: AIGatewaySecretOperation;
+  /** Omit sensitive request and response bodies from debug output. */
+  omitDebugBody?: boolean;
   /**
    * Override the request Content-Type when a JSON `body` is sent. Defaults to `application/json`.
    * Used by DLP endpoints that require `application/merge-patch+json` (RFC 7396).
@@ -58,11 +66,21 @@ export interface RequestSpec<TResponse = void> {
    * over `body`.
    */
   formData?: FormData;
+  /** Encode a schema-validated request as multipart before authentication/network activity. */
+  encodeFormData?: (validatedBody: unknown) => FormData;
   // `any` for Zod's def/input generics so schemas where input ≠ output (e.g. those built with
   // `.default()` or `.passthrough()`) still satisfy the constraint. Only the parsed output shape
   // is consumed at runtime.
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   responseSchema?: z.ZodType<TResponse, any, any>;
+  /** Return a text response (for CSV downloads) without JSON decoding. */
+  responseType?: 'json' | 'text' | 'bytes';
+  /** Transfer response/deadline ownership to a cancellable streaming consumer. */
+  streamResponse?: (response: Response, signal: AbortSignal, dispose: () => void) => TResponse;
+  /** Optional cancellation signal for the request and its retries. */
+  signal?: AbortSignal;
+  /** Per-attempt timeout including body consumption, in milliseconds. Defaults to 60 seconds. */
+  timeoutMs?: number;
   /**
    * When true, an empty 2xx body resolves to `undefined` instead of hydrating to `{}` for
    * schema validation. Used by DLP endpoints that can return either 200 + body or 204 + no

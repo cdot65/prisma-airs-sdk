@@ -9,6 +9,31 @@ import {
 } from '../src/listing.js';
 
 describe('pagination helpers', () => {
+  it('does not fetch an extra page when max is exactly a page boundary', async () => {
+    const fetchPage = vi.fn().mockResolvedValue({ items: [1, 2], next: 2 });
+    await expect(collectAll(paginate(fetchPage, 0), { max: 2 })).resolves.toEqual([1, 2]);
+    expect(fetchPage).toHaveBeenCalledTimes(1);
+  });
+
+  it('closes the iterator when reaching the cap', async () => {
+    const closed = vi.fn();
+    async function* values() {
+      try {
+        yield 1;
+        yield 2;
+      } finally {
+        closed();
+      }
+    }
+    await collectAll(values(), { max: 1 });
+    expect(closed).toHaveBeenCalledOnce();
+  });
+
+  it.each([-1, 1.5, NaN, Infinity])('rejects invalid max %s before fetching', async (max) => {
+    const fetchPage = vi.fn();
+    await expect(collectAll(paginate(fetchPage, 0), { max })).rejects.toThrow(RangeError);
+    expect(fetchPage).not.toHaveBeenCalled();
+  });
   it('paginates until the page has no next cursor', async () => {
     const fetchPage = vi
       .fn()
@@ -39,6 +64,18 @@ describe('pagination helpers', () => {
 });
 
 describe('pagination dialect adapters', () => {
+  it.each([0, -1, 1.5, NaN, Infinity])('rejects invalid page size %s', (size) => {
+    const fetchPage = vi.fn();
+    expect(() => collectSkipPages(fetchPage, { limit: size })).toThrow(RangeError);
+    expect(() => collectSpringPages(fetchPage, { size })).toThrow(RangeError);
+    expect(fetchPage).not.toHaveBeenCalled();
+  });
+
+  it('rejects empty non-final Spring pages instead of walking forever', async () => {
+    const fetchPage = vi.fn().mockResolvedValue({ items: [], last: false });
+    await expect(collectSpringPages(fetchPage)).rejects.toThrow('empty non-final page');
+    expect(fetchPage).toHaveBeenCalledOnce();
+  });
   it('walks skip/limit pages using total_items', async () => {
     const fetchPage = vi
       .fn()

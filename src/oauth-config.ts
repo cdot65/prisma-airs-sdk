@@ -63,6 +63,12 @@ export function resolveOAuthConfig(opts: ResolveOAuthConfigOptions): OAuthServic
     process.env[`${primaryEnvPrefix}_TOKEN_ENDPOINT`] ??
     (fallbackEnvPrefix ? process.env[`${fallbackEnvPrefix}_TOKEN_ENDPOINT`] : undefined);
 
+  if (opts.numRetries !== undefined && !Number.isInteger(opts.numRetries)) {
+    throw new AISecSDKException(
+      'numRetries must be a finite integer',
+      ErrorType.USER_REQUEST_PAYLOAD_ERROR,
+    );
+  }
   const numRetries = Math.min(
     Math.max(opts.numRetries ?? MAX_NUMBER_OF_RETRIES, 0),
     MAX_NUMBER_OF_RETRIES,

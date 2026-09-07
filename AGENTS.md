@@ -15,6 +15,7 @@ npm run test:watch     # vitest watch mode
 npm run test:coverage  # vitest with v8 coverage
 npm run lint           # eslint
 npm run typecheck      # tsc --noEmit
+npm run typecheck:tooling # typecheck the OpenAPI audit and E2E tools
 npm run format         # prettier --write
 npm run format:check   # prettier --check
 npm run clean          # rm -rf dist/
@@ -23,11 +24,13 @@ npm run docs:serve     # build typedoc, then run docs-site (Docusaurus) dev serv
 npm run docs:build     # build typedoc + docs-site static site
 npm run docs:check     # verify every public symbol has example coverage (CI gate)
 npm run docs:check:warn # same, exit 0 even on gaps
-npm run preflight      # diff Zod schemas vs OpenAPI specs in schemas/ (strict; local/pre-release)
-npm run preflight:warn # same, exit 0 even on drift
+npm run preflight      # frozen OpenAPI operation/field/validation contract gate (offline CI)
+npm run openapi:audit  # fresh local source audit; records specification hashes
+npm run preflight:legacy # historical component-name comparison (not a coverage measure)
+npm run preflight:warn # historical comparison, warning-only
 ```
 
-`preflight` diffs the Zod schemas in `src/models/` against the OpenAPI specs referenced by `schemas/`. `schemas/` is a **gitignored** directory of symlinks to a local pan.dev `openapi-specs` checkout (see `.gitignore`), so preflight is a **local / pre-release check, not a CI gate** — run it before tagging a release or after API-side changes. The exact spec files it reads are the explicit `MODELED_SPECS` list in `scripts/preflight-schemas.ts`; keep that list in sync with `src/models/`. Runnable usage examples live in `docs-site/examples/` (one `*.ts` per workflow) and are surfaced through the docs site, not via `npm run` scripts.
+`preflight` and `openapi:check` run frozen operation, field, query and validation contracts without needing external checkouts. For a fresh audit, set `AIRS_OPENAPI_DIR` and `GATEWAY_OPENAPI_FILE`; `schemas/` remains a gitignored local fallback. Keep source hashes, compatibility corrections and frozen fixtures synchronized using `scripts/openapi/`. Never equate gateway disposition/classification with implementation coverage. The historical component-name diff is retained only as `preflight:legacy`. Runnable examples live in `docs-site/examples/`, and Docusaurus type-checks them against this checkout.
 
 Run a single test file:
 
@@ -43,28 +46,29 @@ npx vitest run -t "test name pattern"
 
 ## Architecture
 
-**4 service domains**, 2 auth methods:
+**AIRS services, SCM AI Gateway and gateway runtime**, 3 explicit auth methods:
 
 - **Scan API** (API Key): `init()` → `Scanner` → `syncScan()`, `asyncScan()`, `queryByScanIds()`, `queryByReportIds()` against the AIRS content scanning endpoint
 - **Management API** (OAuth2): `ManagementClient` exposes sub-clients `profiles`, `topics`, `apiKeys`, `customerApps`, `dlpProfiles`, `deploymentProfiles`, `scanLogs`, `oauth`, `dashboard`, and `dlp` (namespace over `dataFilteringProfiles`, `dataPatterns`, `dataProfiles`, `dictionaries` — separate DLP base URL, shared OAuth creds)
-- **Model Security API** (OAuth2): `ModelSecurityClient` exposes `scans`, `securityGroups`, `securityRules` (read-only) + `getPyPIAuth()`
+- **Model Security API** (OAuth2): `ModelSecurityClient` exposes `scans`, `securityGroups`, `securityRules` (read-only), `models`, `customRules` + `getPyPIAuth()`
 - **Red Team API** (OAuth2): `RedTeamClient` exposes `scans`, `reports`, `customAttackReports`, `targets`, `customAttacks`, `eula`, `instances` + dashboard convenience methods (`getScanStatistics`, `getScoreTrend`, `getQuota`, `getErrorLogs`, `updateSentiment`, `getSentiment`, `getDashboardOverview`). Splits data-plane vs management-plane base URLs.
 
 Key modules:
 
 - `src/scan/` — Scanner, Content (API key auth via `init()`)
 - `src/management/` — ManagementClient, OAuthClient + per-resource clients (profiles, topics, api-keys, customer-apps, dlp-profiles, deployment-profiles, scan-logs, oauth-management, dashboard) and `dlp/` namespace
-- `src/model-security/` — ModelSecurityClient + 3 sub-clients (scans, security-groups, security-rules)
-- `src/red-team/` — RedTeamClient + 7 sub-clients (scans, reports, custom-attack-reports, targets, custom-attacks, eula, instances)
+- `src/model-security/` — ModelSecurityClient + 5 sub-clients (scans, security-groups, security-rules, models, custom-rules)
+- `src/red-team/` — RedTeamClient + 9 sub-clients (scans, reports, custom-attack-reports, targets, custom-attacks, eula, instances, adapters, network-broker)
+- `src/ai-gateway/` — 17 SCM sub-clients; OAuth + x-tsg-id; explicit admin/data routing. Separate `AIGatewayInferenceClient` / `AIGatewayClient.inference` runtime uses an explicit endpoint and `x-portkey-api-key`, typed HTTP resources and bounded cancellable SSE. Runtime retries default to zero.
 - `src/http/` — shared request pipeline (`request.ts`), auth adapters (`auth/api-key.ts` HMAC, `auth/oauth.ts` bearer), opt-in debug logging (`debug.ts`, gated by `PANW_AI_SEC_DEBUG`, hashes token headers), types
 - `src/http-retry.ts` — shared exponential backoff + full-jitter retry (used by the request pipeline)
 - `src/models/` — Zod schemas + inferred TypeScript types for all API models
 - `src/errors.ts` — `AISecSDKException` with `ErrorType` enum (7 types)
 - `src/constants.ts` — API paths, content limits, batch limits, header names, endpoints, retry config
 
-**Auth:** API key (HMAC-SHA256) for AIRS scans only. OAuth2 `client_credentials` for everything else (management CRUD, model security, red teaming). Model Security and Red Team OAuth creds fall back to `PANW_MGMT_*` when their own `PANW_MODEL_SEC_*` / `PANW_RED_TEAM_*` vars are unset.
+**Auth:** API key (HMAC-SHA256) for AIRS scans only. OAuth2 `client_credentials` for management CRUD, SCM gateway, model security and red teaming. Runtime gateway keys are sent as `x-portkey-api-key`, without OAuth or TSG headers. Model Security and Red Team OAuth creds fall back to `PANW_MGMT_*` when their own `PANW_MODEL_SEC_*` / `PANW_RED_TEAM_*` vars are unset. Never infer a runtime hostname or key from SCM credentials.
 
-**Validation strategy:** Content validates at setter time, Scanner validates arguments, Zod validates API responses. Models use `.passthrough()` for forward compat.
+**Validation strategy:** Content validates at setter time; requests validate before authentication/network I/O; Zod validates API responses. Stable request objects are strict, declared JSON extension maps are finite/prototype-safe, and response objects use `.passthrough()` for forward compatibility. Debug bodies require separate `PANW_AI_SEC_DEBUG_BODY` opt-in; secret operations always omit them.
 
 ## Conventions
 
@@ -74,10 +78,10 @@ Key modules:
 - Tests in `test/` mirror `src/` structure, files named `*.spec.ts`
 - Tests mock fetch via `vi.fn()`, reset `globalConfiguration` in `beforeEach`
 - All public API exported from `src/index.ts` barrel
-- Batch operations limited to 5 items max
+- Respect per-operation batch constants: async scan batches permit 20 entries; scan/report ID queries permit 5.
 
 ## CI/CD
 
-- GitHub Actions test matrix: Node 18, 20, 22
+- GitHub Actions test matrix: Node 18, 20, 22, 24; Node 22 enforces statement/line/function coverage ≥99% and branch coverage ≥95%.
 - Publish via OIDC trusted publishing on GitHub release (Node 24, no npm tokens)
 - `prepublishOnly` runs lint + test

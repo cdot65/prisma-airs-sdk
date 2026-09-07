@@ -6,9 +6,10 @@ Scan ML models for supply-chain threats — malicious code, backdoors, unsafe se
 
 Model Security inspects a model artifact (its weights, config, and bundled files) and runs each file through a set of **security rules**. Think of it like an antivirus scan for ML models: it unpacks the model, looks for known dangerous patterns (e.g. arbitrary-code-execution in pickle files, suspicious imports, disallowed file formats), and returns a verdict.
 
-Three concepts do the work:
+The core concepts are:
 
 - **Security rules** — the individual checks (e.g. "Pickle Scan", "unapproved format"). These are read-only and provided by the platform. Browse them with `client.securityRules`.
+- **Custom rules** — tenant-authored label/result conditions, managed through `client.customRules` with create/update, archive/unarchive, version history and security-group assignment. Archiving is not hard deletion.
 - **Security groups** — a named bundle of rule _instances_, each set to a posture: `BLOCKING`, `ALLOWING`, or `DISABLED`. A group is the policy you point a scan at. You pick which rules apply and how strict each one is.
 - **Scans** — a single evaluation of one model against one security group. A scan produces an overall **eval outcome** (`PENDING` / `ALLOWED` / `BLOCKED` / `ERROR`), plus per-rule **evaluations**, the **files** that were inspected, and any **violations** found.
 
@@ -16,7 +17,29 @@ The flow: define a security group once → run scans against it → read the out
 
 **When to use it:** vetting third-party models (Hugging Face, S3, registries) before deployment, gating models in CI, or auditing what's already in use. Two planes are involved — a **data plane** for scans and model/version browsing (`client.scans`, `client.models`) and a **management plane** for groups and rules (`client.securityGroups`, `client.securityRules`) — but a single OAuth2 token covers both, handled for you.
 
-## Authentication
+## Custom rules and version history
+
+```ts
+const rule = await client.customRules.create({
+  name: 'Require reviewed models',
+  compatible_sources: ['LOCAL'],
+  condition: { type: 'label', key: 'reviewed', operator: 'not_exists' },
+  violation_message: 'The model needs a review label.',
+  rule_action: 'FAIL',
+});
+const history = await client.customRules.listVersions({ limit: 10 });
+```
+
+Conditions can combine label and rule-result tests through recursive `and`/`or` groups.
+Bulk assignment can return HTTP 207 with per-group failures: inspect the response rather than
+treating a successful HTTP status as proof every assignment succeeded. Security groups and rules
+also expose version/generation fields. Scan file reads support recursive traversal and model-version
+filters; scan labels validate documented key/value lengths before submission.
+
+The live suite validates these management workflows and scanner-result ingestion. It does not
+claim to execute the proprietary scanner engine. See [validation scope](../developer/openapi-conformance.md).
+
+## OAuth authentication
 
 The Model Security API uses OAuth2 `client_credentials` flow. Credentials fall back to `PANW_MGMT_*` env vars if `PANW_MODEL_SEC_*` vars are not set.
 

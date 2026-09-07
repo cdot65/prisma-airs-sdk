@@ -14,6 +14,7 @@ tooling plus the changeset-driven release flow that keep schemas honest.
 The TypeDoc-generated [Full API reference](../reference/api/index.md) is the authoritative
 listing of every exported type and schema. This page is about the _policy_ around those exports.
 :::
+
 ## Semantic versioning (pre-1.0)
 
 The SDK is published as `@cdot65/prisma-airs-sdk`. At the time of writing the version in
@@ -69,10 +70,7 @@ API ships a new response field, an already-installed SDK version:
 2. preserves the new field on the returned object, so advanced callers can read it via an index
    even before the SDK adds a typed accessor.
 
-This decouples the API's release cadence from the SDK's. The SDK models known fields strictly
-(required vs optional, types) while staying robust to additive server changes. The risk it accepts
-is the inverse: if the API _changes the shape_ of a known field, `.passthrough()` won't catch it —
-preflight's strict checks on required fields and shared field types are what guard against that.
+This decouples the API's release cadence from the SDK's. Known fields remain validated: a server-side type change can still raise a response-validation error. Passthrough preserves additional fields; it does not weaken validators for declared properties.
 
 ## Relationship to the OpenAPI specs and the Python SDK
 
@@ -94,8 +92,7 @@ schemas/  →  <pan.dev checkout>/openapi-specs/
   dlp/DataPatterns.yaml  dlp/DataProfiles.yaml  dlp/Dictionaries.yaml
 ```
 
-The AI Gateway has no published spec; its models are verified against live SCM responses instead
-(see the [AI Gateway guide](../guides/ai-gateway-api.mdx)).
+The gateway comparison uses the supplied Portkey OpenAPI document, configured through `GATEWAY_OPENAPI_FILE`. Prisma SCM is an adaptation: route planes, authentication, envelopes and lifecycle behavior require separate live verification. The runtime client uses its explicit endpoint and API key, never SCM OAuth. See the [complete gateway ledger](./gateway-coverage.md) for implemented routes versus adaptations and unverified gaps.
 
 These specs are the **source of truth for shapes**. The Zod schemas in `src/models/` are the
 hand-written, runtime-validating counterpart, and the preflight script (below) checks that the two
@@ -113,32 +110,22 @@ files that back implemented resources (`dlp-api-spec-v2.yaml` for data filtering
 collisions (e.g. two different `Policy` definitions) and produce false drift against unrelated
 schemas.
 :::
+
 ## Preflight: catching Zod-vs-OpenAPI drift
 
-`npm run preflight` (`scripts/preflight-schemas.ts`) is the static drift check. It:
-
-1. Loads and dereferences each spec in `MODELED_SPECS` from `schemas/` into a map of component
-   schemas (and exits 2 if the alias or any listed file is missing).
-2. Loads every `*Schema` Zod export from `src/models/` and converts each to JSON Schema via
-   `zod-to-json-schema`.
-3. Matches each Zod schema to its OpenAPI counterpart by name and diffs them.
-
-The diff is intentionally **asymmetric** (see `scripts/preflight/diff-schemas.ts`): Zod is allowed
-to omit _optional_ OpenAPI fields (passthrough handles those at runtime), but **required fields and
-shared field types are checked strictly**. It reports four drift kinds: `missing-required-field`,
-`extra-required-field`, `type-mismatch`, and `extra-field`.
+`npm run preflight` now runs the frozen operation-contract tests (`npm run openapi:check`): exact requests, paths, query serialization, request validation and response validation. These tests run offline in CI without the gitignored source checkout.
 
 ```bash
-npm run preflight        # strict — exit 1 on unacknowledged drift (local / pre-release)
-npm run preflight:warn   # report drift, exit 0
+npm run preflight         # frozen operation-contract gate, also in CI
+npm run openapi:audit     # fresh local source audit with hashes
+npm run preflight:legacy  # historical component-name comparison, not coverage
 ```
 
-Known, intentional divergences are recorded in an **allowlist** (`scripts/preflight/allowlist.ts`).
-The report separates _acknowledged_ (allowlisted) drift from _unacknowledged_ drift, and only the
-latter fails the run. The check started life as `preflight:warn` in CI while drift was paid down
-(81 → 39 findings across a series of PRs), flipped to strict, and was later moved out of CI because
-the specs are a gitignored local checkout. Today it is a **local, pre-release check**: run
-`npm run preflight` before tagging a release or after API-side changes.
+The fresh audit reads `AIRS_OPENAPI_DIR` and `GATEWAY_OPENAPI_FILE` (with the local `schemas/` alias as an AIRS fallback). It records source SHA-256 hashes, enumerates operations, counts typed request/response properties, and validates independently generated positive/negative fixtures. Optional declared properties count too: passthrough is not typed property coverage. The audit distinguishes the supplied seven AIRS contracts from supplemental DLP models and the complete 242-operation Portkey inventory.
+
+Compatibility corrections have explicit source pointers and rationales in `scripts/openapi/compatibility.ts`; runtime-only corrections are also recorded in the generator and inference guide. Do not silently edit an upstream spec or weaken a request constraint to accommodate a response variation. Frozen fixtures under `test/openapi/` make the contract reproducible without upstream network access.
+
+The historical component-name comparison remains only as `preflight:legacy` and its warning-only variant. Its allowlist and optional-field omissions are not coverage evidence. It requires local source files and is not the current CI gate. See [OpenAPI conformance](./openapi-conformance.md) for exact denominators: passing the AIRS gate does not mean the complete Portkey API is implemented.
 
 ## Documentation checks
 
@@ -187,6 +174,5 @@ Conventions in this repo:
 - **Internal-only** work (e.g. the preflight gate, `0011-preflight-schema-check.md`) is still
   recorded as a `patch` with an explicit "no public API change" note.
 
-These accumulated changesets are what drive the version bump and the release notes when a release is
-cut. `prepublishOnly` runs `lint` + `test` as a final guard, and the package publishes via OIDC
+Changesets record the intended bump and release-note content. The SDK does not currently install a Changesets versioning CLI: its release operator must update package.json and the lockfile together with the normal npm version workflow, then create the matching GitHub release. The companion CLI has its own Changesets-managed workflow. `prepublishOnly` runs `lint` + `test` as a final guard, and the package publishes via OIDC
 trusted publishing on a GitHub release — no npm tokens.

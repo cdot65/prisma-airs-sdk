@@ -1,0 +1,1500 @@
+{
+  "source": "prisma-airs-redteam/data-plane/dp-openapi.yaml",
+  "sha256": "667ce2ea6842c5f96de7a41786d055fa6032d64186bdce4d23edfeeabf10d76d",
+  "corrections": [],
+  "contracts": [
+    {
+      "direction": "response",
+      "validator": "AttackMultiTurnDetailResponseSchema",
+      "operations": ["GET /v1/report/static/{job_id}/attack-multi-turn/{attack_id}"],
+      "schema": {
+        "properties": {
+          "uuid": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Uuid"
+          },
+          "tsg_id": {
+            "type": "string",
+            "title": "Tsg Id"
+          },
+          "job_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Job Id",
+            "description": "Associated job UUID"
+          },
+          "target_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Target Id",
+            "description": "Target UUID"
+          },
+          "prompt": {
+            "type": "string",
+            "title": "Prompt",
+            "description": "The actual prompt text used"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["INIT", "ATTACK", "DETECTION", "REPORT", "COMPLETED", "FAILED"],
+            "title": "AttackStatus",
+            "description": "Attack status",
+            "default": "INIT"
+          },
+          "marked_safe": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Marked Safe",
+            "description": "Manual safety marking"
+          },
+          "extra_info": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Extra Info",
+            "description": "Additional metadata"
+          },
+          "threat": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Threat",
+            "description": "Threat detection result"
+          },
+          "attack_type": {
+            "type": "string",
+            "enum": ["NORMAL", "CUSTOM"],
+            "title": "AttackType",
+            "description": "Type of attack",
+            "default": "NORMAL"
+          },
+          "multi_turn": {
+            "type": "boolean",
+            "title": "Multi Turn",
+            "description": "Multi-turn conversation flag",
+            "default": false
+          },
+          "asr": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 100,
+                "minimum": 0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Asr",
+            "description": "Attack Success Rate (0-100)"
+          },
+          "version": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Version",
+            "description": "Attack version"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error",
+            "description": "True if all attack attempts failed (zero outputs produced)"
+          },
+          "prompt_mapping_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Prompt Mapping Id",
+            "description": "Prompt mapping UUID"
+          },
+          "prompt_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Prompt Id",
+            "description": "Prompt UUID"
+          },
+          "category": {
+            "type": "string",
+            "enum": ["SECURITY", "SAFETY", "COMPLIANCE", "BRAND"],
+            "title": "Category",
+            "description": "Attack category"
+          },
+          "sub_category": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "ADVERSARIAL_SUFFIX",
+                  "EVASION",
+                  "INDIRECT_PROMPT_INJECTION",
+                  "JAILBREAK",
+                  "MULTI_TURN",
+                  "PROMPT_INJECTION",
+                  "REMOTE_CODE_EXECUTION",
+                  "SYSTEM_PROMPT_LEAK",
+                  "TOOL_LEAK",
+                  "MALWARE_GENERATION"
+                ],
+                "title": "SecuritySubCategory"
+              },
+              {
+                "type": "string",
+                "enum": [
+                  "BIAS",
+                  "CBRN",
+                  "CYBERCRIME",
+                  "DRUGS",
+                  "HATE_TOXIC_ABUSE",
+                  "NON_VIOLENT_CRIMES",
+                  "POLITICAL",
+                  "SELF_HARM",
+                  "SEXUAL",
+                  "VIOLENT_CRIMES_WEAPONS"
+                ],
+                "title": "SafetySubCategory"
+              },
+              {
+                "type": "string",
+                "enum": [
+                  "COMPETITOR_ENDORSEMENTS",
+                  "BRAND_TARNISHING_SELF_CRITICISM",
+                  "DISCRIMINATING_CLAIMS",
+                  "POLITICAL_ENDORSEMENTS"
+                ],
+                "title": "BrandSubCategory"
+              },
+              {
+                "type": "string",
+                "enum": ["OWASP", "MITRE_ATLAS", "NIST", "DASF_V2"],
+                "title": "ComplianceSubCategory"
+              }
+            ],
+            "title": "Sub Category",
+            "description": "Attack subcategory"
+          },
+          "severity": {
+            "type": "string",
+            "description": "Attack severity level"
+          },
+          "category_display_name": {
+            "type": "string",
+            "title": "Category Display Name"
+          },
+          "sub_category_display_name": {
+            "type": "string",
+            "title": "Sub Category Display Name"
+          },
+          "compliance_frameworks": {
+            "items": {
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "title": "Id",
+                  "description": "Compliance framework unique identifier"
+                },
+                "display_name": {
+                  "type": "string",
+                  "title": "Display Name",
+                  "description": "Compliance framework display name for frontend"
+                },
+                "description": {
+                  "type": "string",
+                  "title": "Description",
+                  "description": "Compliance framework description"
+                },
+                "active": {
+                  "type": "boolean",
+                  "title": "Active",
+                  "description": "Whether compliance framework is active"
+                },
+                "version": {
+                  "type": "string",
+                  "title": "Version",
+                  "description": "Compliance framework version"
+                },
+                "link": {
+                  "type": "string",
+                  "title": "Link",
+                  "description": "Compliance framework documentation link"
+                },
+                "techniques": {
+                  "items": {
+                    "properties": {
+                      "id": {
+                        "type": "string",
+                        "title": "Id",
+                        "description": "Technique unique identifier"
+                      },
+                      "display_name": {
+                        "type": "string",
+                        "title": "Display Name",
+                        "description": "Technique display name for frontend"
+                      },
+                      "compliance_id": {
+                        "type": "string",
+                        "title": "Compliance Id",
+                        "description": "Associated compliance framework ID"
+                      },
+                      "description": {
+                        "type": "string",
+                        "title": "Description",
+                        "description": "Technique description"
+                      },
+                      "link": {
+                        "type": "string",
+                        "title": "Link",
+                        "description": "Technique documentation link"
+                      },
+                      "version": {
+                        "type": "string",
+                        "title": "Version",
+                        "description": "Technique version"
+                      },
+                      "active": {
+                        "type": "boolean",
+                        "title": "Active",
+                        "description": "Whether technique is active"
+                      }
+                    },
+                    "type": "object",
+                    "required": [
+                      "id",
+                      "display_name",
+                      "compliance_id",
+                      "description",
+                      "link",
+                      "version",
+                      "active"
+                    ],
+                    "title": "TechniqueModel",
+                    "description": "Pydantic model for technique data"
+                  },
+                  "type": "array",
+                  "title": "Techniques",
+                  "description": "List of Techniques"
+                }
+              },
+              "type": "object",
+              "required": [
+                "id",
+                "display_name",
+                "description",
+                "active",
+                "version",
+                "link",
+                "techniques"
+              ],
+              "title": "ComplianceWithTechniqueModel"
+            },
+            "type": "array",
+            "title": "Compliance Frameworks"
+          },
+          "outputs": {
+            "items": {
+              "items": {
+                "properties": {
+                  "uuid": {
+                    "type": "string",
+                    "format": "uuid",
+                    "title": "Uuid"
+                  },
+                  "tsg_id": {
+                    "type": "string",
+                    "title": "Tsg Id"
+                  },
+                  "attack_id": {
+                    "type": "string",
+                    "format": "uuid",
+                    "title": "Attack Id",
+                    "description": "Associated attack UUID"
+                  },
+                  "job_id": {
+                    "type": "string",
+                    "format": "uuid",
+                    "title": "Job Id",
+                    "description": "Associated job UUID"
+                  },
+                  "target_id": {
+                    "type": "string",
+                    "format": "uuid",
+                    "title": "Target Id",
+                    "description": "Target UUID"
+                  },
+                  "output": {
+                    "type": "string",
+                    "title": "Output",
+                    "description": "Attack output. String for single-turn, dict for multi-turn."
+                  },
+                  "threat": {
+                    "anyOf": [
+                      {
+                        "type": "boolean"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "title": "Threat",
+                    "description": "Threat detection result"
+                  },
+                  "marked_safe": {
+                    "anyOf": [
+                      {
+                        "type": "boolean"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "title": "Marked Safe",
+                    "description": "Manual safety marking"
+                  },
+                  "prompt": {
+                    "type": "string",
+                    "title": "Prompt",
+                    "description": "User prompt for this turn"
+                  },
+                  "turn": {
+                    "type": "integer",
+                    "title": "Turn",
+                    "description": "Current turn number in multi-turn conversation"
+                  },
+                  "generation": {
+                    "type": "integer",
+                    "title": "Generation",
+                    "description": "Generation/conversation number (1-based) for grouping multi-turn outputs",
+                    "default": 1
+                  },
+                  "multi_turn": {
+                    "type": "boolean",
+                    "title": "Multi Turn",
+                    "description": "Multi-turn conversation flag",
+                    "default": true
+                  },
+                  "error": {
+                    "anyOf": [
+                      {
+                        "type": "boolean"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "title": "Error",
+                    "description": "Whether this output is an error"
+                  },
+                  "error_message": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "title": "Error Message",
+                    "description": "Error message in format 'errType: description'"
+                  }
+                },
+                "type": "object",
+                "required": [
+                  "uuid",
+                  "tsg_id",
+                  "attack_id",
+                  "job_id",
+                  "target_id",
+                  "output",
+                  "prompt",
+                  "turn"
+                ],
+                "title": "AttackMultiTurnOutputResponseSchema",
+                "description": "API response schema — excludes internal/debug fields from client responses."
+              },
+              "type": "array"
+            },
+            "type": "array",
+            "title": "Outputs",
+            "description": "List of conversations, where each conversation is a list of turns ordered by turn number. Each inner list represents one generation of the multi-turn attack."
+          },
+          "goal": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Goal"
+          },
+          "attack_modality": {
+            "type": "string",
+            "enum": ["TEXT", "FILE"],
+            "title": "AttackModality",
+            "description": "Per-attack delivery modality for report display + filtering.\n\nFILE = the attack carries a document (file_url set); TEXT = text-only. This is\na per-row value (distinct from the scan-level include_file_attacks toggle).\n",
+            "default": "TEXT"
+          },
+          "file": {
+            "anyOf": [
+              {
+                "properties": {
+                  "file_name": {
+                    "type": "string",
+                    "title": "File Name",
+                    "description": "Document filename (basename of the GCS object key)"
+                  },
+                  "signed_url": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "title": "Signed Url",
+                    "description": "Short-lived signed GCS download URL; null if the object could not be signed (e.g. missing signBlob permission)."
+                  },
+                  "file_type": {
+                    "type": "string",
+                    "title": "File Type",
+                    "description": "Short document type, e.g. PDF / DOCX / MD"
+                  }
+                },
+                "type": "object",
+                "required": ["file_name", "file_type"],
+                "title": "AttackFileSchema",
+                "description": "Structured file reference for a multimodal (document) attack in the report.\n\nExposed only on the attack **detail** response. The list response conveys type via\n``attack_modality`` (FILE/TEXT) and carries no file object.\n"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "File-attack document (name + signed download URL + short type); null for text attacks"
+          }
+        },
+        "type": "object",
+        "required": [
+          "uuid",
+          "tsg_id",
+          "job_id",
+          "target_id",
+          "prompt",
+          "prompt_mapping_id",
+          "prompt_id",
+          "category",
+          "sub_category",
+          "category_display_name",
+          "sub_category_display_name",
+          "compliance_frameworks",
+          "goal"
+        ],
+        "title": "AttackMultiTurnDetailResponseSchema"
+      }
+    },
+    {
+      "direction": "response",
+      "validator": "QuotaSummarySchema",
+      "operations": ["POST /v1/metering/quota"],
+      "schema": {
+        "properties": {
+          "static": {
+            "description": "Static scan quota details",
+            "properties": {
+              "allocated": {
+                "type": "integer",
+                "title": "Allocated",
+                "description": "Total allocated scans for this type"
+              },
+              "unlimited": {
+                "type": "boolean",
+                "title": "Unlimited",
+                "description": "Whether this scan type has unlimited quota"
+              },
+              "consumed": {
+                "type": "integer",
+                "title": "Consumed",
+                "description": "Total consumed scans for this type"
+              }
+            },
+            "type": "object",
+            "required": ["allocated", "unlimited", "consumed"],
+            "title": "QuotaDetails"
+          },
+          "dynamic": {
+            "description": "Dynamic scan quota details",
+            "properties": {
+              "allocated": {
+                "$ref": "#/properties/static/properties/allocated"
+              },
+              "unlimited": {
+                "$ref": "#/properties/static/properties/unlimited"
+              },
+              "consumed": {
+                "$ref": "#/properties/static/properties/consumed"
+              }
+            },
+            "type": "object",
+            "required": ["allocated", "unlimited", "consumed"],
+            "title": "QuotaDetails"
+          },
+          "custom": {
+            "description": "Custom scan quota details",
+            "properties": {
+              "allocated": {
+                "$ref": "#/properties/static/properties/allocated"
+              },
+              "unlimited": {
+                "$ref": "#/properties/static/properties/unlimited"
+              },
+              "consumed": {
+                "$ref": "#/properties/static/properties/consumed"
+              }
+            },
+            "type": "object",
+            "required": ["allocated", "unlimited", "consumed"],
+            "title": "QuotaDetails"
+          }
+        },
+        "type": "object",
+        "required": ["static", "dynamic", "custom"],
+        "title": "QuotaSummarySchema",
+        "description": "Schema for quota summary response organized by scan type."
+      }
+    },
+    {
+      "direction": "response",
+      "validator": "CustomAttackReportResponseSchema",
+      "operations": ["GET /v1/custom-attacks/report/{job_id}"],
+      "schema": {
+        "properties": {
+          "total_prompts": {
+            "type": "integer",
+            "title": "Total Prompts",
+            "description": "Total number of unique prompts"
+          },
+          "total_attacks": {
+            "type": "integer",
+            "title": "Total Attacks",
+            "description": "Total number of attacks executed"
+          },
+          "total_threats": {
+            "type": "integer",
+            "title": "Total Threats",
+            "description": "Number of threats detected"
+          },
+          "failed_attacks": {
+            "type": "integer",
+            "title": "Failed Attacks",
+            "description": "Number of failed attacks (no threats detected)"
+          },
+          "score": {
+            "type": "number",
+            "title": "Score",
+            "description": "Overall threat score (0-100)"
+          },
+          "asr": {
+            "type": "number",
+            "title": "Asr",
+            "description": "Attack Success Rate (0-100)"
+          },
+          "custom_attack_reports": {
+            "items": {
+              "properties": {
+                "prompt_set_id": {
+                  "type": "string",
+                  "format": "uuid",
+                  "title": "Prompt Set Id",
+                  "description": "Custom prompt set UUID"
+                },
+                "prompt_set_name": {
+                  "type": "string",
+                  "title": "Prompt Set Name",
+                  "description": "Name of the prompt set"
+                },
+                "total_prompts": {
+                  "type": "integer",
+                  "title": "Total Prompts",
+                  "description": "Total number of unique prompts"
+                },
+                "total_attacks": {
+                  "type": "integer",
+                  "title": "Total Attacks",
+                  "description": "Total number of attacks executed"
+                },
+                "total_threats": {
+                  "type": "integer",
+                  "title": "Total Threats",
+                  "description": "Number of threats detected"
+                },
+                "failed_attacks": {
+                  "type": "integer",
+                  "title": "Failed Attacks",
+                  "description": "Number of failed attacks (no threats detected)"
+                },
+                "threat_rate": {
+                  "type": "number",
+                  "title": "Threat Rate",
+                  "description": "Threat detection rate (0-100)"
+                },
+                "property_names": {
+                  "items": {
+                    "type": "string"
+                  },
+                  "type": "array",
+                  "title": "Property Names",
+                  "description": "List of unique property names in this prompt set"
+                },
+                "property_statistics": {
+                  "items": {
+                    "properties": {
+                      "property_name": {
+                        "type": "string",
+                        "title": "Property Name",
+                        "description": "Name of the property"
+                      },
+                      "values": {
+                        "items": {
+                          "properties": {
+                            "value": {
+                              "type": "string",
+                              "title": "Value",
+                              "description": "Property value"
+                            },
+                            "successful_attack_count": {
+                              "type": "integer",
+                              "title": "Successful Attack Count",
+                              "description": "Number of successful attacks"
+                            },
+                            "total_attack_count": {
+                              "type": "integer",
+                              "title": "Total Attack Count",
+                              "description": "Total number of attacks"
+                            },
+                            "success_rate": {
+                              "type": "number",
+                              "title": "Success Rate",
+                              "description": "Auto-calculated success rate percentage"
+                            }
+                          },
+                          "type": "object",
+                          "required": [
+                            "value",
+                            "successful_attack_count",
+                            "total_attack_count",
+                            "success_rate"
+                          ],
+                          "title": "PropertyValueStatistic",
+                          "description": "Statistics for a specific property value."
+                        },
+                        "type": "array",
+                        "title": "Values",
+                        "description": "Statistics for each property value"
+                      }
+                    },
+                    "type": "object",
+                    "required": ["property_name", "values"],
+                    "title": "PropertyStatistic",
+                    "description": "Property statistics for prompt sets and job-level aggregation."
+                  },
+                  "type": "array",
+                  "title": "Property Statistics",
+                  "description": "Property-based statistics"
+                }
+              },
+              "type": "object",
+              "required": [
+                "prompt_set_id",
+                "prompt_set_name",
+                "total_prompts",
+                "total_attacks",
+                "total_threats",
+                "failed_attacks",
+                "threat_rate"
+              ],
+              "title": "PromptSetSummary",
+              "description": "Prompt set summary with statistics."
+            },
+            "type": "array",
+            "title": "Custom Attack Reports",
+            "description": "Reports for each prompt set"
+          },
+          "property_statistics": {
+            "items": {
+              "$ref": "#/properties/custom_attack_reports/items/properties/property_statistics/items"
+            },
+            "type": "array",
+            "title": "Property Statistics",
+            "description": "Aggregated property statistics"
+          }
+        },
+        "type": "object",
+        "required": [
+          "total_prompts",
+          "total_attacks",
+          "total_threats",
+          "failed_attacks",
+          "score",
+          "asr"
+        ],
+        "title": "CustomAttackReportResponse",
+        "description": "Main custom attack report response."
+      }
+    },
+    {
+      "direction": "response",
+      "validator": "PromptSetsReportResponseSchema",
+      "operations": ["GET /v1/custom-attacks/report/{job_id}/prompt-sets"],
+      "schema": {
+        "properties": {
+          "prompt_sets": {
+            "items": {
+              "properties": {
+                "prompt_set_id": {
+                  "type": "string",
+                  "format": "uuid",
+                  "title": "Prompt Set Id",
+                  "description": "Custom prompt set UUID"
+                },
+                "prompt_set_name": {
+                  "type": "string",
+                  "title": "Prompt Set Name",
+                  "description": "Name of the prompt set"
+                },
+                "total_prompts": {
+                  "type": "integer",
+                  "title": "Total Prompts",
+                  "description": "Total number of unique prompts"
+                },
+                "total_attacks": {
+                  "type": "integer",
+                  "title": "Total Attacks",
+                  "description": "Total number of attacks executed"
+                },
+                "total_threats": {
+                  "type": "integer",
+                  "title": "Total Threats",
+                  "description": "Number of threats detected"
+                },
+                "failed_attacks": {
+                  "type": "integer",
+                  "title": "Failed Attacks",
+                  "description": "Number of failed attacks (no threats detected)"
+                },
+                "threat_rate": {
+                  "type": "number",
+                  "title": "Threat Rate",
+                  "description": "Threat detection rate (0-100)"
+                },
+                "property_names": {
+                  "items": {
+                    "type": "string"
+                  },
+                  "type": "array",
+                  "title": "Property Names",
+                  "description": "List of unique property names in this prompt set"
+                },
+                "property_statistics": {
+                  "items": {
+                    "properties": {
+                      "property_name": {
+                        "type": "string",
+                        "title": "Property Name",
+                        "description": "Name of the property"
+                      },
+                      "values": {
+                        "items": {
+                          "properties": {
+                            "value": {
+                              "type": "string",
+                              "title": "Value",
+                              "description": "Property value"
+                            },
+                            "successful_attack_count": {
+                              "type": "integer",
+                              "title": "Successful Attack Count",
+                              "description": "Number of successful attacks"
+                            },
+                            "total_attack_count": {
+                              "type": "integer",
+                              "title": "Total Attack Count",
+                              "description": "Total number of attacks"
+                            },
+                            "success_rate": {
+                              "type": "number",
+                              "title": "Success Rate",
+                              "description": "Auto-calculated success rate percentage"
+                            }
+                          },
+                          "type": "object",
+                          "required": [
+                            "value",
+                            "successful_attack_count",
+                            "total_attack_count",
+                            "success_rate"
+                          ],
+                          "title": "PropertyValueStatistic",
+                          "description": "Statistics for a specific property value."
+                        },
+                        "type": "array",
+                        "title": "Values",
+                        "description": "Statistics for each property value"
+                      }
+                    },
+                    "type": "object",
+                    "required": ["property_name", "values"],
+                    "title": "PropertyStatistic",
+                    "description": "Property statistics for prompt sets and job-level aggregation."
+                  },
+                  "type": "array",
+                  "title": "Property Statistics",
+                  "description": "Property-based statistics"
+                }
+              },
+              "type": "object",
+              "required": [
+                "prompt_set_id",
+                "prompt_set_name",
+                "total_prompts",
+                "total_attacks",
+                "total_threats",
+                "failed_attacks",
+                "threat_rate"
+              ],
+              "title": "PromptSetSummary",
+              "description": "Prompt set summary with statistics."
+            },
+            "type": "array",
+            "title": "Prompt Sets",
+            "description": "List of prompt set summaries"
+          },
+          "total_prompt_sets": {
+            "type": "integer",
+            "title": "Total Prompt Sets",
+            "description": "Total number of prompt sets"
+          },
+          "applied_filters": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Applied Filters",
+            "description": "Filters applied to the results"
+          }
+        },
+        "type": "object",
+        "required": ["prompt_sets", "total_prompt_sets"],
+        "title": "PromptSetsReportResponse",
+        "description": "Response for prompt sets with filtering."
+      }
+    },
+    {
+      "direction": "response",
+      "validator": "z.array(PromptDetailResponseSchema)",
+      "operations": ["GET /v1/custom-attacks/report/{job_id}/prompt-set/{prompt_set_id}/prompts"],
+      "schema": {
+        "type": "array",
+        "items": {
+          "properties": {
+            "prompt_id": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Prompt Id",
+              "description": "Prompt UUID"
+            },
+            "prompt_text": {
+              "type": "string",
+              "title": "Prompt Text",
+              "description": "The prompt text"
+            },
+            "goal": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Goal",
+              "description": "Goal of the prompt"
+            },
+            "user_defined_goal": {
+              "type": "boolean",
+              "title": "User Defined Goal",
+              "description": "Whether goal is user-defined",
+              "default": false
+            },
+            "properties": {
+              "items": {
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "title": "Name",
+                    "description": "Property name"
+                  },
+                  "value": {
+                    "type": "string",
+                    "title": "Value",
+                    "description": "Property value"
+                  }
+                },
+                "type": "object",
+                "required": ["name", "value"],
+                "title": "PropertyAssignment",
+                "description": "Property assignment for custom attacks."
+              },
+              "type": "array",
+              "title": "Properties",
+              "description": "Property assignments"
+            },
+            "attack_id": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Attack Id",
+              "description": "Associated attack UUID"
+            },
+            "threat": {
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Threat",
+              "description": "Whether threat was detected"
+            },
+            "attack_outputs": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array",
+              "title": "Attack Outputs",
+              "description": "Attack output strings"
+            },
+            "asr": {
+              "anyOf": [
+                {
+                  "type": "number",
+                  "maximum": 100,
+                  "minimum": 0
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Asr",
+              "description": "Attack Success Rate for this prompt (0-100)"
+            },
+            "prompt_set_id": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Prompt Set Id",
+              "description": "Prompt set UUID"
+            },
+            "prompt_set_name": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Prompt Set Name",
+              "description": "Prompt set name"
+            },
+            "error": {
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Error",
+              "description": "Whether this attack has errors"
+            }
+          },
+          "type": "object",
+          "required": ["prompt_id", "prompt_text"],
+          "title": "PromptDetailResponse",
+          "description": "Detailed prompt response."
+        },
+        "title": "Response Get Prompts By Set V1 Custom Attacks Report  Job Id  Prompt Set  Prompt Set Id  Prompts Get"
+      }
+    },
+    {
+      "direction": "response",
+      "validator": "PromptDetailResponseSchema",
+      "operations": ["GET /v1/custom-attacks/report/{job_id}/prompt/{prompt_id}"],
+      "schema": {
+        "properties": {
+          "prompt_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Prompt Id",
+            "description": "Prompt UUID"
+          },
+          "prompt_text": {
+            "type": "string",
+            "title": "Prompt Text",
+            "description": "The prompt text"
+          },
+          "goal": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Goal",
+            "description": "Goal of the prompt"
+          },
+          "user_defined_goal": {
+            "type": "boolean",
+            "title": "User Defined Goal",
+            "description": "Whether goal is user-defined",
+            "default": false
+          },
+          "properties": {
+            "items": {
+              "properties": {
+                "name": {
+                  "type": "string",
+                  "title": "Name",
+                  "description": "Property name"
+                },
+                "value": {
+                  "type": "string",
+                  "title": "Value",
+                  "description": "Property value"
+                }
+              },
+              "type": "object",
+              "required": ["name", "value"],
+              "title": "PropertyAssignment",
+              "description": "Property assignment for custom attacks."
+            },
+            "type": "array",
+            "title": "Properties",
+            "description": "Property assignments"
+          },
+          "attack_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Attack Id",
+            "description": "Associated attack UUID"
+          },
+          "threat": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Threat",
+            "description": "Whether threat was detected"
+          },
+          "attack_outputs": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Attack Outputs",
+            "description": "Attack output strings"
+          },
+          "asr": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 100,
+                "minimum": 0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Asr",
+            "description": "Attack Success Rate for this prompt (0-100)"
+          },
+          "prompt_set_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Prompt Set Id",
+            "description": "Prompt set UUID"
+          },
+          "prompt_set_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Prompt Set Name",
+            "description": "Prompt set name"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error",
+            "description": "Whether this attack has errors"
+          }
+        },
+        "type": "object",
+        "required": ["prompt_id", "prompt_text"],
+        "title": "PromptDetailResponse",
+        "description": "Detailed prompt response."
+      }
+    },
+    {
+      "direction": "response",
+      "validator": "CustomAttacksListResponseSchema",
+      "operations": ["GET /v1/custom-attacks/job/{job_id}/list-custom-attacks"],
+      "schema": {
+        "properties": {
+          "pagination": {
+            "properties": {
+              "total_items": {
+                "anyOf": [
+                  {
+                    "type": "integer"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "title": "Total Items"
+              }
+            },
+            "type": "object",
+            "title": "PaginationSchema"
+          },
+          "data": {
+            "items": {
+              "properties": {
+                "prompt_id": {
+                  "type": "string",
+                  "format": "uuid",
+                  "title": "Prompt Id",
+                  "description": "Prompt UUID"
+                },
+                "prompt_text": {
+                  "type": "string",
+                  "title": "Prompt Text",
+                  "description": "The prompt text"
+                },
+                "goal": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "title": "Goal",
+                  "description": "Goal of the prompt"
+                },
+                "user_defined_goal": {
+                  "type": "boolean",
+                  "title": "User Defined Goal",
+                  "description": "Whether goal is user-defined",
+                  "default": false
+                },
+                "properties": {
+                  "items": {
+                    "properties": {
+                      "name": {
+                        "type": "string",
+                        "title": "Name",
+                        "description": "Property name"
+                      },
+                      "value": {
+                        "type": "string",
+                        "title": "Value",
+                        "description": "Property value"
+                      }
+                    },
+                    "type": "object",
+                    "required": ["name", "value"],
+                    "title": "PropertyAssignment",
+                    "description": "Property assignment for custom attacks."
+                  },
+                  "type": "array",
+                  "title": "Properties",
+                  "description": "Property assignments"
+                },
+                "attack_id": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "title": "Attack Id",
+                  "description": "Associated attack UUID"
+                },
+                "threat": {
+                  "anyOf": [
+                    {
+                      "type": "boolean"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "title": "Threat",
+                  "description": "Whether threat was detected"
+                },
+                "attack_outputs": {
+                  "items": {
+                    "type": "string"
+                  },
+                  "type": "array",
+                  "title": "Attack Outputs",
+                  "description": "Attack output strings"
+                },
+                "asr": {
+                  "anyOf": [
+                    {
+                      "type": "number",
+                      "maximum": 100,
+                      "minimum": 0
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "title": "Asr",
+                  "description": "Attack Success Rate for this prompt (0-100)"
+                },
+                "prompt_set_id": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "title": "Prompt Set Id",
+                  "description": "Prompt set UUID"
+                },
+                "prompt_set_name": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "title": "Prompt Set Name",
+                  "description": "Prompt set name"
+                },
+                "error": {
+                  "anyOf": [
+                    {
+                      "type": "boolean"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "title": "Error",
+                  "description": "Whether this attack has errors"
+                }
+              },
+              "type": "object",
+              "required": ["prompt_id", "prompt_text"],
+              "title": "PromptDetailResponse",
+              "description": "Detailed prompt response."
+            },
+            "type": "array",
+            "title": "Data",
+            "description": "List of attack details"
+          },
+          "total_attacks": {
+            "type": "integer",
+            "title": "Total Attacks",
+            "description": "Total number of attacks"
+          },
+          "total_threats": {
+            "type": "integer",
+            "title": "Total Threats",
+            "description": "Number of threats detected"
+          }
+        },
+        "type": "object",
+        "required": ["pagination", "data", "total_attacks", "total_threats"],
+        "title": "CustomAttacksListResponse",
+        "description": "Enhanced list response for custom attacks."
+      }
+    },
+    {
+      "direction": "response",
+      "validator": "z.array(CustomAttackOutputSchema)",
+      "operations": ["GET /v1/custom-attacks/job/{job_id}/attack/{attack_id}/list-outputs"],
+      "schema": {
+        "type": "array",
+        "items": {
+          "properties": {
+            "uuid": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Uuid"
+            },
+            "tsg_id": {
+              "type": "string",
+              "title": "Tsg Id"
+            },
+            "custom_attack_id": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Custom Attack Id",
+              "description": "Associated custom attack UUID"
+            },
+            "job_id": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Job Id",
+              "description": "Associated job UUID"
+            },
+            "target_id": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Target Id",
+              "description": "Target UUID"
+            },
+            "output": {
+              "type": "string",
+              "title": "Output",
+              "description": "Attack output content"
+            },
+            "threat": {
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Threat",
+              "description": "Threat detection result"
+            },
+            "marked_safe": {
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Marked Safe",
+              "description": "Manual safety marking"
+            },
+            "error": {
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Error",
+              "description": "Whether this output is an error"
+            },
+            "error_message": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Error Message",
+              "description": "Error message in format 'errType: description'"
+            }
+          },
+          "type": "object",
+          "required": ["uuid", "tsg_id", "custom_attack_id", "job_id", "target_id", "output"],
+          "title": "CustomAttackOutputResponseSchema",
+          "description": "API response schema — excludes English translation fields."
+        },
+        "title": "Response Get Attack Outputs V1 Custom Attacks Job  Job Id  Attack  Attack Id  List Outputs Get"
+      }
+    }
+  ]
+}

@@ -7,6 +7,12 @@ sidebar_position: 6
 
 ## Status
 
+The September 2026 local extension preserves this design: exported gateway request types derive
+from their Zod schemas, stable fields reject unknown keys, dynamic extension maps admit only finite
+JSON, and validation runs before authentication. Open catalog values remain forward-compatible.
+See the [new conformance checkpoint](./openapi-conformance.md) for the unreleased additions and
+live exceptions; this does not change the historical release status below.
+
 **Shipped in SDK `0.20.0`** (the current release is `0.20.1`); this page is retained as design
 history. Everything listed under "Gap before 0.20" below has since been closed, and the live-probe
 questions noted in the contract table have been resolved as described in the info box that follows

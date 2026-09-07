@@ -17,6 +17,7 @@ export {
   type RedTeamCustomAttackReportsClientOptions,
   type PromptsBySetListOptions,
   type CustomAttacksReportListOptions,
+  type PromptSetsReportOptions,
 } from './custom-attack-reports-client.js';
 export {
   RedTeamTargetsClient,
@@ -44,5 +45,6 @@ export {
   RedTeamAdaptersClient,
   type RedTeamAdaptersClientOptions,
   type AdapterOperationOptions,
+  type AdapterListOptions,
   type AdapterListAllOptions,
 } from './adapters-client.js';

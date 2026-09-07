@@ -1,3 +1,8 @@
+import {
+  ModelSecurityGroupCreateRequestSchema,
+  ModelSecurityGroupUpdateRequestSchema,
+  ModelSecurityRuleInstanceUpdateRequestSchema,
+} from '../models/index.js';
 import { MODEL_SEC_SECURITY_GROUPS_PATH } from '../constants.js';
 import { request } from '../http/request.js';
 import type { AuthAdapter } from '../http/types.js';
@@ -8,6 +13,11 @@ import {
   type ListingOptions,
 } from '../listing.js';
 import { assertUuid } from '../validators.js';
+import { modelSecurityParams, type SnapshotVersionListOptions } from './custom-rules-client.js';
+import {
+  SnapshotVersionListResponseSchema,
+  type SnapshotVersionListResponse,
+} from '../models/model-security-custom-rules.js';
 import {
   ModelSecurityGroupResponseSchema,
   ListModelSecurityGroupsResponseSchema,
@@ -40,6 +50,10 @@ export interface ModelSecurityGroupListAllOptions
 
 /** Options for listing rule instances within a security group. */
 export interface ModelSecurityRuleInstanceListOptions extends ListingOptions {
+  /** Filter custom versus PANW-managed rule instances. */
+  is_custom?: boolean;
+  /** Read an immutable historical rule-instance snapshot. */
+  generation?: number;
   /** Filter by security rule UUID. */
   security_rule_uuid?: string;
   /** Filter by rule state: 'DISABLED', 'ALLOWING', or 'BLOCKING'. */
@@ -69,6 +83,9 @@ function buildRuleInstanceListParams(
   opts?: ModelSecurityRuleInstanceListOptions,
 ): Record<string, string> {
   const params = serializeListing(opts);
+  if (opts?.is_custom !== undefined) params.is_custom = String(opts.is_custom);
+  if (opts?.generation !== undefined)
+    Object.assign(params, modelSecurityParams({ generation: opts.generation }));
   if (opts?.security_rule_uuid !== undefined) params.security_rule_uuid = opts.security_rule_uuid;
   if (opts?.state !== undefined) params.state = opts.state;
   return params;
@@ -76,6 +93,24 @@ function buildRuleInstanceListParams(
 
 /** Client for Model Security management plane security group operations. */
 export class ModelSecurityGroupsClient {
+  /** List rule-instance snapshot generations for a security group.
+   * @example `const versions = await ms.securityGroups.listRuleInstanceVersions(groupUuid);`
+   */
+  async listRuleInstanceVersions(
+    securityGroupUuid: string,
+    opts: SnapshotVersionListOptions = {},
+  ): Promise<SnapshotVersionListResponse> {
+    assertUuid(securityGroupUuid, 'security group uuid');
+    return request({
+      method: 'GET',
+      baseUrl: this.baseUrl,
+      path: `${MODEL_SEC_SECURITY_GROUPS_PATH}/${securityGroupUuid}/rule-instances/versions`,
+      params: modelSecurityParams(opts),
+      responseSchema: SnapshotVersionListResponseSchema,
+      auth: this.auth,
+      numRetries: this.numRetries,
+    });
+  }
   private readonly baseUrl: string;
   private readonly auth: AuthAdapter;
   private readonly numRetries: number;
@@ -106,6 +141,7 @@ export class ModelSecurityGroupsClient {
    */
   async create(body: ModelSecurityGroupCreateRequest): Promise<ModelSecurityGroupResponse> {
     return request({
+      requestSchema: ModelSecurityGroupCreateRequestSchema,
       method: 'POST',
       baseUrl: this.baseUrl,
       path: MODEL_SEC_SECURITY_GROUPS_PATH,
@@ -207,6 +243,7 @@ export class ModelSecurityGroupsClient {
   ): Promise<ModelSecurityGroupResponse> {
     assertUuid(uuid, 'security group uuid');
     return request({
+      requestSchema: ModelSecurityGroupUpdateRequestSchema,
       method: 'PUT',
       baseUrl: this.baseUrl,
       path: `${MODEL_SEC_SECURITY_GROUPS_PATH}/${uuid}`,
@@ -337,6 +374,7 @@ export class ModelSecurityGroupsClient {
     assertUuid(securityGroupUuid, 'security group uuid');
     assertUuid(ruleInstanceUuid, 'rule instance uuid');
     return request({
+      requestSchema: ModelSecurityRuleInstanceUpdateRequestSchema,
       method: 'PUT',
       baseUrl: this.baseUrl,
       path: `${MODEL_SEC_SECURITY_GROUPS_PATH}/${securityGroupUuid}/rule-instances/${ruleInstanceUuid}`,

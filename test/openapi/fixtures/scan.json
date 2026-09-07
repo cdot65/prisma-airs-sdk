@@ -1,0 +1,686 @@
+{
+  "source": "prisma-airs/scan/scan-service_latest.yaml",
+  "sha256": "e97a5a75d5a6073c56af022452d65197c2c474597a569f628fe1d7de0f63e7c3",
+  "corrections": [
+    "scan-flat-async-batch",
+    "scan-required-profile-selector",
+    "scan-nonempty-contents"
+  ],
+  "cases": [
+    {
+      "method": "POST",
+      "path": "/v1/scan/sync/request",
+      "call": {
+        "method": "POST",
+        "path": "/v1/scan/sync/request",
+        "source": "src/scan/scanner.ts",
+        "member": "syncScan",
+        "plane": "scan",
+        "responseSchema": "ScanResponseSchema",
+        "requestSchema": "ScanRequestSchema",
+        "queryType": "SyncScanOptions",
+        "className": "Scanner",
+        "parameters": [
+          {
+            "name": "aiProfile",
+            "type": "AiProfile"
+          },
+          {
+            "name": "content",
+            "type": "Content"
+          },
+          {
+            "name": "opts",
+            "type": "SyncScanOptions"
+          }
+        ]
+      },
+      "query": {},
+      "queryWire": {},
+      "body": {
+        "tr_id": "x",
+        "session_id": "x",
+        "ai_profile": {
+          "profile_id": "550e8400-e29b-41d4-a716-446655440000",
+          "profile_name": "x"
+        },
+        "metadata": {
+          "app_name": "x",
+          "app_user": "x",
+          "ai_model": "x",
+          "user_ip": "x",
+          "agent_meta": {
+            "agent_id": "x",
+            "agent_version": "x",
+            "agent_arn": "x"
+          }
+        },
+        "contents": [
+          {
+            "prompt": "x",
+            "response": "x",
+            "code_prompt": "x",
+            "code_response": "x",
+            "context": "x",
+            "tool_event": {
+              "metadata": {
+                "ecosystem": "x",
+                "method": "x",
+                "server_name": "x",
+                "tool_invoked": "x"
+              },
+              "input": "x",
+              "output": "x"
+            }
+          }
+        ]
+      },
+      "responseBody": {
+        "source": "x",
+        "report_id": "x",
+        "scan_id": "550e8400-e29b-41d4-a716-446655440000",
+        "tr_id": "x",
+        "session_id": "x",
+        "profile_id": "550e8400-e29b-41d4-a716-446655440000",
+        "profile_name": "x",
+        "category": "x",
+        "action": "x",
+        "timeout": false,
+        "error": false,
+        "errors": [
+          {
+            "content_type": "prompt",
+            "feature": "dlp",
+            "status": "error"
+          }
+        ],
+        "prompt_detected": {
+          "url_cats": false,
+          "dlp": false,
+          "injection": false,
+          "toxic_content": false,
+          "malicious_code": false,
+          "agent": false,
+          "topic_violation": false
+        },
+        "response_detected": {
+          "url_cats": false,
+          "dlp": false,
+          "db_security": false,
+          "toxic_content": false,
+          "malicious_code": false,
+          "agent": false,
+          "ungrounded": false,
+          "topic_violation": false
+        },
+        "prompt_masked_data": {
+          "data": "x",
+          "pattern_detections": [
+            {
+              "pattern": "x",
+              "locations": [[1]]
+            }
+          ]
+        },
+        "response_masked_data": {
+          "data": "x",
+          "pattern_detections": [
+            {
+              "pattern": "x",
+              "locations": [[1]]
+            }
+          ]
+        },
+        "prompt_detection_details": {
+          "topic_guardrails_details": {
+            "allowed_topics": ["x"],
+            "blocked_topics": ["x"]
+          },
+          "toxic_content_details": {
+            "toxic_categories": ["x"]
+          }
+        },
+        "response_detection_details": {
+          "topic_guardrails_details": {
+            "allowed_topics": ["x"],
+            "blocked_topics": ["x"]
+          },
+          "toxic_content_details": {
+            "toxic_categories": ["x"]
+          }
+        },
+        "tool_detected": {
+          "verdict": "x",
+          "metadata": {
+            "ecosystem": "x",
+            "method": "x",
+            "server_name": "x",
+            "tool_invoked": "x"
+          },
+          "summary": {
+            "detections": {
+              "injection": false,
+              "url_cats": false,
+              "dlp": false,
+              "db_security": false,
+              "toxic_content": false,
+              "malicious_code": false,
+              "agent": false,
+              "topic_violation": false
+            },
+            "threats": ["x"]
+          },
+          "input_detected": {
+            "detection_entries": [
+              {
+                "tool_invoked": "x",
+                "detections": {
+                  "injection": false,
+                  "url_cats": false,
+                  "dlp": false,
+                  "db_security": false,
+                  "toxic_content": false,
+                  "malicious_code": false,
+                  "agent": false,
+                  "topic_violation": false
+                },
+                "threats": ["x"],
+                "details": {
+                  "topic_guardrails_details": {
+                    "allowed_topics": ["x"],
+                    "blocked_topics": ["x"]
+                  }
+                },
+                "masked_data": {
+                  "data": "x",
+                  "pattern_detections": [
+                    {
+                      "pattern": "x",
+                      "locations": [[1]]
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          "output_detected": {
+            "detection_entries": [
+              {
+                "tool_invoked": "x",
+                "detections": {
+                  "injection": false,
+                  "url_cats": false,
+                  "dlp": false,
+                  "db_security": false,
+                  "toxic_content": false,
+                  "malicious_code": false,
+                  "agent": false,
+                  "topic_violation": false
+                },
+                "threats": ["x"],
+                "details": {
+                  "topic_guardrails_details": {
+                    "allowed_topics": ["x"],
+                    "blocked_topics": ["x"]
+                  }
+                },
+                "masked_data": {
+                  "data": "x",
+                  "pattern_detections": [
+                    {
+                      "pattern": "x",
+                      "locations": [[1]]
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        },
+        "created_at": "2026-09-06T00:00:00Z",
+        "completed_at": "2026-09-06T00:00:00Z"
+      },
+      "responseStatus": 200,
+      "responseIsText": false
+    },
+    {
+      "method": "POST",
+      "path": "/v1/scan/async/request",
+      "call": {
+        "method": "POST",
+        "path": "/v1/scan/async/request",
+        "source": "src/scan/scanner.ts",
+        "member": "asyncScan",
+        "plane": "scan",
+        "responseSchema": "AsyncScanResponseSchema",
+        "requestSchema": "z.array(AsyncScanObjectSchema)",
+        "requestType": "AsyncScanObject[]",
+        "queryType": "ScanCallOptions",
+        "className": "Scanner",
+        "parameters": [
+          {
+            "name": "scanObjects",
+            "type": "AsyncScanObject[]"
+          },
+          {
+            "name": "opts",
+            "type": "ScanCallOptions"
+          }
+        ]
+      },
+      "query": {},
+      "queryWire": {},
+      "body": [
+        {
+          "req_id": 1,
+          "scan_req": {
+            "tr_id": "x",
+            "session_id": "x",
+            "ai_profile": {
+              "profile_id": "550e8400-e29b-41d4-a716-446655440000",
+              "profile_name": "x"
+            },
+            "metadata": {
+              "app_name": "x",
+              "app_user": "x",
+              "ai_model": "x",
+              "user_ip": "x",
+              "agent_meta": {
+                "agent_id": "x",
+                "agent_version": "x",
+                "agent_arn": "x"
+              }
+            },
+            "contents": [
+              {
+                "prompt": "x",
+                "response": "x",
+                "code_prompt": "x",
+                "code_response": "x",
+                "context": "x",
+                "tool_event": {
+                  "metadata": {
+                    "ecosystem": "x",
+                    "method": "x",
+                    "server_name": "x",
+                    "tool_invoked": "x"
+                  },
+                  "input": "x",
+                  "output": "x"
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "responseBody": {
+        "received": "2026-09-06T00:00:00Z",
+        "scan_id": "x",
+        "report_id": "x",
+        "source": "x"
+      },
+      "responseStatus": 200,
+      "responseIsText": false
+    },
+    {
+      "method": "GET",
+      "path": "/v1/scan/results",
+      "call": {
+        "method": "GET",
+        "path": "/v1/scan/results",
+        "source": "src/scan/scanner.ts",
+        "member": "queryByScanIds",
+        "plane": "scan",
+        "responseSchema": "z.array(ScanIdResultSchema)",
+        "queryType": "ScanCallOptions",
+        "className": "Scanner",
+        "parameters": [
+          {
+            "name": "scanIds",
+            "type": "string[]"
+          },
+          {
+            "name": "opts",
+            "type": "ScanCallOptions"
+          }
+        ]
+      },
+      "query": {
+        "scan_ids": ["550e8400-e29b-41d4-a716-446655440000", "550e8400-e29b-41d4-a716-446655440000"]
+      },
+      "queryWire": {
+        "scan_ids": ["550e8400-e29b-41d4-a716-446655440000,550e8400-e29b-41d4-a716-446655440000"]
+      },
+      "responseBody": [
+        {
+          "source": "x",
+          "req_id": 1,
+          "status": "x",
+          "scan_id": "x",
+          "result": {
+            "source": "x",
+            "report_id": "x",
+            "scan_id": "550e8400-e29b-41d4-a716-446655440000",
+            "tr_id": "x",
+            "session_id": "x",
+            "profile_id": "550e8400-e29b-41d4-a716-446655440000",
+            "profile_name": "x",
+            "category": "x",
+            "action": "x",
+            "timeout": false,
+            "error": false,
+            "errors": [
+              {
+                "content_type": "prompt",
+                "feature": "dlp",
+                "status": "error"
+              }
+            ],
+            "prompt_detected": {
+              "url_cats": false,
+              "dlp": false,
+              "injection": false,
+              "toxic_content": false,
+              "malicious_code": false,
+              "agent": false,
+              "topic_violation": false
+            },
+            "response_detected": {
+              "url_cats": false,
+              "dlp": false,
+              "db_security": false,
+              "toxic_content": false,
+              "malicious_code": false,
+              "agent": false,
+              "ungrounded": false,
+              "topic_violation": false
+            },
+            "prompt_masked_data": {
+              "data": "x",
+              "pattern_detections": [
+                {
+                  "pattern": "x",
+                  "locations": [[1]]
+                }
+              ]
+            },
+            "response_masked_data": {
+              "data": "x",
+              "pattern_detections": [
+                {
+                  "pattern": "x",
+                  "locations": [[1]]
+                }
+              ]
+            },
+            "prompt_detection_details": {
+              "topic_guardrails_details": {
+                "allowed_topics": ["x"],
+                "blocked_topics": ["x"]
+              },
+              "toxic_content_details": {
+                "toxic_categories": ["x"]
+              }
+            },
+            "response_detection_details": {
+              "topic_guardrails_details": {
+                "allowed_topics": ["x"],
+                "blocked_topics": ["x"]
+              },
+              "toxic_content_details": {
+                "toxic_categories": ["x"]
+              }
+            },
+            "tool_detected": {
+              "verdict": "x",
+              "metadata": {
+                "ecosystem": "x",
+                "method": "x",
+                "server_name": "x",
+                "tool_invoked": "x"
+              },
+              "summary": {
+                "detections": {
+                  "injection": false,
+                  "url_cats": false,
+                  "dlp": false,
+                  "db_security": false,
+                  "toxic_content": false,
+                  "malicious_code": false,
+                  "agent": false,
+                  "topic_violation": false
+                },
+                "threats": ["x"]
+              },
+              "input_detected": {
+                "detection_entries": [
+                  {
+                    "tool_invoked": "x",
+                    "detections": {
+                      "injection": false,
+                      "url_cats": false,
+                      "dlp": false,
+                      "db_security": false,
+                      "toxic_content": false,
+                      "malicious_code": false,
+                      "agent": false,
+                      "topic_violation": false
+                    },
+                    "threats": ["x"],
+                    "details": {
+                      "topic_guardrails_details": {
+                        "allowed_topics": ["x"],
+                        "blocked_topics": ["x"]
+                      }
+                    },
+                    "masked_data": {
+                      "data": "x",
+                      "pattern_detections": [
+                        {
+                          "pattern": "x",
+                          "locations": [[1]]
+                        }
+                      ]
+                    }
+                  }
+                ]
+              },
+              "output_detected": {
+                "detection_entries": [
+                  {
+                    "tool_invoked": "x",
+                    "detections": {
+                      "injection": false,
+                      "url_cats": false,
+                      "dlp": false,
+                      "db_security": false,
+                      "toxic_content": false,
+                      "malicious_code": false,
+                      "agent": false,
+                      "topic_violation": false
+                    },
+                    "threats": ["x"],
+                    "details": {
+                      "topic_guardrails_details": {
+                        "allowed_topics": ["x"],
+                        "blocked_topics": ["x"]
+                      }
+                    },
+                    "masked_data": {
+                      "data": "x",
+                      "pattern_detections": [
+                        {
+                          "pattern": "x",
+                          "locations": [[1]]
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            "created_at": "2026-09-06T00:00:00Z",
+            "completed_at": "2026-09-06T00:00:00Z"
+          }
+        }
+      ],
+      "responseStatus": 200,
+      "responseIsText": false
+    },
+    {
+      "method": "GET",
+      "path": "/v1/scan/reports",
+      "call": {
+        "method": "GET",
+        "path": "/v1/scan/reports",
+        "source": "src/scan/scanner.ts",
+        "member": "queryByReportIds",
+        "plane": "scan",
+        "responseSchema": "z.array(ThreatScanReportSchema)",
+        "queryType": "ScanCallOptions",
+        "className": "Scanner",
+        "parameters": [
+          {
+            "name": "reportIds",
+            "type": "string[]"
+          },
+          {
+            "name": "opts",
+            "type": "ScanCallOptions"
+          }
+        ]
+      },
+      "query": {
+        "report_ids": [
+          "550e8400-e29b-41d4-a716-446655440000",
+          "550e8400-e29b-41d4-a716-446655440000"
+        ]
+      },
+      "queryWire": {
+        "report_ids": ["550e8400-e29b-41d4-a716-446655440000,550e8400-e29b-41d4-a716-446655440000"]
+      },
+      "responseBody": [
+        {
+          "source": "x",
+          "report_id": "x",
+          "scan_id": "x",
+          "req_id": 1,
+          "transaction_id": "x",
+          "session_id": "x",
+          "detection_results": [
+            {
+              "data_type": "x",
+              "detection_service": "x",
+              "verdict": "x",
+              "action": "x",
+              "metadata": {
+                "ecosystem": "x",
+                "method": "x",
+                "server_name": "x",
+                "tool_invoked": "x",
+                "direction": "input"
+              },
+              "result_detail": {
+                "urlf_report": [
+                  {
+                    "url": "x",
+                    "risk_level": "x",
+                    "action": "x",
+                    "categories": ["x"]
+                  }
+                ],
+                "dlp_report": {
+                  "dlp_report_id": "x",
+                  "dlp_profile_name": "x",
+                  "dlp_profile_id": "x",
+                  "dlp_profile_version": 1,
+                  "data_pattern_rule1_verdict": "x",
+                  "data_pattern_rule2_verdict": "x",
+                  "data_pattern_detection_offsets": [
+                    {
+                      "data_pattern_id": "x",
+                      "version": 1,
+                      "name": "x",
+                      "high_confidence_detections": [[1]],
+                      "medium_confidence_detections": [[1]],
+                      "low_confidence_detections": [[1]]
+                    }
+                  ]
+                },
+                "dlp_snippets": {
+                  "meta": {
+                    "data_pattern": "x",
+                    "confidence_level": "low",
+                    "data_pattern_type": "x",
+                    "occurrence": 1
+                  },
+                  "snippets": ["x"]
+                },
+                "dbs_report": [
+                  {
+                    "sub_type": "x",
+                    "verdict": "x",
+                    "action": "x"
+                  }
+                ],
+                "dbs_snippets": ["x"],
+                "tc_report": {
+                  "confidence": "x",
+                  "verdict": "x",
+                  "toxic_categories": ["x"]
+                },
+                "tc_snippets": ["x"],
+                "mc_report": {
+                  "all_code_blocks": ["x"],
+                  "code_analysis_by_type": [
+                    {
+                      "file_type": "x",
+                      "code_sha256": "x"
+                    }
+                  ],
+                  "verdict": "x",
+                  "malware_script_report": {
+                    "verdict": "x"
+                  },
+                  "command_injection_report": [
+                    {
+                      "code_block": "x",
+                      "verdict": "x"
+                    }
+                  ]
+                },
+                "agent_report": {
+                  "model_verdict": "x",
+                  "agent_framework": "x",
+                  "agent_patterns": [
+                    {
+                      "category_type": "x",
+                      "verdict": "x"
+                    }
+                  ]
+                },
+                "topic_guardrails_report": {
+                  "allowed_topic_list": "x",
+                  "blocked_topic_list": "x",
+                  "allowedTopics": ["x"],
+                  "blockedTopics": ["x"]
+                },
+                "cg_report": {
+                  "status": "x",
+                  "explanation": "x",
+                  "category": "x"
+                },
+                "pi_report": {
+                  "verdict": "x"
+                },
+                "pi_snippets": ["x"]
+              }
+            }
+          ]
+        }
+      ],
+      "responseStatus": 200,
+      "responseIsText": false
+    }
+  ]
+}

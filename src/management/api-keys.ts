@@ -1,3 +1,4 @@
+import { ApiKeyCreateRequestSchema, ApiKeyRegenerateRequestSchema } from '../models/index.js';
 import { MGMT_API_KEY_PATH, MGMT_API_KEYS_TSG_PATH } from '../constants.js';
 import { request } from '../http/request.js';
 import type { AuthAdapter } from '../http/types.js';
@@ -26,6 +27,18 @@ export interface ApiKeysClientOptions {
 
 /** Client for AIRS API key management operations. */
 export class ApiKeysClient {
+  /** List API keys using the OpenAPI route scoped by the token. @example `const page = await mgmt.apiKeys.listForToken({ limit: 20 });` */
+  async listForToken(opts: Omit<PaginationOptions, 'latest'> = {}): Promise<ApiKeyListResponse> {
+    return request({
+      method: 'GET',
+      baseUrl: this.baseUrl,
+      path: '/v1/mgmt/apikeys',
+      params: { offset: String(opts.offset ?? 0), limit: String(opts.limit ?? 100) },
+      responseSchema: ApiKeyListResponseSchema,
+      auth: this.auth,
+      numRetries: this.numRetries,
+    });
+  }
   private readonly baseUrl: string;
   private readonly auth: AuthAdapter;
   private readonly tsgId: string;
@@ -63,6 +76,7 @@ export class ApiKeysClient {
    */
   async create(body: ApiKeyCreateRequest): Promise<ApiKey> {
     return request({
+      requestSchema: ApiKeyCreateRequestSchema,
       method: 'POST',
       baseUrl: this.baseUrl,
       path: MGMT_API_KEY_PATH,
@@ -164,6 +178,7 @@ export class ApiKeysClient {
    */
   async regenerate(apiKeyId: string, body: ApiKeyRegenerateRequest): Promise<ApiKey> {
     return request({
+      requestSchema: ApiKeyRegenerateRequestSchema,
       method: 'POST',
       baseUrl: this.baseUrl,
       path: `${MGMT_API_KEY_PATH}/regenerate/${encodeURIComponent(apiKeyId)}`,

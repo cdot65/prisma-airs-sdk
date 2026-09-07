@@ -1,0 +1,2587 @@
+{
+  "source": "ai-gateway-openapi/openapi.yaml",
+  "sha256": "de7a1bd98bdb2edb7428a33054d9f6000b9568d1cd5b603d1a8302c053d094d9",
+  "total": 242,
+  "directOperations": 137,
+  "requests": {
+    "modeled": 1358,
+    "total": 1358,
+    "percentage": 100,
+    "missing": []
+  },
+  "responses": {
+    "modeled": 2329,
+    "total": 2329,
+    "percentage": 100,
+    "missing": []
+  },
+  "experimental": {
+    "inference.updateFeedback": "Confirmed runtime handler; owned-record PUT returns HTTP 500 because feedback lookup requires uninitialized ClickHouse in control-plane storage mode. Typed contracts are experimental, not a successful live update.",
+    "inference.getLog": "Confirmed runtime handler; owned-log reads return HTTP 500 because the deployed handler has no control-plane storage branch. Typed contracts and v2 timestamp validation are experimental, not successful live retrieval.",
+    "inference.createCompletion": "Deployed route confirmed; prescribed-model legacy completion returns HTTP 404. Typed JSON/SSE contracts are experimental, not live certification.",
+    "inference.createPromptCompletion": "Deployed route dispatches to chat/legacy completion handlers. No owned live template is provisioned; flattened input and JSON/SSE contracts remain experimental.",
+    "inference.createPromptRender": "Deployed route confirmed. No owned live template is provisioned; flattened request and rendered-response contracts remain experimental.",
+    "inference.createImage": "Offline JSON contract only. The prescribed-model generation probe returned HTTP 400; no alternate model used.",
+    "inference.createImageEdit": "Offline multipart contract only. The prescribed-model edit probe returned HTTP 400; successful live editing is unverified.",
+    "inference.createImageVariation": "Offline multipart contract only. The prescribed-model variation probe returned HTTP 404; successful live variation is unverified.",
+    "inference.createSpeech": "Offline binary-response contract only. The prescribed-model speech probe returned HTTP 404; no audio model was substituted.",
+    "inference.createTranscription": "Offline multipart/format-specific response contracts only. The prescribed-model transcription probe returned HTTP 400 with model incompatibility.",
+    "inference.createTranslation": "Offline multipart/format-specific response contracts only. The prescribed-model translation probe returned HTTP 400 with model incompatibility.",
+    "inference.createModeration": "Offline JSON contract only. The prescribed-model moderation probe returned HTTP 400; no specialized model was substituted.",
+    "inference.createRerank": "Offline JSON contract only. The prescribed-provider rerank probe returned HTTP 500; no different provider was configured.",
+    "inference.createOcr": "Offline JSON contract only. The prescribed-provider OCR probe returned HTTP 500; no different provider was configured.",
+    "mcpServers.test": "SCM returned HTTP 403 on an owned server; authorization remains unverified.",
+    "mcpServers.deleteConnections": "SCM returned HTTP 403 on an owned server; authorization remains unverified.",
+    "mcpServers.updateCapabilities": "No discovered tool was available on the owned server; contract-tested only.",
+    "usageLimits.resetEntity": "No traffic-derived entity existed on the isolated policy; existing counters were not reset.",
+    "logExports.start": "SCM returned HTTP 500 (AB04) for an isolated export; successful execution is unverified.",
+    "logExports.cancel": "No running owned export was available; contract-tested only.",
+    "logExports.download": "The owned export could not start; successful download is unverified.",
+    "inference.deleteModel": "No owned fine-tuned model was provisioned for deletion; offline contract only.",
+    "inference.createFineTuningJob": "No training job was started. The designated inference model does not support fine-tuning; offline contract only.",
+    "inference.retrieveFineTuningJob": "No owned training job was available; offline contract only.",
+    "inference.cancelFineTuningJob": "No owned training job was available; existing jobs were not changed. Offline contract only.",
+    "inference.listFineTuningEvents": "No owned training job was available; offline contract only.",
+    "inference.listFineTuningJobCheckpoints": "No owned training job checkpoints were available; offline contract only.",
+    "inference.cancelVectorStoreFileBatch": "The owned file-batch cancellation endpoint returned HTTP 500; successful cancellation remains unverified. Create, completed retrieval and file listing passed."
+  },
+  "operations": [
+    {
+      "method": "POST",
+      "path": "/chat/completions",
+      "operationId": "createChatCompletion",
+      "status": "direct-contract",
+      "reason": "SDK route exists. Typed field coverage does not imply successful live execution; consult the method verification table.",
+      "implementations": [
+        {
+          "source": "src/ai-gateway/inference-client.ts",
+          "member": "createChatCompletion"
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/realtime",
+      "operationId": "connectRealtime",
+      "status": "runtime-unimplemented",
+      "reason": "Realtime is not implemented. A bounded live WebSocket probe completed HTTP 101, then received invalid_model before session creation with the prescribed model. Same-key authentication and socket/key cleanup passed. No alternate model or successful realtime lifecycle is claimed.",
+      "implementations": []
+    },
+    {
+      "method": "POST",
+      "path": "/completions",
+      "operationId": "createCompletion",
+      "status": "direct-contract",
+      "reason": "SDK route exists. Typed field coverage does not imply successful live execution; consult the method verification table.",
+      "implementations": [
+        {
+          "source": "src/ai-gateway/inference-client.ts",
+          "member": "createCompletion"
+        }
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/collections",
+      "status": "tenant-unverified",
+      "reason": "Read-only probes of this family were denied or unavailable on the supplied SCM tenant. This is not proof that every method is unsupported. No speculative write API added.",
+      "implementations": []
+    },
+    {
+      "method": "GET",
+      "path": "/collections",
+      "status": "tenant-unverified",
+      "reason": "Read-only probes of this family were denied or unavailable on the supplied SCM tenant. This is not proof that every method is unsupported. No speculative write API added.",
+      "implementations": []
+    },
+    {
+      "method": "GET",
+      "path": "/collections/{collectionId}",
+      "status": "tenant-unverified",
+      "reason": "Read-only probes of this family were denied or unavailable on the supplied SCM tenant. This is not proof that every method is unsupported. No speculative write API added.",
+      "implementations": []
+    },
+    {
+      "method": "PUT",
+      "path": "/collections/{collectionId}",
+      "status": "tenant-unverified",
+      "reason": "Read-only probes of this family were denied or unavailable on the supplied SCM tenant. This is not proof that every method is unsupported. No speculative write API added.",
+      "implementations": []
+    },
+    {
+      "method": "DELETE",
+      "path": "/collections/{collectionId}",
+      "status": "tenant-unverified",
+      "reason": "Read-only probes of this family were denied or unavailable on the supplied SCM tenant. This is not proof that every method is unsupported. No speculative write API added.",
+      "implementations": []
+    },
+    {
+      "method": "POST",
+      "path": "/labels",
+      "operationId": "createLabel",
+      "status": "tenant-unverified",
+      "reason": "Read-only probes of this family were denied or unavailable on the supplied SCM tenant. This is not proof that every method is unsupported. No speculative write API added.",
+      "implementations": []
+    },
+    {
+      "method": "GET",
+      "path": "/labels",
+      "operationId": "listLabels",
+      "status": "tenant-unverified",
+      "reason": "Read-only probes of this family were denied or unavailable on the supplied SCM tenant. This is not proof that every method is unsupported. No speculative write API added.",
+      "implementations": []
+    },
+    {
+      "method": "GET",
+      "path": "/labels/{labelId}",
+      "operationId": "getLabel",
+      "status": "tenant-unverified",
+      "reason": "Read-only probes of this family were denied or unavailable on the supplied SCM tenant. This is not proof that every method is unsupported. No speculative write API added.",
+      "implementations": []
+    },
+    {
+      "method": "PUT",
+      "path": "/labels/{labelId}",
+      "operationId": "updateLabel",
+      "status": "tenant-unverified",
+      "reason": "Read-only probes of this family were denied or unavailable on the supplied SCM tenant. This is not proof that every method is unsupported. No speculative write API added.",
+      "implementations": []
+    },
+    {
+      "method": "DELETE",
+      "path": "/labels/{labelId}",
+      "operationId": "deleteLabel",
+      "status": "tenant-unverified",
+      "reason": "Read-only probes of this family were denied or unavailable on the supplied SCM tenant. This is not proof that every method is unsupported. No speculative write API added.",
+      "implementations": []
+    },
+    {
+      "method": "POST",
+      "path": "/prompts",
+      "operationId": "createPrompt",
+      "status": "tenant-unverified",
+      "reason": "Read-only probes of this family were denied or unavailable on the supplied SCM tenant. This is not proof that every method is unsupported. No speculative write API added.",
+      "implementations": []
+    },
+    {
+      "method": "GET",
+      "path": "/prompts",
+      "operationId": "listPrompts",
+      "status": "tenant-unverified",
+      "reason": "Read-only probes of this family were denied or unavailable on the supplied SCM tenant. This is not proof that every method is unsupported. No speculative write API added.",
+      "implementations": []
+    },
+    {
+      "method": "GET",
+      "path": "/prompts/{promptId}",
+      "operationId": "getPrompt",
+      "status": "tenant-unverified",
+      "reason": "Read-only probes of this family were denied or unavailable on the supplied SCM tenant. This is not proof that every method is unsupported. No speculative write API added.",
+      "implementations": []
+    },
+    {
+      "method": "PUT",
+      "path": "/prompts/{promptId}",
+      "operationId": "updatePrompt",
+      "status": "tenant-unverified",
+      "reason": "Read-only probes of this family were denied or unavailable on the supplied SCM tenant. This is not proof that every method is unsupported. No speculative write API added.",
+      "implementations": []
+    },
+    {
+      "method": "DELETE",
+      "path": "/prompts/{promptId}",
+      "operationId": "deletePrompt",
+      "status": "tenant-unverified",
+      "reason": "Read-only probes of this family were denied or unavailable on the supplied SCM tenant. This is not proof that every method is unsupported. No speculative write API added.",
+      "implementations": []
+    },
+    {
+      "method": "GET",
+      "path": "/prompts/{promptId}/versions",
+      "operationId": "getPromptVersions",
+      "status": "tenant-unverified",
+      "reason": "Read-only probes of this family were denied or unavailable on the supplied SCM tenant. This is not proof that every method is unsupported. No speculative write API added.",
+      "implementations": []
+    },
+    {
+      "method": "GET",
+      "path": "/prompts/{promptId}/versions/{versionId}",
+      "operationId": "getPromptByVersion",
+      "status": "tenant-unverified",
+      "reason": "Read-only probes of this family were denied or unavailable on the supplied SCM tenant. This is not proof that every method is unsupported. No speculative write API added.",
+      "implementations": []
+    },
+    {
+      "method": "PUT",
+      "path": "/prompts/{promptId}/versions/{versionId}",
+      "operationId": "updatePromptVersion",
+      "status": "tenant-unverified",
+      "reason": "Read-only probes of this family were denied or unavailable on the supplied SCM tenant. This is not proof that every method is unsupported. No speculative write API added.",
+      "implementations": []
+    },
+    {
+      "method": "PUT",
+      "path": "/prompts/{promptId}/makeDefault",
+      "operationId": "updatePromptDefault",
+      "status": "tenant-unverified",
+      "reason": "Read-only probes of this family were denied or unavailable on the supplied SCM tenant. This is not proof that every method is unsupported. No speculative write API added.",
+      "implementations": []
+    },
+    {
+      "method": "POST",
+      "path": "/prompts/partials",
+      "operationId": "createPromptPartial",
+      "status": "tenant-unverified",
+      "reason": "Read-only probes of this family were denied or unavailable on the supplied SCM tenant. This is not proof that every method is unsupported. No speculative write API added.",
+      "implementations": []
+    },
+    {
+      "method": "GET",
+      "path": "/prompts/partials",
+      "operationId": "listPromptPartials",
+      "status": "tenant-unverified",
+      "reason": "Read-only probes of this family were denied or unavailable on the supplied SCM tenant. This is not proof that every method is unsupported. No speculative write API added.",
+      "implementations": []
+    },
+    {
+      "method": "GET",
+      "path": "/prompts/partials/{promptPartialId}",
+      "operationId": "getPromptPartial",
+      "status": "tenant-unverified",
+      "reason": "Read-only probes of this family were denied or unavailable on the supplied SCM tenant. This is not proof that every method is unsupported. No speculative write API added.",
+      "implementations": []
+    },
+    {
+      "method": "PUT",
+      "path": "/prompts/partials/{promptPartialId}",
+      "operationId": "updatePromptPartial",
+      "status": "tenant-unverified",
+      "reason": "Read-only probes of this family were denied or unavailable on the supplied SCM tenant. This is not proof that every method is unsupported. No speculative write API added.",
+      "implementations": []
+    },
+    {
+      "method": "DELETE",
+      "path": "/prompts/partials/{promptPartialId}",
+      "operationId": "deletePromptPartial",
+      "status": "tenant-unverified",
+      "reason": "Read-only probes of this family were denied or unavailable on the supplied SCM tenant. This is not proof that every method is unsupported. No speculative write API added.",
+      "implementations": []
+    },
+    {
+      "method": "GET",
+      "path": "/prompts/partials/{promptPartialId}/versions",
+      "operationId": "getPromptPartialVersions",
+      "status": "tenant-unverified",
+      "reason": "Read-only probes of this family were denied or unavailable on the supplied SCM tenant. This is not proof that every method is unsupported. No speculative write API added.",
+      "implementations": []
+    },
+    {
+      "method": "PUT",
+      "path": "/prompts/partials/{promptPartialId}/makeDefault",
+      "operationId": "updatePromptPartialDefault",
+      "status": "tenant-unverified",
+      "reason": "Read-only probes of this family were denied or unavailable on the supplied SCM tenant. This is not proof that every method is unsupported. No speculative write API added.",
+      "implementations": []
+    },
+    {
+      "method": "POST",
+      "path": "/prompts/{promptId}/completions",
+      "operationId": "createPromptCompletion",
+      "status": "direct-contract",
+      "reason": "SDK route exists. Typed field coverage does not imply successful live execution; consult the method verification table.",
+      "implementations": [
+        {
+          "source": "src/ai-gateway/inference-client.ts",
+          "member": "createPromptCompletion"
+        }
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/prompts/{promptId}/render",
+      "operationId": "createPromptRender",
+      "status": "direct-contract",
+      "reason": "SDK route exists. Typed field coverage does not imply successful live execution; consult the method verification table.",
+      "implementations": [
+        {
+          "source": "src/ai-gateway/inference-client.ts",
+          "member": "createPromptRender"
+        }
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/guardrails",
+      "operationId": "createGuardrail",
+      "status": "direct-contract",
+      "reason": "SDK route exists. Typed field coverage does not imply successful live execution; consult the method verification table.",
+      "implementations": [
+        {
+          "source": "src/ai-gateway/guardrails-client.ts",
+          "member": "create"
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/guardrails",
+      "operationId": "listGuardrails",
+      "status": "direct-contract",
+      "reason": "SDK route exists. Typed field coverage does not imply successful live execution; consult the method verification table.",
+      "implementations": [
+        {
+          "source": "src/ai-gateway/guardrails-client.ts",
+          "member": "list"
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/guardrails/{guardrailId}",
+      "operationId": "getGuardrail",
+      "status": "direct-contract",
+      "reason": "SDK route exists. Typed field coverage does not imply successful live execution; consult the method verification table.",
+      "implementations": [
+        {
+          "source": "src/ai-gateway/guardrails-client.ts",
+          "member": "get"
+        }
+      ]
+    },
+    {
+      "method": "PUT",
+      "path": "/guardrails/{guardrailId}",
+      "operationId": "updateGuardrail",
+      "status": "direct-contract",
+      "reason": "SDK route exists. Typed field coverage does not imply successful live execution; consult the method verification table.",
+      "implementations": [
+        {
+          "source": "src/ai-gateway/guardrails-client.ts",
+          "member": "update"
+        }
+      ]
+    },
+    {
+      "method": "DELETE",
+      "path": "/guardrails/{guardrailId}",
+      "operationId": "deleteGuardrail",
+      "status": "direct-contract",
+      "reason": "SDK route exists. Typed field coverage does not imply successful live execution; consult the method verification table.",
+      "implementations": [
+        {
+          "source": "src/ai-gateway/guardrails-client.ts",
+          "member": "delete"
+        }
+      ]
+    },
+    {
+      "method": "PUT",
+      "path": "/guardrails/{guardrailId}/mcp-servers",
+      "operationId": "bulkSyncGuardrailMcpServers",
+      "status": "direct-contract",
+      "reason": "SDK route exists. Typed field coverage does not imply successful live execution; consult the method verification table.",
+      "implementations": [
+        {
+          "source": "src/ai-gateway/guardrails-client.ts",
+          "member": "syncMcpServers"
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/guardrails/{guardrailId}/mcp-servers",
+      "operationId": "listGuardrailMcpServers",
+      "status": "direct-contract",
+      "reason": "SDK route exists. Typed field coverage does not imply successful live execution; consult the method verification table.",
+      "implementations": [
+        {
+          "source": "src/ai-gateway/guardrails-client.ts",
+          "member": "getMcpServers"
+        }
+      ]
+    },
+    {
+      "method": "PUT",
+      "path": "/guardrails/{guardrailId}/mcp-servers/{mcpServerId}",
+      "operationId": "upsertGuardrailMcpServer",
+      "status": "direct-contract",
+      "reason": "SDK route exists. Typed field coverage does not imply successful live execution; consult the method verification table.",
+      "implementations": [
+        {
+          "source": "src/ai-gateway/guardrails-client.ts",
+          "member": "upsertMcpServer"
+        }
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/images/generations",
+      "operationId": "createImage",
+      "status": "direct-contract",
+      "reason": "SDK route exists. Typed field coverage does not imply successful live execution; consult the method verification table.",
+      "implementations": [
+        {
+          "source": "src/ai-gateway/runtime-resources-client.ts",
+          "member": "createImage"
+        }
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/images/edits",
+      "operationId": "createImageEdit",
+      "status": "direct-contract",
+      "reason": "SDK route exists. Typed field coverage does not imply successful live execution; consult the method verification table.",
+      "implementations": [
+        {
+          "source": "src/ai-gateway/runtime-resources-client.ts",
+          "member": "createImageEdit"
+        }
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/images/variations",
+      "operationId": "createImageVariation",
+      "status": "direct-contract",
+      "reason": "SDK route exists. Typed field coverage does not imply successful live execution; consult the method verification table.",
+      "implementations": [
+        {
+          "source": "src/ai-gateway/runtime-resources-client.ts",
+          "member": "createImageVariation"
+        }
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/embeddings",
+      "operationId": "createEmbedding",
+      "status": "direct-contract",
+      "reason": "SDK route exists. Typed field coverage does not imply successful live execution; consult the method verification table.",
+      "implementations": [
+        {
+          "source": "src/ai-gateway/inference-client.ts",
+          "member": "createEmbedding"
+        }
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/rerank",
+      "operationId": "createRerank",
+      "status": "direct-contract",
+      "reason": "SDK route exists. Typed field coverage does not imply successful live execution; consult the method verification table.",
+      "implementations": [
+        {
+          "source": "src/ai-gateway/runtime-resources-client.ts",
+          "member": "createRerank"
+        }
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/ocr",
+      "operationId": "createOcr",
+      "status": "direct-contract",
+      "reason": "SDK route exists. Typed field coverage does not imply successful live execution; consult the method verification table.",
+      "implementations": [
+        {
+          "source": "src/ai-gateway/runtime-resources-client.ts",
+          "member": "createOcr"
+        }
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/audio/speech",
+      "operationId": "createSpeech",
+      "status": "direct-contract",
+      "reason": "SDK route exists. Typed field coverage does not imply successful live execution; consult the method verification table.",
+      "implementations": [
+        {
+          "source": "src/ai-gateway/runtime-resources-client.ts",
+          "member": "createSpeech"
+        }
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/audio/transcriptions",
+      "operationId": "createTranscription",
+      "status": "direct-contract",
+      "reason": "SDK route exists. Typed field coverage does not imply successful live execution; consult the method verification table.",
+      "implementations": [
+        {
+          "source": "src/ai-gateway/runtime-resources-client.ts",
+          "member": "createTranscription"
+        }
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/audio/translations",
+      "operationId": "createTranslation",
+      "status": "direct-contract",
+      "reason": "SDK route exists. Typed field coverage does not imply successful live execution; consult the method verification table.",
+      "implementations": [
+        {
+          "source": "src/ai-gateway/runtime-resources-client.ts",
+          "member": "createTranslation"
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/files",
+      "operationId": "listFiles",
+      "status": "direct-contract",
+      "reason": "SDK route exists. Typed field coverage does not imply successful live execution; consult the method verification table.",
+      "implementations": [
+        {
+          "source": "src/ai-gateway/runtime-resources-client.ts",
+          "member": "listFiles"
+        }
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/files",
+      "operationId": "createFile",
+      "status": "direct-contract",
+      "reason": "SDK route exists. Typed field coverage does not imply successful live execution; consult the method verification table.",
+      "implementations": [
+        {
+          "source": "src/ai-gateway/runtime-resources-client.ts",
+          "member": "createFile"
+        }
+      ]
+    },
+    {
+      "method": "DELETE",
+      "path": "/files/{file_id}",
+      "operationId": "deleteFile",
+      "status": "direct-contract",
+      "reason": "SDK route exists. Typed field coverage does not imply successful live execution; consult the method verification table.",
+      "implementations": [
+        {
+          "source": "src/ai-gateway/runtime-resources-client.ts",
+          "member": "deleteFile"
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/files/{file_id}",
+      "operationId": "retrieveFile",
+      "status": "direct-contract",
+      "reason": "SDK route exists. Typed field coverage does not imply successful live execution; consult the method verification table.",
+      "implementations": [
+        {
+          "source": "src/ai-gateway/runtime-resources-client.ts",
+          "member": "retrieveFile"
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/files/{file_id}/content",
+      "operationId": "downloadFile",
+      "status": "direct-contract",
+      "reason": "SDK route exists. Typed field coverage does not imply successful live execution; consult the method verification table.",
+      "implementations": [
+        {
+          "source": "src/ai-gateway/runtime-resources-client.ts",
+          "member": "downloadFile"
+        }
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/fine_tuning/jobs",
+      "operationId": "createFineTuningJob",
+      "status": "direct-contract",
+      "reason": "SDK route exists. Typed field coverage does not imply successful live execution; consult the method verification table.",
+      "implementations": [
+        {
+          "source": "src/ai-gateway/runtime-resources-client.ts",
+          "member": "createFineTuningJob"
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/fine_tuning/jobs",
+      "operationId": "listPaginatedFineTuningJobs",
+      "status": "direct-contract",
+      "reason": "SDK route exists. Typed field coverage does not imply successful live execution; consult the method verification table.",
+      "implementations": [
+        {
+          "source": "src/ai-gateway/runtime-resources-client.ts",
+          "member": "listPaginatedFineTuningJobs"
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/fine_tuning/jobs/{fine_tuning_job_id}",
+      "operationId": "retrieveFineTuningJob",
+      "status": "direct-contract",
+      "reason": "SDK route exists. Typed field coverage does not imply successful live execution; consult the method verification table.",
+      "implementations": [
+        {
+          "source": "src/ai-gateway/runtime-resources-client.ts",
+          "member": "retrieveFineTuningJob"
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/fine_tuning/jobs/{fine_tuning_job_id}/events",
+      "operationId": "listFineTuningEvents",
+      "status": "direct-contract",
+      "reason": "SDK route exists. Typed field coverage does not imply successful live execution; consult the method verification table.",
+      "implementations": [
+        {
+          "source": "src/ai-gateway/runtime-resources-client.ts",
+          "member": "listFineTuningEvents"
+        }
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/fine_tuning/jobs/{fine_tuning_job_id}/cancel",
+      "operationId": "cancelFineTuningJob",
+      "status": "direct-contract",
+      "reason": "SDK route exists. Typed field coverage does not imply successful live execution; consult the method verification table.",
+      "implementations": [
+        {
+          "source": "src/ai-gateway/runtime-resources-client.ts",
+          "member": "cancelFineTuningJob"
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/fine_tuning/jobs/{fine_tuning_job_id}/checkpoints",
+      "operationId": "listFineTuningJobCheckpoints",
+      "status": "direct-contract",
+      "reason": "SDK route exists. Typed field coverage does not imply successful live execution; consult the method verification table.",
+      "implementations": [
+        {
+          "source": "src/ai-gateway/runtime-resources-client.ts",
+          "member": "listFineTuningJobCheckpoints"
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/models",
+      "operationId": "listModels",
+      "status": "direct-contract",
+      "reason": "SDK route exists. Typed field coverage does not imply successful live execution; consult the method verification table.",
+      "implementations": [
+        {
+          "source": "src/ai-gateway/runtime-resources-client.ts",
+          "member": "listModels"
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/models/{model}",
+      "operationId": "retrieveModel",
+      "status": "direct-contract",
+      "reason": "SDK route exists. Typed field coverage does not imply successful live execution; consult the method verification table.",
+      "implementations": [
+        {
+          "source": "src/ai-gateway/runtime-resources-client.ts",
+          "member": "retrieveModel"
+        }
+      ]
+    },
+    {
+      "method": "DELETE",
+      "path": "/models/{model}",
+      "operationId": "deleteModel",
+      "status": "direct-contract",
+      "reason": "SDK route exists. Typed field coverage does not imply successful live execution; consult the method verification table.",
+      "implementations": [
+        {
+          "source": "src/ai-gateway/runtime-resources-client.ts",
+          "member": "deleteModel"
+        }
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/moderations",
+      "operationId": "createModeration",
+      "status": "direct-contract",
+      "reason": "SDK route exists. Typed field coverage does not imply successful live execution; consult the method verification table.",
+      "implementations": [
+        {
+          "source": "src/ai-gateway/runtime-resources-client.ts",
+          "member": "createModeration"
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/assistants",
+      "operationId": "listAssistants",
+      "status": "runtime-retired-upstream",
+      "reason": "OpenAI retired Assistants/Threads on 2026-08-26 (developers.openai.com/api/docs/assistants/migration). These 23 pinned operations remain unimplemented and in the 242-operation denominator. The configured OpenAI backend cannot live-certify them; Responses is not counted as a wire-equivalent replacement. This does not establish every other provider or gateway compatibility mode is unavailable.",
+      "implementations": []
+    },
+    {
+      "method": "POST",
+      "path": "/assistants",
+      "operationId": "createAssistant",
+      "status": "runtime-retired-upstream",
+      "reason": "OpenAI retired Assistants/Threads on 2026-08-26 (developers.openai.com/api/docs/assistants/migration). These 23 pinned operations remain unimplemented and in the 242-operation denominator. The configured OpenAI backend cannot live-certify them; Responses is not counted as a wire-equivalent replacement. This does not establish every other provider or gateway compatibility mode is unavailable.",
+      "implementations": []
+    },
+    {
+      "method": "GET",
+      "path": "/assistants/{assistant_id}",
+      "operationId": "getAssistant",
+      "status": "runtime-retired-upstream",
+      "reason": "OpenAI retired Assistants/Threads on 2026-08-26 (developers.openai.com/api/docs/assistants/migration). These 23 pinned operations remain unimplemented and in the 242-operation denominator. The configured OpenAI backend cannot live-certify them; Responses is not counted as a wire-equivalent replacement. This does not establish every other provider or gateway compatibility mode is unavailable.",
+      "implementations": []
+    },
+    {
+      "method": "POST",
+      "path": "/assistants/{assistant_id}",
+      "operationId": "modifyAssistant",
+      "status": "runtime-retired-upstream",
+      "reason": "OpenAI retired Assistants/Threads on 2026-08-26 (developers.openai.com/api/docs/assistants/migration). These 23 pinned operations remain unimplemented and in the 242-operation denominator. The configured OpenAI backend cannot live-certify them; Responses is not counted as a wire-equivalent replacement. This does not establish every other provider or gateway compatibility mode is unavailable.",
+      "implementations": []
+    },
+    {
+      "method": "DELETE",
+      "path": "/assistants/{assistant_id}",
+      "operationId": "deleteAssistant",
+      "status": "runtime-retired-upstream",
+      "reason": "OpenAI retired Assistants/Threads on 2026-08-26 (developers.openai.com/api/docs/assistants/migration). These 23 pinned operations remain unimplemented and in the 242-operation denominator. The configured OpenAI backend cannot live-certify them; Responses is not counted as a wire-equivalent replacement. This does not establish every other provider or gateway compatibility mode is unavailable.",
+      "implementations": []
+    },
+    {
+      "method": "POST",
+      "path": "/responses",
+      "operationId": "createResponse",
+      "status": "direct-contract",
+      "reason": "SDK route exists. Typed field coverage does not imply successful live execution; consult the method verification table.",
+      "implementations": [
+        {
+          "source": "src/ai-gateway/inference-client.ts",
+          "member": "createResponse"
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/responses/{response_id}",
+      "operationId": "getResponse",
+      "status": "direct-contract",
+      "reason": "SDK route exists. Typed field coverage does not imply successful live execution; consult the method verification table.",
+      "implementations": [
+        {
+          "source": "src/ai-gateway/runtime-resources-client.ts",
+          "member": "getResponse"
+        }
+      ]
+    },
+    {
+      "method": "DELETE",
+      "path": "/responses/{response_id}",
+      "operationId": "deleteResponse",
+      "status": "direct-contract",
+      "reason": "SDK route exists. Typed field coverage does not imply successful live execution; consult the method verification table.",
+      "implementations": [
+        {
+          "source": "src/ai-gateway/runtime-resources-client.ts",
+          "member": "deleteResponse"
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/responses/{response_id}/input_items",
+      "operationId": "listInputItems",
+      "status": "direct-contract",
+      "reason": "SDK route exists. Typed field coverage does not imply successful live execution; consult the method verification table.",
+      "implementations": [
+        {
+          "source": "src/ai-gateway/runtime-resources-client.ts",
+          "member": "listInputItems"
+        }
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/threads",
+      "operationId": "createThread",
+      "status": "runtime-retired-upstream",
+      "reason": "OpenAI retired Assistants/Threads on 2026-08-26 (developers.openai.com/api/docs/assistants/migration). These 23 pinned operations remain unimplemented and in the 242-operation denominator. The configured OpenAI backend cannot live-certify them; Responses is not counted as a wire-equivalent replacement. This does not establish every other provider or gateway compatibility mode is unavailable.",
+      "implementations": []
+    },
+    {
+      "method": "GET",
+      "path": "/threads/{thread_id}",
+      "operationId": "getThread",
+      "status": "runtime-retired-upstream",
+      "reason": "OpenAI retired Assistants/Threads on 2026-08-26 (developers.openai.com/api/docs/assistants/migration). These 23 pinned operations remain unimplemented and in the 242-operation denominator. The configured OpenAI backend cannot live-certify them; Responses is not counted as a wire-equivalent replacement. This does not establish every other provider or gateway compatibility mode is unavailable.",
+      "implementations": []
+    },
+    {
+      "method": "POST",
+      "path": "/threads/{thread_id}",
+      "operationId": "modifyThread",
+      "status": "runtime-retired-upstream",
+      "reason": "OpenAI retired Assistants/Threads on 2026-08-26 (developers.openai.com/api/docs/assistants/migration). These 23 pinned operations remain unimplemented and in the 242-operation denominator. The configured OpenAI backend cannot live-certify them; Responses is not counted as a wire-equivalent replacement. This does not establish every other provider or gateway compatibility mode is unavailable.",
+      "implementations": []
+    },
+    {
+      "method": "DELETE",
+      "path": "/threads/{thread_id}",
+      "operationId": "deleteThread",
+      "status": "runtime-retired-upstream",
+      "reason": "OpenAI retired Assistants/Threads on 2026-08-26 (developers.openai.com/api/docs/assistants/migration). These 23 pinned operations remain unimplemented and in the 242-operation denominator. The configured OpenAI backend cannot live-certify them; Responses is not counted as a wire-equivalent replacement. This does not establish every other provider or gateway compatibility mode is unavailable.",
+      "implementations": []
+    },
+    {
+      "method": "GET",
+      "path": "/threads/{thread_id}/messages",
+      "operationId": "listMessages",
+      "status": "runtime-retired-upstream",
+      "reason": "OpenAI retired Assistants/Threads on 2026-08-26 (developers.openai.com/api/docs/assistants/migration). These 23 pinned operations remain unimplemented and in the 242-operation denominator. The configured OpenAI backend cannot live-certify them; Responses is not counted as a wire-equivalent replacement. This does not establish every other provider or gateway compatibility mode is unavailable.",
+      "implementations": []
+    },
+    {
+      "method": "POST",
+      "path": "/threads/{thread_id}/messages",
+      "operationId": "createMessage",
+      "status": "runtime-retired-upstream",
+      "reason": "OpenAI retired Assistants/Threads on 2026-08-26 (developers.openai.com/api/docs/assistants/migration). These 23 pinned operations remain unimplemented and in the 242-operation denominator. The configured OpenAI backend cannot live-certify them; Responses is not counted as a wire-equivalent replacement. This does not establish every other provider or gateway compatibility mode is unavailable.",
+      "implementations": []
+    },
+    {
+      "method": "GET",
+      "path": "/threads/{thread_id}/messages/{message_id}",
+      "operationId": "getMessage",
+      "status": "runtime-retired-upstream",
+      "reason": "OpenAI retired Assistants/Threads on 2026-08-26 (developers.openai.com/api/docs/assistants/migration). These 23 pinned operations remain unimplemented and in the 242-operation denominator. The configured OpenAI backend cannot live-certify them; Responses is not counted as a wire-equivalent replacement. This does not establish every other provider or gateway compatibility mode is unavailable.",
+      "implementations": []
+    },
+    {
+      "method": "POST",
+      "path": "/threads/{thread_id}/messages/{message_id}",
+      "operationId": "modifyMessage",
+      "status": "runtime-retired-upstream",
+      "reason": "OpenAI retired Assistants/Threads on 2026-08-26 (developers.openai.com/api/docs/assistants/migration). These 23 pinned operations remain unimplemented and in the 242-operation denominator. The configured OpenAI backend cannot live-certify them; Responses is not counted as a wire-equivalent replacement. This does not establish every other provider or gateway compatibility mode is unavailable.",
+      "implementations": []
+    },
+    {
+      "method": "DELETE",
+      "path": "/threads/{thread_id}/messages/{message_id}",
+      "operationId": "deleteMessage",
+      "status": "runtime-retired-upstream",
+      "reason": "OpenAI retired Assistants/Threads on 2026-08-26 (developers.openai.com/api/docs/assistants/migration). These 23 pinned operations remain unimplemented and in the 242-operation denominator. The configured OpenAI backend cannot live-certify them; Responses is not counted as a wire-equivalent replacement. This does not establish every other provider or gateway compatibility mode is unavailable.",
+      "implementations": []
+    },
+    {
+      "method": "POST",
+      "path": "/threads/runs",
+      "operationId": "createThreadAndRun",
+      "status": "runtime-retired-upstream",
+      "reason": "OpenAI retired Assistants/Threads on 2026-08-26 (developers.openai.com/api/docs/assistants/migration). These 23 pinned operations remain unimplemented and in the 242-operation denominator. The configured OpenAI backend cannot live-certify them; Responses is not counted as a wire-equivalent replacement. This does not establish every other provider or gateway compatibility mode is unavailable.",
+      "implementations": []
+    },
+    {
+      "method": "GET",
+      "path": "/threads/{thread_id}/runs",
+      "operationId": "listRuns",
+      "status": "runtime-retired-upstream",
+      "reason": "OpenAI retired Assistants/Threads on 2026-08-26 (developers.openai.com/api/docs/assistants/migration). These 23 pinned operations remain unimplemented and in the 242-operation denominator. The configured OpenAI backend cannot live-certify them; Responses is not counted as a wire-equivalent replacement. This does not establish every other provider or gateway compatibility mode is unavailable.",
+      "implementations": []
+    },
+    {
+      "method": "POST",
+      "path": "/threads/{thread_id}/runs",
+      "operationId": "createRun",
+      "status": "runtime-retired-upstream",
+      "reason": "OpenAI retired Assistants/Threads on 2026-08-26 (developers.openai.com/api/docs/assistants/migration). These 23 pinned operations remain unimplemented and in the 242-operation denominator. The configured OpenAI backend cannot live-certify them; Responses is not counted as a wire-equivalent replacement. This does not establish every other provider or gateway compatibility mode is unavailable.",
+      "implementations": []
+    },
+    {
+      "method": "GET",
+      "path": "/threads/{thread_id}/runs/{run_id}",
+      "operationId": "getRun",
+      "status": "runtime-retired-upstream",
+      "reason": "OpenAI retired Assistants/Threads on 2026-08-26 (developers.openai.com/api/docs/assistants/migration). These 23 pinned operations remain unimplemented and in the 242-operation denominator. The configured OpenAI backend cannot live-certify them; Responses is not counted as a wire-equivalent replacement. This does not establish every other provider or gateway compatibility mode is unavailable.",
+      "implementations": []
+    },
+    {
+      "method": "POST",
+      "path": "/threads/{thread_id}/runs/{run_id}",
+      "operationId": "modifyRun",
+      "status": "runtime-retired-upstream",
+      "reason": "OpenAI retired Assistants/Threads on 2026-08-26 (developers.openai.com/api/docs/assistants/migration). These 23 pinned operations remain unimplemented and in the 242-operation denominator. The configured OpenAI backend cannot live-certify them; Responses is not counted as a wire-equivalent replacement. This does not establish every other provider or gateway compatibility mode is unavailable.",
+      "implementations": []
+    },
+    {
+      "method": "POST",
+      "path": "/threads/{thread_id}/runs/{run_id}/submit_tool_outputs",
+      "operationId": "submitToolOuputsToRun",
+      "status": "runtime-retired-upstream",
+      "reason": "OpenAI retired Assistants/Threads on 2026-08-26 (developers.openai.com/api/docs/assistants/migration). These 23 pinned operations remain unimplemented and in the 242-operation denominator. The configured OpenAI backend cannot live-certify them; Responses is not counted as a wire-equivalent replacement. This does not establish every other provider or gateway compatibility mode is unavailable.",
+      "implementations": []
+    },
+    {
+      "method": "POST",
+      "path": "/threads/{thread_id}/runs/{run_id}/cancel",
+      "operationId": "cancelRun",
+      "status": "runtime-retired-upstream",
+      "reason": "OpenAI retired Assistants/Threads on 2026-08-26 (developers.openai.com/api/docs/assistants/migration). These 23 pinned operations remain unimplemented and in the 242-operation denominator. The configured OpenAI backend cannot live-certify them; Responses is not counted as a wire-equivalent replacement. This does not establish every other provider or gateway compatibility mode is unavailable.",
+      "implementations": []
+    },
+    {
+      "method": "GET",
+      "path": "/threads/{thread_id}/runs/{run_id}/steps",
+      "operationId": "listRunSteps",
+      "status": "runtime-retired-upstream",
+      "reason": "OpenAI retired Assistants/Threads on 2026-08-26 (developers.openai.com/api/docs/assistants/migration). These 23 pinned operations remain unimplemented and in the 242-operation denominator. The configured OpenAI backend cannot live-certify them; Responses is not counted as a wire-equivalent replacement. This does not establish every other provider or gateway compatibility mode is unavailable.",
+      "implementations": []
+    },
+    {
+      "method": "GET",
+      "path": "/threads/{thread_id}/runs/{run_id}/steps/{step_id}",
+      "operationId": "getRunStep",
+      "status": "runtime-retired-upstream",
+      "reason": "OpenAI retired Assistants/Threads on 2026-08-26 (developers.openai.com/api/docs/assistants/migration). These 23 pinned operations remain unimplemented and in the 242-operation denominator. The configured OpenAI backend cannot live-certify them; Responses is not counted as a wire-equivalent replacement. This does not establish every other provider or gateway compatibility mode is unavailable.",
+      "implementations": []
+    },
+    {
+      "method": "GET",
+      "path": "/vector_stores",
+      "operationId": "listVectorStores",
+      "status": "direct-contract",
+      "reason": "SDK route exists. Typed field coverage does not imply successful live execution; consult the method verification table.",
+      "implementations": [
+        {
+          "source": "src/ai-gateway/runtime-resources-client.ts",
+          "member": "listVectorStores"
+        }
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/vector_stores",
+      "operationId": "createVectorStore",
+      "status": "direct-contract",
+      "reason": "SDK route exists. Typed field coverage does not imply successful live execution; consult the method verification table.",
+      "implementations": [
+        {
+          "source": "src/ai-gateway/runtime-resources-client.ts",
+          "member": "createVectorStore"
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/vector_stores/{vector_store_id}",
+      "operationId": "getVectorStore",
+      "status": "direct-contract",
+      "reason": "SDK route exists. Typed field coverage does not imply successful live execution; consult the method verification table.",
+      "implementations": [
+        {
+          "source": "src/ai-gateway/runtime-resources-client.ts",
+          "member": "getVectorStore"
+        }
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/vector_stores/{vector_store_id}",
+      "operationId": "modifyVectorStore",
+      "status": "direct-contract",
+      "reason": "SDK route exists. Typed field coverage does not imply successful live execution; consult the method verification table.",
+      "implementations": [
+        {
+          "source": "src/ai-gateway/runtime-resources-client.ts",
+          "member": "modifyVectorStore"
+        }
+      ]
+    },
+    {
+      "method": "DELETE",
+      "path": "/vector_stores/{vector_store_id}",
+      "operationId": "deleteVectorStore",
+      "status": "direct-contract",
+      "reason": "SDK route exists. Typed field coverage does not imply successful live execution; consult the method verification table.",
+      "implementations": [
+        {
+          "source": "src/ai-gateway/runtime-resources-client.ts",
+          "member": "deleteVectorStore"
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/vector_stores/{vector_store_id}/files",
+      "operationId": "listVectorStoreFiles",
+      "status": "direct-contract",
+      "reason": "SDK route exists. Typed field coverage does not imply successful live execution; consult the method verification table.",
+      "implementations": [
+        {
+          "source": "src/ai-gateway/runtime-resources-client.ts",
+          "member": "listVectorStoreFiles"
+        }
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/vector_stores/{vector_store_id}/files",
+      "operationId": "createVectorStoreFile",
+      "status": "direct-contract",
+      "reason": "SDK route exists. Typed field coverage does not imply successful live execution; consult the method verification table.",
+      "implementations": [
+        {
+          "source": "src/ai-gateway/runtime-resources-client.ts",
+          "member": "createVectorStoreFile"
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/vector_stores/{vector_store_id}/files/{file_id}",
+      "operationId": "getVectorStoreFile",
+      "status": "direct-contract",
+      "reason": "SDK route exists. Typed field coverage does not imply successful live execution; consult the method verification table.",
+      "implementations": [
+        {
+          "source": "src/ai-gateway/runtime-resources-client.ts",
+          "member": "getVectorStoreFile"
+        }
+      ]
+    },
+    {
+      "method": "DELETE",
+      "path": "/vector_stores/{vector_store_id}/files/{file_id}",
+      "operationId": "deleteVectorStoreFile",
+      "status": "direct-contract",
+      "reason": "SDK route exists. Typed field coverage does not imply successful live execution; consult the method verification table.",
+      "implementations": [
+        {
+          "source": "src/ai-gateway/runtime-resources-client.ts",
+          "member": "deleteVectorStoreFile"
+        }
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/vector_stores/{vector_store_id}/file_batches",
+      "operationId": "createVectorStoreFileBatch",
+      "status": "direct-contract",
+      "reason": "SDK route exists. Typed field coverage does not imply successful live execution; consult the method verification table.",
+      "implementations": [
+        {
+          "source": "src/ai-gateway/runtime-resources-client.ts",
+          "member": "createVectorStoreFileBatch"
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/vector_stores/{vector_store_id}/file_batches/{batch_id}",
+      "operationId": "getVectorStoreFileBatch",
+      "status": "direct-contract",
+      "reason": "SDK route exists. Typed field coverage does not imply successful live execution; consult the method verification table.",
+      "implementations": [
+        {
+          "source": "src/ai-gateway/runtime-resources-client.ts",
+          "member": "getVectorStoreFileBatch"
+        }
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/vector_stores/{vector_store_id}/file_batches/{batch_id}/cancel",
+      "operationId": "cancelVectorStoreFileBatch",
+      "status": "direct-contract",
+      "reason": "SDK route exists. Typed field coverage does not imply successful live execution; consult the method verification table.",
+      "implementations": [
+        {
+          "source": "src/ai-gateway/runtime-resources-client.ts",
+          "member": "cancelVectorStoreFileBatch"
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/vector_stores/{vector_store_id}/file_batches/{batch_id}/files",
+      "operationId": "listFilesInVectorStoreBatch",
+      "status": "direct-contract",
+      "reason": "SDK route exists. Typed field coverage does not imply successful live execution; consult the method verification table.",
+      "implementations": [
+        {
+          "source": "src/ai-gateway/runtime-resources-client.ts",
+          "member": "listFilesInVectorStoreBatch"
+        }
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/batches",
+      "operationId": "createBatch",
+      "status": "direct-contract",
+      "reason": "SDK route exists. Typed field coverage does not imply successful live execution; consult the method verification table.",
+      "implementations": [
+        {
+          "source": "src/ai-gateway/runtime-resources-client.ts",
+          "member": "createBatch"
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/batches",
+      "operationId": "listBatches",
+      "status": "direct-contract",
+      "reason": "SDK route exists. Typed field coverage does not imply successful live execution; consult the method verification table.",
+      "implementations": [
+        {
+          "source": "src/ai-gateway/runtime-resources-client.ts",
+          "member": "listBatches"
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/batches/{batch_id}/output",
+      "operationId": "getBatchOutput",
+      "status": "direct-contract",
+      "reason": "SDK route exists. Typed field coverage does not imply successful live execution; consult the method verification table.",
+      "implementations": [
+        {
+          "source": "src/ai-gateway/runtime-resources-client.ts",
+          "member": "getBatchOutput"
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/batches/{batch_id}",
+      "operationId": "retrieveBatch",
+      "status": "direct-contract",
+      "reason": "SDK route exists. Typed field coverage does not imply successful live execution; consult the method verification table.",
+      "implementations": [
+        {
+          "source": "src/ai-gateway/runtime-resources-client.ts",
+          "member": "retrieveBatch"
+        }
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/batches/{batch_id}/cancel",
+      "operationId": "cancelBatch",
+      "status": "direct-contract",
+      "reason": "SDK route exists. Typed field coverage does not imply successful live execution; consult the method verification table.",
+      "implementations": [
+        {
+          "source": "src/ai-gateway/runtime-resources-client.ts",
+          "member": "cancelBatch"
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/configs",
+      "operationId": "listConfigs",
+      "status": "direct-contract",
+      "reason": "SDK route exists. Typed field coverage does not imply successful live execution; consult the method verification table.",
+      "implementations": [
+        {
+          "source": "src/ai-gateway/configs-client.ts",
+          "member": "list"
+        }
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/configs",
+      "operationId": "createConfig",
+      "status": "direct-contract",
+      "reason": "SDK route exists. Typed field coverage does not imply successful live execution; consult the method verification table.",
+      "implementations": [
+        {
+          "source": "src/ai-gateway/configs-client.ts",
+          "member": "create"
+        }
+      ]
+    },
+    {
+      "method": "DELETE",
+      "path": "/configs/{slug}",
+      "operationId": "deleteConfig",
+      "status": "direct-contract",
+      "reason": "SDK route exists. Typed field coverage does not imply successful live execution; consult the method verification table.",
+      "implementations": [
+        {
+          "source": "src/ai-gateway/configs-client.ts",
+          "member": "delete"
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/configs/{slug}",
+      "operationId": "getConfig",
+      "status": "direct-contract",
+      "reason": "SDK route exists. Typed field coverage does not imply successful live execution; consult the method verification table.",
+      "implementations": [
+        {
+          "source": "src/ai-gateway/configs-client.ts",
+          "member": "get"
+        }
+      ]
+    },
+    {
+      "method": "PUT",
+      "path": "/configs/{slug}",
+      "operationId": "updateConfig",
+      "status": "direct-contract",
+      "reason": "SDK route exists. Typed field coverage does not imply successful live execution; consult the method verification table.",
+      "implementations": [
+        {
+          "source": "src/ai-gateway/configs-client.ts",
+          "member": "update"
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/configs/{slug}/versions",
+      "operationId": "listConfigVersions",
+      "status": "direct-contract",
+      "reason": "SDK route exists. Typed field coverage does not imply successful live execution; consult the method verification table.",
+      "implementations": [
+        {
+          "source": "src/ai-gateway/configs-client.ts",
+          "member": "listVersions"
+        }
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/feedback",
+      "operationId": "createFeedback",
+      "status": "direct-contract",
+      "reason": "SDK route exists. Typed field coverage does not imply successful live execution; consult the method verification table.",
+      "implementations": [
+        {
+          "source": "src/ai-gateway/runtime-resources-client.ts",
+          "member": "createFeedback"
+        }
+      ]
+    },
+    {
+      "method": "PUT",
+      "path": "/feedback/{id}",
+      "operationId": "updateFeedback",
+      "status": "direct-contract",
+      "reason": "SDK route exists. Typed field coverage does not imply successful live execution; consult the method verification table.",
+      "implementations": [
+        {
+          "source": "src/ai-gateway/runtime-resources-client.ts",
+          "member": "updateFeedback"
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/integrations",
+      "status": "direct-contract",
+      "reason": "SDK route exists. Typed field coverage does not imply successful live execution; consult the method verification table.",
+      "implementations": [
+        {
+          "source": "src/ai-gateway/integrations-client.ts",
+          "member": "list"
+        }
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/integrations",
+      "status": "direct-contract",
+      "reason": "SDK route exists. Typed field coverage does not imply successful live execution; consult the method verification table.",
+      "implementations": [
+        {
+          "source": "src/ai-gateway/integrations-client.ts",
+          "member": "create"
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/integrations/{slug}",
+      "status": "direct-contract",
+      "reason": "SDK route exists. Typed field coverage does not imply successful live execution; consult the method verification table.",
+      "implementations": [
+        {
+          "source": "src/ai-gateway/integrations-client.ts",
+          "member": "get"
+        }
+      ]
+    },
+    {
+      "method": "PUT",
+      "path": "/integrations/{slug}",
+      "status": "direct-contract",
+      "reason": "SDK route exists. Typed field coverage does not imply successful live execution; consult the method verification table.",
+      "implementations": [
+        {
+          "source": "src/ai-gateway/integrations-client.ts",
+          "member": "update"
+        }
+      ]
+    },
+    {
+      "method": "DELETE",
+      "path": "/integrations/{slug}",
+      "status": "direct-contract",
+      "reason": "SDK route exists. Typed field coverage does not imply successful live execution; consult the method verification table.",
+      "implementations": [
+        {
+          "source": "src/ai-gateway/integrations-client.ts",
+          "member": "delete"
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/integrations/{slug}/models",
+      "status": "direct-contract",
+      "reason": "SDK route exists. Typed field coverage does not imply successful live execution; consult the method verification table.",
+      "implementations": [
+        {
+          "source": "src/ai-gateway/integrations-client.ts",
+          "member": "getModels"
+        }
+      ]
+    },
+    {
+      "method": "PUT",
+      "path": "/integrations/{slug}/models",
+      "status": "direct-contract",
+      "reason": "SDK route exists. Typed field coverage does not imply successful live execution; consult the method verification table.",
+      "implementations": [
+        {
+          "source": "src/ai-gateway/integrations-client.ts",
+          "member": "setModels"
+        }
+      ]
+    },
+    {
+      "method": "DELETE",
+      "path": "/integrations/{slug}/models",
+      "status": "direct-contract",
+      "reason": "SDK route exists. Typed field coverage does not imply successful live execution; consult the method verification table.",
+      "implementations": [
+        {
+          "source": "src/ai-gateway/integrations-client.ts",
+          "member": "deleteModels"
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/integrations/{slug}/workspaces",
+      "status": "direct-contract",
+      "reason": "SDK route exists. Typed field coverage does not imply successful live execution; consult the method verification table.",
+      "implementations": [
+        {
+          "source": "src/ai-gateway/integrations-client.ts",
+          "member": "getWorkspaces"
+        }
+      ]
+    },
+    {
+      "method": "PUT",
+      "path": "/integrations/{slug}/workspaces",
+      "status": "direct-contract",
+      "reason": "SDK route exists. Typed field coverage does not imply successful live execution; consult the method verification table.",
+      "implementations": [
+        {
+          "source": "src/ai-gateway/integrations-client.ts",
+          "member": "setWorkspaces"
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/providers",
+      "status": "direct-contract",
+      "reason": "SDK route exists. Typed field coverage does not imply successful live execution; consult the method verification table.",
+      "implementations": [
+        {
+          "source": "src/ai-gateway/providers-client.ts",
+          "member": "list"
+        }
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/providers",
+      "status": "direct-contract",
+      "reason": "SDK route exists. Typed field coverage does not imply successful live execution; consult the method verification table.",
+      "implementations": [
+        {
+          "source": "src/ai-gateway/providers-client.ts",
+          "member": "create"
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/providers/{slug}",
+      "status": "direct-contract",
+      "reason": "SDK route exists. Typed field coverage does not imply successful live execution; consult the method verification table.",
+      "implementations": [
+        {
+          "source": "src/ai-gateway/providers-client.ts",
+          "member": "get"
+        }
+      ]
+    },
+    {
+      "method": "PUT",
+      "path": "/providers/{slug}",
+      "status": "direct-contract",
+      "reason": "SDK route exists. Typed field coverage does not imply successful live execution; consult the method verification table.",
+      "implementations": [
+        {
+          "source": "src/ai-gateway/providers-client.ts",
+          "member": "update"
+        }
+      ]
+    },
+    {
+      "method": "DELETE",
+      "path": "/providers/{slug}",
+      "status": "direct-contract",
+      "reason": "SDK route exists. Typed field coverage does not imply successful live execution; consult the method verification table.",
+      "implementations": [
+        {
+          "source": "src/ai-gateway/providers-client.ts",
+          "member": "delete"
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/virtual-keys",
+      "status": "tenant-unverified",
+      "reason": "Read-only probes of this family were denied or unavailable on the supplied SCM tenant. This is not proof that every method is unsupported. No speculative write API added.",
+      "implementations": []
+    },
+    {
+      "method": "POST",
+      "path": "/virtual-keys",
+      "status": "tenant-unverified",
+      "reason": "Read-only probes of this family were denied or unavailable on the supplied SCM tenant. This is not proof that every method is unsupported. No speculative write API added.",
+      "implementations": []
+    },
+    {
+      "method": "GET",
+      "path": "/virtual-keys/{slug}",
+      "status": "tenant-unverified",
+      "reason": "Read-only probes of this family were denied or unavailable on the supplied SCM tenant. This is not proof that every method is unsupported. No speculative write API added.",
+      "implementations": []
+    },
+    {
+      "method": "PUT",
+      "path": "/virtual-keys/{slug}",
+      "status": "tenant-unverified",
+      "reason": "Read-only probes of this family were denied or unavailable on the supplied SCM tenant. This is not proof that every method is unsupported. No speculative write API added.",
+      "implementations": []
+    },
+    {
+      "method": "DELETE",
+      "path": "/virtual-keys/{slug}",
+      "status": "tenant-unverified",
+      "reason": "Read-only probes of this family were denied or unavailable on the supplied SCM tenant. This is not proof that every method is unsupported. No speculative write API added.",
+      "implementations": []
+    },
+    {
+      "method": "POST",
+      "path": "/admin/users/invites",
+      "operationId": "Invites_create",
+      "status": "tenant-unverified",
+      "reason": "Read-only probes of this family were denied or unavailable on the supplied SCM tenant. This is not proof that every method is unsupported. No speculative write API added.",
+      "implementations": []
+    },
+    {
+      "method": "GET",
+      "path": "/admin/users/invites",
+      "status": "tenant-unverified",
+      "reason": "Read-only probes of this family were denied or unavailable on the supplied SCM tenant. This is not proof that every method is unsupported. No speculative write API added.",
+      "implementations": []
+    },
+    {
+      "method": "GET",
+      "path": "/admin/users/invites/{inviteId}",
+      "status": "tenant-unverified",
+      "reason": "Read-only probes of this family were denied or unavailable on the supplied SCM tenant. This is not proof that every method is unsupported. No speculative write API added.",
+      "implementations": []
+    },
+    {
+      "method": "DELETE",
+      "path": "/admin/users/invites/{inviteId}",
+      "status": "tenant-unverified",
+      "reason": "Read-only probes of this family were denied or unavailable on the supplied SCM tenant. This is not proof that every method is unsupported. No speculative write API added.",
+      "implementations": []
+    },
+    {
+      "method": "POST",
+      "path": "/admin/users/invites/{inviteId}/resend",
+      "status": "tenant-unverified",
+      "reason": "Read-only probes of this family were denied or unavailable on the supplied SCM tenant. This is not proof that every method is unsupported. No speculative write API added.",
+      "implementations": []
+    },
+    {
+      "method": "GET",
+      "path": "/admin/users",
+      "status": "tenant-unverified",
+      "reason": "Read-only probes of this family were denied or unavailable on the supplied SCM tenant. This is not proof that every method is unsupported. No speculative write API added.",
+      "implementations": []
+    },
+    {
+      "method": "GET",
+      "path": "/admin/users/{userId}",
+      "status": "tenant-unverified",
+      "reason": "Read-only probes of this family were denied or unavailable on the supplied SCM tenant. This is not proof that every method is unsupported. No speculative write API added.",
+      "implementations": []
+    },
+    {
+      "method": "DELETE",
+      "path": "/admin/users/{userId}",
+      "status": "tenant-unverified",
+      "reason": "Read-only probes of this family were denied or unavailable on the supplied SCM tenant. This is not proof that every method is unsupported. No speculative write API added.",
+      "implementations": []
+    },
+    {
+      "method": "PUT",
+      "path": "/admin/users/{userId}",
+      "status": "tenant-unverified",
+      "reason": "Read-only probes of this family were denied or unavailable on the supplied SCM tenant. This is not proof that every method is unsupported. No speculative write API added.",
+      "implementations": []
+    },
+    {
+      "method": "POST",
+      "path": "/admin/workspaces/{workspaceId}/users",
+      "status": "tenant-unverified",
+      "reason": "Read-only probes of this family were denied or unavailable on the supplied SCM tenant. This is not proof that every method is unsupported. No speculative write API added.",
+      "implementations": []
+    },
+    {
+      "method": "GET",
+      "path": "/admin/workspaces/{workspaceId}/users",
+      "status": "tenant-unverified",
+      "reason": "Read-only probes of this family were denied or unavailable on the supplied SCM tenant. This is not proof that every method is unsupported. No speculative write API added.",
+      "implementations": []
+    },
+    {
+      "method": "PUT",
+      "path": "/admin/workspaces/{workspaceId}/users/{userId}",
+      "status": "tenant-unverified",
+      "reason": "Read-only probes of this family were denied or unavailable on the supplied SCM tenant. This is not proof that every method is unsupported. No speculative write API added.",
+      "implementations": []
+    },
+    {
+      "method": "DELETE",
+      "path": "/admin/workspaces/{workspaceId}/users/{userId}",
+      "status": "tenant-unverified",
+      "reason": "Read-only probes of this family were denied or unavailable on the supplied SCM tenant. This is not proof that every method is unsupported. No speculative write API added.",
+      "implementations": []
+    },
+    {
+      "method": "GET",
+      "path": "/admin/workspaces/{workspaceId}/users/{userId}",
+      "status": "tenant-unverified",
+      "reason": "Read-only probes of this family were denied or unavailable on the supplied SCM tenant. This is not proof that every method is unsupported. No speculative write API added.",
+      "implementations": []
+    },
+    {
+      "method": "POST",
+      "path": "/admin/workspaces",
+      "status": "scm-adapted",
+      "reason": "SCM uses /workspaces: reads are available on the data and admin planes; writes use the admin plane. Creation requires SCM scope provisioning and remains live-unverified. Not a wire-equivalent Portkey implementation.",
+      "implementations": []
+    },
+    {
+      "method": "GET",
+      "path": "/admin/workspaces",
+      "status": "scm-adapted",
+      "reason": "SCM uses /workspaces: reads are available on the data and admin planes; writes use the admin plane. Creation requires SCM scope provisioning and remains live-unverified. Not a wire-equivalent Portkey implementation.",
+      "implementations": []
+    },
+    {
+      "method": "PUT",
+      "path": "/admin/workspaces/{workspaceId}",
+      "status": "scm-adapted",
+      "reason": "SCM uses /workspaces: reads are available on the data and admin planes; writes use the admin plane. Creation requires SCM scope provisioning and remains live-unverified. Not a wire-equivalent Portkey implementation.",
+      "implementations": []
+    },
+    {
+      "method": "GET",
+      "path": "/admin/workspaces/{workspaceId}",
+      "status": "scm-adapted",
+      "reason": "SCM uses /workspaces: reads are available on the data and admin planes; writes use the admin plane. Creation requires SCM scope provisioning and remains live-unverified. Not a wire-equivalent Portkey implementation.",
+      "implementations": []
+    },
+    {
+      "method": "DELETE",
+      "path": "/admin/workspaces/{workspaceId}",
+      "status": "scm-adapted",
+      "reason": "SCM uses /workspaces: reads are available on the data and admin planes; writes use the admin plane. Creation requires SCM scope provisioning and remains live-unverified. Not a wire-equivalent Portkey implementation.",
+      "implementations": []
+    },
+    {
+      "method": "GET",
+      "path": "/scim/workspaces",
+      "status": "tenant-unverified",
+      "reason": "Read-only probes of this family were denied or unavailable on the supplied SCM tenant. This is not proof that every method is unsupported. No speculative write API added.",
+      "implementations": []
+    },
+    {
+      "method": "POST",
+      "path": "/scim/workspaces",
+      "status": "tenant-unverified",
+      "reason": "Read-only probes of this family were denied or unavailable on the supplied SCM tenant. This is not proof that every method is unsupported. No speculative write API added.",
+      "implementations": []
+    },
+    {
+      "method": "DELETE",
+      "path": "/scim/workspaces/{scimWorkspaceGroupId}",
+      "status": "tenant-unverified",
+      "reason": "Read-only probes of this family were denied or unavailable on the supplied SCM tenant. This is not proof that every method is unsupported. No speculative write API added.",
+      "implementations": []
+    },
+    {
+      "method": "POST",
+      "path": "/mcp-integrations",
+      "operationId": "McpIntegrations_create",
+      "status": "direct-contract",
+      "reason": "SDK route exists. Typed field coverage does not imply successful live execution; consult the method verification table.",
+      "implementations": [
+        {
+          "source": "src/ai-gateway/mcp-integrations-client.ts",
+          "member": "create"
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/mcp-integrations",
+      "operationId": "McpIntegrations_list",
+      "status": "direct-contract",
+      "reason": "SDK route exists. Typed field coverage does not imply successful live execution; consult the method verification table.",
+      "implementations": [
+        {
+          "source": "src/ai-gateway/mcp-integrations-client.ts",
+          "member": "list"
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/mcp-integrations/{mcpIntegrationId}",
+      "operationId": "McpIntegrations_retrieve",
+      "status": "direct-contract",
+      "reason": "SDK route exists. Typed field coverage does not imply successful live execution; consult the method verification table.",
+      "implementations": [
+        {
+          "source": "src/ai-gateway/mcp-integrations-client.ts",
+          "member": "get"
+        }
+      ]
+    },
+    {
+      "method": "PUT",
+      "path": "/mcp-integrations/{mcpIntegrationId}",
+      "operationId": "McpIntegrations_update",
+      "status": "direct-contract",
+      "reason": "SDK route exists. Typed field coverage does not imply successful live execution; consult the method verification table.",
+      "implementations": [
+        {
+          "source": "src/ai-gateway/mcp-integrations-client.ts",
+          "member": "update"
+        }
+      ]
+    },
+    {
+      "method": "DELETE",
+      "path": "/mcp-integrations/{mcpIntegrationId}",
+      "operationId": "McpIntegrations_delete",
+      "status": "direct-contract",
+      "reason": "SDK route exists. Typed field coverage does not imply successful live execution; consult the method verification table.",
+      "implementations": [
+        {
+          "source": "src/ai-gateway/mcp-integrations-client.ts",
+          "member": "delete"
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/mcp-integrations/{mcpIntegrationId}/workspaces",
+      "operationId": "McpIntegrationWorkspaces_list",
+      "status": "direct-contract",
+      "reason": "SDK route exists. Typed field coverage does not imply successful live execution; consult the method verification table.",
+      "implementations": [
+        {
+          "source": "src/ai-gateway/mcp-integrations-client.ts",
+          "member": "getWorkspaces"
+        }
+      ]
+    },
+    {
+      "method": "PUT",
+      "path": "/mcp-integrations/{mcpIntegrationId}/workspaces",
+      "operationId": "McpIntegrationWorkspaces_bulkUpdate",
+      "status": "direct-contract",
+      "reason": "SDK route exists. Typed field coverage does not imply successful live execution; consult the method verification table.",
+      "implementations": [
+        {
+          "source": "src/ai-gateway/mcp-integrations-client.ts",
+          "member": "setWorkspaces"
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/mcp-integrations/{mcpIntegrationId}/capabilities",
+      "operationId": "McpIntegrationCapabilities_list",
+      "status": "direct-contract",
+      "reason": "SDK route exists. Typed field coverage does not imply successful live execution; consult the method verification table.",
+      "implementations": [
+        {
+          "source": "src/ai-gateway/mcp-integrations-client.ts",
+          "member": "getCapabilities"
+        }
+      ]
+    },
+    {
+      "method": "PUT",
+      "path": "/mcp-integrations/{mcpIntegrationId}/capabilities",
+      "operationId": "McpIntegrationCapabilities_bulkUpdate",
+      "status": "direct-contract",
+      "reason": "SDK route exists. Typed field coverage does not imply successful live execution; consult the method verification table.",
+      "implementations": [
+        {
+          "source": "src/ai-gateway/mcp-integrations-client.ts",
+          "member": "setCapabilities"
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/mcp-integrations/{mcpIntegrationId}/metadata",
+      "operationId": "McpIntegrationMetadata_retrieve",
+      "status": "direct-contract",
+      "reason": "SDK route exists. Typed field coverage does not imply successful live execution; consult the method verification table.",
+      "implementations": [
+        {
+          "source": "src/ai-gateway/mcp-integrations-client.ts",
+          "member": "getMetadata"
+        }
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/mcp-servers",
+      "operationId": "McpServers_create",
+      "status": "direct-contract",
+      "reason": "SDK route exists. Typed field coverage does not imply successful live execution; consult the method verification table.",
+      "implementations": [
+        {
+          "source": "src/ai-gateway/mcp-servers-client.ts",
+          "member": "create"
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/mcp-servers",
+      "operationId": "McpServers_list",
+      "status": "direct-contract",
+      "reason": "SDK route exists. Typed field coverage does not imply successful live execution; consult the method verification table.",
+      "implementations": [
+        {
+          "source": "src/ai-gateway/mcp-servers-client.ts",
+          "member": "list"
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/mcp-servers/{mcpServerId}",
+      "operationId": "McpServers_retrieve",
+      "status": "direct-contract",
+      "reason": "SDK route exists. Typed field coverage does not imply successful live execution; consult the method verification table.",
+      "implementations": [
+        {
+          "source": "src/ai-gateway/mcp-servers-client.ts",
+          "member": "get"
+        }
+      ]
+    },
+    {
+      "method": "PUT",
+      "path": "/mcp-servers/{mcpServerId}",
+      "operationId": "McpServers_update",
+      "status": "direct-contract",
+      "reason": "SDK route exists. Typed field coverage does not imply successful live execution; consult the method verification table.",
+      "implementations": [
+        {
+          "source": "src/ai-gateway/mcp-servers-client.ts",
+          "member": "update"
+        }
+      ]
+    },
+    {
+      "method": "DELETE",
+      "path": "/mcp-servers/{mcpServerId}",
+      "operationId": "McpServers_delete",
+      "status": "direct-contract",
+      "reason": "SDK route exists. Typed field coverage does not imply successful live execution; consult the method verification table.",
+      "implementations": [
+        {
+          "source": "src/ai-gateway/mcp-servers-client.ts",
+          "member": "delete"
+        }
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/mcp-servers/{mcpServerId}/test",
+      "operationId": "McpServers_test",
+      "status": "direct-contract",
+      "reason": "SDK route exists. Typed field coverage does not imply successful live execution; consult the method verification table.",
+      "implementations": [
+        {
+          "source": "src/ai-gateway/mcp-servers-client.ts",
+          "member": "test"
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/mcp-servers/{mcpServerId}/capabilities",
+      "operationId": "McpServerCapabilities_list",
+      "status": "direct-contract",
+      "reason": "SDK route exists. Typed field coverage does not imply successful live execution; consult the method verification table.",
+      "implementations": [
+        {
+          "source": "src/ai-gateway/mcp-servers-client.ts",
+          "member": "getCapabilities"
+        }
+      ]
+    },
+    {
+      "method": "PUT",
+      "path": "/mcp-servers/{mcpServerId}/capabilities",
+      "operationId": "McpServerCapabilities_bulkUpdate",
+      "status": "direct-contract",
+      "reason": "SDK route exists. Typed field coverage does not imply successful live execution; consult the method verification table.",
+      "implementations": [
+        {
+          "source": "src/ai-gateway/mcp-servers-client.ts",
+          "member": "updateCapabilities"
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/mcp-servers/{mcpServerId}/user-access",
+      "operationId": "McpServerUserAccess_list",
+      "status": "direct-contract",
+      "reason": "SDK route exists. Typed field coverage does not imply successful live execution; consult the method verification table.",
+      "implementations": [
+        {
+          "source": "src/ai-gateway/mcp-servers-client.ts",
+          "member": "getUserAccess"
+        }
+      ]
+    },
+    {
+      "method": "PUT",
+      "path": "/mcp-servers/{mcpServerId}/user-access",
+      "operationId": "McpServerUserAccess_bulkUpdate",
+      "status": "direct-contract",
+      "reason": "SDK route exists. Typed field coverage does not imply successful live execution; consult the method verification table.",
+      "implementations": [
+        {
+          "source": "src/ai-gateway/mcp-servers-client.ts",
+          "member": "updateUserAccess"
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/mcp-servers/{mcpServerId}/connections",
+      "operationId": "McpServerConnections_list",
+      "status": "direct-contract",
+      "reason": "SDK route exists. Typed field coverage does not imply successful live execution; consult the method verification table.",
+      "implementations": [
+        {
+          "source": "src/ai-gateway/mcp-servers-client.ts",
+          "member": "getConnections"
+        }
+      ]
+    },
+    {
+      "method": "DELETE",
+      "path": "/mcp-servers/{mcpServerId}/connections",
+      "operationId": "McpServerConnections_delete",
+      "status": "direct-contract",
+      "reason": "SDK route exists. Typed field coverage does not imply successful live execution; consult the method verification table.",
+      "implementations": [
+        {
+          "source": "src/ai-gateway/mcp-servers-client.ts",
+          "member": "deleteConnections"
+        }
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/logs",
+      "status": "direct-contract",
+      "reason": "SDK route exists. Typed field coverage does not imply successful live execution; consult the method verification table.",
+      "implementations": [
+        {
+          "source": "src/ai-gateway/runtime-resources-client.ts",
+          "member": "createLogs"
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/logs/{logId}",
+      "status": "direct-contract",
+      "reason": "SDK route exists. Typed field coverage does not imply successful live execution; consult the method verification table.",
+      "implementations": [
+        {
+          "source": "src/ai-gateway/runtime-resources-client.ts",
+          "member": "getLog"
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/logs/exports/{exportId}",
+      "status": "direct-contract",
+      "reason": "SDK route exists. Typed field coverage does not imply successful live execution; consult the method verification table.",
+      "implementations": [
+        {
+          "source": "src/ai-gateway/log-exports-client.ts",
+          "member": "get"
+        }
+      ]
+    },
+    {
+      "method": "PUT",
+      "path": "/logs/exports/{exportId}",
+      "status": "direct-contract",
+      "reason": "SDK route exists. Typed field coverage does not imply successful live execution; consult the method verification table.",
+      "implementations": [
+        {
+          "source": "src/ai-gateway/log-exports-client.ts",
+          "member": "update"
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/logs/exports",
+      "status": "direct-contract",
+      "reason": "SDK route exists. Typed field coverage does not imply successful live execution; consult the method verification table.",
+      "implementations": [
+        {
+          "source": "src/ai-gateway/log-exports-client.ts",
+          "member": "list"
+        }
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/logs/exports",
+      "status": "direct-contract",
+      "reason": "SDK route exists. Typed field coverage does not imply successful live execution; consult the method verification table.",
+      "implementations": [
+        {
+          "source": "src/ai-gateway/log-exports-client.ts",
+          "member": "create"
+        }
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/logs/exports/{exportId}/start",
+      "status": "direct-contract",
+      "reason": "SDK route exists. Typed field coverage does not imply successful live execution; consult the method verification table.",
+      "implementations": [
+        {
+          "source": "src/ai-gateway/log-exports-client.ts",
+          "member": "start"
+        }
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/logs/exports/{exportId}/cancel",
+      "status": "direct-contract",
+      "reason": "SDK route exists. Typed field coverage does not imply successful live execution; consult the method verification table.",
+      "implementations": [
+        {
+          "source": "src/ai-gateway/log-exports-client.ts",
+          "member": "cancel"
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/logs/exports/{exportId}/download",
+      "status": "direct-contract",
+      "reason": "SDK route exists. Typed field coverage does not imply successful live execution; consult the method verification table.",
+      "implementations": [
+        {
+          "source": "src/ai-gateway/log-exports-client.ts",
+          "member": "download"
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/audit-logs",
+      "status": "direct-contract",
+      "reason": "SDK route exists. Typed field coverage does not imply successful live execution; consult the method verification table.",
+      "implementations": [
+        {
+          "source": "src/ai-gateway/audit-logs-client.ts",
+          "member": "list"
+        }
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api-keys/{type}/{sub-type}",
+      "status": "scm-adapted",
+      "reason": "SCM splits service and user API keys into /api-keys/service and /api-keys/user. Virtual keys are not aliases.",
+      "implementations": []
+    },
+    {
+      "method": "GET",
+      "path": "/api-keys",
+      "status": "scm-adapted",
+      "reason": "SCM splits service and user API keys into /api-keys/service and /api-keys/user. Virtual keys are not aliases.",
+      "implementations": []
+    },
+    {
+      "method": "PUT",
+      "path": "/api-keys/{id}",
+      "status": "scm-adapted",
+      "reason": "SCM splits service and user API keys into /api-keys/service and /api-keys/user. Virtual keys are not aliases.",
+      "implementations": []
+    },
+    {
+      "method": "GET",
+      "path": "/api-keys/{id}",
+      "status": "scm-adapted",
+      "reason": "SCM splits service and user API keys into /api-keys/service and /api-keys/user. Virtual keys are not aliases.",
+      "implementations": []
+    },
+    {
+      "method": "DELETE",
+      "path": "/api-keys/{id}",
+      "status": "scm-adapted",
+      "reason": "SCM splits service and user API keys into /api-keys/service and /api-keys/user. Virtual keys are not aliases.",
+      "implementations": []
+    },
+    {
+      "method": "POST",
+      "path": "/api-keys/{id}/rotate",
+      "status": "scm-adapted",
+      "reason": "SCM splits service and user API keys into /api-keys/service and /api-keys/user. Virtual keys are not aliases.",
+      "implementations": []
+    },
+    {
+      "method": "POST",
+      "path": "/policies/usage-limits",
+      "operationId": "createUsageLimitsPolicy",
+      "status": "direct-contract",
+      "reason": "SDK route exists. Typed field coverage does not imply successful live execution; consult the method verification table.",
+      "implementations": [
+        {
+          "source": "src/ai-gateway/usage-limits-client.ts",
+          "member": "create"
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/policies/usage-limits",
+      "operationId": "listUsageLimitsPolicies",
+      "status": "direct-contract",
+      "reason": "SDK route exists. Typed field coverage does not imply successful live execution; consult the method verification table.",
+      "implementations": [
+        {
+          "source": "src/ai-gateway/usage-limits-client.ts",
+          "member": "list"
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/policies/usage-limits/{policyUsageLimitsId}",
+      "operationId": "getUsageLimitsPolicy",
+      "status": "direct-contract",
+      "reason": "SDK route exists. Typed field coverage does not imply successful live execution; consult the method verification table.",
+      "implementations": [
+        {
+          "source": "src/ai-gateway/usage-limits-client.ts",
+          "member": "get"
+        }
+      ]
+    },
+    {
+      "method": "PUT",
+      "path": "/policies/usage-limits/{policyUsageLimitsId}",
+      "operationId": "updateUsageLimitsPolicy",
+      "status": "direct-contract",
+      "reason": "SDK route exists. Typed field coverage does not imply successful live execution; consult the method verification table.",
+      "implementations": [
+        {
+          "source": "src/ai-gateway/usage-limits-client.ts",
+          "member": "update"
+        }
+      ]
+    },
+    {
+      "method": "DELETE",
+      "path": "/policies/usage-limits/{policyUsageLimitsId}",
+      "operationId": "deleteUsageLimitsPolicy",
+      "status": "direct-contract",
+      "reason": "SDK route exists. Typed field coverage does not imply successful live execution; consult the method verification table.",
+      "implementations": [
+        {
+          "source": "src/ai-gateway/usage-limits-client.ts",
+          "member": "delete"
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/policies/usage-limits/{policyUsageLimitsId}/entities",
+      "operationId": "listUsageLimitsPolicyEntities",
+      "status": "direct-contract",
+      "reason": "SDK route exists. Typed field coverage does not imply successful live execution; consult the method verification table.",
+      "implementations": [
+        {
+          "source": "src/ai-gateway/usage-limits-client.ts",
+          "member": "listEntities"
+        }
+      ]
+    },
+    {
+      "method": "PUT",
+      "path": "/policies/usage-limits/{policyUsageLimitsId}/entities/{entityId}/reset",
+      "operationId": "resetUsageLimitsPolicyEntity",
+      "status": "direct-contract",
+      "reason": "SDK route exists. Typed field coverage does not imply successful live execution; consult the method verification table.",
+      "implementations": [
+        {
+          "source": "src/ai-gateway/usage-limits-client.ts",
+          "member": "resetEntity"
+        }
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/policies/rate-limits",
+      "operationId": "createRateLimitsPolicy",
+      "status": "direct-contract",
+      "reason": "SDK route exists. Typed field coverage does not imply successful live execution; consult the method verification table.",
+      "implementations": [
+        {
+          "source": "src/ai-gateway/rate-limits-client.ts",
+          "member": "create"
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/policies/rate-limits",
+      "operationId": "listRateLimitsPolicies",
+      "status": "direct-contract",
+      "reason": "SDK route exists. Typed field coverage does not imply successful live execution; consult the method verification table.",
+      "implementations": [
+        {
+          "source": "src/ai-gateway/rate-limits-client.ts",
+          "member": "list"
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/policies/rate-limits/{rateLimitsPolicyId}",
+      "operationId": "getRateLimitsPolicy",
+      "status": "direct-contract",
+      "reason": "SDK route exists. Typed field coverage does not imply successful live execution; consult the method verification table.",
+      "implementations": [
+        {
+          "source": "src/ai-gateway/rate-limits-client.ts",
+          "member": "get"
+        }
+      ]
+    },
+    {
+      "method": "PUT",
+      "path": "/policies/rate-limits/{rateLimitsPolicyId}",
+      "operationId": "updateRateLimitsPolicy",
+      "status": "direct-contract",
+      "reason": "SDK route exists. Typed field coverage does not imply successful live execution; consult the method verification table.",
+      "implementations": [
+        {
+          "source": "src/ai-gateway/rate-limits-client.ts",
+          "member": "update"
+        }
+      ]
+    },
+    {
+      "method": "DELETE",
+      "path": "/policies/rate-limits/{rateLimitsPolicyId}",
+      "operationId": "deleteRateLimitsPolicy",
+      "status": "direct-contract",
+      "reason": "SDK route exists. Typed field coverage does not imply successful live execution; consult the method verification table.",
+      "implementations": [
+        {
+          "source": "src/ai-gateway/rate-limits-client.ts",
+          "member": "delete"
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/analytics/graphs/requests",
+      "status": "scm-adapted-partial",
+      "reason": "SCM /logs/charts/requests has live-verified traceId and string-valued metadata filters; known and nonexistent synthetic controls pass. Upstream trace_id is ignored. Full upstream aggregation/filter equivalence is not established and this remains outside direct operation coverage.",
+      "implementations": []
+    },
+    {
+      "method": "GET",
+      "path": "/analytics/graphs/cost",
+      "status": "scm-adapted-partial",
+      "reason": "SCM exposes /logs/charts and /logs/groups. Related telemetry exists, but upstream aggregations are not all semantically equivalent. Not counted as full operation coverage.",
+      "implementations": []
+    },
+    {
+      "method": "GET",
+      "path": "/analytics/graphs/latency",
+      "status": "scm-adapted-partial",
+      "reason": "SCM exposes /logs/charts and /logs/groups. Related telemetry exists, but upstream aggregations are not all semantically equivalent. Not counted as full operation coverage.",
+      "implementations": []
+    },
+    {
+      "method": "GET",
+      "path": "/analytics/graphs/tokens",
+      "status": "scm-adapted-partial",
+      "reason": "SCM exposes /logs/charts and /logs/groups. Related telemetry exists, but upstream aggregations are not all semantically equivalent. Not counted as full operation coverage.",
+      "implementations": []
+    },
+    {
+      "method": "GET",
+      "path": "/analytics/graphs/users",
+      "status": "scm-adapted-partial",
+      "reason": "SCM exposes /logs/charts and /logs/groups. Related telemetry exists, but upstream aggregations are not all semantically equivalent. Not counted as full operation coverage.",
+      "implementations": []
+    },
+    {
+      "method": "GET",
+      "path": "/analytics/graphs/users/requests",
+      "status": "scm-adapted-partial",
+      "reason": "SCM exposes /logs/charts and /logs/groups. Related telemetry exists, but upstream aggregations are not all semantically equivalent. Not counted as full operation coverage.",
+      "implementations": []
+    },
+    {
+      "method": "GET",
+      "path": "/analytics/graphs/errors",
+      "status": "scm-adapted-partial",
+      "reason": "SCM exposes /logs/charts and /logs/groups. Related telemetry exists, but upstream aggregations are not all semantically equivalent. Not counted as full operation coverage.",
+      "implementations": []
+    },
+    {
+      "method": "GET",
+      "path": "/analytics/graphs/errors/rate",
+      "status": "scm-adapted-partial",
+      "reason": "SCM exposes /logs/charts and /logs/groups. Related telemetry exists, but upstream aggregations are not all semantically equivalent. Not counted as full operation coverage.",
+      "implementations": []
+    },
+    {
+      "method": "GET",
+      "path": "/analytics/graphs/errors/stacks",
+      "status": "scm-adapted-partial",
+      "reason": "SCM exposes /logs/charts and /logs/groups. Related telemetry exists, but upstream aggregations are not all semantically equivalent. Not counted as full operation coverage.",
+      "implementations": []
+    },
+    {
+      "method": "GET",
+      "path": "/analytics/graphs/errors/status-codes",
+      "status": "scm-adapted-partial",
+      "reason": "SCM exposes /logs/charts and /logs/groups. Related telemetry exists, but upstream aggregations are not all semantically equivalent. Not counted as full operation coverage.",
+      "implementations": []
+    },
+    {
+      "method": "GET",
+      "path": "/analytics/graphs/requests/rescued",
+      "status": "scm-adapted-partial",
+      "reason": "SCM exposes /logs/charts and /logs/groups. Related telemetry exists, but upstream aggregations are not all semantically equivalent. Not counted as full operation coverage.",
+      "implementations": []
+    },
+    {
+      "method": "GET",
+      "path": "/analytics/graphs/cache/hit-rate",
+      "status": "scm-adapted-partial",
+      "reason": "SCM exposes /logs/charts and /logs/groups. Related telemetry exists, but upstream aggregations are not all semantically equivalent. Not counted as full operation coverage.",
+      "implementations": []
+    },
+    {
+      "method": "GET",
+      "path": "/analytics/graphs/cache/latency",
+      "status": "scm-adapted-partial",
+      "reason": "SCM exposes /logs/charts and /logs/groups. Related telemetry exists, but upstream aggregations are not all semantically equivalent. Not counted as full operation coverage.",
+      "implementations": []
+    },
+    {
+      "method": "GET",
+      "path": "/analytics/graphs/feedbacks",
+      "status": "scm-adapted-partial",
+      "reason": "SCM exposes /logs/charts and /logs/groups. Related telemetry exists, but upstream aggregations are not all semantically equivalent. Not counted as full operation coverage.",
+      "implementations": []
+    },
+    {
+      "method": "GET",
+      "path": "/analytics/graphs/feedbacks/scores",
+      "status": "scm-adapted-partial",
+      "reason": "SCM exposes /logs/charts and /logs/groups. Related telemetry exists, but upstream aggregations are not all semantically equivalent. Not counted as full operation coverage.",
+      "implementations": []
+    },
+    {
+      "method": "GET",
+      "path": "/analytics/graphs/feedbacks/weighted",
+      "status": "scm-adapted-partial",
+      "reason": "SCM exposes /logs/charts and /logs/groups. Related telemetry exists, but upstream aggregations are not all semantically equivalent. Not counted as full operation coverage.",
+      "implementations": []
+    },
+    {
+      "method": "GET",
+      "path": "/analytics/graphs/feedbacks/ai-models",
+      "status": "scm-adapted-partial",
+      "reason": "SCM exposes /logs/charts and /logs/groups. Related telemetry exists, but upstream aggregations are not all semantically equivalent. Not counted as full operation coverage.",
+      "implementations": []
+    },
+    {
+      "method": "GET",
+      "path": "/analytics/summary/cache",
+      "status": "scm-adapted-partial",
+      "reason": "SCM exposes /logs/charts and /logs/groups. Related telemetry exists, but upstream aggregations are not all semantically equivalent. Not counted as full operation coverage.",
+      "implementations": []
+    },
+    {
+      "method": "GET",
+      "path": "/analytics/groups/users",
+      "status": "scm-adapted-partial",
+      "reason": "SCM exposes /logs/charts and /logs/groups. Related telemetry exists, but upstream aggregations are not all semantically equivalent. Not counted as full operation coverage.",
+      "implementations": []
+    },
+    {
+      "method": "GET",
+      "path": "/analytics/groups/ai-models",
+      "status": "scm-adapted-partial",
+      "reason": "SCM exposes /logs/charts and /logs/groups. Related telemetry exists, but upstream aggregations are not all semantically equivalent. Not counted as full operation coverage.",
+      "implementations": []
+    },
+    {
+      "method": "GET",
+      "path": "/analytics/groups/provider",
+      "status": "scm-adapted-partial",
+      "reason": "SCM exposes /logs/charts and /logs/groups. Related telemetry exists, but upstream aggregations are not all semantically equivalent. Not counted as full operation coverage.",
+      "implementations": []
+    },
+    {
+      "method": "GET",
+      "path": "/analytics/groups/metadata/{metadataKey}",
+      "status": "scm-adapted-partial",
+      "reason": "SCM exposes /logs/charts and /logs/groups. Related telemetry exists, but upstream aggregations are not all semantically equivalent. Not counted as full operation coverage.",
+      "implementations": []
+    },
+    {
+      "method": "GET",
+      "path": "/model-configs/pricing/{provider}/{model}",
+      "operationId": "getModelPricing",
+      "status": "direct-contract",
+      "reason": "SDK route exists. Typed field coverage does not imply successful live execution; consult the method verification table.",
+      "implementations": [
+        {
+          "source": "src/ai-gateway/model-pricing-client.ts",
+          "member": "get"
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/secret-references",
+      "operationId": "listSecretReferences",
+      "status": "direct-contract",
+      "reason": "SDK route exists. Typed field coverage does not imply successful live execution; consult the method verification table.",
+      "implementations": [
+        {
+          "source": "src/ai-gateway/secret-references-client.ts",
+          "member": "list"
+        }
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/secret-references",
+      "operationId": "createSecretReference",
+      "status": "direct-contract",
+      "reason": "SDK route exists. Typed field coverage does not imply successful live execution; consult the method verification table.",
+      "implementations": [
+        {
+          "source": "src/ai-gateway/secret-references-client.ts",
+          "member": "create"
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/secret-references/{secretReferenceId}",
+      "operationId": "getSecretReference",
+      "status": "direct-contract",
+      "reason": "SDK route exists. Typed field coverage does not imply successful live execution; consult the method verification table.",
+      "implementations": [
+        {
+          "source": "src/ai-gateway/secret-references-client.ts",
+          "member": "get"
+        }
+      ]
+    },
+    {
+      "method": "PUT",
+      "path": "/secret-references/{secretReferenceId}",
+      "operationId": "updateSecretReference",
+      "status": "direct-contract",
+      "reason": "SDK route exists. Typed field coverage does not imply successful live execution; consult the method verification table.",
+      "implementations": [
+        {
+          "source": "src/ai-gateway/secret-references-client.ts",
+          "member": "update"
+        }
+      ]
+    },
+    {
+      "method": "DELETE",
+      "path": "/secret-references/{secretReferenceId}",
+      "operationId": "deleteSecretReference",
+      "status": "direct-contract",
+      "reason": "SDK route exists. Typed field coverage does not imply successful live execution; consult the method verification table.",
+      "implementations": [
+        {
+          "source": "src/ai-gateway/secret-references-client.ts",
+          "member": "delete"
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/deployments",
+      "operationId": "listDeployments",
+      "status": "direct-contract",
+      "reason": "SDK route exists. Typed field coverage does not imply successful live execution; consult the method verification table.",
+      "implementations": [
+        {
+          "source": "src/ai-gateway/deployments-client.ts",
+          "member": "list"
+        }
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/deployments",
+      "operationId": "createDeployment",
+      "status": "direct-contract",
+      "reason": "SDK route exists. Typed field coverage does not imply successful live execution; consult the method verification table.",
+      "implementations": [
+        {
+          "source": "src/ai-gateway/deployments-client.ts",
+          "member": "create"
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/deployments/{deploymentId}",
+      "operationId": "getDeployment",
+      "status": "direct-contract",
+      "reason": "SDK route exists. Typed field coverage does not imply successful live execution; consult the method verification table.",
+      "implementations": [
+        {
+          "source": "src/ai-gateway/deployments-client.ts",
+          "member": "get"
+        }
+      ]
+    },
+    {
+      "method": "PUT",
+      "path": "/deployments/{deploymentId}",
+      "operationId": "updateDeployment",
+      "status": "direct-contract",
+      "reason": "SDK route exists. Typed field coverage does not imply successful live execution; consult the method verification table.",
+      "implementations": [
+        {
+          "source": "src/ai-gateway/deployments-client.ts",
+          "member": "update"
+        }
+      ]
+    },
+    {
+      "method": "DELETE",
+      "path": "/deployments/{deploymentId}",
+      "operationId": "deleteDeployment",
+      "status": "direct-contract",
+      "reason": "SDK route exists. Typed field coverage does not imply successful live execution; consult the method verification table.",
+      "implementations": [
+        {
+          "source": "src/ai-gateway/deployments-client.ts",
+          "member": "delete"
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/deployments/{deploymentId}/ping",
+      "operationId": "pingDeployment",
+      "status": "direct-contract",
+      "reason": "SDK route exists. Typed field coverage does not imply successful live execution; consult the method verification table.",
+      "implementations": [
+        {
+          "source": "src/ai-gateway/deployments-client.ts",
+          "member": "ping"
+        }
+      ]
+    }
+  ]
+}

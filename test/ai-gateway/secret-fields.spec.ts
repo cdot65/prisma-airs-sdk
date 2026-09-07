@@ -22,6 +22,11 @@ describe('AI Gateway secret metadata', () => {
       'organisations.updateAuthSettings',
       'plugins.create',
       'providers.get',
+      'secretReferences.create',
+      'secretReferences.delete',
+      'secretReferences.get',
+      'secretReferences.list',
+      'secretReferences.update',
     ]);
   });
 

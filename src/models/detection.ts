@@ -13,6 +13,25 @@ import {
 /** Zod schema for detection service detail results. */
 export const DSDetailResultSchema = z
   .object({
+    dlp_snippets: z
+      .object({
+        meta: z
+          .object({
+            data_pattern: z.string().optional(),
+            confidence_level: z.string().optional(),
+            data_pattern_type: z.string().optional(),
+            occurrence: z.number().int().optional(),
+          })
+          .passthrough()
+          .optional(),
+        snippets: z.array(z.string()).optional(),
+      })
+      .passthrough()
+      .optional(),
+    dbs_snippets: z.array(z.string()).optional(),
+    tc_snippets: z.array(z.string()).optional(),
+    pi_report: z.object({ verdict: z.string().optional() }).passthrough().optional(),
+    pi_snippets: z.array(z.string()).optional(),
     urlf_report: z.array(UrlfEntrySchema).optional(),
     dlp_report: DlpReportSchema.optional(),
     dbs_report: DbsReportSchema.optional(),

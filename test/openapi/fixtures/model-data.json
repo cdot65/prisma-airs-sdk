@@ -1,0 +1,1006 @@
+{
+  "source": "prisma-airs-model-security/dataplane/data-plane.yml",
+  "sha256": "1a581d23ceb7456b9a5f978b212235e2149dadf917eae7d31e1463667339d6dc",
+  "corrections": [],
+  "cases": [
+    {
+      "method": "GET",
+      "path": "/v1/evaluations/{uuid}",
+      "call": {
+        "method": "GET",
+        "path": "/v1/evaluations/{uuid}",
+        "source": "src/model-security/scans-client.ts",
+        "member": "getEvaluation",
+        "plane": "model-data",
+        "responseSchema": "RuleEvaluationResponseSchema",
+        "className": "ModelSecurityScansClient",
+        "parameters": [
+          {
+            "name": "uuid",
+            "type": "string"
+          }
+        ]
+      },
+      "query": {},
+      "queryWire": {},
+      "responseBody": {
+        "created_at": "2026-09-06T00:00:00Z",
+        "result": "PASSED",
+        "rule_description": "x",
+        "rule_instance_state": "DISABLED",
+        "rule_instance_uuid": "550e8400-e29b-41d4-a716-446655440000",
+        "rule_name": "x",
+        "rule_origin": "PANW_MANAGED",
+        "scan_uuid": "550e8400-e29b-41d4-a716-446655440000",
+        "tsg_id": "x",
+        "updated_at": "2026-09-06T00:00:00Z",
+        "uuid": "550e8400-e29b-41d4-a716-446655440000",
+        "violation_count": 1
+      },
+      "responseStatus": 200,
+      "responseIsText": false
+    },
+    {
+      "method": "GET",
+      "path": "/v1/model-versions/{uuid}",
+      "call": {
+        "method": "GET",
+        "path": "/v1/model-versions/{uuid}",
+        "source": "src/model-security/models-client.ts",
+        "member": "getModelVersion",
+        "plane": "model-data",
+        "responseSchema": "ModelVersionResponseSchema",
+        "className": "ModelSecurityModelsClient",
+        "parameters": [
+          {
+            "name": "uuid",
+            "type": "string"
+          }
+        ]
+      },
+      "query": {},
+      "queryWire": {},
+      "responseBody": {
+        "created_at": "2026-09-06T00:00:00Z",
+        "file_count": 1,
+        "fingerprint": "x",
+        "hf_commit_authors": ["x"],
+        "hf_commit_sha": "x",
+        "hf_commit_title": "x",
+        "hf_model_name": "x",
+        "hf_organization": "x",
+        "last_eval_outcome": "PENDING",
+        "last_eval_summary": {
+          "rules_failed": 1,
+          "rules_passed": 1,
+          "total_rules": 1
+        },
+        "latest_scan_time": "2026-09-06T00:00:00Z",
+        "license": "x",
+        "model_formats": ["x"],
+        "model_uuid": "550e8400-e29b-41d4-a716-446655440000",
+        "revision": "x",
+        "source_types": ["LOCAL"],
+        "tsg_id": "x",
+        "updated_at": "2026-09-06T00:00:00Z",
+        "uuid": "550e8400-e29b-41d4-a716-446655440000"
+      },
+      "responseStatus": 200,
+      "responseIsText": false
+    },
+    {
+      "method": "GET",
+      "path": "/v1/model-versions/{uuid}/files",
+      "call": {
+        "method": "GET",
+        "path": "/v1/model-versions/{modelVersionUuid}/files",
+        "source": "src/model-security/models-client.ts",
+        "member": "listModelVersionFiles",
+        "plane": "model-data",
+        "responseSchema": "FileListSchema",
+        "queryType": "ModelSecurityModelVersionFileListOptions",
+        "className": "ModelSecurityModelsClient",
+        "parameters": [
+          {
+            "name": "modelVersionUuid",
+            "type": "string"
+          },
+          {
+            "name": "opts",
+            "type": "ModelSecurityModelVersionFileListOptions"
+          }
+        ]
+      },
+      "query": {
+        "limit": 1,
+        "skip": 0
+      },
+      "queryWire": {
+        "limit": ["1"],
+        "skip": ["0"]
+      },
+      "responseBody": {
+        "files": [
+          {
+            "blob_id": "x",
+            "created_at": "2026-09-06T00:00:00Z",
+            "formats": ["x"],
+            "model_version_uuid": "550e8400-e29b-41d4-a716-446655440000",
+            "parent_path": "x",
+            "path": "x",
+            "result": "SKIPPED",
+            "scan_uuid": "550e8400-e29b-41d4-a716-446655440000",
+            "tsg_id": "x",
+            "type": "DIRECTORY",
+            "updated_at": "2026-09-06T00:00:00Z",
+            "uuid": "550e8400-e29b-41d4-a716-446655440000"
+          }
+        ],
+        "pagination": {
+          "total_items": 1
+        }
+      },
+      "responseStatus": 200,
+      "responseIsText": false
+    },
+    {
+      "method": "GET",
+      "path": "/v1/models",
+      "call": {
+        "method": "GET",
+        "path": "/v1/models",
+        "source": "src/model-security/models-client.ts",
+        "member": "listModels",
+        "plane": "model-data",
+        "responseSchema": "ModelListSchema",
+        "queryType": "ModelSecurityModelListOptions",
+        "className": "ModelSecurityModelsClient",
+        "parameters": [
+          {
+            "name": "opts",
+            "type": "ModelSecurityModelListOptions"
+          }
+        ]
+      },
+      "query": {
+        "search_query": "x",
+        "limit": 1,
+        "skip": 0,
+        "sort_field": "created_at",
+        "sort_order": "asc",
+        "latest_version_outcomes": ["PENDING", "ALLOWED"],
+        "latest_version_formats": ["x", "x"],
+        "latest_version_source_types": ["LOCAL", "HUGGING_FACE"],
+        "latest_version_scan_time_before": "2026-09-06T00:00:00Z",
+        "start_time": "2026-09-06T00:00:00Z",
+        "end_time": "2026-09-06T00:00:00Z"
+      },
+      "queryWire": {
+        "search_query": ["x"],
+        "limit": ["1"],
+        "skip": ["0"],
+        "sort_field": ["created_at"],
+        "sort_order": ["asc"],
+        "latest_version_outcomes": ["PENDING", "ALLOWED"],
+        "latest_version_formats": ["x", "x"],
+        "latest_version_source_types": ["LOCAL", "HUGGING_FACE"],
+        "latest_version_scan_time_before": ["2026-09-06T00:00:00Z"],
+        "start_time": ["2026-09-06T00:00:00Z"],
+        "end_time": ["2026-09-06T00:00:00Z"]
+      },
+      "responseBody": {
+        "models": [
+          {
+            "created_at": "2026-09-06T00:00:00Z",
+            "latest_version_fingerprint": "x",
+            "latest_version_formats": ["x"],
+            "latest_version_hf_commit_sha": "x",
+            "latest_version_outcome": "PENDING",
+            "latest_version_revision": "x",
+            "latest_version_scan_time": "2026-09-06T00:00:00Z",
+            "latest_version_source_types": ["LOCAL"],
+            "latest_version_uuid": "550e8400-e29b-41d4-a716-446655440000",
+            "name": "x",
+            "tsg_id": "x",
+            "updated_at": "2026-09-06T00:00:00Z",
+            "uuid": "550e8400-e29b-41d4-a716-446655440000"
+          }
+        ],
+        "pagination": {
+          "total_items": 1
+        }
+      },
+      "responseStatus": 200,
+      "responseIsText": false
+    },
+    {
+      "method": "GET",
+      "path": "/v1/models/{uuid}",
+      "call": {
+        "method": "GET",
+        "path": "/v1/models/{uuid}",
+        "source": "src/model-security/models-client.ts",
+        "member": "getModel",
+        "plane": "model-data",
+        "responseSchema": "ModelResponseSchema",
+        "className": "ModelSecurityModelsClient",
+        "parameters": [
+          {
+            "name": "uuid",
+            "type": "string"
+          }
+        ]
+      },
+      "query": {},
+      "queryWire": {},
+      "responseBody": {
+        "created_at": "2026-09-06T00:00:00Z",
+        "latest_version_fingerprint": "x",
+        "latest_version_formats": ["x"],
+        "latest_version_hf_commit_sha": "x",
+        "latest_version_outcome": "PENDING",
+        "latest_version_revision": "x",
+        "latest_version_scan_time": "2026-09-06T00:00:00Z",
+        "latest_version_source_types": ["LOCAL"],
+        "latest_version_uuid": "550e8400-e29b-41d4-a716-446655440000",
+        "name": "x",
+        "tsg_id": "x",
+        "updated_at": "2026-09-06T00:00:00Z",
+        "uuid": "550e8400-e29b-41d4-a716-446655440000"
+      },
+      "responseStatus": 200,
+      "responseIsText": false
+    },
+    {
+      "method": "GET",
+      "path": "/v1/models/{uuid}/model-versions",
+      "call": {
+        "method": "GET",
+        "path": "/v1/models/{modelUuid}/model-versions",
+        "source": "src/model-security/models-client.ts",
+        "member": "listModelVersions",
+        "plane": "model-data",
+        "responseSchema": "ModelVersionListSchema",
+        "queryType": "ModelSecurityModelVersionListOptions",
+        "className": "ModelSecurityModelsClient",
+        "parameters": [
+          {
+            "name": "modelUuid",
+            "type": "string"
+          },
+          {
+            "name": "opts",
+            "type": "ModelSecurityModelVersionListOptions"
+          }
+        ]
+      },
+      "query": {
+        "limit": 1,
+        "skip": 0,
+        "sort_order": "asc"
+      },
+      "queryWire": {
+        "limit": ["1"],
+        "skip": ["0"],
+        "sort_order": ["asc"]
+      },
+      "responseBody": {
+        "model_versions": [
+          {
+            "created_at": "2026-09-06T00:00:00Z",
+            "file_count": 1,
+            "fingerprint": "x",
+            "hf_commit_authors": ["x"],
+            "hf_commit_sha": "x",
+            "hf_commit_title": "x",
+            "hf_model_name": "x",
+            "hf_organization": "x",
+            "last_eval_outcome": "PENDING",
+            "last_eval_summary": {
+              "rules_failed": 1,
+              "rules_passed": 1,
+              "total_rules": 1
+            },
+            "latest_scan_time": "2026-09-06T00:00:00Z",
+            "license": "x",
+            "model_formats": ["x"],
+            "model_uuid": "550e8400-e29b-41d4-a716-446655440000",
+            "revision": "x",
+            "source_types": ["LOCAL"],
+            "tsg_id": "x",
+            "updated_at": "2026-09-06T00:00:00Z",
+            "uuid": "550e8400-e29b-41d4-a716-446655440000"
+          }
+        ],
+        "pagination": {
+          "total_items": 1
+        }
+      },
+      "responseStatus": 200,
+      "responseIsText": false
+    },
+    {
+      "method": "GET",
+      "path": "/v1/scans",
+      "call": {
+        "method": "GET",
+        "path": "/v1/scans",
+        "source": "src/model-security/scans-client.ts",
+        "member": "list",
+        "plane": "model-data",
+        "responseSchema": "ScanListSchema",
+        "queryType": "ModelSecurityScanListOptions",
+        "className": "ModelSecurityScansClient",
+        "parameters": [
+          {
+            "name": "opts",
+            "type": "ModelSecurityScanListOptions"
+          }
+        ]
+      },
+      "query": {
+        "limit": 1,
+        "skip": 1,
+        "sort_order": "asc",
+        "search_query": "x",
+        "security_group_uuid": "550e8400-e29b-41d4-a716-446655440000",
+        "model_version_uuid": "550e8400-e29b-41d4-a716-446655440000",
+        "source_types": ["LOCAL", "HUGGING_FACE"],
+        "eval_outcomes": ["PENDING", "ALLOWED"],
+        "start_time": "2026-09-06T00:00:00Z",
+        "end_time": "2026-09-06T00:00:00Z",
+        "labels_query": "x"
+      },
+      "queryWire": {
+        "limit": ["1"],
+        "skip": ["1"],
+        "sort_order": ["asc"],
+        "search_query": ["x"],
+        "security_group_uuid": ["550e8400-e29b-41d4-a716-446655440000"],
+        "model_version_uuid": ["550e8400-e29b-41d4-a716-446655440000"],
+        "source_types": ["LOCAL", "HUGGING_FACE"],
+        "eval_outcomes": ["PENDING", "ALLOWED"],
+        "start_time": ["2026-09-06T00:00:00Z"],
+        "end_time": ["2026-09-06T00:00:00Z"],
+        "labels_query": ["x"]
+      },
+      "responseBody": {
+        "count_capped": false,
+        "pagination": {
+          "total_items": 1
+        },
+        "scans": [
+          {
+            "created_at": "2026-09-06T00:00:00Z",
+            "created_by": "550e8400-e29b-41d4-a716-446655440000",
+            "enabled_rule_count_snapshot": 1,
+            "error_code": "UNKNOWN_ERROR",
+            "error_message": "x",
+            "eval_outcome": "PENDING",
+            "eval_summary": {
+              "rules_failed": 1,
+              "rules_passed": 1,
+              "total_rules": 1
+            },
+            "labels": [
+              {
+                "key": "x",
+                "value": "x"
+              }
+            ],
+            "model_formats": ["x"],
+            "model_uri": "x",
+            "model_version_uuid": "550e8400-e29b-41d4-a716-446655440000",
+            "owner": "x",
+            "scan_origin": "MODEL_SECURITY_SDK",
+            "scanner_version": "x",
+            "sdk_version": "x",
+            "security_group_name": "x",
+            "security_group_uuid": "550e8400-e29b-41d4-a716-446655440000",
+            "source_type": "LOCAL",
+            "time_started": "2026-09-06T00:00:00Z",
+            "total_files_scanned": 1,
+            "total_files_skipped": 1,
+            "tsg_id": "x",
+            "updated_at": "2026-09-06T00:00:00Z",
+            "uuid": "550e8400-e29b-41d4-a716-446655440000"
+          }
+        ]
+      },
+      "responseStatus": 200,
+      "responseIsText": false
+    },
+    {
+      "method": "POST",
+      "path": "/v1/scans",
+      "call": {
+        "method": "POST",
+        "path": "/v1/scans",
+        "source": "src/model-security/scans-client.ts",
+        "member": "create",
+        "plane": "model-data",
+        "responseSchema": "ScanBaseResponseSchema",
+        "requestSchema": "ScanCreateRequestSchema",
+        "requestType": "ScanCreateRequest",
+        "className": "ModelSecurityScansClient",
+        "parameters": [
+          {
+            "name": "body",
+            "type": "ScanCreateRequest"
+          }
+        ]
+      },
+      "query": {},
+      "queryWire": {},
+      "body": {
+        "allow_patterns": ["x"],
+        "ignore_patterns": ["x"],
+        "labels": [
+          {
+            "key": "x",
+            "value": "x"
+          }
+        ],
+        "model_author": "x",
+        "model_name": "x",
+        "model_uri": "x",
+        "model_version": "x",
+        "scan_details": {
+          "error_code": "UNKNOWN_ERROR",
+          "error_message": "x",
+          "files": [
+            {
+              "blob_id": "x",
+              "error_message": "x",
+              "file_path": "x",
+              "formats": ["x"],
+              "issues_detected": [
+                {
+                  "description": "x",
+                  "module": "x",
+                  "operator": "x",
+                  "source": "x",
+                  "threat": "PAIT-ARV-100"
+                }
+              ],
+              "modelscan_status": "SCANNED",
+              "sha256": "x",
+              "size_bytes": 1
+            }
+          ],
+          "model_formats": ["x"],
+          "model_size_bytes": 1,
+          "scan_duration_ms": 1,
+          "scanner_version": "x",
+          "time_started": "2026-09-06T00:00:00Z",
+          "total_files_scanned": 1,
+          "total_files_skipped": 1
+        },
+        "scan_origin": "MODEL_SECURITY_SDK",
+        "security_group_uuid": "550e8400-e29b-41d4-a716-446655440000"
+      },
+      "responseBody": {
+        "created_at": "2026-09-06T00:00:00Z",
+        "created_by": "550e8400-e29b-41d4-a716-446655440000",
+        "enabled_rule_count_snapshot": 1,
+        "error_code": "UNKNOWN_ERROR",
+        "error_message": "x",
+        "eval_outcome": "PENDING",
+        "eval_summary": {
+          "rules_failed": 1,
+          "rules_passed": 1,
+          "total_rules": 1
+        },
+        "labels": [
+          {
+            "key": "x",
+            "value": "x"
+          }
+        ],
+        "model_formats": ["x"],
+        "model_uri": "x",
+        "model_version_uuid": "550e8400-e29b-41d4-a716-446655440000",
+        "owner": "x",
+        "scan_origin": "MODEL_SECURITY_SDK",
+        "scanner_version": "x",
+        "sdk_version": "x",
+        "security_group_name": "x",
+        "security_group_uuid": "550e8400-e29b-41d4-a716-446655440000",
+        "source_type": "LOCAL",
+        "time_started": "2026-09-06T00:00:00Z",
+        "total_files_scanned": 1,
+        "total_files_skipped": 1,
+        "tsg_id": "x",
+        "updated_at": "2026-09-06T00:00:00Z",
+        "uuid": "550e8400-e29b-41d4-a716-446655440000"
+      },
+      "responseStatus": 201,
+      "responseIsText": false
+    },
+    {
+      "method": "GET",
+      "path": "/v1/scans/label-keys",
+      "call": {
+        "method": "GET",
+        "path": "/v1/scans/label-keys",
+        "source": "src/model-security/scans-client.ts",
+        "member": "getLabelKeys",
+        "plane": "model-data",
+        "responseSchema": "LabelKeyListSchema",
+        "queryType": "ModelSecurityLabelListOptions",
+        "className": "ModelSecurityScansClient",
+        "parameters": [
+          {
+            "name": "opts",
+            "type": "ModelSecurityLabelListOptions"
+          }
+        ]
+      },
+      "query": {
+        "limit": 1,
+        "skip": 0,
+        "search": "x"
+      },
+      "queryWire": {
+        "limit": ["1"],
+        "skip": ["0"],
+        "search": ["x"]
+      },
+      "responseBody": {
+        "keys": ["x"],
+        "pagination": {
+          "total_items": 1
+        }
+      },
+      "responseStatus": 200,
+      "responseIsText": false
+    },
+    {
+      "method": "GET",
+      "path": "/v1/scans/label-keys/{key}/values",
+      "call": {
+        "method": "GET",
+        "path": "/v1/scans/label-keys/{encodeURIComponent(key)}/values",
+        "source": "src/model-security/scans-client.ts",
+        "member": "getLabelValues",
+        "plane": "model-data",
+        "responseSchema": "LabelValueListSchema",
+        "queryType": "ModelSecurityLabelListOptions",
+        "className": "ModelSecurityScansClient",
+        "parameters": [
+          {
+            "name": "key",
+            "type": "string"
+          },
+          {
+            "name": "opts",
+            "type": "ModelSecurityLabelListOptions"
+          }
+        ]
+      },
+      "query": {
+        "limit": 1,
+        "skip": 0,
+        "search": "x"
+      },
+      "queryWire": {
+        "limit": ["1"],
+        "skip": ["0"],
+        "search": ["x"]
+      },
+      "responseBody": {
+        "pagination": {
+          "total_items": 1
+        },
+        "values": ["x"]
+      },
+      "responseStatus": 200,
+      "responseIsText": false
+    },
+    {
+      "method": "GET",
+      "path": "/v1/scans/{scan_uuid}/evaluations",
+      "call": {
+        "method": "GET",
+        "path": "/v1/scans/{scanUuid}/evaluations",
+        "source": "src/model-security/scans-client.ts",
+        "member": "getEvaluations",
+        "plane": "model-data",
+        "responseSchema": "RuleEvaluationListSchema",
+        "queryType": "ModelSecurityEvaluationListOptions",
+        "className": "ModelSecurityScansClient",
+        "parameters": [
+          {
+            "name": "scanUuid",
+            "type": "string"
+          },
+          {
+            "name": "opts",
+            "type": "ModelSecurityEvaluationListOptions"
+          }
+        ]
+      },
+      "query": {
+        "limit": 1,
+        "skip": 1,
+        "sort_field": "created_at",
+        "sort_order": "asc",
+        "result": "PASSED",
+        "rule_instance_uuid": "550e8400-e29b-41d4-a716-446655440000"
+      },
+      "queryWire": {
+        "limit": ["1"],
+        "skip": ["1"],
+        "sort_field": ["created_at"],
+        "sort_order": ["asc"],
+        "result": ["PASSED"],
+        "rule_instance_uuid": ["550e8400-e29b-41d4-a716-446655440000"]
+      },
+      "responseBody": {
+        "evaluations": [
+          {
+            "created_at": "2026-09-06T00:00:00Z",
+            "result": "PASSED",
+            "rule_description": "x",
+            "rule_instance_state": "DISABLED",
+            "rule_instance_uuid": "550e8400-e29b-41d4-a716-446655440000",
+            "rule_name": "x",
+            "rule_origin": "PANW_MANAGED",
+            "scan_uuid": "550e8400-e29b-41d4-a716-446655440000",
+            "tsg_id": "x",
+            "updated_at": "2026-09-06T00:00:00Z",
+            "uuid": "550e8400-e29b-41d4-a716-446655440000",
+            "violation_count": 1
+          }
+        ],
+        "pagination": {
+          "total_items": 1
+        }
+      },
+      "responseStatus": 200,
+      "responseIsText": false
+    },
+    {
+      "method": "GET",
+      "path": "/v1/scans/{scan_uuid}/files",
+      "call": {
+        "method": "GET",
+        "path": "/v1/scans/{scanUuid}/files",
+        "source": "src/model-security/scans-client.ts",
+        "member": "getFiles",
+        "plane": "model-data",
+        "responseSchema": "FileListSchema",
+        "queryType": "ModelSecurityFileListOptions",
+        "className": "ModelSecurityScansClient",
+        "parameters": [
+          {
+            "name": "scanUuid",
+            "type": "string"
+          },
+          {
+            "name": "opts",
+            "type": "ModelSecurityFileListOptions"
+          }
+        ]
+      },
+      "query": {
+        "limit": 1,
+        "skip": 0,
+        "sort_field": "path",
+        "sort_dir": "asc",
+        "query_path": "x",
+        "recursive": false,
+        "type": "DIRECTORY"
+      },
+      "queryWire": {
+        "limit": ["1"],
+        "skip": ["0"],
+        "sort_field": ["path"],
+        "sort_dir": ["asc"],
+        "query_path": ["x"],
+        "recursive": ["false"],
+        "type": ["DIRECTORY"]
+      },
+      "responseBody": {
+        "files": [
+          {
+            "blob_id": "x",
+            "created_at": "2026-09-06T00:00:00Z",
+            "formats": ["x"],
+            "model_version_uuid": "550e8400-e29b-41d4-a716-446655440000",
+            "parent_path": "x",
+            "path": "x",
+            "result": "SKIPPED",
+            "scan_uuid": "550e8400-e29b-41d4-a716-446655440000",
+            "tsg_id": "x",
+            "type": "DIRECTORY",
+            "updated_at": "2026-09-06T00:00:00Z",
+            "uuid": "550e8400-e29b-41d4-a716-446655440000"
+          }
+        ],
+        "pagination": {
+          "total_items": 1
+        }
+      },
+      "responseStatus": 200,
+      "responseIsText": false
+    },
+    {
+      "method": "DELETE",
+      "path": "/v1/scans/{scan_uuid}/labels",
+      "call": {
+        "method": "DELETE",
+        "path": "/v1/scans/{scanUuid}/labels",
+        "source": "src/model-security/scans-client.ts",
+        "member": "deleteLabels",
+        "plane": "model-data",
+        "className": "ModelSecurityScansClient",
+        "parameters": [
+          {
+            "name": "scanUuid",
+            "type": "string"
+          },
+          {
+            "name": "keys",
+            "type": "string[]"
+          }
+        ]
+      },
+      "query": {
+        "keys": ["x", "x"]
+      },
+      "queryWire": {
+        "keys": ["x", "x"]
+      },
+      "responseBody": "prompt,goal\n",
+      "responseStatus": 204,
+      "responseIsText": true
+    },
+    {
+      "method": "POST",
+      "path": "/v1/scans/{scan_uuid}/labels",
+      "call": {
+        "method": "POST",
+        "path": "/v1/scans/{scanUuid}/labels",
+        "source": "src/model-security/scans-client.ts",
+        "member": "addLabels",
+        "plane": "model-data",
+        "responseSchema": "LabelsResponseSchema",
+        "requestSchema": "LabelsCreateRequestSchema",
+        "requestType": "LabelsCreateRequest",
+        "className": "ModelSecurityScansClient",
+        "parameters": [
+          {
+            "name": "scanUuid",
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "type": "LabelsCreateRequest"
+          }
+        ]
+      },
+      "query": {},
+      "queryWire": {},
+      "body": {
+        "labels": [
+          {
+            "key": "x",
+            "value": "x"
+          }
+        ]
+      },
+      "responseBody": {},
+      "responseStatus": 200,
+      "responseIsText": false
+    },
+    {
+      "method": "PUT",
+      "path": "/v1/scans/{scan_uuid}/labels",
+      "call": {
+        "method": "PUT",
+        "path": "/v1/scans/{scanUuid}/labels",
+        "source": "src/model-security/scans-client.ts",
+        "member": "setLabels",
+        "plane": "model-data",
+        "responseSchema": "LabelsResponseSchema",
+        "requestSchema": "LabelsCreateRequestSchema",
+        "requestType": "LabelsCreateRequest",
+        "className": "ModelSecurityScansClient",
+        "parameters": [
+          {
+            "name": "scanUuid",
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "type": "LabelsCreateRequest"
+          }
+        ]
+      },
+      "query": {},
+      "queryWire": {},
+      "body": {
+        "labels": [
+          {
+            "key": "x",
+            "value": "x"
+          }
+        ]
+      },
+      "responseBody": {},
+      "responseStatus": 200,
+      "responseIsText": false
+    },
+    {
+      "method": "GET",
+      "path": "/v1/scans/{scan_uuid}/rule-violations",
+      "call": {
+        "method": "GET",
+        "path": "/v1/scans/{scanUuid}/rule-violations",
+        "source": "src/model-security/scans-client.ts",
+        "member": "getViolations",
+        "plane": "model-data",
+        "responseSchema": "ViolationListSchema",
+        "queryType": "ModelSecurityViolationListOptions",
+        "className": "ModelSecurityScansClient",
+        "parameters": [
+          {
+            "name": "scanUuid",
+            "type": "string"
+          },
+          {
+            "name": "opts",
+            "type": "ModelSecurityViolationListOptions"
+          }
+        ]
+      },
+      "query": {
+        "limit": 1,
+        "skip": 1
+      },
+      "queryWire": {
+        "limit": ["1"],
+        "skip": ["1"]
+      },
+      "responseBody": {
+        "pagination": {
+          "total_items": 1
+        },
+        "violations": [
+          {
+            "created_at": "2026-09-06T00:00:00Z",
+            "description": "x",
+            "file": "x",
+            "hash": "x",
+            "insights_url": "x",
+            "module": "x",
+            "operator": "x",
+            "remediation": {
+              "steps": ["x"],
+              "url": "x"
+            },
+            "rule_description": "x",
+            "rule_instance_state": "DISABLED",
+            "rule_instance_uuid": "550e8400-e29b-41d4-a716-446655440000",
+            "rule_name": "x",
+            "rule_origin": "PANW_MANAGED",
+            "threat": "PAIT-ARV-100",
+            "threat_description": "x",
+            "threat_kb_url": "x",
+            "tsg_id": "x",
+            "updated_at": "2026-09-06T00:00:00Z",
+            "uuid": "550e8400-e29b-41d4-a716-446655440000"
+          }
+        ]
+      },
+      "responseStatus": 200,
+      "responseIsText": false
+    },
+    {
+      "method": "GET",
+      "path": "/v1/scans/{uuid}",
+      "call": {
+        "method": "GET",
+        "path": "/v1/scans/{uuid}",
+        "source": "src/model-security/scans-client.ts",
+        "member": "get",
+        "plane": "model-data",
+        "responseSchema": "ScanBaseResponseSchema",
+        "className": "ModelSecurityScansClient",
+        "parameters": [
+          {
+            "name": "uuid",
+            "type": "string"
+          }
+        ]
+      },
+      "query": {},
+      "queryWire": {},
+      "responseBody": {
+        "created_at": "2026-09-06T00:00:00Z",
+        "created_by": "550e8400-e29b-41d4-a716-446655440000",
+        "enabled_rule_count_snapshot": 1,
+        "error_code": "UNKNOWN_ERROR",
+        "error_message": "x",
+        "eval_outcome": "PENDING",
+        "eval_summary": {
+          "rules_failed": 1,
+          "rules_passed": 1,
+          "total_rules": 1
+        },
+        "labels": [
+          {
+            "key": "x",
+            "value": "x"
+          }
+        ],
+        "model_formats": ["x"],
+        "model_uri": "x",
+        "model_version_uuid": "550e8400-e29b-41d4-a716-446655440000",
+        "owner": "x",
+        "scan_origin": "MODEL_SECURITY_SDK",
+        "scanner_version": "x",
+        "sdk_version": "x",
+        "security_group_name": "x",
+        "security_group_uuid": "550e8400-e29b-41d4-a716-446655440000",
+        "source_type": "LOCAL",
+        "time_started": "2026-09-06T00:00:00Z",
+        "total_files_scanned": 1,
+        "total_files_skipped": 1,
+        "tsg_id": "x",
+        "updated_at": "2026-09-06T00:00:00Z",
+        "uuid": "550e8400-e29b-41d4-a716-446655440000"
+      },
+      "responseStatus": 200,
+      "responseIsText": false
+    },
+    {
+      "method": "GET",
+      "path": "/v1/violations/{uuid}",
+      "call": {
+        "method": "GET",
+        "path": "/v1/violations/{uuid}",
+        "source": "src/model-security/scans-client.ts",
+        "member": "getViolation",
+        "plane": "model-data",
+        "responseSchema": "ViolationResponseSchema",
+        "className": "ModelSecurityScansClient",
+        "parameters": [
+          {
+            "name": "uuid",
+            "type": "string"
+          }
+        ]
+      },
+      "query": {},
+      "queryWire": {},
+      "responseBody": {
+        "created_at": "2026-09-06T00:00:00Z",
+        "description": "x",
+        "file": "x",
+        "hash": "x",
+        "insights_url": "x",
+        "module": "x",
+        "operator": "x",
+        "remediation": {
+          "steps": ["x"],
+          "url": "x"
+        },
+        "rule_description": "x",
+        "rule_instance_state": "DISABLED",
+        "rule_instance_uuid": "550e8400-e29b-41d4-a716-446655440000",
+        "rule_name": "x",
+        "rule_origin": "PANW_MANAGED",
+        "threat": "PAIT-ARV-100",
+        "threat_description": "x",
+        "threat_kb_url": "x",
+        "tsg_id": "x",
+        "updated_at": "2026-09-06T00:00:00Z",
+        "uuid": "550e8400-e29b-41d4-a716-446655440000"
+      },
+      "responseStatus": 200,
+      "responseIsText": false
+    }
+  ]
+}

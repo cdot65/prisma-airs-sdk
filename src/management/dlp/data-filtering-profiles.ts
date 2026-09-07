@@ -1,3 +1,4 @@
+import { DataFilteringProfileRequestSchema } from '../../models/index.js';
 import { DLP_DATA_FILTERING_PROFILES_PATH } from '../../constants.js';
 import { request } from '../../http/request.js';
 import type { AuthAdapter } from '../../http/types.js';
@@ -152,6 +153,7 @@ export class DataFilteringProfilesClient {
     body: DataFilteringProfileRequest,
   ): Promise<DataFilteringProfileResponse> {
     return request({
+      requestSchema: DataFilteringProfileRequestSchema,
       method: 'PUT',
       baseUrl: this.baseUrl,
       path: `${DLP_DATA_FILTERING_PROFILES_PATH}/${encodeURIComponent(resourceId)}`,

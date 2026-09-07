@@ -42,7 +42,7 @@ describe('ProfilesClient', () => {
   describe('create', () => {
     it('POSTs to /v1/mgmt/profile', async () => {
       mockFetch(sampleProfile, 201);
-      const result = await client.create({ profile_name: 'test-prof' });
+      const result = await client.create({ profile_name: 'test-prof', policy: {} });
 
       expect(result.profile_name).toBe('test-prof');
       const [url, init] = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0];
@@ -102,6 +102,7 @@ describe('ProfilesClient', () => {
       mockFetch({ ...sampleProfile, profile_name: 'updated' });
       const result = await client.update('550e8400-e29b-41d4-a716-446655440000', {
         profile_name: 'updated',
+        policy: {},
       });
 
       expect(result.profile_name).toBe('updated');

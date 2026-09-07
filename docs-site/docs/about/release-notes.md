@@ -1,5 +1,23 @@
 # Release Notes
 
+## v0.21.0 (2026-09-07) — AI Gateway runtime and SDK conformance
+
+- Add separately authenticated AI Gateway chat, Responses and embeddings, cancellable SSE, native multipart/binary resources, public model pricing, secret-reference CRUD and runtime observability. Keep SCM OAuth and runtime API keys separate.
+- Fix standalone OAuth refresh deadlines and recovery, including transports that ignore cancellation.
+
+- Implement all 149 operations in the supplied AIRS Scan, Management, Model Security and Red Team specifications, including token-scoped management inventories, custom-rule workflows, version history and capability discovery.
+- Add MCP server, usage/rate policy and log-export clients, MCP guardrail mappings and custom integration-model deletion for SCM AI Gateway. Experimental live boundaries remain explicit.
+- Model nested operation fields and enforce request constraints before authentication; preserve CLI-compatible legacy builder types and forward-compatible response fields.
+- Bound HTTP/auth/body-read waits, compose cancellation, cap backoff, avoid redundant policy-denial refreshes, and stop pagination at its requested cap without an extra fetch.
+- Make debug body logging a separate opt-in and redact additional credential surfaces.
+- Add source-hashed offline OpenAPI transport and positive/negative validation gates, live owned-fixture harnesses, and the [coverage/validation report](../developer/openapi-conformance.md).
+
+### Validation and known limitations
+
+Pre-release validation passes 10,483 SDK tests on Node 18/20/22/24, including 7,953 OpenAPI checks. Live prescribed-model inference passes 10/10 SDK checks and 8/8 CLI checks. All 21 primary example scripts ran: 18 pass and 3 fail. Their actual sanitized output is retained in the [examples](../guides/examples.mdx).
+
+This release is explicitly authorized with incomplete AI Gateway coverage: 137/242 directly matched operations (56.61%) in the pinned upstream Portkey specification. Twenty-eight methods remain experimental. Known service failures include runtime log-detail/feedback updates, DLP profile update/retirement, dictionary upload and network-broker update; authorization/provisioning gaps also remain. One unbound test DLP profile could not be retired. The gateway checks used the documented TLS-verified LAN path, not a certified WAN path. See the [gateway ledger](../developer/gateway-coverage.md) and [live validation](../developer/live-validation-results.md). Publication is not a claim of 99% full AI Gateway coverage or all-green E2E.
+
 :::note[Historical commands]
 Entries below are kept as written at release time. The `npm run example:*` scripts mentioned in
 older entries were removed when the examples moved to `docs-site/examples/`; the current equivalents

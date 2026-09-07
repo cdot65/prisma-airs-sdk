@@ -1,3 +1,5 @@
+import { reportExampleError } from './example-support.js';
+import { setTimeout as delay } from 'node:timers/promises';
 import { init, Scanner, AISecSDKException } from '@cdot65/prisma-airs-sdk';
 
 async function main() {
@@ -49,21 +51,33 @@ async function main() {
 
     // Polling GETs are idempotent, so a bounded retry override is safe. A single batch scan ID can
     // return multiple rows, and their order is not guaranteed.
-    const rows = await scanner.queryByScanIds([receipt.scan_id], { numRetries: 2 });
+    let rows = await scanner.queryByScanIds([receipt.scan_id], { numRetries: 2 });
+    for (
+      let attempt = 0;
+      attempt < 20 && ![1, 2].every((id) => rows.some((row) => row.req_id === id && row.result));
+      attempt++
+    ) {
+      await delay(1500);
+      rows = await scanner.queryByScanIds([receipt.scan_id], { numRetries: 2 });
+    }
+    if (![1, 2].every((id) => rows.some((row) => row.req_id === id && row.result))) {
+      throw new Error('Async example exceeded its polling budget');
+    }
     const byCorrelationId = new Map(rows.map((row) => [`${row.scan_id}:${row.req_id}`, row]));
 
     for (const [correlationId, row] of byCorrelationId) {
       console.log(correlationId, row.status, row.result?.action);
     }
   } catch (error) {
+    process.exitCode = 1;
     if (error instanceof AISecSDKException) {
       console.error('Error:', error.message, {
         failureKind: error.failureKind,
         statusCode: error.statusCode,
         retryAfterMs: error.retryAfterMs,
       });
-    }
+    } else throw error;
   }
 }
 
-main().catch(console.error);
+main().catch(reportExampleError);

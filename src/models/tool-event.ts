@@ -20,7 +20,10 @@ export const ToolEventSchema = z
     input: z.string().optional(),
     output: z.string().optional(),
   })
-  .passthrough();
+  .passthrough()
+  .refine((value) => value.input !== undefined || value.output !== undefined, {
+    message: 'A tool event requires input or output',
+  });
 
 /** Tool/function call event with optional input and output strings. */
 export type ToolEvent = z.infer<typeof ToolEventSchema>;

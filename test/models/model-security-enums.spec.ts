@@ -27,8 +27,8 @@ describe('ErrorCodes', () => {
     expect(ErrorCodes.POLICY_EVAL_ERROR).toBe('POLICY_EVAL_ERROR');
   });
 
-  it('has exactly 16 values', () => {
-    expect(Object.keys(ErrorCodes)).toHaveLength(16);
+  it('has exactly 18 values', () => {
+    expect(Object.keys(ErrorCodes)).toHaveLength(18);
   });
 
   it('values are assignable to ErrorCodes type', () => {
@@ -69,7 +69,7 @@ describe('FileType', () => {
     expect(FileType.FILE).toBe('FILE');
   });
 
-  it('has exactly 2 values', () => {
+  it('has exactly 4 values', () => {
     expect(Object.keys(FileType)).toHaveLength(2);
   });
 });
@@ -117,7 +117,7 @@ describe('ScanOrigin', () => {
   });
 
   it('has exactly 2 values', () => {
-    expect(Object.keys(ScanOrigin)).toHaveLength(2);
+    expect(Object.keys(ScanOrigin)).toHaveLength(4);
   });
 });
 

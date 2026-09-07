@@ -29,7 +29,7 @@ import type {
  * Client for AI Gateway workspaces.
  *
  * The only sub-client spanning **both planes**: reads default to the data plane but can be routed
- * to the admin plane, and every write is admin-only. Each of the other eleven sub-clients is wired
+ * to the admin plane, and every write is admin-only. Each of the other sub-clients is wired
  * to exactly one plane.
  */
 export class AIGatewayWorkspacesClient {
@@ -128,6 +128,9 @@ export class AIGatewayWorkspacesClient {
 
   /**
    * Create a workspace. **Admin plane** — needs a tenant-root admin role.
+   * The 2026-09-06 owned-fixture revalidation returned HTTP 400 AB01 for synthetic
+   * scope names. Supply a valid unused SCM-provisioned scope; the prerequisite and
+   * successful creation remain unverified in this tenant. Do not derive or reuse a scope.
    *
    * @param body - `name` and `scope_name` are both required; the API rejects a body missing either.
    * @returns The created workspace. Unlike `configs`/`guardrails`/`providers`/`deployments`,

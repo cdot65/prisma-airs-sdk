@@ -46,7 +46,7 @@ export const ApiKeyCreateRequestSchema = z
     revoked: z.boolean(),
     created_by: z.string(),
     api_key_name: z.string(),
-    rotation_time_interval: z.number(),
+    rotation_time_interval: z.number().int(),
     rotation_time_unit: z.string(),
   })
   .passthrough();
@@ -57,7 +57,7 @@ export type ApiKeyCreateRequest = z.infer<typeof ApiKeyCreateRequestSchema>;
 /** Zod schema for API key regeneration request. */
 export const ApiKeyRegenerateRequestSchema = z
   .object({
-    rotation_time_interval: z.number(),
+    rotation_time_interval: z.number().int(),
     rotation_time_unit: z.string(),
     updated_by: z.string().optional(),
   })

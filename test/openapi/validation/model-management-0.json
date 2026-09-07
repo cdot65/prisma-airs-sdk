@@ -1,0 +1,1124 @@
+{
+  "source": "prisma-airs-model-security/management/mgmt-plane.yml",
+  "sha256": "92b010dbe1b2ba96984aaaadfca95e4a2ff68a1fa98209765cfa1b0bcffcc808",
+  "corrections": [],
+  "contracts": [
+    {
+      "direction": "response",
+      "validator": "ListCustomRulesResponseSchema",
+      "operations": ["GET /v1/custom-rules"],
+      "schema": {
+        "properties": {
+          "custom_rules": {
+            "items": {
+              "properties": {
+                "compatible_sources": {
+                  "items": {
+                    "enum": [
+                      "LOCAL",
+                      "HUGGING_FACE",
+                      "S3",
+                      "GCS",
+                      "AZURE",
+                      "ARTIFACTORY",
+                      "GITLAB",
+                      "ALL"
+                    ],
+                    "title": "SourceType",
+                    "type": "string"
+                  },
+                  "title": "Compatible Sources",
+                  "type": "array"
+                },
+                "condition": {
+                  "anyOf": [
+                    {
+                      "oneOf": [
+                        {
+                          "additionalProperties": false,
+                          "properties": {
+                            "key": {
+                              "maxLength": 255,
+                              "minLength": 1,
+                              "title": "Key",
+                              "type": "string"
+                            },
+                            "operator": {
+                              "enum": ["equals", "not_equals", "exists", "not_exists"],
+                              "title": "Operator",
+                              "type": "string"
+                            },
+                            "type": {
+                              "const": "label",
+                              "title": "Type",
+                              "type": "string"
+                            },
+                            "value": {
+                              "anyOf": [
+                                {
+                                  "maxLength": 1024,
+                                  "type": "string"
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ],
+                              "title": "Value"
+                            }
+                          },
+                          "required": ["type", "key", "operator"],
+                          "title": "LabelCondition",
+                          "type": "object"
+                        },
+                        {
+                          "additionalProperties": false,
+                          "properties": {
+                            "operator": {
+                              "const": "equals",
+                              "title": "Operator",
+                              "type": "string"
+                            },
+                            "rule_uuid": {
+                              "format": "uuid",
+                              "title": "Rule Uuid",
+                              "type": "string"
+                            },
+                            "type": {
+                              "const": "rule_result",
+                              "title": "Type",
+                              "type": "string"
+                            },
+                            "value": {
+                              "enum": ["PASSED", "FAILED"],
+                              "title": "Value",
+                              "type": "string"
+                            }
+                          },
+                          "required": ["type", "rule_uuid", "operator", "value"],
+                          "title": "RuleResultCondition",
+                          "type": "object"
+                        },
+                        {
+                          "additionalProperties": false,
+                          "properties": {
+                            "conditions": {
+                              "items": {
+                                "oneOf": [
+                                  {
+                                    "$ref": "#/properties/custom_rules/items/properties/condition/anyOf/0/oneOf/0"
+                                  },
+                                  {
+                                    "$ref": "#/properties/custom_rules/items/properties/condition/anyOf/0/oneOf/1"
+                                  },
+                                  {
+                                    "$ref": "#/properties/custom_rules/items/properties/condition/anyOf/0/oneOf/2"
+                                  }
+                                ]
+                              },
+                              "minItems": 2,
+                              "title": "Conditions",
+                              "type": "array"
+                            },
+                            "operator": {
+                              "enum": ["and", "or"],
+                              "title": "Operator",
+                              "type": "string"
+                            }
+                          },
+                          "required": ["operator", "conditions"],
+                          "title": "ConditionGroup",
+                          "type": "object"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "description": "The rule's condition tree. Null when reading a historical snapshot (via ?generation=N): the snapshot stores only the compiled policy, not the source condition.",
+                  "title": "Condition"
+                },
+                "created_at": {
+                  "anyOf": [
+                    {
+                      "format": "date-time",
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "description": "When the rule was created. Null when reading a historical snapshot (via ?generation=N), which does not capture this timestamp.",
+                  "title": "Created At"
+                },
+                "created_by": {
+                  "anyOf": [
+                    {
+                      "format": "uuid",
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "title": "Created By"
+                },
+                "description": {
+                  "title": "Description",
+                  "type": "string"
+                },
+                "enabled_security_group_count": {
+                  "anyOf": [
+                    {
+                      "type": "integer"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "default": 0,
+                  "description": "Number of security groups that currently have this rule enabled. Null when reading a historical snapshot (via ?generation=N), since the count is a live value not captured in the snapshot.",
+                  "title": "Enabled Security Group Count"
+                },
+                "is_archived": {
+                  "title": "Is Archived",
+                  "type": "boolean"
+                },
+                "name": {
+                  "title": "Name",
+                  "type": "string"
+                },
+                "remediation_message": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "title": "Remediation Message"
+                },
+                "rule_action": {
+                  "anyOf": [
+                    {
+                      "enum": ["FAIL", "PASS"],
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "description": "The rule's action. Null when reading a historical snapshot (via ?generation=N): it is compiled into the policy and not carried in the snapshot.",
+                  "title": "Rule Action"
+                },
+                "tsg_id": {
+                  "maxLength": 64,
+                  "title": "Tsg Id",
+                  "type": "string"
+                },
+                "updated_at": {
+                  "anyOf": [
+                    {
+                      "format": "date-time",
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "description": "When the rule was last updated. Null when reading a historical snapshot (via ?generation=N), which does not capture this timestamp.",
+                  "title": "Updated At"
+                },
+                "updated_by": {
+                  "anyOf": [
+                    {
+                      "format": "uuid",
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "title": "Updated By"
+                },
+                "uuid": {
+                  "format": "uuid",
+                  "title": "Uuid",
+                  "type": "string"
+                },
+                "violation_message": {
+                  "title": "Violation Message",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "uuid",
+                "tsg_id",
+                "name",
+                "description",
+                "compatible_sources",
+                "violation_message",
+                "remediation_message",
+                "is_archived",
+                "created_by",
+                "updated_by"
+              ],
+              "title": "CustomRuleListItemSchema",
+              "type": "object"
+            },
+            "title": "Custom Rules",
+            "type": "array"
+          },
+          "pagination": {
+            "properties": {
+              "total_items": {
+                "anyOf": [
+                  {
+                    "type": "integer"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "title": "Total Items"
+              }
+            },
+            "title": "PaginationSchema",
+            "type": "object"
+          }
+        },
+        "required": ["pagination", "custom_rules"],
+        "title": "ListCustomRulesResponseSchema",
+        "type": "object"
+      }
+    },
+    {
+      "direction": "request",
+      "validator": "CustomRuleCreateRequestSchema",
+      "operations": ["POST /v1/custom-rules"],
+      "schema": {
+        "additionalProperties": false,
+        "properties": {
+          "compatible_sources": {
+            "items": {
+              "enum": [
+                "LOCAL",
+                "HUGGING_FACE",
+                "S3",
+                "GCS",
+                "AZURE",
+                "ARTIFACTORY",
+                "GITLAB",
+                "ALL"
+              ],
+              "title": "SourceType",
+              "type": "string"
+            },
+            "minItems": 1,
+            "title": "Compatible Sources",
+            "type": "array"
+          },
+          "condition": {
+            "oneOf": [
+              {
+                "additionalProperties": false,
+                "properties": {
+                  "key": {
+                    "maxLength": 255,
+                    "minLength": 1,
+                    "title": "Key",
+                    "type": "string"
+                  },
+                  "operator": {
+                    "enum": ["equals", "not_equals", "exists", "not_exists"],
+                    "title": "Operator",
+                    "type": "string"
+                  },
+                  "type": {
+                    "const": "label",
+                    "title": "Type",
+                    "type": "string"
+                  },
+                  "value": {
+                    "anyOf": [
+                      {
+                        "maxLength": 1024,
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "title": "Value"
+                  }
+                },
+                "required": ["type", "key", "operator"],
+                "title": "LabelCondition",
+                "type": "object"
+              },
+              {
+                "additionalProperties": false,
+                "properties": {
+                  "operator": {
+                    "const": "equals",
+                    "title": "Operator",
+                    "type": "string"
+                  },
+                  "rule_uuid": {
+                    "format": "uuid",
+                    "title": "Rule Uuid",
+                    "type": "string"
+                  },
+                  "type": {
+                    "const": "rule_result",
+                    "title": "Type",
+                    "type": "string"
+                  },
+                  "value": {
+                    "enum": ["PASSED", "FAILED"],
+                    "title": "Value",
+                    "type": "string"
+                  }
+                },
+                "required": ["type", "rule_uuid", "operator", "value"],
+                "title": "RuleResultCondition",
+                "type": "object"
+              },
+              {
+                "additionalProperties": false,
+                "properties": {
+                  "conditions": {
+                    "items": {
+                      "oneOf": [
+                        {
+                          "$ref": "#/properties/condition/oneOf/0"
+                        },
+                        {
+                          "$ref": "#/properties/condition/oneOf/1"
+                        },
+                        {
+                          "$ref": "#/properties/condition/oneOf/2"
+                        }
+                      ]
+                    },
+                    "minItems": 2,
+                    "title": "Conditions",
+                    "type": "array"
+                  },
+                  "operator": {
+                    "enum": ["and", "or"],
+                    "title": "Operator",
+                    "type": "string"
+                  }
+                },
+                "required": ["operator", "conditions"],
+                "title": "ConditionGroup",
+                "type": "object"
+              }
+            ],
+            "title": "Condition"
+          },
+          "description": {
+            "default": "",
+            "maxLength": 1000,
+            "title": "Description",
+            "type": "string"
+          },
+          "name": {
+            "maxLength": 255,
+            "minLength": 1,
+            "title": "Name",
+            "type": "string"
+          },
+          "remediation_message": {
+            "anyOf": [
+              {
+                "maxLength": 4096,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Remediation Message"
+          },
+          "rule_action": {
+            "default": "FAIL",
+            "enum": ["FAIL", "PASS"],
+            "title": "Rule Action",
+            "type": "string"
+          },
+          "violation_message": {
+            "maxLength": 4096,
+            "minLength": 1,
+            "title": "Violation Message",
+            "type": "string"
+          }
+        },
+        "required": ["name", "compatible_sources", "condition", "violation_message"],
+        "title": "CustomRuleCreateRequestSchema",
+        "type": "object"
+      }
+    },
+    {
+      "direction": "response",
+      "validator": "CustomRuleResponseSchema",
+      "operations": [
+        "POST /v1/custom-rules",
+        "GET /v1/custom-rules/{custom_rule_uuid}",
+        "PUT /v1/custom-rules/{custom_rule_uuid}"
+      ],
+      "schema": {
+        "properties": {
+          "compatible_sources": {
+            "items": {
+              "enum": [
+                "LOCAL",
+                "HUGGING_FACE",
+                "S3",
+                "GCS",
+                "AZURE",
+                "ARTIFACTORY",
+                "GITLAB",
+                "ALL"
+              ],
+              "title": "SourceType",
+              "type": "string"
+            },
+            "title": "Compatible Sources",
+            "type": "array"
+          },
+          "condition": {
+            "anyOf": [
+              {
+                "oneOf": [
+                  {
+                    "additionalProperties": false,
+                    "properties": {
+                      "key": {
+                        "maxLength": 255,
+                        "minLength": 1,
+                        "title": "Key",
+                        "type": "string"
+                      },
+                      "operator": {
+                        "enum": ["equals", "not_equals", "exists", "not_exists"],
+                        "title": "Operator",
+                        "type": "string"
+                      },
+                      "type": {
+                        "const": "label",
+                        "title": "Type",
+                        "type": "string"
+                      },
+                      "value": {
+                        "anyOf": [
+                          {
+                            "maxLength": 1024,
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "title": "Value"
+                      }
+                    },
+                    "required": ["type", "key", "operator"],
+                    "title": "LabelCondition",
+                    "type": "object"
+                  },
+                  {
+                    "additionalProperties": false,
+                    "properties": {
+                      "operator": {
+                        "const": "equals",
+                        "title": "Operator",
+                        "type": "string"
+                      },
+                      "rule_uuid": {
+                        "format": "uuid",
+                        "title": "Rule Uuid",
+                        "type": "string"
+                      },
+                      "type": {
+                        "const": "rule_result",
+                        "title": "Type",
+                        "type": "string"
+                      },
+                      "value": {
+                        "enum": ["PASSED", "FAILED"],
+                        "title": "Value",
+                        "type": "string"
+                      }
+                    },
+                    "required": ["type", "rule_uuid", "operator", "value"],
+                    "title": "RuleResultCondition",
+                    "type": "object"
+                  },
+                  {
+                    "additionalProperties": false,
+                    "properties": {
+                      "conditions": {
+                        "items": {
+                          "oneOf": [
+                            {
+                              "$ref": "#/properties/condition/anyOf/0/oneOf/0"
+                            },
+                            {
+                              "$ref": "#/properties/condition/anyOf/0/oneOf/1"
+                            },
+                            {
+                              "$ref": "#/properties/condition/anyOf/0/oneOf/2"
+                            }
+                          ]
+                        },
+                        "minItems": 2,
+                        "title": "Conditions",
+                        "type": "array"
+                      },
+                      "operator": {
+                        "enum": ["and", "or"],
+                        "title": "Operator",
+                        "type": "string"
+                      }
+                    },
+                    "required": ["operator", "conditions"],
+                    "title": "ConditionGroup",
+                    "type": "object"
+                  }
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The rule's condition tree. Null when reading a historical snapshot (via ?generation=N): the snapshot stores only the compiled policy, not the source condition.",
+            "title": "Condition"
+          },
+          "created_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "When the rule was created. Null when reading a historical snapshot (via ?generation=N), which does not capture this timestamp.",
+            "title": "Created At"
+          },
+          "created_by": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Created By"
+          },
+          "description": {
+            "title": "Description",
+            "type": "string"
+          },
+          "is_archived": {
+            "title": "Is Archived",
+            "type": "boolean"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "remediation_message": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Remediation Message"
+          },
+          "rule_action": {
+            "anyOf": [
+              {
+                "enum": ["FAIL", "PASS"],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The rule's action. Null when reading a historical snapshot (via ?generation=N): it is compiled into the policy and not carried in the snapshot.",
+            "title": "Rule Action"
+          },
+          "tsg_id": {
+            "maxLength": 64,
+            "title": "Tsg Id",
+            "type": "string"
+          },
+          "updated_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "When the rule was last updated. Null when reading a historical snapshot (via ?generation=N), which does not capture this timestamp.",
+            "title": "Updated At"
+          },
+          "updated_by": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Updated By"
+          },
+          "uuid": {
+            "format": "uuid",
+            "title": "Uuid",
+            "type": "string"
+          },
+          "violation_message": {
+            "title": "Violation Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "uuid",
+          "tsg_id",
+          "name",
+          "description",
+          "compatible_sources",
+          "violation_message",
+          "remediation_message",
+          "is_archived",
+          "created_by",
+          "updated_by"
+        ],
+        "title": "CustomRuleResponseSchema",
+        "type": "object"
+      }
+    },
+    {
+      "direction": "response",
+      "validator": "SnapshotVersionListResponseSchema",
+      "operations": [
+        "GET /v1/custom-rules/versions",
+        "GET /v1/security-groups/{security_group_uuid}/rule-instances/versions",
+        "GET /v1/security-rules/versions"
+      ],
+      "schema": {
+        "description": "A page of snapshot version history, newest first.\n\nPagination is cursor-based over GCS object generations: pass ``pagination.next_token``\nback as the ``next_token`` query param to fetch the next page. ``None`` when there are\nno more pages.",
+        "properties": {
+          "pagination": {
+            "properties": {
+              "next_token": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "title": "Next Token"
+              }
+            },
+            "title": "CursorPaginationSchema",
+            "type": "object"
+          },
+          "versions": {
+            "items": {
+              "description": "One historical version of a GCS-backed snapshot, identified by its generation.",
+              "properties": {
+                "generation": {
+                  "title": "Generation",
+                  "type": "integer"
+                },
+                "timestamp": {
+                  "format": "date-time",
+                  "title": "Timestamp",
+                  "type": "string"
+                }
+              },
+              "required": ["generation", "timestamp"],
+              "title": "SnapshotVersionSchema",
+              "type": "object"
+            },
+            "title": "Versions",
+            "type": "array"
+          }
+        },
+        "required": ["versions", "pagination"],
+        "title": "SnapshotVersionListResponseSchema",
+        "type": "object"
+      }
+    },
+    {
+      "direction": "request",
+      "validator": "CustomRuleUpdateRequestSchema",
+      "operations": ["PUT /v1/custom-rules/{custom_rule_uuid}"],
+      "schema": {
+        "additionalProperties": false,
+        "properties": {
+          "condition": {
+            "anyOf": [
+              {
+                "oneOf": [
+                  {
+                    "additionalProperties": false,
+                    "properties": {
+                      "key": {
+                        "maxLength": 255,
+                        "minLength": 1,
+                        "title": "Key",
+                        "type": "string"
+                      },
+                      "operator": {
+                        "enum": ["equals", "not_equals", "exists", "not_exists"],
+                        "title": "Operator",
+                        "type": "string"
+                      },
+                      "type": {
+                        "const": "label",
+                        "title": "Type",
+                        "type": "string"
+                      },
+                      "value": {
+                        "anyOf": [
+                          {
+                            "maxLength": 1024,
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "title": "Value"
+                      }
+                    },
+                    "required": ["type", "key", "operator"],
+                    "title": "LabelCondition",
+                    "type": "object"
+                  },
+                  {
+                    "additionalProperties": false,
+                    "properties": {
+                      "operator": {
+                        "const": "equals",
+                        "title": "Operator",
+                        "type": "string"
+                      },
+                      "rule_uuid": {
+                        "format": "uuid",
+                        "title": "Rule Uuid",
+                        "type": "string"
+                      },
+                      "type": {
+                        "const": "rule_result",
+                        "title": "Type",
+                        "type": "string"
+                      },
+                      "value": {
+                        "enum": ["PASSED", "FAILED"],
+                        "title": "Value",
+                        "type": "string"
+                      }
+                    },
+                    "required": ["type", "rule_uuid", "operator", "value"],
+                    "title": "RuleResultCondition",
+                    "type": "object"
+                  },
+                  {
+                    "additionalProperties": false,
+                    "properties": {
+                      "conditions": {
+                        "items": {
+                          "oneOf": [
+                            {
+                              "$ref": "#/properties/condition/anyOf/0/oneOf/0"
+                            },
+                            {
+                              "$ref": "#/properties/condition/anyOf/0/oneOf/1"
+                            },
+                            {
+                              "$ref": "#/properties/condition/anyOf/0/oneOf/2"
+                            }
+                          ]
+                        },
+                        "minItems": 2,
+                        "title": "Conditions",
+                        "type": "array"
+                      },
+                      "operator": {
+                        "enum": ["and", "or"],
+                        "title": "Operator",
+                        "type": "string"
+                      }
+                    },
+                    "required": ["operator", "conditions"],
+                    "title": "ConditionGroup",
+                    "type": "object"
+                  }
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Condition"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "maxLength": 1000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "name": {
+            "anyOf": [
+              {
+                "maxLength": 255,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          },
+          "remediation_message": {
+            "anyOf": [
+              {
+                "maxLength": 4096,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Remediation Message"
+          },
+          "rule_action": {
+            "anyOf": [
+              {
+                "enum": ["FAIL", "PASS"],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rule Action"
+          },
+          "violation_message": {
+            "anyOf": [
+              {
+                "maxLength": 4096,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Violation Message"
+          }
+        },
+        "title": "CustomRuleUpdateRequestSchema",
+        "type": "object"
+      }
+    },
+    {
+      "direction": "response",
+      "validator": "ListCustomRuleSecurityGroupsResponseSchema",
+      "operations": ["GET /v1/custom-rules/{custom_rule_uuid}/security-groups"],
+      "schema": {
+        "properties": {
+          "pagination": {
+            "properties": {
+              "total_items": {
+                "anyOf": [
+                  {
+                    "type": "integer"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "title": "Total Items"
+              }
+            },
+            "title": "PaginationSchema",
+            "type": "object"
+          },
+          "security_groups": {
+            "items": {
+              "properties": {
+                "name": {
+                  "title": "Name",
+                  "type": "string"
+                },
+                "rule_state": {
+                  "anyOf": [
+                    {
+                      "description": "Rule evaluation states.",
+                      "enum": ["DISABLED", "ALLOWING", "BLOCKING"],
+                      "title": "RuleState",
+                      "type": "string"
+                    },
+                    {
+                      "type": "string"
+                    }
+                  ],
+                  "title": "Rule State"
+                },
+                "source_type": {
+                  "enum": [
+                    "LOCAL",
+                    "HUGGING_FACE",
+                    "S3",
+                    "GCS",
+                    "AZURE",
+                    "ARTIFACTORY",
+                    "GITLAB",
+                    "ALL"
+                  ],
+                  "title": "SourceType",
+                  "type": "string"
+                },
+                "uuid": {
+                  "format": "uuid",
+                  "title": "Uuid",
+                  "type": "string"
+                }
+              },
+              "required": ["uuid", "name", "source_type", "rule_state"],
+              "title": "CustomRuleSecurityGroupSchema",
+              "type": "object"
+            },
+            "title": "Security Groups",
+            "type": "array"
+          }
+        },
+        "required": ["pagination", "security_groups"],
+        "title": "ListCustomRuleSecurityGroupsResponseSchema",
+        "type": "object"
+      }
+    },
+    {
+      "direction": "request",
+      "validator": "BatchAssignCustomRuleRequestSchema",
+      "operations": ["POST /v1/custom-rules/{custom_rule_uuid}/security-groups"],
+      "schema": {
+        "additionalProperties": false,
+        "properties": {
+          "assignments": {
+            "items": {
+              "additionalProperties": false,
+              "properties": {
+                "security_group_uuid": {
+                  "format": "uuid",
+                  "title": "Security Group Uuid",
+                  "type": "string"
+                },
+                "state": {
+                  "description": "Rule evaluation states.",
+                  "enum": ["DISABLED", "ALLOWING", "BLOCKING"],
+                  "title": "RuleState",
+                  "type": "string"
+                }
+              },
+              "required": ["security_group_uuid", "state"],
+              "title": "CustomRuleAssignmentSchema",
+              "type": "object"
+            },
+            "maxItems": 50,
+            "minItems": 1,
+            "title": "Assignments",
+            "type": "array"
+          }
+        },
+        "required": ["assignments"],
+        "title": "BatchAssignCustomRuleRequestSchema",
+        "type": "object"
+      }
+    },
+    {
+      "direction": "response",
+      "validator": "BatchAssignCustomRuleResponseSchema",
+      "operations": ["POST /v1/custom-rules/{custom_rule_uuid}/security-groups"],
+      "schema": {
+        "properties": {
+          "results": {
+            "items": {
+              "properties": {
+                "error": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "title": "Error"
+                },
+                "rule_instance_uuid": {
+                  "anyOf": [
+                    {
+                      "format": "uuid",
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "title": "Rule Instance Uuid"
+                },
+                "security_group_uuid": {
+                  "format": "uuid",
+                  "title": "Security Group Uuid",
+                  "type": "string"
+                },
+                "status": {
+                  "title": "Status",
+                  "type": "string"
+                }
+              },
+              "required": ["security_group_uuid", "status"],
+              "title": "CustomRuleAssignmentResultSchema",
+              "type": "object"
+            },
+            "title": "Results",
+            "type": "array"
+          }
+        },
+        "required": ["results"],
+        "title": "BatchAssignCustomRuleResponseSchema",
+        "type": "object"
+      }
+    }
+  ]
+}

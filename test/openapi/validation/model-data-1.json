@@ -1,0 +1,1115 @@
+{
+  "source": "prisma-airs-model-security/dataplane/data-plane.yml",
+  "sha256": "1a581d23ceb7456b9a5f978b212235e2149dadf917eae7d31e1463667339d6dc",
+  "corrections": [],
+  "contracts": [
+    {
+      "direction": "response",
+      "validator": "ScanBaseResponseSchema",
+      "operations": ["POST /v1/scans", "GET /v1/scans/{uuid}"],
+      "schema": {
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "created_by": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Created By"
+          },
+          "enabled_rule_count_snapshot": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Enabled Rule Count Snapshot"
+          },
+          "error_code": {
+            "anyOf": [
+              {
+                "enum": [
+                  "UNKNOWN_ERROR",
+                  "SCAN_ERROR",
+                  "INVALID_RESPONSE",
+                  "ACCESS_DENIED",
+                  "MISSING_CREDENTIALS",
+                  "NO_SUCH_KEY",
+                  "NO_SUCH_BUCKET",
+                  "INVALID_BUCKET_NAME",
+                  "INTERNAL_ERROR",
+                  "SERVICE_UNAVAILABLE",
+                  "INVALID_OBJECT_STATE",
+                  "UNKNOWN_REMOTE_SERVICE_ERROR",
+                  "UNSUPPORTED_REMOTE_STORAGE",
+                  "MISSING_ARTIFACTS",
+                  "WORKER_ERROR",
+                  "POLICY_EVAL_ERROR",
+                  "RESOURCE_NOT_FOUND",
+                  "SCAN_DATA_PENDING"
+                ],
+                "title": "ErrorCodes",
+                "type": "string"
+              },
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error Code"
+          },
+          "error_message": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error Message"
+          },
+          "eval_outcome": {
+            "anyOf": [
+              {
+                "enum": ["PENDING", "ALLOWED", "BLOCKED", "ERROR"],
+                "title": "EvalOutcome",
+                "type": "string"
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "title": "Eval Outcome"
+          },
+          "eval_summary": {
+            "anyOf": [
+              {
+                "properties": {
+                  "rules_failed": {
+                    "default": 0,
+                    "title": "Rules Failed",
+                    "type": "integer"
+                  },
+                  "rules_passed": {
+                    "default": 0,
+                    "title": "Rules Passed",
+                    "type": "integer"
+                  },
+                  "total_rules": {
+                    "default": 0,
+                    "title": "Total Rules",
+                    "type": "integer"
+                  }
+                },
+                "title": "EvalSummarySchema",
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "labels": {
+            "items": {
+              "properties": {
+                "key": {
+                  "maxLength": 128,
+                  "minLength": 1,
+                  "pattern": "^[a-zA-Z0-9_-]+$",
+                  "title": "Key",
+                  "type": "string"
+                },
+                "value": {
+                  "maxLength": 256,
+                  "minLength": 1,
+                  "pattern": "^[a-zA-Z0-9_-]+$",
+                  "title": "Value",
+                  "type": "string"
+                }
+              },
+              "required": ["key", "value"],
+              "title": "LabelSchema",
+              "type": "object"
+            },
+            "title": "Labels",
+            "type": "array"
+          },
+          "model_formats": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Model Formats"
+          },
+          "model_uri": {
+            "title": "Model Uri",
+            "type": "string"
+          },
+          "model_version_uuid": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Model Version Uuid"
+          },
+          "owner": {
+            "maxLength": 256,
+            "title": "Owner",
+            "type": "string"
+          },
+          "scan_origin": {
+            "anyOf": [
+              {
+                "enum": [
+                  "MODEL_SECURITY_SDK",
+                  "MODEL_SECURITY_API",
+                  "MODEL_SECURITY_FRONTEND",
+                  "HUGGING_FACE"
+                ],
+                "title": "ScanOrigin",
+                "type": "string"
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "title": "Scan Origin"
+          },
+          "scanner_version": {
+            "anyOf": [
+              {
+                "maxLength": 256,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Scanner Version"
+          },
+          "sdk_version": {
+            "anyOf": [
+              {
+                "maxLength": 256,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sdk Version"
+          },
+          "security_group_name": {
+            "maxLength": 256,
+            "title": "Security Group Name",
+            "type": "string"
+          },
+          "security_group_uuid": {
+            "format": "uuid",
+            "title": "Security Group Uuid",
+            "type": "string"
+          },
+          "source_type": {
+            "enum": ["LOCAL", "HUGGING_FACE", "S3", "GCS", "AZURE", "ARTIFACTORY", "GITLAB", "ALL"],
+            "title": "SourceType",
+            "type": "string",
+            "readOnly": true
+          },
+          "time_started": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Time Started"
+          },
+          "total_files_scanned": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Total Files Scanned"
+          },
+          "total_files_skipped": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Total Files Skipped"
+          },
+          "tsg_id": {
+            "maxLength": 64,
+            "title": "Tsg Id",
+            "type": "string"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "title": "Updated At",
+            "type": "string"
+          },
+          "uuid": {
+            "format": "uuid",
+            "title": "Uuid",
+            "type": "string"
+          }
+        },
+        "required": [
+          "uuid",
+          "tsg_id",
+          "created_at",
+          "updated_at",
+          "model_uri",
+          "owner",
+          "scan_origin",
+          "security_group_uuid",
+          "security_group_name",
+          "eval_outcome",
+          "source_type"
+        ],
+        "title": "ScanBaseResponseSchema",
+        "type": "object"
+      }
+    },
+    {
+      "direction": "response",
+      "validator": "LabelKeyListSchema",
+      "operations": ["GET /v1/scans/label-keys"],
+      "schema": {
+        "properties": {
+          "keys": {
+            "items": {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[a-zA-Z0-9_-]+$",
+              "type": "string"
+            },
+            "title": "Keys",
+            "type": "array"
+          },
+          "pagination": {
+            "properties": {
+              "total_items": {
+                "anyOf": [
+                  {
+                    "type": "integer"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "title": "Total Items"
+              }
+            },
+            "title": "PaginationSchema",
+            "type": "object"
+          }
+        },
+        "required": ["pagination", "keys"],
+        "title": "LabelKeyListSchema",
+        "type": "object"
+      }
+    },
+    {
+      "direction": "response",
+      "validator": "LabelValueListSchema",
+      "operations": ["GET /v1/scans/label-keys/{key}/values"],
+      "schema": {
+        "properties": {
+          "pagination": {
+            "properties": {
+              "total_items": {
+                "anyOf": [
+                  {
+                    "type": "integer"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "title": "Total Items"
+              }
+            },
+            "title": "PaginationSchema",
+            "type": "object"
+          },
+          "values": {
+            "items": {
+              "maxLength": 256,
+              "minLength": 1,
+              "pattern": "^[a-zA-Z0-9_-]+$",
+              "type": "string"
+            },
+            "title": "Values",
+            "type": "array"
+          }
+        },
+        "required": ["pagination", "values"],
+        "title": "LabelValueListSchema",
+        "type": "object"
+      }
+    },
+    {
+      "direction": "response",
+      "validator": "RuleEvaluationListSchema",
+      "operations": ["GET /v1/scans/{scan_uuid}/evaluations"],
+      "schema": {
+        "properties": {
+          "evaluations": {
+            "items": {
+              "properties": {
+                "created_at": {
+                  "format": "date-time",
+                  "title": "Created At",
+                  "type": "string"
+                },
+                "result": {
+                  "anyOf": [
+                    {
+                      "description": "Results of rule evaluation.",
+                      "enum": ["PASSED", "FAILED", "ERROR"],
+                      "title": "RuleEvaluationResult",
+                      "type": "string"
+                    },
+                    {
+                      "type": "string"
+                    }
+                  ],
+                  "title": "Result"
+                },
+                "rule_description": {
+                  "title": "Rule Description",
+                  "type": "string"
+                },
+                "rule_instance_state": {
+                  "anyOf": [
+                    {
+                      "description": "Rule evaluation states.",
+                      "enum": ["DISABLED", "ALLOWING", "BLOCKING"],
+                      "title": "RuleState",
+                      "type": "string"
+                    },
+                    {
+                      "type": "string"
+                    }
+                  ],
+                  "title": "Rule Instance State"
+                },
+                "rule_instance_uuid": {
+                  "format": "uuid",
+                  "title": "Rule Instance Uuid",
+                  "type": "string"
+                },
+                "rule_name": {
+                  "title": "Rule Name",
+                  "type": "string"
+                },
+                "rule_origin": {
+                  "anyOf": [
+                    {
+                      "description": "Origin of a rule instance: PANW-managed template vs customer-authored custom rule.",
+                      "enum": ["PANW_MANAGED", "CUSTOM"],
+                      "title": "RuleOrigin",
+                      "type": "string"
+                    },
+                    {
+                      "type": "string"
+                    }
+                  ],
+                  "default": "PANW_MANAGED",
+                  "title": "Rule Origin"
+                },
+                "scan_uuid": {
+                  "format": "uuid",
+                  "title": "Scan Uuid",
+                  "type": "string"
+                },
+                "tsg_id": {
+                  "maxLength": 64,
+                  "title": "Tsg Id",
+                  "type": "string"
+                },
+                "updated_at": {
+                  "format": "date-time",
+                  "title": "Updated At",
+                  "type": "string"
+                },
+                "uuid": {
+                  "format": "uuid",
+                  "title": "Uuid",
+                  "type": "string"
+                },
+                "violation_count": {
+                  "title": "Violation Count",
+                  "type": "integer"
+                }
+              },
+              "required": [
+                "uuid",
+                "tsg_id",
+                "created_at",
+                "updated_at",
+                "result",
+                "violation_count",
+                "rule_instance_uuid",
+                "scan_uuid",
+                "rule_name",
+                "rule_description",
+                "rule_instance_state"
+              ],
+              "title": "RuleEvaluationResponseSchema",
+              "type": "object"
+            },
+            "title": "Evaluations",
+            "type": "array"
+          },
+          "pagination": {
+            "properties": {
+              "total_items": {
+                "anyOf": [
+                  {
+                    "type": "integer"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "title": "Total Items"
+              }
+            },
+            "title": "PaginationSchema",
+            "type": "object"
+          }
+        },
+        "required": ["pagination", "evaluations"],
+        "title": "RuleEvaluationListSchema",
+        "type": "object"
+      }
+    },
+    {
+      "direction": "request",
+      "validator": "LabelsCreateRequestSchema",
+      "operations": ["POST /v1/scans/{scan_uuid}/labels", "PUT /v1/scans/{scan_uuid}/labels"],
+      "schema": {
+        "additionalProperties": false,
+        "properties": {
+          "labels": {
+            "items": {
+              "properties": {
+                "key": {
+                  "maxLength": 128,
+                  "minLength": 1,
+                  "pattern": "^[a-zA-Z0-9_-]+$",
+                  "title": "Key",
+                  "type": "string"
+                },
+                "value": {
+                  "maxLength": 256,
+                  "minLength": 1,
+                  "pattern": "^[a-zA-Z0-9_-]+$",
+                  "title": "Value",
+                  "type": "string"
+                }
+              },
+              "required": ["key", "value"],
+              "title": "LabelSchema",
+              "type": "object"
+            },
+            "maxItems": 50,
+            "minItems": 1,
+            "title": "Labels",
+            "type": "array"
+          }
+        },
+        "required": ["labels"],
+        "title": "LabelsCreateRequestSchema",
+        "type": "object"
+      }
+    },
+    {
+      "direction": "response",
+      "validator": "LabelsResponseSchema",
+      "operations": ["POST /v1/scans/{scan_uuid}/labels", "PUT /v1/scans/{scan_uuid}/labels"],
+      "schema": {
+        "properties": {},
+        "title": "LabelsResponseSchema",
+        "type": "object"
+      }
+    },
+    {
+      "direction": "response",
+      "validator": "ViolationListSchema",
+      "operations": ["GET /v1/scans/{scan_uuid}/rule-violations"],
+      "schema": {
+        "description": "Schema for violation list responses.",
+        "properties": {
+          "pagination": {
+            "properties": {
+              "total_items": {
+                "anyOf": [
+                  {
+                    "type": "integer"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "title": "Total Items"
+              }
+            },
+            "title": "PaginationSchema",
+            "type": "object"
+          },
+          "violations": {
+            "items": {
+              "description": "Schema for violation responses with enhanced rule details.",
+              "properties": {
+                "created_at": {
+                  "format": "date-time",
+                  "title": "Created At",
+                  "type": "string"
+                },
+                "description": {
+                  "title": "Description",
+                  "type": "string"
+                },
+                "file": {
+                  "anyOf": [
+                    {
+                      "maxLength": 256,
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "title": "File"
+                },
+                "hash": {
+                  "anyOf": [
+                    {
+                      "maxLength": 256,
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "title": "Hash"
+                },
+                "insights_url": {
+                  "anyOf": [
+                    {
+                      "maxLength": 1024,
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "title": "Insights Url"
+                },
+                "module": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "title": "Module"
+                },
+                "operator": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "title": "Operator"
+                },
+                "remediation": {
+                  "anyOf": [
+                    {
+                      "description": "Remediation returned on violations — steps and reference URL only.",
+                      "properties": {
+                        "steps": {
+                          "items": {
+                            "maxLength": 1024,
+                            "type": "string"
+                          },
+                          "title": "Steps",
+                          "type": "array"
+                        },
+                        "url": {
+                          "anyOf": [
+                            {
+                              "maxLength": 256,
+                              "type": "string"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ],
+                          "title": "Url"
+                        }
+                      },
+                      "required": ["steps"],
+                      "title": "ViolationRemediationSchema",
+                      "type": "object"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "rule_description": {
+                  "title": "Rule Description",
+                  "type": "string"
+                },
+                "rule_instance_state": {
+                  "anyOf": [
+                    {
+                      "description": "Rule evaluation states.",
+                      "enum": ["DISABLED", "ALLOWING", "BLOCKING"],
+                      "title": "RuleState",
+                      "type": "string"
+                    },
+                    {
+                      "type": "string"
+                    }
+                  ],
+                  "title": "Rule Instance State"
+                },
+                "rule_instance_uuid": {
+                  "format": "uuid",
+                  "title": "Rule Instance Uuid",
+                  "type": "string"
+                },
+                "rule_name": {
+                  "title": "Rule Name",
+                  "type": "string"
+                },
+                "rule_origin": {
+                  "anyOf": [
+                    {
+                      "description": "Origin of a rule instance: PANW-managed template vs customer-authored custom rule.",
+                      "enum": ["PANW_MANAGED", "CUSTOM"],
+                      "title": "RuleOrigin",
+                      "type": "string"
+                    },
+                    {
+                      "type": "string"
+                    }
+                  ],
+                  "default": "PANW_MANAGED",
+                  "title": "Rule Origin"
+                },
+                "threat": {
+                  "anyOf": [
+                    {
+                      "description": "Enum for threat categories with their descriptions.\nShould be in sync with modelscan-pai issue codes\nhttps://code.pan.run/airs/model-security/modelscan-pai/-/blob/1df3e4ca9f175398155ab1f249ed10211d222751/modelscan_pai/issues.py#L7",
+                      "enum": [
+                        "PAIT-ARV-100",
+                        "PAIT-GGUF-100",
+                        "PAIT-GGUF-101",
+                        "PAIT-KERAS-100",
+                        "PAIT-KERAS-101",
+                        "PAIT-KERAS-102",
+                        "PAIT-JOBLIB-100",
+                        "PAIT-JOBLIB-101",
+                        "PAIT-PKL-100",
+                        "PAIT-PKL-101",
+                        "PAIT-PYTCH-100",
+                        "PAIT-PYTCH-101",
+                        "PAIT-EXDIR-100",
+                        "PAIT-EXDIR-101",
+                        "PAIT-ONNX-200",
+                        "PAIT-TF-200",
+                        "PAIT-LMAFL-300",
+                        "PAIT-LITERT-300",
+                        "PAIT-LITERT-301",
+                        "PAIT-LITERT-302",
+                        "PAIT-KERAS-300",
+                        "PAIT-KERAS-301",
+                        "PAIT-TCHST-300",
+                        "PAIT-TCHST-301",
+                        "PAIT-TF-300",
+                        "PAIT-TF-301",
+                        "PAIT-TF-302",
+                        "PAIT-TMT-300",
+                        "PAIT-TMT-301",
+                        "UNAPPROVED_FORMATS"
+                      ],
+                      "title": "ThreatCategory",
+                      "type": "string"
+                    },
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "title": "Threat"
+                },
+                "threat_description": {
+                  "anyOf": [
+                    {
+                      "maxLength": 256,
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "title": "Threat Description"
+                },
+                "threat_kb_url": {
+                  "anyOf": [
+                    {
+                      "maxLength": 256,
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "title": "Threat Kb Url"
+                },
+                "tsg_id": {
+                  "maxLength": 64,
+                  "title": "Tsg Id",
+                  "type": "string"
+                },
+                "updated_at": {
+                  "format": "date-time",
+                  "title": "Updated At",
+                  "type": "string"
+                },
+                "uuid": {
+                  "format": "uuid",
+                  "title": "Uuid",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "uuid",
+                "tsg_id",
+                "created_at",
+                "updated_at",
+                "description",
+                "rule_instance_uuid",
+                "rule_name",
+                "rule_description",
+                "rule_instance_state"
+              ],
+              "title": "ViolationResponseSchema",
+              "type": "object"
+            },
+            "title": "Violations",
+            "type": "array"
+          }
+        },
+        "required": ["pagination", "violations"],
+        "title": "ViolationListSchema",
+        "type": "object"
+      }
+    },
+    {
+      "direction": "response",
+      "validator": "ViolationResponseSchema",
+      "operations": ["GET /v1/violations/{uuid}"],
+      "schema": {
+        "description": "Schema for violation responses with enhanced rule details.",
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "description": {
+            "title": "Description",
+            "type": "string"
+          },
+          "file": {
+            "anyOf": [
+              {
+                "maxLength": 256,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "File"
+          },
+          "hash": {
+            "anyOf": [
+              {
+                "maxLength": 256,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Hash"
+          },
+          "insights_url": {
+            "anyOf": [
+              {
+                "maxLength": 1024,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Insights Url"
+          },
+          "module": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Module"
+          },
+          "operator": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Operator"
+          },
+          "remediation": {
+            "anyOf": [
+              {
+                "description": "Remediation returned on violations — steps and reference URL only.",
+                "properties": {
+                  "steps": {
+                    "items": {
+                      "maxLength": 1024,
+                      "type": "string"
+                    },
+                    "title": "Steps",
+                    "type": "array"
+                  },
+                  "url": {
+                    "anyOf": [
+                      {
+                        "maxLength": 256,
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "title": "Url"
+                  }
+                },
+                "required": ["steps"],
+                "title": "ViolationRemediationSchema",
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "rule_description": {
+            "title": "Rule Description",
+            "type": "string"
+          },
+          "rule_instance_state": {
+            "anyOf": [
+              {
+                "description": "Rule evaluation states.",
+                "enum": ["DISABLED", "ALLOWING", "BLOCKING"],
+                "title": "RuleState",
+                "type": "string"
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "title": "Rule Instance State"
+          },
+          "rule_instance_uuid": {
+            "format": "uuid",
+            "title": "Rule Instance Uuid",
+            "type": "string"
+          },
+          "rule_name": {
+            "title": "Rule Name",
+            "type": "string"
+          },
+          "rule_origin": {
+            "anyOf": [
+              {
+                "description": "Origin of a rule instance: PANW-managed template vs customer-authored custom rule.",
+                "enum": ["PANW_MANAGED", "CUSTOM"],
+                "title": "RuleOrigin",
+                "type": "string"
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "default": "PANW_MANAGED",
+            "title": "Rule Origin"
+          },
+          "threat": {
+            "anyOf": [
+              {
+                "description": "Enum for threat categories with their descriptions.\nShould be in sync with modelscan-pai issue codes\nhttps://code.pan.run/airs/model-security/modelscan-pai/-/blob/1df3e4ca9f175398155ab1f249ed10211d222751/modelscan_pai/issues.py#L7",
+                "enum": [
+                  "PAIT-ARV-100",
+                  "PAIT-GGUF-100",
+                  "PAIT-GGUF-101",
+                  "PAIT-KERAS-100",
+                  "PAIT-KERAS-101",
+                  "PAIT-KERAS-102",
+                  "PAIT-JOBLIB-100",
+                  "PAIT-JOBLIB-101",
+                  "PAIT-PKL-100",
+                  "PAIT-PKL-101",
+                  "PAIT-PYTCH-100",
+                  "PAIT-PYTCH-101",
+                  "PAIT-EXDIR-100",
+                  "PAIT-EXDIR-101",
+                  "PAIT-ONNX-200",
+                  "PAIT-TF-200",
+                  "PAIT-LMAFL-300",
+                  "PAIT-LITERT-300",
+                  "PAIT-LITERT-301",
+                  "PAIT-LITERT-302",
+                  "PAIT-KERAS-300",
+                  "PAIT-KERAS-301",
+                  "PAIT-TCHST-300",
+                  "PAIT-TCHST-301",
+                  "PAIT-TF-300",
+                  "PAIT-TF-301",
+                  "PAIT-TF-302",
+                  "PAIT-TMT-300",
+                  "PAIT-TMT-301",
+                  "UNAPPROVED_FORMATS"
+                ],
+                "title": "ThreatCategory",
+                "type": "string"
+              },
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Threat"
+          },
+          "threat_description": {
+            "anyOf": [
+              {
+                "maxLength": 256,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Threat Description"
+          },
+          "threat_kb_url": {
+            "anyOf": [
+              {
+                "maxLength": 256,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Threat Kb Url"
+          },
+          "tsg_id": {
+            "maxLength": 64,
+            "title": "Tsg Id",
+            "type": "string"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "title": "Updated At",
+            "type": "string"
+          },
+          "uuid": {
+            "format": "uuid",
+            "title": "Uuid",
+            "type": "string"
+          }
+        },
+        "required": [
+          "uuid",
+          "tsg_id",
+          "created_at",
+          "updated_at",
+          "description",
+          "rule_instance_uuid",
+          "rule_name",
+          "rule_description",
+          "rule_instance_state"
+        ],
+        "title": "ViolationResponseSchema",
+        "type": "object"
+      }
+    }
+  ]
+}

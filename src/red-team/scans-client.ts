@@ -1,3 +1,4 @@
+import { JobCreateRequestSchema } from '../models/index.js';
 import { RED_TEAM_SCAN_PATH, RED_TEAM_CATEGORIES_PATH } from '../constants.js';
 import { request } from '../http/request.js';
 import type { AuthAdapter } from '../http/types.js';
@@ -73,6 +74,7 @@ export class RedTeamScansClient {
    */
   async create(body: JobCreateRequest): Promise<JobResponse> {
     return request({
+      requestSchema: JobCreateRequestSchema,
       method: 'POST',
       baseUrl: this.baseUrl,
       path: RED_TEAM_SCAN_PATH,

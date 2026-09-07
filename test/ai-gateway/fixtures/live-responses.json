@@ -1,0 +1,1223 @@
+{
+  "source": "Live SCM synthetic-value response fixtures, 2026-09-06",
+  "redaction": "Live structural response fixtures; all free strings, identifiers, timestamps and numeric quantities replaced with synthetic values. Not original customer payloads.",
+  "capturedAt": [
+    "2026-09-06T16:40:33.285Z",
+    "2026-09-06T13:58:07.890Z",
+    "2026-09-06T19:25:45.302Z"
+  ],
+  "fixtures": [
+    {
+      "method": "GET",
+      "path": "/workspaces",
+      "validator": "ListWorkspacesResponseSchema",
+      "body": {
+        "object": "list",
+        "total": 0,
+        "data": [
+          {
+            "id": "550e8400-e29b-41d4-a716-446655440000",
+            "slug": "synthetic-redacted-value",
+            "name": "synthetic-redacted-value",
+            "icon": null,
+            "description": null,
+            "created_at": "2026-09-06T00:00:00Z",
+            "last_updated_at": "2026-09-06T00:00:00Z",
+            "is_default": 0,
+            "status": "active",
+            "scope_name": "synthetic-redacted-value",
+            "object": "synthetic-redacted-value"
+          },
+          {
+            "id": "550e8400-e29b-41d4-a716-446655440000",
+            "slug": "synthetic-redacted-value",
+            "name": "synthetic-redacted-value",
+            "icon": null,
+            "description": "synthetic-redacted-value",
+            "created_at": "2026-09-06T00:00:00Z",
+            "last_updated_at": "2026-09-06T00:00:00Z",
+            "is_default": 0,
+            "status": "active",
+            "scope_name": "synthetic-redacted-value",
+            "object": "synthetic-redacted-value"
+          }
+        ]
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/mcp-integrations",
+      "validator": "ListMcpIntegrationsResponseSchema",
+      "body": {
+        "object": "list",
+        "total": 0,
+        "has_more": false,
+        "data": [
+          {
+            "id": "550e8400-e29b-41d4-a716-446655440000",
+            "organisation_id": "550e8400-e29b-41d4-a716-446655440000",
+            "name": "synthetic-redacted-value",
+            "owner_id": "550e8400-e29b-41d4-a716-446655440000",
+            "status": "active",
+            "type": "synthetic-redacted-value",
+            "url": "https://example.invalid",
+            "auth_type": "synthetic-redacted-value",
+            "transport": "synthetic-redacted-value",
+            "configurations": "synthetic-redacted-value",
+            "created_at": "2026-09-06T00:00:00Z",
+            "last_updated_at": "2026-09-06T00:00:00Z",
+            "slug": "synthetic-redacted-value",
+            "description": "synthetic-redacted-value",
+            "workspaces_count": 1,
+            "workspace_id": null,
+            "metadata": {
+              "title": "synthetic-redacted-value",
+              "description": "synthetic-redacted-value",
+              "icons": null,
+              "server_name": "synthetic-redacted-value",
+              "server_version": "synthetic-redacted-value",
+              "protocol_version": null,
+              "sync_status": "synthetic-redacted-value",
+              "last_synced_at": "2026-09-06T00:00:00Z"
+            },
+            "object": "synthetic-redacted-value"
+          },
+          {
+            "id": "550e8400-e29b-41d4-a716-446655440000",
+            "organisation_id": "550e8400-e29b-41d4-a716-446655440000",
+            "name": "synthetic-redacted-value",
+            "owner_id": "550e8400-e29b-41d4-a716-446655440000",
+            "status": "active",
+            "type": "synthetic-redacted-value",
+            "url": "https://example.invalid",
+            "auth_type": "synthetic-redacted-value",
+            "transport": "synthetic-redacted-value",
+            "configurations": "synthetic-redacted-value",
+            "created_at": "2026-09-06T00:00:00Z",
+            "last_updated_at": "2026-09-06T00:00:00Z",
+            "slug": "synthetic-redacted-value",
+            "description": null,
+            "workspaces_count": 1,
+            "workspace_id": null,
+            "metadata": {
+              "title": "synthetic-redacted-value",
+              "description": "synthetic-redacted-value",
+              "icons": null,
+              "server_name": "synthetic-redacted-value",
+              "server_version": "synthetic-redacted-value",
+              "protocol_version": null,
+              "sync_status": "synthetic-redacted-value",
+              "last_synced_at": "2026-09-06T00:00:00Z"
+            },
+            "object": "synthetic-redacted-value"
+          }
+        ]
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/mcp-integrations/{mcpIntegrationId}/workspaces",
+      "validator": "z.union([\n        GatewayMcpIntegrationWorkspacesListResponseSchema,\n        GatewayMcpIntegrationWorkspacesLegacyResponseSchema,\n      ])",
+      "body": {
+        "workspaces": [
+          {
+            "id": "550e8400-e29b-41d4-a716-446655440000",
+            "enabled": false,
+            "status": "archived",
+            "created_at": "2026-09-06T00:00:00Z",
+            "last_updated_at": "2026-09-06T00:00:00Z"
+          },
+          {
+            "id": "550e8400-e29b-41d4-a716-446655440000",
+            "enabled": false,
+            "status": "archived",
+            "created_at": "2026-09-06T00:00:00Z",
+            "last_updated_at": "2026-09-06T00:00:00Z"
+          }
+        ],
+        "global_workspace_access": null,
+        "object": "synthetic-redacted-value"
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/mcp-integrations/{mcpIntegrationId}/workspaces",
+      "validator": "z.union([\n        GatewayMcpIntegrationWorkspacesListResponseSchema,\n        GatewayMcpIntegrationWorkspacesLegacyResponseSchema,\n      ])",
+      "body": {
+        "object": "list",
+        "global_workspace_access": null,
+        "total": 0,
+        "data": [
+          {
+            "id": "550e8400-e29b-41d4-a716-446655440000",
+            "enabled": false,
+            "status": "archived",
+            "created_at": "2026-09-06T00:00:00Z",
+            "last_updated_at": "2026-09-06T00:00:00Z",
+            "object": "synthetic-redacted-value"
+          },
+          {
+            "id": "550e8400-e29b-41d4-a716-446655440000",
+            "enabled": false,
+            "status": "archived",
+            "created_at": "2026-09-06T00:00:00Z",
+            "last_updated_at": "2026-09-06T00:00:00Z",
+            "object": "synthetic-redacted-value"
+          }
+        ]
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/mcp-servers",
+      "validator": "GatewayMcpServersClientListResponseSchema",
+      "body": {
+        "object": "list",
+        "total": 0,
+        "data": []
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/policies/usage-limits",
+      "validator": "GatewayUsageLimitsClientListResponseSchema",
+      "body": {
+        "object": "list",
+        "total": 0,
+        "data": []
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/policies/rate-limits",
+      "validator": "GatewayRateLimitsClientListResponseSchema",
+      "body": {
+        "object": "list",
+        "total": 0,
+        "data": []
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/logs/exports",
+      "validator": "GatewayLogExportsClientListResponseSchema",
+      "body": {
+        "object": "list",
+        "total": 0,
+        "data": [
+          {
+            "id": "550e8400-e29b-41d4-a716-446655440000",
+            "organisation_id": "550e8400-e29b-41d4-a716-446655440000",
+            "filters": {
+              "trace_id": ["synthetic-redacted-value"],
+              "page_size": 1,
+              "timezone": "synthetic-redacted-value",
+              "current_page": 0,
+              "organisation_id": "550e8400-e29b-41d4-a716-446655440000",
+              "time_of_generation_max": "synthetic-redacted-value",
+              "time_of_generation_min": "synthetic-redacted-value"
+            },
+            "requested_data": ["synthetic-redacted-value"],
+            "status": "draft",
+            "description": "synthetic-redacted-value",
+            "name": null,
+            "created_at": "2026-09-06T00:00:00Z",
+            "last_updated_at": "2026-09-06T00:00:00Z",
+            "created_by": "synthetic-redacted-value",
+            "workspace_id": "550e8400-e29b-41d4-a716-446655440000",
+            "total_records": 0,
+            "object": "synthetic-redacted-value"
+          },
+          {
+            "id": "550e8400-e29b-41d4-a716-446655440000",
+            "organisation_id": "550e8400-e29b-41d4-a716-446655440000",
+            "filters": {
+              "trace_id": ["synthetic-redacted-value"],
+              "page_size": 1,
+              "timezone": "synthetic-redacted-value",
+              "current_page": 0,
+              "organisation_id": "550e8400-e29b-41d4-a716-446655440000",
+              "time_of_generation_max": "synthetic-redacted-value",
+              "time_of_generation_min": "synthetic-redacted-value"
+            },
+            "requested_data": ["synthetic-redacted-value"],
+            "status": "draft",
+            "description": "synthetic-redacted-value",
+            "name": null,
+            "created_at": "2026-09-06T00:00:00Z",
+            "last_updated_at": "2026-09-06T00:00:00Z",
+            "created_by": "synthetic-redacted-value",
+            "workspace_id": "550e8400-e29b-41d4-a716-446655440000",
+            "total_records": 0,
+            "object": "synthetic-redacted-value"
+          }
+        ]
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/policies/usage-limits",
+      "validator": "GatewayUsageLimitsClientCreateResponseSchema",
+      "body": {
+        "id": "550e8400-e29b-41d4-a716-446655440000",
+        "object": "synthetic-redacted-value"
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/policies/usage-limits/{encodeURIComponent(policyUsageLimitsId)}",
+      "validator": "GatewayUsageLimitsClientGetResponseSchema",
+      "body": {
+        "id": "550e8400-e29b-41d4-a716-446655440000",
+        "name": "synthetic-redacted-value",
+        "description": null,
+        "conditions": [
+          {
+            "key": "[REDACTED]",
+            "value": "synthetic-redacted-value"
+          }
+        ],
+        "group_by": [
+          {
+            "key": "[REDACTED]"
+          }
+        ],
+        "type": "synthetic-redacted-value",
+        "credit_limit": 0,
+        "alert_threshold": null,
+        "periodic_reset": null,
+        "periodic_reset_days": null,
+        "next_usage_reset_at": null,
+        "last_reset_at": null,
+        "status": "active",
+        "workspace_id": "550e8400-e29b-41d4-a716-446655440000",
+        "organisation_id": "550e8400-e29b-41d4-a716-446655440000",
+        "created_at": "2026-09-06T00:00:00Z",
+        "last_updated_at": "2026-09-06T00:00:00Z",
+        "created_by": "synthetic-redacted-value",
+        "value_key_usage_map": {},
+        "object": "synthetic-redacted-value"
+      }
+    },
+    {
+      "method": "PUT",
+      "path": "/policies/usage-limits/{encodeURIComponent(policyUsageLimitsId)}",
+      "validator": "GatewayUsageLimitsClientUpdateResponseSchema",
+      "body": {}
+    },
+    {
+      "method": "GET",
+      "path": "/policies/usage-limits/{encodeURIComponent(policyUsageLimitsId)}/entities",
+      "validator": "GatewayUsageLimitsClientListEntitiesResponseSchema",
+      "body": {
+        "object": "list",
+        "total": 0,
+        "data": []
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/policies/rate-limits",
+      "validator": "GatewayRateLimitsClientCreateResponseSchema",
+      "body": {
+        "id": "550e8400-e29b-41d4-a716-446655440000",
+        "object": "synthetic-redacted-value"
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/policies/rate-limits/{encodeURIComponent(rateLimitsPolicyId)}",
+      "validator": "GatewayRateLimitsClientGetResponseSchema",
+      "body": {
+        "id": "550e8400-e29b-41d4-a716-446655440000",
+        "name": "synthetic-redacted-value",
+        "description": null,
+        "target": "synthetic-redacted-value",
+        "conditions": [
+          {
+            "key": "[REDACTED]",
+            "value": "synthetic-redacted-value"
+          }
+        ],
+        "group_by": [
+          {
+            "key": "[REDACTED]"
+          }
+        ],
+        "type": "synthetic-redacted-value",
+        "unit": "synthetic-redacted-value",
+        "value": 0,
+        "status": "active",
+        "workspace_id": "550e8400-e29b-41d4-a716-446655440000",
+        "organisation_id": "550e8400-e29b-41d4-a716-446655440000",
+        "created_at": "2026-09-06T00:00:00Z",
+        "last_updated_at": "2026-09-06T00:00:00Z",
+        "created_by": "synthetic-redacted-value",
+        "object": "synthetic-redacted-value"
+      }
+    },
+    {
+      "method": "PUT",
+      "path": "/policies/rate-limits/{encodeURIComponent(rateLimitsPolicyId)}",
+      "validator": "GatewayRateLimitsClientUpdateResponseSchema",
+      "body": {}
+    },
+    {
+      "method": "PUT",
+      "path": "/providers/{providerId}",
+      "validator": "GatewayWriteResponseSchema",
+      "body": {
+        "id": "550e8400-e29b-41d4-a716-446655440000",
+        "slug": "synthetic-redacted-value",
+        "object": "synthetic-redacted-value"
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/mcp-integrations/{mcpIntegrationId}",
+      "validator": "McpIntegrationDetailSchema",
+      "body": {
+        "id": "550e8400-e29b-41d4-a716-446655440000",
+        "name": "synthetic-redacted-value",
+        "description": null,
+        "owner_id": "550e8400-e29b-41d4-a716-446655440000",
+        "status": "active",
+        "created_at": "2026-09-06T00:00:00Z",
+        "last_updated_at": "2026-09-06T00:00:00Z",
+        "configurations": {},
+        "global_workspace_access": null,
+        "workspace_id": null,
+        "slug": "synthetic-redacted-value",
+        "url": "https://example.invalid",
+        "auth_type": "synthetic-redacted-value",
+        "transport": "synthetic-redacted-value",
+        "type": "synthetic-redacted-value",
+        "secret_mappings": null,
+        "object": "synthetic-redacted-value"
+      }
+    },
+    {
+      "method": "PUT",
+      "path": "/api-keys/service/{keyId}",
+      "validator": "GatewayWriteResponseSchema",
+      "body": {}
+    },
+    {
+      "method": "PUT",
+      "path": "/mcp-integrations/{mcpIntegrationId}/workspaces",
+      "validator": "McpIntegrationWorkspacesUpdateResponseSchema",
+      "body": {}
+    },
+    {
+      "method": "POST",
+      "path": "/mcp-servers",
+      "validator": "GatewayMcpServersClientCreateResponseSchema",
+      "body": {
+        "id": "550e8400-e29b-41d4-a716-446655440000",
+        "slug": "synthetic-redacted-value",
+        "object": "synthetic-redacted-value"
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/mcp-servers/{encodeURIComponent(mcpServerId)}",
+      "validator": "GatewayMcpServersClientGetResponseSchema",
+      "body": {
+        "id": "550e8400-e29b-41d4-a716-446655440000",
+        "organisation_id": "550e8400-e29b-41d4-a716-446655440000",
+        "slug": "synthetic-redacted-value",
+        "name": "synthetic-redacted-value",
+        "status": "active",
+        "description": null,
+        "created_at": "2026-09-06T00:00:00Z",
+        "mcp_integration_id": "550e8400-e29b-41d4-a716-446655440000",
+        "guardrail_mappings": [],
+        "object": "synthetic-redacted-value"
+      }
+    },
+    {
+      "method": "PUT",
+      "path": "/mcp-servers/{encodeURIComponent(mcpServerId)}",
+      "validator": "GatewayMcpServersClientUpdateResponseSchema",
+      "body": {
+        "id": "550e8400-e29b-41d4-a716-446655440000",
+        "slug": "synthetic-redacted-value",
+        "object": "synthetic-redacted-value"
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/mcp-servers/{encodeURIComponent(mcpServerId)}/capabilities",
+      "validator": "GatewayMcpServersClientGetCapabilitiesResponseSchema",
+      "body": {
+        "object": "list",
+        "counts": {
+          "tools": {
+            "total": 0,
+            "enabled": 0
+          },
+          "prompts": {
+            "total": 0,
+            "enabled": 0
+          },
+          "resources": {
+            "total": 0,
+            "enabled": 0
+          },
+          "resource_templates": {
+            "total": 0,
+            "enabled": 0
+          }
+        },
+        "total": 0,
+        "has_more": false,
+        "data": []
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/mcp-servers/{encodeURIComponent(mcpServerId)}/user-access",
+      "validator": "GatewayMcpServersClientGetUserAccessResponseSchema",
+      "body": {
+        "object": "list",
+        "default_user_access": "synthetic-redacted-value",
+        "total": 0,
+        "has_more": false,
+        "data": []
+      }
+    },
+    {
+      "method": "PUT",
+      "path": "/mcp-servers/{encodeURIComponent(mcpServerId)}/user-access",
+      "validator": "GatewayMcpServersClientUpdateUserAccessResponseSchema",
+      "body": {
+        "success": true,
+        "object": "synthetic-redacted-value"
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/mcp-servers/{encodeURIComponent(mcpServerId)}/connections",
+      "validator": "GatewayMcpServersClientGetConnectionsResponseSchema",
+      "body": {
+        "object": "list",
+        "total": 0,
+        "has_more": false,
+        "data": []
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/guardrails",
+      "validator": "GatewayGuardrailCreateResponseSchema",
+      "body": {
+        "id": "550e8400-e29b-41d4-a716-446655440000",
+        "version_id": "550e8400-e29b-41d4-a716-446655440000",
+        "slug": "synthetic-redacted-value",
+        "created_at": "2026-09-06T00:00:00Z",
+        "created_by": "synthetic-redacted-value",
+        "object": "synthetic-redacted-value"
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/guardrails/{guardrailId}/mcp-servers",
+      "validator": "GatewayMcpServerMappingsResponseSchema",
+      "body": {
+        "object": "list",
+        "total": 0,
+        "data": []
+      }
+    },
+    {
+      "method": "PUT",
+      "path": "/guardrails/{guardrailId}/mcp-servers",
+      "validator": "GatewayBulkSyncMcpServerMappingsResponseSchema",
+      "body": {
+        "changed": true,
+        "added": 1,
+        "updated": 0,
+        "removed": 0,
+        "object": "synthetic-redacted-value"
+      }
+    },
+    {
+      "method": "PUT",
+      "path": "/guardrails/{guardrailId}/mcp-servers/{mcpServerId}",
+      "validator": "GatewayUpsertMcpServerMappingResponseSchema",
+      "body": {
+        "map_id": "550e8400-e29b-41d4-a716-446655440000",
+        "object": "synthetic-redacted-value"
+      }
+    },
+    {
+      "method": "PUT",
+      "path": "/guardrails/{guardrailId}/mcp-servers",
+      "validator": "GatewayBulkSyncMcpServerMappingsResponseSchema",
+      "body": {
+        "changed": true,
+        "added": 0,
+        "updated": 0,
+        "removed": 1,
+        "object": "synthetic-redacted-value"
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/logs/exports",
+      "validator": "GatewayLogExportsClientCreateResponseSchema",
+      "body": {
+        "id": "550e8400-e29b-41d4-a716-446655440000",
+        "total": 0,
+        "object": "synthetic-redacted-value"
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/logs/exports/{encodeURIComponent(exportId)}",
+      "validator": "GatewayLogExportsClientGetResponseSchema",
+      "body": {
+        "id": "550e8400-e29b-41d4-a716-446655440000",
+        "organisation_id": "550e8400-e29b-41d4-a716-446655440000",
+        "filters": {
+          "trace_id": ["synthetic-redacted-value"],
+          "page_size": 1,
+          "timezone": "synthetic-redacted-value",
+          "current_page": 0,
+          "organisation_id": "550e8400-e29b-41d4-a716-446655440000",
+          "time_of_generation_max": "synthetic-redacted-value",
+          "time_of_generation_min": "synthetic-redacted-value"
+        },
+        "requested_data": ["synthetic-redacted-value", "synthetic-redacted-value"],
+        "status": "draft",
+        "description": "synthetic-redacted-value",
+        "name": null,
+        "created_at": "2026-09-06T00:00:00Z",
+        "last_updated_at": "2026-09-06T00:00:00Z",
+        "created_by": "synthetic-redacted-value",
+        "workspace_id": "550e8400-e29b-41d4-a716-446655440000",
+        "total_records": 0,
+        "object": "synthetic-redacted-value"
+      }
+    },
+    {
+      "method": "PUT",
+      "path": "/logs/exports/{encodeURIComponent(exportId)}",
+      "validator": "GatewayLogExportsClientUpdateResponseSchema",
+      "body": {
+        "id": "550e8400-e29b-41d4-a716-446655440000",
+        "object": "synthetic-redacted-value"
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/logs/exports/{encodeURIComponent(exportId)}",
+      "validator": "GatewayLogExportsClientGetResponseSchema",
+      "body": {
+        "id": "550e8400-e29b-41d4-a716-446655440000",
+        "organisation_id": "550e8400-e29b-41d4-a716-446655440000",
+        "filters": {
+          "trace_id": ["synthetic-redacted-value"],
+          "page_size": 1,
+          "timezone": "synthetic-redacted-value",
+          "current_page": 0,
+          "organisation_id": "550e8400-e29b-41d4-a716-446655440000",
+          "time_of_generation_max": "synthetic-redacted-value",
+          "time_of_generation_min": "synthetic-redacted-value"
+        },
+        "requested_data": ["synthetic-redacted-value"],
+        "status": "draft",
+        "description": "synthetic-redacted-value",
+        "name": null,
+        "created_at": "2026-09-06T00:00:00Z",
+        "last_updated_at": "2026-09-06T00:00:00Z",
+        "created_by": "synthetic-redacted-value",
+        "workspace_id": "550e8400-e29b-41d4-a716-446655440000",
+        "total_records": 0,
+        "object": "synthetic-redacted-value"
+      }
+    },
+    {
+      "method": "DELETE",
+      "path": "/mcp-servers/{encodeURIComponent(mcpServerId)}",
+      "validator": "GatewayMcpServersClientDeleteResponseSchema",
+      "body": {}
+    },
+    {
+      "method": "DELETE",
+      "path": "/policies/rate-limits/{encodeURIComponent(rateLimitsPolicyId)}",
+      "validator": "GatewayRateLimitsClientDeleteResponseSchema",
+      "body": {}
+    },
+    {
+      "method": "DELETE",
+      "path": "/policies/usage-limits/{encodeURIComponent(policyUsageLimitsId)}",
+      "validator": "GatewayUsageLimitsClientDeleteResponseSchema",
+      "body": {}
+    },
+    {
+      "method": "POST",
+      "path": "/configs",
+      "validator": "GatewayConfigCreateResponseSchema",
+      "body": {
+        "id": "550e8400-e29b-41d4-a716-446655440000",
+        "version_id": "550e8400-e29b-41d4-a716-446655440000",
+        "slug": "synthetic-redacted-value",
+        "object": "synthetic-redacted-value"
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/configs/{configId}",
+      "validator": "GatewayConfigDetailSchema",
+      "body": {
+        "id": "550e8400-e29b-41d4-a716-446655440000",
+        "name": "synthetic-redacted-value",
+        "slug": "synthetic-redacted-value",
+        "organisation_id": "550e8400-e29b-41d4-a716-446655440000",
+        "is_default": 0,
+        "status": "active",
+        "owner_id": "550e8400-e29b-41d4-a716-446655440000",
+        "updated_by": "synthetic-redacted-value",
+        "created_at": "2026-09-06T00:00:00Z",
+        "last_updated_at": "2026-09-06T00:00:00Z",
+        "workspace_id": "550e8400-e29b-41d4-a716-446655440000",
+        "config": "synthetic-redacted-value",
+        "format": "synthetic-redacted-value",
+        "type": "synthetic-redacted-value",
+        "version_id": "550e8400-e29b-41d4-a716-446655440000",
+        "version_created_at": "2026-09-06T00:00:00Z",
+        "version_owner_id": "550e8400-e29b-41d4-a716-446655440000",
+        "object": "synthetic-redacted-value"
+      }
+    },
+    {
+      "method": "PUT",
+      "path": "/configs/{configId}",
+      "validator": "GatewayWriteResponseSchema",
+      "body": {
+        "version_id": "550e8400-e29b-41d4-a716-446655440000",
+        "object": "synthetic-redacted-value"
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/configs/{configId}/versions",
+      "validator": "ListConfigVersionsResponseSchema",
+      "body": {
+        "object": "list",
+        "total": 0,
+        "data": [
+          {
+            "id": "550e8400-e29b-41d4-a716-446655440000",
+            "name": "synthetic-redacted-value",
+            "slug": "synthetic-redacted-value",
+            "organisation_id": "550e8400-e29b-41d4-a716-446655440000",
+            "is_default": 0,
+            "status": "active",
+            "owner_id": "550e8400-e29b-41d4-a716-446655440000",
+            "updated_by": "synthetic-redacted-value",
+            "created_at": "2026-09-06T00:00:00Z",
+            "last_updated_at": "2026-09-06T00:00:00Z",
+            "workspace_id": "550e8400-e29b-41d4-a716-446655440000",
+            "config": "synthetic-redacted-value",
+            "format": "synthetic-redacted-value",
+            "type": "synthetic-redacted-value",
+            "version_id": "550e8400-e29b-41d4-a716-446655440000",
+            "version_created_at": "2026-09-06T00:00:00Z",
+            "version_owner_id": "550e8400-e29b-41d4-a716-446655440000",
+            "object": "synthetic-redacted-value"
+          },
+          {
+            "id": "550e8400-e29b-41d4-a716-446655440000",
+            "name": "synthetic-redacted-value",
+            "slug": "synthetic-redacted-value",
+            "organisation_id": "550e8400-e29b-41d4-a716-446655440000",
+            "is_default": 0,
+            "status": "active",
+            "owner_id": "550e8400-e29b-41d4-a716-446655440000",
+            "updated_by": "synthetic-redacted-value",
+            "created_at": "2026-09-06T00:00:00Z",
+            "last_updated_at": "2026-09-06T00:00:00Z",
+            "workspace_id": "550e8400-e29b-41d4-a716-446655440000",
+            "config": "synthetic-redacted-value",
+            "format": "synthetic-redacted-value",
+            "type": "synthetic-redacted-value",
+            "version_id": "550e8400-e29b-41d4-a716-446655440000",
+            "version_created_at": "2026-09-06T00:00:00Z",
+            "version_owner_id": "550e8400-e29b-41d4-a716-446655440000",
+            "object": "synthetic-redacted-value"
+          }
+        ]
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/integrations",
+      "validator": "ListIntegrationsResponseSchema",
+      "body": {
+        "object": "list",
+        "total": 0,
+        "data": [
+          {
+            "id": "550e8400-e29b-41d4-a716-446655440000",
+            "organisation_id": "550e8400-e29b-41d4-a716-446655440000",
+            "name": "synthetic-redacted-value",
+            "owner_id": "550e8400-e29b-41d4-a716-446655440000",
+            "status": "active",
+            "created_at": "2026-09-06T00:00:00Z",
+            "last_updated_at": "2026-09-06T00:00:00Z",
+            "slug": "synthetic-redacted-value",
+            "tags": null,
+            "description": null,
+            "workspaces_count": 1,
+            "type": "synthetic-redacted-value",
+            "workspace_id": null,
+            "ai_provider_id": "550e8400-e29b-41d4-a716-446655440000",
+            "object": "synthetic-redacted-value"
+          },
+          {
+            "id": "550e8400-e29b-41d4-a716-446655440000",
+            "organisation_id": "550e8400-e29b-41d4-a716-446655440000",
+            "name": "synthetic-redacted-value",
+            "owner_id": "550e8400-e29b-41d4-a716-446655440000",
+            "status": "active",
+            "created_at": "2026-09-06T00:00:00Z",
+            "last_updated_at": "2026-09-06T00:00:00Z",
+            "slug": "synthetic-redacted-value",
+            "tags": null,
+            "description": "synthetic-redacted-value",
+            "workspaces_count": 0,
+            "type": "synthetic-redacted-value",
+            "workspace_id": null,
+            "ai_provider_id": "550e8400-e29b-41d4-a716-446655440000",
+            "object": "synthetic-redacted-value"
+          }
+        ]
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/integrations",
+      "validator": "GatewayWriteResponseSchema",
+      "body": {
+        "id": "550e8400-e29b-41d4-a716-446655440000",
+        "slug": "synthetic-redacted-value",
+        "provider_id": null,
+        "object": "synthetic-redacted-value"
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/integrations/{integrationId}",
+      "validator": "GatewayIntegrationSchema",
+      "body": {
+        "id": "550e8400-e29b-41d4-a716-446655440000",
+        "name": "synthetic-redacted-value",
+        "description": null,
+        "owner_id": "550e8400-e29b-41d4-a716-446655440000",
+        "status": "active",
+        "created_at": "2026-09-06T00:00:00Z",
+        "last_updated_at": null,
+        "ai_provider_id": "550e8400-e29b-41d4-a716-446655440000",
+        "masked_key": "[REDACTED]",
+        "configurations": {
+          "provider_auth_type": "synthetic-redacted-value"
+        },
+        "global_workspace_access": null,
+        "allow_all_models": true,
+        "workspace_id": null,
+        "type": "synthetic-redacted-value",
+        "slug": "synthetic-redacted-value",
+        "tags": null,
+        "pricing_adjustments": null,
+        "secret_mappings": null,
+        "object": "synthetic-redacted-value"
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/integrations/{integrationId}/models",
+      "validator": "GatewayIntegrationModelsResponseSchema",
+      "body": {
+        "models": [],
+        "allow_all_models": true,
+        "object": "synthetic-redacted-value"
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/integrations/{integrationId}/models",
+      "validator": "GatewayIntegrationModelsResponseSchema",
+      "body": {
+        "models": [
+          {
+            "slug": "synthetic-redacted-value",
+            "created_at": "2026-09-06T00:00:00Z",
+            "last_updated_at": null,
+            "enabled": false,
+            "is_custom": false,
+            "pricing_config": null,
+            "is_finetune": false,
+            "base_model_slug": null,
+            "description": null
+          },
+          {
+            "slug": "synthetic-redacted-value",
+            "created_at": "2026-09-06T00:00:00Z",
+            "last_updated_at": null,
+            "enabled": false,
+            "is_custom": false,
+            "pricing_config": null,
+            "is_finetune": false,
+            "base_model_slug": null,
+            "description": null
+          }
+        ],
+        "allow_all_models": false,
+        "object": "synthetic-redacted-value"
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/integrations/{integrationId}/workspaces",
+      "validator": "GatewayIntegrationWorkspacesResponseSchema",
+      "body": {
+        "workspaces": [
+          {
+            "id": "550e8400-e29b-41d4-a716-446655440000",
+            "usage_limits": null,
+            "rate_limits": null,
+            "enabled": false,
+            "status": "archived",
+            "created_at": "2026-09-06T00:00:00Z",
+            "last_updated_at": null,
+            "last_reset_at": null
+          },
+          {
+            "id": "550e8400-e29b-41d4-a716-446655440000",
+            "usage_limits": null,
+            "rate_limits": null,
+            "enabled": false,
+            "status": "archived",
+            "created_at": "2026-09-06T00:00:00Z",
+            "last_updated_at": null,
+            "last_reset_at": null
+          }
+        ],
+        "global_workspace_access": {
+          "enabled": false
+        },
+        "object": "synthetic-redacted-value"
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/providers",
+      "validator": "GatewayProviderCreateResponseSchema",
+      "body": {
+        "id": "550e8400-e29b-41d4-a716-446655440000",
+        "slug": "synthetic-redacted-value",
+        "object": "synthetic-redacted-value"
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/providers/{providerId}",
+      "validator": "GatewayProviderDetailSchema",
+      "body": {
+        "id": "550e8400-e29b-41d4-a716-446655440000",
+        "ai_provider_name": "synthetic-redacted-value",
+        "model_config": {
+          "providerAuthType": "synthetic-redacted-value"
+        },
+        "key": "[REDACTED]",
+        "masked_api_key": "[REDACTED]",
+        "slug": "synthetic-redacted-value",
+        "name": "synthetic-redacted-value",
+        "usage_limits": null,
+        "status": "active",
+        "note": null,
+        "created_at": "2026-09-06T00:00:00Z",
+        "expires_at": null,
+        "last_reset_at": null,
+        "rate_limits": [],
+        "integration_id": "550e8400-e29b-41d4-a716-446655440000",
+        "tags": null,
+        "object": "synthetic-redacted-value"
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/api-keys/service",
+      "validator": "ListApiKeysResponseSchema",
+      "body": {
+        "object": "list",
+        "total": 1,
+        "data": [
+          {
+            "id": "550e8400-e29b-41d4-a716-446655440000",
+            "key": "[REDACTED]",
+            "name": "synthetic-redacted-value",
+            "description": null,
+            "type": "synthetic-redacted-value",
+            "organisation_id": "550e8400-e29b-41d4-a716-446655440000",
+            "workspace_id": "550e8400-e29b-41d4-a716-446655440000",
+            "user_id": null,
+            "status": "active",
+            "created_at": "2026-09-06T00:00:00Z",
+            "last_updated_at": "2026-09-06T00:00:00Z",
+            "creation_mode": "synthetic-redacted-value",
+            "rate_limits": [],
+            "usage_limits": null,
+            "reset_usage": null,
+            "expires_at": null,
+            "last_reset_at": null,
+            "alert_emails": null,
+            "expiry_enforced": 0,
+            "allow_config_override": 1,
+            "api_key_defaults_id": "[REDACTED]",
+            "created_by": "synthetic-redacted-value",
+            "last_updated_by": "synthetic-redacted-value",
+            "scopes": ["synthetic-redacted-value"],
+            "defaults": {
+              "metadata": null,
+              "config_id": "550e8400-e29b-41d4-a716-446655440000"
+            },
+            "object": "synthetic-redacted-value"
+          }
+        ]
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api-keys/service",
+      "validator": "GatewayWriteResponseSchema",
+      "body": {
+        "id": "550e8400-e29b-41d4-a716-446655440000",
+        "key": "[REDACTED]",
+        "object": "synthetic-redacted-value"
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/api-keys/service/{keyId}",
+      "validator": "GatewayApiKeySchema",
+      "body": {
+        "id": "550e8400-e29b-41d4-a716-446655440000",
+        "key": "[REDACTED]",
+        "name": "synthetic-redacted-value",
+        "description": null,
+        "type": "synthetic-redacted-value",
+        "organisation_id": "550e8400-e29b-41d4-a716-446655440000",
+        "workspace_id": "550e8400-e29b-41d4-a716-446655440000",
+        "user_id": null,
+        "status": "active",
+        "created_at": "2026-09-06T00:00:00Z",
+        "last_updated_at": "2026-09-06T00:00:00Z",
+        "creation_mode": "synthetic-redacted-value",
+        "rate_limits": [],
+        "usage_limits": null,
+        "reset_usage": null,
+        "expires_at": "2026-09-06T00:00:00Z",
+        "last_reset_at": null,
+        "alert_emails": null,
+        "expiry_enforced": 0,
+        "next_usage_reset_at": null,
+        "allow_config_override": null,
+        "api_key_defaults_id": null,
+        "created_by": "synthetic-redacted-value",
+        "last_updated_by": "synthetic-redacted-value",
+        "scopes": ["synthetic-redacted-value"],
+        "defaults": {
+          "metadata": null,
+          "config_id": null,
+          "allow_config_override": false
+        },
+        "object": "synthetic-redacted-value"
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api-keys/service/{keyId}/rotate",
+      "validator": "GatewayApiKeyRotateResponseSchema",
+      "body": {
+        "id": "550e8400-e29b-41d4-a716-446655440000",
+        "key": "[REDACTED]",
+        "key_transition_expires_at": "[REDACTED]",
+        "object": "synthetic-redacted-value"
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/workspaces/{workspaceRef}",
+      "validator": "GatewayWorkspaceDetailSchema",
+      "body": {
+        "id": "550e8400-e29b-41d4-a716-446655440000",
+        "name": "synthetic-redacted-value",
+        "description": "synthetic-redacted-value",
+        "created_at": "2026-09-06T00:00:00Z",
+        "last_updated_at": "2026-09-06T00:00:00Z",
+        "is_default": 0,
+        "defaults": {
+          "metadata": {
+            "purpose": "synthetic-redacted-value",
+            "team_id": "550e8400-e29b-41d4-a716-446655440000",
+            "lifecycle": "synthetic-redacted-value",
+            "managed_by": "synthetic-redacted-value",
+            "criticality": "synthetic-redacted-value",
+            "environment": "synthetic-redacted-value",
+            "consumer_type": "synthetic-redacted-value",
+            "workspace_class": "synthetic-redacted-value",
+            "data_classification": "synthetic-redacted-value"
+          }
+        },
+        "slug": "synthetic-redacted-value",
+        "icon": null,
+        "usage_limits": null,
+        "rate_limits": null,
+        "security_settings": {
+          "membersViewLogs": true,
+          "managersUpdateWs": true,
+          "managersViewLogs": true,
+          "membersViewAllData": true,
+          "membersViewApiKeys": true,
+          "membersViewConfigs": true,
+          "membersViewPrompts": true,
+          "managersViewAllData": true,
+          "managersViewApiKeys": true,
+          "managersViewConfigs": true,
+          "managersViewPrompts": true,
+          "membersWriteApiKeys": true,
+          "membersWriteConfigs": false,
+          "membersWritePrompts": false,
+          "managersWriteApiKeys": true,
+          "managersWriteConfigs": true,
+          "managersWritePrompts": true,
+          "managersWriteWsUsers": true,
+          "membersViewAnalytics": true,
+          "managersViewAnalytics": true,
+          "membersViewGuardrails": true,
+          "managersViewGuardrails": true,
+          "membersViewLogMetadata": true,
+          "membersViewVirtualKeys": true,
+          "membersWriteGuardrails": false,
+          "managersViewLogMetadata": true,
+          "managersViewVirtualKeys": true,
+          "managersWriteGuardrails": true,
+          "managersWriteMcpServers": true,
+          "membersWriteVirtualKeys": true,
+          "managersWriteVirtualKeys": true,
+          "organisationAdminsViewLogs": true,
+          "managersWriteWsIntegrations": true,
+          "managersWriteWsMcpIntegrations": true,
+          "organisationAdminsViewLogMetadata": true
+        },
+        "data_plane_security_settings": {
+          "blockInlineConfig": false
+        },
+        "settings": {
+          "debug_log": 1,
+          "user_api_key_ttl": 0,
+          "user_key_metadata": 1,
+          "user_api_key_count": 0,
+          "user_api_key_max_ttl": 0,
+          "user_api_key_auto_create": false,
+          "user_key_metadata_override": 1,
+          "user_api_key_rotation_period": null
+        },
+        "organisation_id": "550e8400-e29b-41d4-a716-446655440000",
+        "last_reset_at": null,
+        "created_by": "synthetic-redacted-value",
+        "creation_source": "synthetic-redacted-value",
+        "scope_name": "synthetic-redacted-value",
+        "export_settings": {},
+        "users": [],
+        "object": "synthetic-redacted-value"
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/secret-references",
+      "validator": "GatewaySecretReferencesClientListResponseSchema",
+      "body": {
+        "object": "list",
+        "total": 0,
+        "data": []
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/secret-references",
+      "validator": "GatewaySecretReferencesClientCreateResponseSchema",
+      "body": {
+        "id": "550e8400-e29b-41d4-a716-446655440000",
+        "slug": "synthetic-redacted-value",
+        "object": "synthetic-redacted-value"
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/secret-references/{encodeURIComponent(secretReferenceId)}",
+      "validator": "GatewaySecretReferencesClientGetResponseSchema",
+      "body": {
+        "id": "550e8400-e29b-41d4-a716-446655440000",
+        "organisation_id": "550e8400-e29b-41d4-a716-446655440000",
+        "name": "synthetic-redacted-value",
+        "slug": "synthetic-redacted-value",
+        "description": "synthetic-redacted-value",
+        "manager_type": "synthetic-redacted-value",
+        "auth_config": {
+          "aws_auth_type": "synthetic-redacted-value",
+          "aws_region": "synthetic-redacted-value",
+          "masked_aws_secret_access_key": "[REDACTED]",
+          "masked_aws_access_key_id": "[REDACTED]"
+        },
+        "secret_path": "[REDACTED]",
+        "secret_key": null,
+        "allow_all_workspaces": false,
+        "tags": {
+          "sdk_fixture": "synthetic-redacted-value"
+        },
+        "status": "active",
+        "created_by": "synthetic-redacted-value",
+        "created_at": "2026-09-06T00:00:00Z",
+        "last_updated_at": "2026-09-06T00:00:00Z",
+        "object": "synthetic-redacted-value"
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/secret-references",
+      "validator": "GatewaySecretReferencesClientListResponseSchema",
+      "body": {
+        "object": "list",
+        "total": 1,
+        "data": [
+          {
+            "id": "550e8400-e29b-41d4-a716-446655440000",
+            "name": "synthetic-redacted-value",
+            "slug": "synthetic-redacted-value",
+            "manager_type": "synthetic-redacted-value",
+            "status": "active",
+            "created_at": "2026-09-06T00:00:00Z",
+            "last_updated_at": "2026-09-06T00:00:00Z",
+            "object": "synthetic-redacted-value"
+          }
+        ]
+      }
+    },
+    {
+      "method": "PUT",
+      "path": "/secret-references/{encodeURIComponent(secretReferenceId)}",
+      "validator": "GatewaySecretReferencesClientUpdateResponseSchema",
+      "body": {}
+    },
+    {
+      "method": "DELETE",
+      "path": "/secret-references/{encodeURIComponent(secretReferenceId)}",
+      "validator": "GatewaySecretReferencesClientDeleteResponseSchema",
+      "body": {}
+    }
+  ]
+}

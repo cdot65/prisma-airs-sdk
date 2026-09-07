@@ -186,7 +186,7 @@ describe('passthrough — scan-related schemas preserve unknown fields', () => {
   });
 
   it('ToolEventSchema', () => {
-    const r = ToolEventSchema.safeParse({ _future: 1 });
+    const r = ToolEventSchema.safeParse({ input: 'benign tool input', _future: 1 });
     expect(r.success).toBe(true);
     if (r.success) expect(r.data).toHaveProperty('_future', 1);
   });
@@ -252,7 +252,7 @@ describe('passthrough — model-security schemas preserve unknown fields', () =>
   it('ScanDetailsSchema', () => {
     const r = ScanDetailsSchema.safeParse({
       scanner_version: '1.0',
-      time_started: '2024-01-01',
+      time_started: '2024-01-01T00:00:00Z',
       files: [],
       total_files_scanned: 0,
       total_files_skipped: 0,
@@ -268,8 +268,8 @@ describe('passthrough — model-security schemas preserve unknown fields', () =>
   it('ScanCreateRequestSchema', () => {
     const r = ScanCreateRequestSchema.safeParse({
       model_uri: 'hf://model',
-      security_group_uuid: 'sg-1',
-      scan_origin: 'sdk',
+      security_group_uuid: '550e8400-e29b-41d4-a716-446655440000',
+      scan_origin: 'MODEL_SECURITY_SDK',
       _future: 1,
     });
     expect(r.success).toBe(true);
@@ -279,7 +279,7 @@ describe('passthrough — model-security schemas preserve unknown fields', () =>
   it('ModelSecurityGroupCreateRequestSchema', () => {
     const r = ModelSecurityGroupCreateRequestSchema.safeParse({
       name: 'group1',
-      source_type: 'huggingface',
+      source_type: 'HUGGING_FACE',
       _future: 1,
     });
     expect(r.success).toBe(true);
@@ -294,7 +294,7 @@ describe('passthrough — model-security schemas preserve unknown fields', () =>
 
   it('ModelSecurityRuleInstanceUpdateRequestSchema', () => {
     const r = ModelSecurityRuleInstanceUpdateRequestSchema.safeParse({
-      security_group_uuid: 'sg-1',
+      security_group_uuid: '550e8400-e29b-41d4-a716-446655440000',
       _future: 1,
     });
     expect(r.success).toBe(true);
@@ -321,7 +321,10 @@ describe('passthrough — red-team schemas preserve unknown fields', () => {
   });
 
   it('TargetJobRequestSchema', () => {
-    const r = TargetJobRequestSchema.safeParse({ uuid: 'u1', _future: 1 });
+    const r = TargetJobRequestSchema.safeParse({
+      uuid: '550e8400-e29b-41d4-a716-446655440000',
+      _future: 1,
+    });
     expect(r.success).toBe(true);
     if (r.success) expect(r.data).toHaveProperty('_future', 1);
   });
@@ -329,9 +332,9 @@ describe('passthrough — red-team schemas preserve unknown fields', () => {
   it('JobCreateRequestSchema', () => {
     const r = JobCreateRequestSchema.safeParse({
       name: 'job1',
-      target: { uuid: 'u1' },
-      job_type: 'static',
-      job_metadata: { categories: ['cat1'] },
+      target: { uuid: '550e8400-e29b-41d4-a716-446655440000' },
+      job_type: 'STATIC',
+      job_metadata: { categories: { security: ['cat1'] } },
       _future: 1,
     });
     expect(r.success).toBe(true);
@@ -412,7 +415,10 @@ describe('passthrough — red-team schemas preserve unknown fields', () => {
   });
 
   it('SentimentRequestSchema', () => {
-    const r = SentimentRequestSchema.safeParse({ job_id: 'j1', _future: 1 });
+    const r = SentimentRequestSchema.safeParse({
+      job_id: '550e8400-e29b-41d4-a716-446655440000',
+      _future: 1,
+    });
     expect(r.success).toBe(true);
     if (r.success) expect(r.data).toHaveProperty('_future', 1);
   });
@@ -471,7 +477,7 @@ describe('passthrough — red-team schemas preserve unknown fields', () => {
   it('CustomPromptCreateRequestSchema', () => {
     const r = CustomPromptCreateRequestSchema.safeParse({
       prompt: 'hello',
-      prompt_set_id: 'ps1',
+      prompt_set_id: '550e8400-e29b-41d4-a716-446655440000',
       _future: 1,
     });
     expect(r.success).toBe(true);

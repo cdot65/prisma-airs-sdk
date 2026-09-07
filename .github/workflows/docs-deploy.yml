@@ -48,6 +48,10 @@ jobs:
         working-directory: docs-site
         run: npm run build
 
+      - name: Typecheck docs and runnable examples against the local SDK
+        working-directory: docs-site
+        run: npm run typecheck
+
       - uses: actions/upload-pages-artifact@v3
         with:
           path: docs-site/build

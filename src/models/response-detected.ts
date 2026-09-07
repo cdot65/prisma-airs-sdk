@@ -1,9 +1,14 @@
 import { z } from 'zod';
+import { TopicGuardrailDetailsSchema } from './scan-detail.js';
 
 /** Zod schema for response detection detail data. */
 export const ResponseDetectionDetailsSchema = z
   .object({
-    topic_guardrails_details: z.record(z.unknown()).optional(),
+    toxic_content_details: z
+      .object({ toxic_categories: z.array(z.string()).optional() })
+      .passthrough()
+      .optional(),
+    topic_guardrails_details: TopicGuardrailDetailsSchema.optional(),
   })
   .passthrough();
 

@@ -232,7 +232,7 @@ describe('JobType', () => {
   });
 
   it('has exactly 3 values', () => {
-    expect(Object.keys(JobType)).toHaveLength(3);
+    expect(Object.keys(JobType)).toHaveLength(4);
   });
 });
 
@@ -279,7 +279,7 @@ describe('ResponseMode', () => {
   });
 
   it('has exactly 2 members', () => {
-    expect(Object.keys(ResponseMode)).toHaveLength(2);
+    expect(Object.keys(ResponseMode)).toHaveLength(4);
   });
 });
 
@@ -365,7 +365,7 @@ describe('TargetConnectionType', () => {
   });
 
   it('has exactly 8 values', () => {
-    expect(Object.keys(TargetConnectionType)).toHaveLength(8);
+    expect(Object.keys(TargetConnectionType)).toHaveLength(11);
   });
 });
 
@@ -389,7 +389,7 @@ describe('TargetAuthType', () => {
   });
 
   it('has exactly 3 values', () => {
-    expect(Object.keys(TargetAuthType)).toHaveLength(3);
+    expect(Object.keys(TargetAuthType)).toHaveLength(4);
   });
 });
 

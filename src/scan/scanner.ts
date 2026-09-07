@@ -1,3 +1,4 @@
+import { AsyncScanObjectSchema, ScanRequestSchema } from '../models/index.js';
 import { z } from 'zod';
 import {
   SYNC_SCAN_PATH,
@@ -49,6 +50,10 @@ function resolveNumRetries(opts: ScanCallOptions): number {
 export interface ScanCallOptions {
   /** Per-call retry override (0–5). Omit to use the global configuration. */
   numRetries?: number;
+  /** Per-attempt deadline including response body reads. Defaults to 60 seconds. */
+  timeoutMs?: number;
+  /** Cancel attempts and retry backoff. */
+  signal?: AbortSignal;
 }
 
 /** Optional parameters for {@link Scanner.syncScan}. */
@@ -129,9 +134,12 @@ export class Scanner {
     if (opts.metadata) body.metadata = opts.metadata;
 
     return request({
+      requestSchema: ScanRequestSchema,
       method: 'POST',
       baseUrl: globalConfiguration.apiEndpoint,
       path: SYNC_SCAN_PATH,
+      timeoutMs: opts.timeoutMs,
+      signal: opts.signal,
       body,
       responseSchema: ScanResponseSchema,
       auth: this.buildAuth(),
@@ -199,9 +207,12 @@ export class Scanner {
     }
 
     return request({
+      requestSchema: z.array(AsyncScanObjectSchema),
       method: 'POST',
       baseUrl: globalConfiguration.apiEndpoint,
       path: ASYNC_SCAN_PATH,
+      timeoutMs: opts.timeoutMs,
+      signal: opts.signal,
       body: scanObjects,
       responseSchema: AsyncScanResponseSchema,
       auth: this.buildAuth(),
@@ -256,6 +267,8 @@ export class Scanner {
       method: 'GET',
       baseUrl: globalConfiguration.apiEndpoint,
       path: SCAN_RESULTS_PATH,
+      timeoutMs: opts.timeoutMs,
+      signal: opts.signal,
       params: { scan_ids: scanIds.join(',') },
       responseSchema: z.array(ScanIdResultSchema),
       auth: this.buildAuth(),
@@ -305,6 +318,8 @@ export class Scanner {
       method: 'GET',
       baseUrl: globalConfiguration.apiEndpoint,
       path: SCAN_REPORTS_PATH,
+      timeoutMs: opts.timeoutMs,
+      signal: opts.signal,
       params: { report_ids: reportIds.join(',') },
       responseSchema: z.array(ThreatScanReportSchema),
       auth: this.buildAuth(),

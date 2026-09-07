@@ -1,4 +1,10 @@
 export type { ListingOptions } from '../listing.js';
+export {
+  ModelSecurityCustomRulesClient,
+  type ModelSecurityCustomRulesClientOptions,
+  type CustomRuleListOptions,
+  type SnapshotVersionListOptions,
+} from './custom-rules-client.js';
 export { ModelSecurityClient, type ModelSecurityClientOptions } from './client.js';
 export {
   ModelSecurityScansClient,

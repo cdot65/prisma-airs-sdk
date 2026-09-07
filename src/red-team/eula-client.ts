@@ -1,3 +1,4 @@
+import { EulaAcceptRequestSchema } from '../models/index.js';
 import { RED_TEAM_EULA_PATH } from '../constants.js';
 import { request } from '../http/request.js';
 import type { AuthAdapter } from '../http/types.js';
@@ -93,6 +94,7 @@ export class RedTeamEulaClient {
    */
   async accept(body: EulaAcceptRequest): Promise<EulaResponse> {
     return request({
+      requestSchema: EulaAcceptRequestSchema,
       method: 'POST',
       baseUrl: this.baseUrl,
       path: `${RED_TEAM_EULA_PATH}/accept`,

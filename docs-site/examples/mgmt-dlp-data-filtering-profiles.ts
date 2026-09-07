@@ -1,4 +1,5 @@
-import { ManagementClient, AISecSDKException } from '@cdot65/prisma-airs-sdk';
+import { reportExampleError } from './example-support.js';
+import { ManagementClient } from '@cdot65/prisma-airs-sdk';
 
 async function main() {
   const client = new ManagementClient();
@@ -38,13 +39,8 @@ async function main() {
     // });
     // console.log('Replaced:', replaced.name);
   } catch (error) {
-    if (error instanceof AISecSDKException) {
-      console.error('Error:', error.message);
-      console.error('Type:', error.errorType);
-    } else {
-      throw error;
-    }
+    reportExampleError(error);
   }
 }
 
-main().catch(console.error);
+main().catch(reportExampleError);

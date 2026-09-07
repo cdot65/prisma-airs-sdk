@@ -86,7 +86,14 @@ The SDK automatically retries on transient errors:
 - **Max retries**: Configurable 0-5, default 5
 - **Scanner per-call override**: Pass `{ numRetries }` to any Scanner operation; `0` means one total
   fetch attempt, and an omitted value preserves the global setting
-- **401/403 handling**: the OAuth2 clients (Management, Model Security, Red Team, AI Gateway) automatically refresh the token and retry once on 401 or 403 responses; that retry does not consume the retry budget
+- **401/403 handling**: OAuth2 clients refresh the token and retry at most once, outside the retry budget. An explicit SCM policy denial (`403` with `x-opa-decision: false`) is not retried: refreshing the same identity cannot repair its permissions.
+
+Every attempt has a 60-second deadline by default, including authentication waits and response-body
+reads. Set `PANW_AI_SEC_TIMEOUT_MS` to a positive integer to change it across domains. Scanner calls
+also accept `{ timeoutMs, signal }`. The caller's abort reason is preserved; a deadline failure is
+reported as a network failure. This is a per-attempt deadline, not an overall workflow deadline.
+Backoff is cancellable, and server `Retry-After` delays used for automatic retries are capped at
+60 seconds. A failed body read after a successful response never causes a POST replay.
 
 For async POSTs, a terminal network error or 5xx response is an ambiguous outcome: AIRS may have
 accepted the request. The SDK does not claim exactly-once submission and does not expose a generic

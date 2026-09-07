@@ -8,7 +8,8 @@ export const CustomTopicSchema = z
     revision: z.number(),
     active: z.boolean().optional(),
     description: z.string(),
-    examples: z.array(z.string()),
+    // The deployed service omits examples on topics created without examples.
+    examples: z.array(z.string()).default([]),
     created_by: z.string().optional(),
     updated_by: z.string().optional(),
     last_modified_ts: z.string().optional(),
@@ -24,14 +25,14 @@ export const CreateCustomTopicRequestSchema = z
   .object({
     topic_id: z.string().optional(),
     topic_name: z.string(),
-    revision: z.number().optional(),
+    revision: z.number().int().optional(),
     active: z.boolean().optional(),
     description: z.string().optional(),
     examples: z.array(z.string()).optional(),
     created_by: z.string().optional(),
     updated_by: z.string().optional(),
-    last_modified_ts: z.string().optional(),
-    created_ts: z.string().optional(),
+    last_modified_ts: z.string().datetime({ offset: true }).optional(),
+    created_ts: z.string().datetime({ offset: true }).optional(),
   })
   .passthrough();
 
@@ -41,7 +42,7 @@ export type CreateCustomTopicRequest = z.infer<typeof CreateCustomTopicRequestSc
 /** Zod schema for a paginated custom topic list response. */
 export const CustomTopicListResponseSchema = z
   .object({
-    custom_topics: z.array(CustomTopicSchema),
+    custom_topics: z.array(CustomTopicSchema).default([]),
     next_offset: z.number().optional(),
   })
   .passthrough();
@@ -56,7 +57,7 @@ export type CustomTopicListResponse = z.infer<typeof CustomTopicListResponseSche
 /** Zod schema for a topic deletion response. */
 export const DeleteTopicResponseSchema = z.union([
   z.string().transform((message) => ({ message })),
-  z.object({ message: z.string() }).passthrough(),
+  z.object({ message: z.string().optional() }).passthrough(),
 ]);
 
 /** Response from deleting a custom topic. */

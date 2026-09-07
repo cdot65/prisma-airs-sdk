@@ -1,4 +1,6 @@
-import { ManagementClient, AISecSDKException } from '@cdot65/prisma-airs-sdk';
+import { reportExampleError } from './example-support.js';
+import assert from 'node:assert/strict';
+import { ManagementClient, OAuthClient, AISecSDKException } from '@cdot65/prisma-airs-sdk';
 
 async function main() {
   // Option 1: Credentials via env vars (recommended)
@@ -27,7 +29,37 @@ async function main() {
     const profiles = await client.profiles.list();
     console.log('Authenticated successfully');
     console.log('Profiles found:', profiles.ai_profiles.length);
+    const { PANW_MGMT_CLIENT_ID, PANW_MGMT_CLIENT_SECRET, PANW_MGMT_TSG_ID } = process.env;
+    if (!PANW_MGMT_CLIENT_ID || !PANW_MGMT_CLIENT_SECRET || !PANW_MGMT_TSG_ID)
+      throw new Error('Set PANW_MGMT_CLIENT_ID, PANW_MGMT_CLIENT_SECRET and PANW_MGMT_TSG_ID');
+    let refreshes = 0;
+    const oauth = new OAuthClient({
+      clientId: PANW_MGMT_CLIENT_ID,
+      clientSecret: PANW_MGMT_CLIENT_SECRET,
+      tsgId: PANW_MGMT_TSG_ID,
+      onTokenRefresh: () => {
+        refreshes++;
+      },
+    });
+    const [first, second] = await Promise.all([oauth.getToken(), oauth.getToken()]);
+    assert.equal(first, second);
+    assert.equal(refreshes, 1);
+    oauth.clearToken();
+    await oauth.getToken();
+    assert.equal(refreshes, 2);
+    assert(oauth.getTokenInfo().isValid);
+    // Tokens are never logged. Clearing only affects this local cache, not other clients.
+    console.log(
+      'Standalone OAuth lifecycle:',
+      JSON.stringify({
+        concurrentRefreshDeduplicated: true,
+        explicitRefreshSucceeded: true,
+        refreshCallbacks: refreshes,
+        tokenValid: oauth.getTokenInfo().isValid,
+      }),
+    );
   } catch (error) {
+    process.exitCode = 1;
     if (error instanceof AISecSDKException) {
       console.error('Error:', error.message);
       console.error('Type:', error.errorType);
@@ -35,4 +67,4 @@ async function main() {
   }
 }
 
-main().catch(console.error);
+main().catch(reportExampleError);

@@ -1,6 +1,21 @@
 // src/models/red-team.ts — Zod schemas + types for AIRS Red Teaming API
 
 import { z } from 'zod';
+import {
+  ApiEndpointType,
+  JobType,
+  ResponseMode,
+  TargetAuthType,
+  TargetConnectionType,
+  TargetType,
+} from './red-team-enums.js';
+import {
+  ComplianceFrameworkSchema,
+  RuntimeSecurityPolicyConfigSchema,
+  StreamGoalSchema,
+  TargetConnectionConfigSchema,
+  MultiTurnConfigSchema,
+} from './red-team-details.js';
 
 // ---------------------------------------------------------------------------
 // Shared / utility schemas
@@ -36,6 +51,7 @@ export type HTTPValidationError = z.infer<typeof HTTPValidationErrorSchema>;
 
 export const TargetBackgroundSchema = z
   .object({
+    agentic_profiling_enabled: z.boolean().optional(),
     industry: z.string().nullable().optional(),
     use_case: z.string().nullable().optional(),
     competitors: z.array(z.string()).nullable().optional(),
@@ -57,6 +73,8 @@ export type TargetAdditionalContext = z.infer<typeof TargetAdditionalContextSche
 
 export const TargetMetadataSchema = z
   .object({
+    supports_multimodal_files: z.boolean().optional(),
+    supports_multimodal_files_error_message: z.union([z.string(), z.null()]).optional(),
     multi_turn: z.boolean().optional(),
     multi_turn_error_message: z.string().nullable().optional(),
     rate_limit: z.number().int().nullable().optional(),
@@ -100,14 +118,14 @@ export type MultiTurnStatelessConfig = z.infer<typeof MultiTurnStatelessConfigSc
 // ---------------------------------------------------------------------------
 
 export const HeadersAuthConfigSchema = z
-  .object({ auth_header: z.record(z.unknown()) })
+  .object({ auth_header: z.record(z.string()) })
   .passthrough();
 export type HeadersAuthConfig = z.infer<typeof HeadersAuthConfigSchema>;
 
 export const BasicAuthAuthConfigSchema = z
   .object({
     basic_auth_location: z.string().default('HEADER'),
-    basic_auth_header: z.record(z.unknown()).nullable().optional(),
+    basic_auth_header: z.record(z.string()).nullable().optional(),
   })
   .passthrough();
 export type BasicAuthAuthConfig = z.infer<typeof BasicAuthAuthConfigSchema>;
@@ -119,7 +137,7 @@ export const OAuth2AuthConfigSchema = z
     oauth2_headers: z.record(z.unknown()).optional(),
     oauth2_body_params: z.record(z.unknown()).optional(),
     oauth2_token_response_key: z.string().default('access_token'),
-    oauth2_inject_header: z.record(z.unknown()),
+    oauth2_inject_header: z.record(z.string()),
   })
   .passthrough();
 export type OAuth2AuthConfig = z.infer<typeof OAuth2AuthConfigSchema>;
@@ -130,6 +148,16 @@ export const AuthConfigSchema = z.union([
   OAuth2AuthConfigSchema,
 ]);
 export type AuthConfig = z.infer<typeof AuthConfigSchema>;
+
+/** Request auth variants do not inject defaults belonging to a different auth method. */
+export const AuthConfigRequestSchema = z.union([
+  HeadersAuthConfigSchema,
+  OAuth2AuthConfigSchema.extend({
+    oauth2_expiry_minutes: z.number().int().min(0).optional(),
+    oauth2_token_response_key: z.string().optional(),
+  }),
+  BasicAuthAuthConfigSchema.extend({ basic_auth_location: z.string().optional() }),
+]);
 
 // ---------------------------------------------------------------------------
 // Provider-specific connection parameter schemas
@@ -180,14 +208,15 @@ export type BedrockAccessConnectionParams = z.infer<typeof BedrockAccessConnecti
 
 export const RestConnectionParamsSchema = z
   .object({
+    multi_turn_supported: z.boolean().optional(),
     api_endpoint: z.string().nullable().optional(),
     request_headers: z.record(z.unknown()).nullable().optional(),
     request_json: z.record(z.unknown()).nullable().optional(),
     response_json: z.record(z.unknown()).nullable().optional(),
     response_key: z.string().nullable().optional(),
-    target_connection_config: z.unknown().nullable().optional(),
+    target_connection_config: TargetConnectionConfigSchema.nullable().optional(),
     curl: z.string().nullable().optional(),
-    multi_turn_config: z.unknown().nullable().optional(),
+    multi_turn_config: MultiTurnConfigSchema.nullable().optional(),
   })
   .passthrough();
 export type RestConnectionParams = z.infer<typeof RestConnectionParamsSchema>;
@@ -211,13 +240,20 @@ export const ConnectionParamsSchema = z.union([
 ]);
 export type ConnectionParams = z.infer<typeof ConnectionParamsSchema>;
 
+/** Request variants preserve omitted defaults, especially REST vs WebSocket timeout. */
+export const ConnectionParamsRequestSchema = z.union([
+  StreamingConnectionParamsSchema,
+  WebSocketConnectionParamsSchema.extend({ ws_response_timeout: z.number().optional() }),
+  RestConnectionParamsSchema,
+]);
+
 // ---------------------------------------------------------------------------
 // DataPlane — Job / Scan schemas
 // ---------------------------------------------------------------------------
 
 export const TargetJobRequestSchema = z
   .object({
-    uuid: z.string(),
+    uuid: z.string().uuid(),
     version: z.number().int().nullable().optional(),
   })
   .passthrough();
@@ -235,36 +271,46 @@ export type JobTimeRecord = z.infer<typeof JobTimeRecordSchema>;
 
 export const StaticJobMetadataSchema = z
   .object({
+    language: z
+      .lazy(() => LanguageOptionSchema)
+      .nullable()
+      .optional(),
+    include_file_attacks: z.boolean().optional(),
     categories: z.record(z.unknown()),
     rate_limit_enabled: z.boolean().optional(),
     rate_limit: z.number().int().nullable().optional(),
     rate_limit_error_code: z.number().int().nullable().optional(),
     rate_limit_error_message: z.string().nullable().optional(),
-    rate_limit_error_json: z.unknown().optional(),
+    rate_limit_error_json: z.record(z.unknown()).nullable().optional(),
     content_filter_enabled: z.boolean().optional(),
     content_filter_error_code: z.number().int().nullable().optional(),
     content_filter_error_message: z.string().nullable().optional(),
-    content_filter_error_json: z.unknown().optional(),
+    content_filter_error_json: z.record(z.unknown()).nullable().optional(),
   })
   .passthrough();
 export type StaticJobMetadata = z.infer<typeof StaticJobMetadataSchema>;
 
 export const DynamicJobMetadataSchema = z
   .object({
+    language: z
+      .lazy(() => LanguageOptionSchema)
+      .nullable()
+      .optional(),
+    goal_categories: z.array(z.string()).nullable().optional(),
     rate_limit_enabled: z.boolean().optional(),
     rate_limit: z.number().int().nullable().optional(),
     rate_limit_error_code: z.number().int().nullable().optional(),
     rate_limit_error_message: z.string().nullable().optional(),
-    rate_limit_error_json: z.unknown().optional(),
+    rate_limit_error_json: z.record(z.unknown()).nullable().optional(),
     content_filter_enabled: z.boolean().optional(),
     content_filter_error_code: z.number().int().nullable().optional(),
     content_filter_error_message: z.string().nullable().optional(),
-    content_filter_error_json: z.unknown().optional(),
+    content_filter_error_json: z.record(z.unknown()).nullable().optional(),
     stream_breadth: z.number().int().optional(),
     stream_depth: z.number().int().optional(),
     max_tokens: z.number().int().optional(),
     context_size: z.number().int().optional(),
-    attack_goals: z.array(z.unknown()).optional(),
+    attack_goals: z.array(z.string()).optional(),
     base_model: z.string().nullable().optional(),
     use_case: z.string().nullable().optional(),
     system_prompt: z.string().nullable().optional(),
@@ -274,35 +320,59 @@ export type DynamicJobMetadata = z.infer<typeof DynamicJobMetadataSchema>;
 
 export const CustomJobMetadataSchema = z
   .object({
-    custom_prompt_sets: z.array(z.unknown()),
+    language: z
+      .lazy(() => LanguageOptionSchema)
+      .nullable()
+      .optional(),
+    custom_prompt_sets: z.array(z.string()),
     rate_limit_enabled: z.boolean().optional(),
     rate_limit: z.number().int().nullable().optional(),
     rate_limit_error_code: z.number().int().nullable().optional(),
     rate_limit_error_message: z.string().nullable().optional(),
-    rate_limit_error_json: z.unknown().optional(),
+    rate_limit_error_json: z.record(z.unknown()).nullable().optional(),
     content_filter_enabled: z.boolean().optional(),
     content_filter_error_code: z.number().int().nullable().optional(),
     content_filter_error_message: z.string().nullable().optional(),
-    content_filter_error_json: z.unknown().optional(),
+    content_filter_error_json: z.record(z.unknown()).nullable().optional(),
   })
   .passthrough();
 export type CustomJobMetadata = z.infer<typeof CustomJobMetadataSchema>;
 
+/** Metadata for imported CLARA scans, which do not execute attacks. */
+export const ClaraJobMetadataSchema = z
+  .object({
+    scan_name: z.string().min(3).max(255),
+    categories: z.record(z.array(z.string())).optional(),
+    language: z.null().optional(),
+  })
+  .passthrough();
+export type ClaraJobMetadata = z.infer<typeof ClaraJobMetadataSchema>;
+
 export const JobCreateRequestSchema = z
   .object({
-    name: z.string(),
+    name: z.string().min(3).max(255),
     target: TargetJobRequestSchema,
-    job_type: z.string(),
+    job_type: z.nativeEnum(JobType),
     job_metadata: z.union([
-      StaticJobMetadataSchema,
-      DynamicJobMetadataSchema,
-      CustomJobMetadataSchema,
+      StaticJobMetadataSchema.extend({
+        content_filter_error_code: z.number().int().min(400).max(599).nullable().optional(),
+      }),
+      DynamicJobMetadataSchema.extend({
+        content_filter_error_code: z.number().int().min(400).max(599).nullable().optional(),
+      }),
+      CustomJobMetadataSchema.extend({
+        content_filter_error_code: z.number().int().min(400).max(599).nullable().optional(),
+      }),
+      ClaraJobMetadataSchema,
     ]),
     version: z.number().int().nullable().optional(),
     extra_info: z.record(z.unknown()).nullable().optional(),
   })
   .passthrough();
-export type JobCreateRequest = z.infer<typeof JobCreateRequestSchema>;
+/** Request input keeps string-valued CLI options source-compatible; the schema validates JobType at submission. */
+export type JobCreateRequest = Omit<z.infer<typeof JobCreateRequestSchema>, 'job_type'> & {
+  job_type: string;
+};
 
 export const StaticJobReportStatsSchema = z
   .object({
@@ -327,6 +397,10 @@ export type DynamicJobReportStats = z.infer<typeof DynamicJobReportStatsSchema>;
 
 export const TargetReferenceSchema = z
   .object({
+    adapter_uuid: z.union([z.string(), z.null()]).optional(),
+    canonical_id: z.union([z.string(), z.null()]).optional(),
+    adapter_secret_version: z.union([z.string(), z.null()]).optional(),
+    profiling_progress: z.union([z.number().int(), z.null()]).optional(),
     uuid: z.string(),
     tsg_id: z.string(),
     name: z.string(),
@@ -362,7 +436,12 @@ export const JobResponseSchema = z
     name: z.string(),
     target: TargetReferenceSchema,
     job_type: z.string(),
-    job_metadata: z.unknown(),
+    job_metadata: z.union([
+      StaticJobMetadataSchema,
+      DynamicJobMetadataSchema,
+      CustomJobMetadataSchema,
+      ClaraJobMetadataSchema,
+    ]),
     version: z.number().int().nullable().optional(),
     extra_info: z.record(z.unknown()).nullable().optional(),
     target_id: z.string(),
@@ -376,7 +455,10 @@ export const JobResponseSchema = z
     created_at: z.string().nullable().optional(),
     updated_at: z.string().nullable().optional(),
     created_by_user_id: z.string().nullable().optional(),
-    report_stats: z.unknown().optional(),
+    report_stats: z
+      .union([StaticJobReportStatsSchema, DynamicJobReportStatsSchema])
+      .nullable()
+      .optional(),
     metering_quota_uuid: z.string().nullable().optional(),
     counted_towards_quota: z.string().optional(),
     invocation_id: z.string().nullable().optional(),
@@ -415,6 +497,7 @@ export type PrerequisiteModel = z.infer<typeof PrerequisiteModelSchema>;
 
 export const SubCategoryModelSchema = z
   .object({
+    file_supported: z.boolean().optional(),
     id: z.string(),
     display_name: z.string(),
     description: z.string(),
@@ -442,6 +525,8 @@ export type CategoryModel = z.infer<typeof CategoryModelSchema>;
 
 export const AttackOutputSchema = z
   .object({
+    error: z.union([z.boolean(), z.null()]).optional(),
+    error_message: z.union([z.string(), z.null()]).optional(),
     uuid: z.string(),
     tsg_id: z.string(),
     attack_id: z.string(),
@@ -456,6 +541,8 @@ export type AttackOutput = z.infer<typeof AttackOutputSchema>;
 
 export const AttackMultiTurnOutputSchema = z
   .object({
+    error: z.union([z.boolean(), z.null()]).optional(),
+    error_message: z.union([z.string(), z.null()]).optional(),
     uuid: z.string(),
     tsg_id: z.string(),
     attack_id: z.string(),
@@ -474,6 +561,8 @@ export type AttackMultiTurnOutput = z.infer<typeof AttackMultiTurnOutputSchema>;
 
 export const AttackListItemSchema = z
   .object({
+    error: z.union([z.boolean(), z.null()]).optional(),
+    attack_modality: z.string().optional(),
     uuid: z.string(),
     tsg_id: z.string(),
     job_id: z.string(),
@@ -508,6 +597,20 @@ export type AttackListResponse = z.infer<typeof AttackListResponseSchema>;
 
 export const AttackDetailResponseSchema = z
   .object({
+    error: z.union([z.boolean(), z.null()]).optional(),
+    attack_modality: z.string().optional(),
+    file: z
+      .union([
+        z
+          .object({
+            file_name: z.string(),
+            signed_url: z.union([z.string(), z.null()]).optional(),
+            file_type: z.string(),
+          })
+          .passthrough(),
+        z.null(),
+      ])
+      .optional(),
     uuid: z.string(),
     tsg_id: z.string(),
     job_id: z.string(),
@@ -519,7 +622,7 @@ export const AttackDetailResponseSchema = z
     sub_category: z.string(),
     category_display_name: z.string(),
     sub_category_display_name: z.string(),
-    compliance_frameworks: z.array(z.unknown()),
+    compliance_frameworks: z.array(ComplianceFrameworkSchema),
     goal: z.string().nullable(),
     status: z.string().optional(),
     marked_safe: z.boolean().nullable().optional(),
@@ -537,6 +640,20 @@ export type AttackDetailResponse = z.infer<typeof AttackDetailResponseSchema>;
 
 export const AttackMultiTurnDetailResponseSchema = z
   .object({
+    error: z.union([z.boolean(), z.null()]).optional(),
+    attack_modality: z.string().optional(),
+    file: z
+      .union([
+        z
+          .object({
+            file_name: z.string(),
+            signed_url: z.union([z.string(), z.null()]).optional(),
+            file_type: z.string(),
+          })
+          .passthrough(),
+        z.null(),
+      ])
+      .optional(),
     uuid: z.string(),
     tsg_id: z.string(),
     job_id: z.string(),
@@ -548,7 +665,7 @@ export const AttackMultiTurnDetailResponseSchema = z
     sub_category: z.string(),
     category_display_name: z.string(),
     sub_category_display_name: z.string(),
-    compliance_frameworks: z.array(z.unknown()),
+    compliance_frameworks: z.array(ComplianceFrameworkSchema),
     goal: z.string().nullable(),
     status: z.string().optional(),
     marked_safe: z.boolean().nullable().optional(),
@@ -559,7 +676,10 @@ export const AttackMultiTurnDetailResponseSchema = z
     asr: z.number().nullable().optional(),
     version: z.number().int().nullable().optional(),
     severity: z.string().optional(),
-    outputs: z.array(AttackMultiTurnOutputSchema).optional(),
+    // Current API groups turns into conversations; accept the earlier flat response too.
+    outputs: z
+      .union([z.array(z.array(AttackMultiTurnOutputSchema)), z.array(AttackMultiTurnOutputSchema)])
+      .optional(),
   })
   .passthrough();
 export type AttackMultiTurnDetailResponse = z.infer<typeof AttackMultiTurnDetailResponseSchema>;
@@ -570,6 +690,7 @@ export type AttackMultiTurnDetailResponse = z.infer<typeof AttackMultiTurnDetail
 
 export const SubCategoryStatsSchema = z
   .object({
+    file_supported: z.boolean().optional(),
     id: z.string(),
     display_name: z.string(),
     description: z.string(),
@@ -652,7 +773,7 @@ export const RuntimeSecurityPolicySchema = z
   .object({
     policy_id: z.string(),
     display_name: z.string(),
-    config: z.record(z.unknown()),
+    config: RuntimeSecurityPolicyConfigSchema,
   })
   .passthrough();
 export type RuntimeSecurityPolicy = z.infer<typeof RuntimeSecurityPolicySchema>;
@@ -743,6 +864,8 @@ export type RuntimeSecurityProfileResponse = z.infer<typeof RuntimeSecurityProfi
 
 export const GoalSchema = z
   .object({
+    goal_category: z.union([z.string(), z.null()]).optional(),
+    error: z.union([z.boolean(), z.null()]).optional(),
     goal: z.string(),
     safe_response: z.string(),
     jailbroken_response: z.string(),
@@ -767,6 +890,10 @@ export type GoalListResponse = z.infer<typeof GoalListResponseSchema>;
 
 export const StreamIterationDataSchema = z
   .object({
+    prompt_english: z.union([z.string(), z.null()]).optional(),
+    output_english: z.union([z.string(), z.null()]).optional(),
+    error: z.union([z.boolean(), z.null()]).optional(),
+    error_message: z.union([z.string(), z.null()]).optional(),
     uuid: z.string(),
     tsg_id: z.string(),
     job_id: z.string(),
@@ -792,6 +919,10 @@ export type StreamIterationData = z.infer<typeof StreamIterationDataSchema>;
 
 export const StreamDetailResponseSchema = z
   .object({
+    error: z.union([z.boolean(), z.null()]).optional(),
+    error_message: z.union([z.string(), z.null()]).optional(),
+    goal_category: z.union([z.string(), z.null()]).optional(),
+    goal_metadata: z.union([z.object({}).passthrough(), z.null()]).optional(),
     uuid: z.string(),
     tsg_id: z.string(),
     job_id: z.string(),
@@ -799,7 +930,7 @@ export const StreamDetailResponseSchema = z
     goal_id: z.string(),
     stream_idx: z.number().int().optional(),
     iteration: z.number().int().optional(),
-    goal: z.unknown().optional(),
+    goal: StreamGoalSchema.optional(),
     marked_safe: z.boolean().optional(),
     stream_type: z.string().nullable().optional(),
     threat: z.boolean().optional(),
@@ -824,6 +955,8 @@ export type StreamListResponse = z.infer<typeof StreamListResponseSchema>;
 
 export const CustomAttackOutputSchema = z
   .object({
+    error: z.boolean().nullable().optional(),
+    error_message: z.string().nullable().optional(),
     uuid: z.string(),
     tsg_id: z.string(),
     custom_attack_id: z.string(),
@@ -861,6 +994,10 @@ export const PropertyStatisticSchema = z
   })
   .passthrough();
 export type PropertyStatistic = z.infer<typeof PropertyStatisticSchema>;
+
+/** The standalone property-stats endpoint also permits arbitrary aggregate objects. */
+export const PropertyStatisticResultSchema = PropertyStatisticSchema.partial();
+export type PropertyStatisticResult = z.infer<typeof PropertyStatisticResultSchema>;
 
 export const PromptSetSummarySchema = z
   .object({
@@ -902,6 +1039,7 @@ export type PromptSetsReportResponse = z.infer<typeof PromptSetsReportResponseSc
 
 export const PromptDetailResponseSchema = z
   .object({
+    error: z.union([z.boolean(), z.null()]).optional(),
     prompt_id: z.string(),
     prompt_text: z.string(),
     goal: z.string().nullable().optional(),
@@ -909,7 +1047,7 @@ export const PromptDetailResponseSchema = z
     properties: z.array(PropertyAssignmentSchema).optional(),
     attack_id: z.string().nullable().optional(),
     threat: z.boolean().nullable().optional(),
-    attack_outputs: z.array(CustomAttackOutputSchema).optional(),
+    attack_outputs: z.array(z.union([z.string(), CustomAttackOutputSchema])).optional(),
     asr: z.number().nullable().optional(),
     prompt_set_id: z.string().nullable().optional(),
     prompt_set_name: z.string().nullable().optional(),
@@ -920,7 +1058,7 @@ export type PromptDetailResponse = z.infer<typeof PromptDetailResponseSchema>;
 export const CustomAttacksListResponseSchema = z
   .object({
     pagination: RedTeamPaginationSchema,
-    data: z.array(z.unknown()),
+    data: z.array(PromptDetailResponseSchema),
     total_attacks: z.number().int(),
     total_threats: z.number().int(),
   })
@@ -973,7 +1111,7 @@ export type ScoreTrendResponse = z.infer<typeof ScoreTrendResponseSchema>;
 
 export const SentimentRequestSchema = z
   .object({
-    job_id: z.string(),
+    job_id: z.string().uuid(),
     up_vote: z.boolean().optional(),
     down_vote: z.boolean().optional(),
   })
@@ -1211,20 +1349,20 @@ export type AdapterValidateResponse = z.infer<typeof AdapterValidateResponseSche
 const TargetRequestBaseFields = {
   name: z.string(),
   description: z.string().nullable().optional(),
-  target_type: z.string().nullable().optional(),
-  connection_type: z.string().nullable().optional(),
-  api_endpoint_type: z.string().nullable().optional(),
-  response_mode: z.string().nullable().optional(),
-  connection_params: z
-    .union([RestConnectionParamsSchema, StreamingConnectionParamsSchema])
-    .nullable()
-    .optional(),
+  target_type: z.nativeEnum(TargetType).nullable().optional(),
+  connection_type: z.nativeEnum(TargetConnectionType).nullable().optional(),
+  api_endpoint_type: z.nativeEnum(ApiEndpointType).nullable().optional(),
+  response_mode: z.nativeEnum(ResponseMode).nullable().optional(),
+  connection_params: ConnectionParamsRequestSchema.nullable().optional(),
+  auth_config: AuthConfigRequestSchema.nullable().optional(),
+  auth_type: z.nativeEnum(TargetAuthType).nullable().optional(),
+  canonical_id: z.string().max(512).nullable().optional(),
   session_supported: z.boolean().optional(),
   target_metadata: TargetMetadataSchema.optional(),
   target_background: TargetBackgroundSchema.nullable().optional(),
   additional_context: TargetAdditionalContextSchema.nullable().optional(),
   extra_info: z.record(z.unknown()).nullable().optional(),
-  network_broker_channel_uuid: z.string().nullable().optional(),
+  network_broker_channel_uuid: z.string().uuid().nullable().optional(),
   /** UUID of the custom target adapter to use. Required when connection_type is CUSTOM_TARGET_ADAPTER. */
   adapter_uuid: z.string().uuid().nullable().optional(),
   /** Per-target overrides for the adapter's variables. Array of AdapterVar objects. */
@@ -1247,29 +1385,37 @@ export type TargetContextUpdate = z.infer<typeof TargetContextUpdateSchema>;
 
 export const TargetResponseSchema = z
   .object({
+    adapter_uuid: z.union([z.string(), z.null()]).optional(),
+    canonical_id: z.union([z.string(), z.null()]).optional(),
+    adapter_secret_version: z.union([z.string(), z.null()]).optional(),
+    profiling_progress: z.union([z.number().int(), z.null()]).optional(),
+    connection_params: ConnectionParamsSchema.nullable().optional(),
+    auth_config: AuthConfigSchema.nullable().optional(),
+    network_broker_channel_uuid: z.union([z.string(), z.null()]).optional(),
+    adapter_variable_overrides: z.array(AdapterVarResponseSchema).nullable().optional(),
     uuid: z.string(),
     tsg_id: z.string(),
     name: z.string(),
-    status: z.unknown(),
+    status: z.string(),
     active: z.boolean(),
     validated: z.boolean(),
     created_at: z.string(),
     updated_at: z.string(),
-    description: z.unknown().optional(),
-    target_type: z.unknown().optional(),
-    connection_type: z.unknown().optional(),
-    api_endpoint_type: z.unknown().optional(),
-    response_mode: z.unknown().optional(),
+    description: z.string().nullable().optional(),
+    target_type: z.string().nullable().optional(),
+    connection_type: z.string().nullable().optional(),
+    api_endpoint_type: z.string().nullable().optional(),
+    response_mode: z.string().nullable().optional(),
     session_supported: z.boolean().optional(),
-    extra_info: z.unknown().optional(),
-    version: z.unknown().optional(),
-    secret_version: z.unknown().optional(),
-    created_by_user_id: z.unknown().optional(),
-    updated_by_user_id: z.unknown().optional(),
-    target_metadata: z.unknown().optional(),
-    target_background: z.unknown().optional(),
-    profiling_status: z.unknown().optional(),
-    additional_context: z.unknown().optional(),
+    extra_info: z.record(z.unknown()).nullable().optional(),
+    version: z.number().int().nullable().optional(),
+    secret_version: z.string().nullable().optional(),
+    created_by_user_id: z.string().nullable().optional(),
+    updated_by_user_id: z.string().nullable().optional(),
+    target_metadata: TargetMetadataSchema.optional(),
+    target_background: TargetBackgroundSchema.nullable().optional(),
+    profiling_status: z.string().nullable().optional(),
+    additional_context: TargetAdditionalContextSchema.nullable().optional(),
     auth_type: z.string().nullable().optional(),
   })
   .passthrough();
@@ -1277,25 +1423,28 @@ export type TargetResponse = z.infer<typeof TargetResponseSchema>;
 
 export const TargetListItemSchema = z
   .object({
+    adapter_uuid: z.union([z.string(), z.null()]).optional(),
+    profiling_status: z.union([z.string(), z.null()]).optional(),
+    canonical_id: z.union([z.string(), z.null()]).optional(),
     uuid: z.string(),
     tsg_id: z.string(),
     name: z.string(),
-    status: z.unknown(),
+    status: z.string(),
     active: z.boolean(),
     validated: z.boolean(),
     created_at: z.string(),
     updated_at: z.string(),
-    description: z.unknown().optional(),
-    target_type: z.unknown().optional(),
-    connection_type: z.unknown().optional(),
-    api_endpoint_type: z.unknown().optional(),
-    response_mode: z.unknown().optional(),
+    description: z.string().nullable().optional(),
+    target_type: z.string().nullable().optional(),
+    connection_type: z.string().nullable().optional(),
+    api_endpoint_type: z.string().nullable().optional(),
+    response_mode: z.string().nullable().optional(),
     session_supported: z.boolean().optional(),
-    extra_info: z.unknown().optional(),
-    version: z.unknown().optional(),
-    secret_version: z.unknown().optional(),
-    created_by_user_id: z.unknown().optional(),
-    updated_by_user_id: z.unknown().optional(),
+    extra_info: z.record(z.unknown()).nullable().optional(),
+    version: z.number().int().nullable().optional(),
+    secret_version: z.string().nullable().optional(),
+    created_by_user_id: z.string().nullable().optional(),
+    updated_by_user_id: z.string().nullable().optional(),
     auth_type: z.string().nullable().optional(),
   })
   .passthrough();
@@ -1309,7 +1458,7 @@ export type TargetList = z.infer<typeof TargetListSchema>;
 export const TargetProbeRequestSchema = z
   .object({
     ...TargetRequestBaseFields,
-    uuid: z.string().nullable().optional(),
+    uuid: z.string().uuid().nullable().optional(),
     probe_fields: z.array(z.string()).nullable().optional(),
   })
   .strict();
@@ -1317,10 +1466,10 @@ export type TargetProbeRequest = z.infer<typeof TargetProbeRequestSchema>;
 
 export const TargetAuthValidationRequestSchema = z
   .object({
-    auth_type: z.string(),
-    auth_config: z.unknown(),
-    target_id: z.string().nullable().optional(),
-    network_broker_channel_uuid: z.string().nullable().optional(),
+    auth_type: z.nativeEnum(TargetAuthType),
+    auth_config: AuthConfigRequestSchema,
+    target_id: z.string().uuid().nullable().optional(),
+    network_broker_channel_uuid: z.string().uuid().nullable().optional(),
   })
   .passthrough();
 export type TargetAuthValidationRequest = z.infer<typeof TargetAuthValidationRequestSchema>;
@@ -1336,14 +1485,144 @@ export type TargetAuthValidationResponse = z.infer<typeof TargetAuthValidationRe
 
 export const TargetProfileResponseSchema = z
   .object({
+    other_details_prettified: z
+      .union([
+        z
+          .object({
+            execution_environment: z.object({}).passthrough().optional(),
+            core_architecture_and_identity: z.object({}).passthrough().optional(),
+            tools_and_integrations: z.object({}).passthrough().optional(),
+            audience_and_governance: z.object({}).passthrough().optional(),
+            performance_and_metrics: z.object({}).passthrough().optional(),
+            content_policy: z.object({}).passthrough().optional(),
+            other_discoveries: z.object({}).passthrough().optional(),
+          })
+          .passthrough(),
+        z.null(),
+      ])
+      .optional(),
+    ai_generated_items: z
+      .union([
+        z
+          .object({
+            languages_supported: z
+              .union([
+                z
+                  .object({
+                    ai_discovered_items: z.array(z.string()),
+                    current_items: z.array(
+                      z
+                        .object({
+                          value: z.string(),
+                          is_ai_generated: z.boolean(),
+                          country_code: z.union([z.string(), z.null()]).optional(),
+                        })
+                        .passthrough(),
+                    ),
+                    ai_count: z.number().int().optional(),
+                    user_count: z.number().int().optional(),
+                  })
+                  .passthrough(),
+                z.null(),
+              ])
+              .optional(),
+            tools_accessible: z
+              .union([
+                z
+                  .object({
+                    ai_discovered_items: z.array(z.string()),
+                    current_items: z.array(
+                      z.object({ value: z.string(), is_ai_generated: z.boolean() }).passthrough(),
+                    ),
+                    ai_count: z.number().int().optional(),
+                    user_count: z.number().int().optional(),
+                  })
+                  .passthrough(),
+                z.null(),
+              ])
+              .optional(),
+            banned_keywords: z
+              .union([
+                z
+                  .object({
+                    ai_discovered_items: z.array(z.string()),
+                    current_items: z.array(
+                      z.object({ value: z.string(), is_ai_generated: z.boolean() }).passthrough(),
+                    ),
+                    ai_count: z.number().int().optional(),
+                    user_count: z.number().int().optional(),
+                  })
+                  .passthrough(),
+                z.null(),
+              ])
+              .optional(),
+            competitors: z
+              .union([
+                z
+                  .object({
+                    ai_discovered_items: z.array(z.string()),
+                    current_items: z.array(
+                      z.object({ value: z.string(), is_ai_generated: z.boolean() }).passthrough(),
+                    ),
+                    ai_count: z.number().int().optional(),
+                    user_count: z.number().int().optional(),
+                  })
+                  .passthrough(),
+                z.null(),
+              ])
+              .optional(),
+            base_model: z
+              .union([
+                z
+                  .object({
+                    ai_discovered_value: z.string(),
+                    is_ai_generated: z.boolean().optional(),
+                  })
+                  .passthrough(),
+                z.null(),
+              ])
+              .optional(),
+            core_architecture: z
+              .union([
+                z
+                  .object({
+                    ai_discovered_value: z.string(),
+                    is_ai_generated: z.boolean().optional(),
+                  })
+                  .passthrough(),
+                z.null(),
+              ])
+              .optional(),
+            system_prompt: z
+              .union([
+                z
+                  .object({
+                    ai_discovered_value: z.string(),
+                    is_ai_generated: z.boolean().optional(),
+                  })
+                  .passthrough(),
+                z.null(),
+              ])
+              .optional(),
+          })
+          .passthrough(),
+        z.null(),
+      ])
+      .optional(),
+    profiling_completed_at: z.union([z.string(), z.null()]).optional(),
+    profiling_progress: z.union([z.number().int(), z.null()]).optional(),
     target_id: z.string(),
     target_version: z.number().int(),
     status: z.string(),
-    profiling_status: z.unknown().optional(),
-    target_background: z.unknown().optional(),
-    additional_context: z.unknown().optional(),
-    ai_generated_fields: z.unknown().optional(),
-    other_details: z.unknown().optional(),
+    profiling_status: z.string().nullable().optional(),
+    target_background: TargetBackgroundSchema.nullable().optional(),
+    additional_context: TargetAdditionalContextSchema.nullable().optional(),
+    ai_generated_fields: z.array(z.string()).nullable().optional(),
+    other_details: z
+      .object({ items: z.record(z.unknown()).optional() })
+      .passthrough()
+      .nullable()
+      .optional(),
   })
   .passthrough();
 export type TargetProfileResponse = z.infer<typeof TargetProfileResponseSchema>;
@@ -1386,8 +1665,33 @@ export type PromptSetStats = z.infer<typeof PromptSetStatsSchema>;
 
 export const CustomPromptSetCreateRequestSchema = z
   .object({
-    name: z.string(),
-    description: z.unknown().optional(),
+    language: z
+      .enum([
+        'ar',
+        'bn',
+        'zh-CN',
+        'zh-TW',
+        'nl',
+        'en',
+        'fr',
+        'de',
+        'hi',
+        'id',
+        'it',
+        'ja',
+        'ko',
+        'pl',
+        'pt',
+        'ru',
+        'es',
+        'sv',
+        'th',
+        'tr',
+        'vi',
+      ])
+      .optional(),
+    name: z.string().max(255),
+    description: z.string().nullable().optional(),
     property_names: z.array(z.string()).optional(),
   })
   .passthrough();
@@ -1395,10 +1699,10 @@ export type CustomPromptSetCreateRequest = z.infer<typeof CustomPromptSetCreateR
 
 export const CustomPromptSetUpdateRequestSchema = z
   .object({
-    name: z.unknown().optional(),
-    description: z.unknown().optional(),
-    archive: z.unknown().optional(),
-    property_names: z.unknown().optional(),
+    name: z.string().max(255).nullable().optional(),
+    description: z.string().nullable().optional(),
+    archive: z.boolean().nullable().optional(),
+    property_names: z.array(z.string()).nullable().optional(),
   })
   .passthrough();
 export type CustomPromptSetUpdateRequest = z.infer<typeof CustomPromptSetUpdateRequestSchema>;
@@ -1408,6 +1712,7 @@ export type CustomPromptSetArchiveRequest = z.infer<typeof CustomPromptSetArchiv
 
 export const CustomPromptSetResponseSchema = z
   .object({
+    language: z.object({ code: z.string(), name: z.string() }).passthrough().optional(),
     uuid: z.string(),
     name: z.string(),
     active: z.boolean(),
@@ -1415,20 +1720,21 @@ export const CustomPromptSetResponseSchema = z
     status: z.string(),
     created_at: z.string(),
     updated_at: z.string(),
-    description: z.unknown().optional(),
+    description: z.string().nullable().optional(),
     property_names: z.array(z.string()).optional(),
-    properties: z.array(z.unknown()).optional(),
-    stats: z.unknown().optional(),
-    extra_info: z.unknown().optional(),
-    version: z.unknown().optional(),
-    created_by_user_id: z.unknown().optional(),
-    updated_by_user_id: z.unknown().optional(),
+    properties: z.array(z.lazy(() => PropertyDefinitionSchema)).optional(),
+    stats: PromptSetStatsSchema.nullable().optional(),
+    extra_info: z.record(z.unknown()).nullable().optional(),
+    version: z.string().nullable().optional(),
+    created_by_user_id: z.string().nullable().optional(),
+    updated_by_user_id: z.string().nullable().optional(),
   })
   .passthrough();
 export type CustomPromptSetResponse = z.infer<typeof CustomPromptSetResponseSchema>;
 
 export const CustomPromptSetListItemSchema = z
   .object({
+    language: z.object({ code: z.string(), name: z.string() }).passthrough().optional(),
     uuid: z.string(),
     name: z.string(),
     active: z.boolean(),
@@ -1436,10 +1742,10 @@ export const CustomPromptSetListItemSchema = z
     status: z.string(),
     created_at: z.string(),
     updated_at: z.string(),
-    description: z.unknown().optional(),
+    description: z.string().nullable().optional(),
     property_names: z.array(z.string()).optional(),
-    stats: z.unknown().optional(),
-    created_by_user_id: z.unknown().optional(),
+    stats: PromptSetStatsSchema.nullable().optional(),
+    created_by_user_id: z.string().nullable().optional(),
   })
   .passthrough();
 export type CustomPromptSetListItem = z.infer<typeof CustomPromptSetListItemSchema>;
@@ -1454,6 +1760,7 @@ export type CustomPromptSetList = z.infer<typeof CustomPromptSetListSchema>;
 
 export const CustomPromptSetReferenceSchema = z
   .object({
+    language: z.string().optional(),
     uuid: z.string(),
     name: z.string(),
     status: z.string(),
@@ -1461,7 +1768,7 @@ export const CustomPromptSetReferenceSchema = z
     tsg_id: z.string(),
     created_at: z.string(),
     updated_at: z.string(),
-    version: z.unknown().optional(),
+    version: z.string().nullable().optional(),
   })
   .passthrough();
 export type CustomPromptSetReference = z.infer<typeof CustomPromptSetReferenceSchema>;
@@ -1486,18 +1793,18 @@ export type CustomPromptSetVersionInfo = z.infer<typeof CustomPromptSetVersionIn
 export const CustomPromptCreateRequestSchema = z
   .object({
     prompt: z.string(),
-    prompt_set_id: z.string(),
-    goal: z.unknown().optional(),
-    properties: z.unknown().optional(),
+    prompt_set_id: z.string().uuid(),
+    goal: z.string().nullable().optional(),
+    properties: z.record(z.string()).optional(),
   })
   .passthrough();
 export type CustomPromptCreateRequest = z.infer<typeof CustomPromptCreateRequestSchema>;
 
 export const CustomPromptUpdateRequestSchema = z
   .object({
-    prompt: z.unknown().optional(),
-    goal: z.unknown().optional(),
-    properties: z.unknown().optional(),
+    prompt: z.string().nullable().optional(),
+    goal: z.string().nullable().optional(),
+    properties: z.record(z.string()).nullable().optional(),
   })
   .passthrough();
 export type CustomPromptUpdateRequest = z.infer<typeof CustomPromptUpdateRequestSchema>;
@@ -1512,12 +1819,14 @@ export const CustomPromptResponseSchema = z
     prompt_set_id: z.string(),
     created_at: z.string(),
     updated_at: z.string(),
-    goal: z.unknown().optional(),
-    properties: z.unknown().optional(),
-    property_assignments: z.array(z.unknown()).optional(),
-    detector_category: z.unknown().optional(),
-    severity: z.unknown().optional(),
-    extra_info: z.unknown().optional(),
+    goal: z.string().nullable().optional(),
+    properties: z.record(z.string()).optional(),
+    property_assignments: z
+      .array(z.object({ property_name: z.string(), property_value: z.string() }).passthrough())
+      .optional(),
+    detector_category: z.string().nullable().optional(),
+    severity: z.string().nullable().optional(),
+    extra_info: z.record(z.unknown()).nullable().optional(),
   })
   .passthrough();
 export type CustomPromptResponse = z.infer<typeof CustomPromptResponseSchema>;
@@ -1531,8 +1840,8 @@ export const CustomPromptListItemSchema = z
     active: z.boolean(),
     created_at: z.string(),
     updated_at: z.string(),
-    goal: z.unknown().optional(),
-    properties: z.unknown().optional(),
+    goal: z.string().nullable().optional(),
+    properties: z.record(z.string()).optional(),
   })
   .passthrough();
 export type CustomPromptListItem = z.infer<typeof CustomPromptListItemSchema>;
@@ -1549,13 +1858,15 @@ export type CustomPromptList = z.infer<typeof CustomPromptListSchema>;
 // Management — Property schemas
 // ---------------------------------------------------------------------------
 
-export const PropertyNameCreateRequestSchema = z.object({ name: z.string() }).passthrough();
+export const PropertyNameCreateRequestSchema = z
+  .object({ name: z.string().max(256) })
+  .passthrough();
 export type PropertyNameCreateRequest = z.infer<typeof PropertyNameCreateRequestSchema>;
 
 export const PropertyValueCreateRequestSchema = z
   .object({
     property_name: z.string(),
-    property_value: z.string(),
+    property_value: z.string().max(256),
   })
   .passthrough();
 export type PropertyValueCreateRequest = z.infer<typeof PropertyValueCreateRequestSchema>;
@@ -1572,6 +1883,13 @@ export const PropertyNamesListResponseSchema = z
   .object({ data: z.array(z.string()).optional() })
   .passthrough();
 export type PropertyNamesListResponse = z.infer<typeof PropertyNamesListResponseSchema>;
+
+/** Property-name creation: the specified list response or a legacy status response. */
+export const PropertyNameCreateResponseSchema = z.union([
+  BaseResponseSchema,
+  PropertyNamesListResponseSchema,
+]);
+export type PropertyNameCreateResponse = z.infer<typeof PropertyNameCreateResponseSchema>;
 
 export const PropertyValuesResponseSchema = z
   .object({

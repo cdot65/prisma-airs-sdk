@@ -1,4 +1,5 @@
-import { MGMT_TOPIC_PATH, MGMT_TOPICS_TSG_PATH, MGMT_TOPIC_FORCE_PATH } from '../constants.js';
+import { CreateCustomTopicRequestSchema } from '../models/index.js';
+import { MGMT_TOPIC_PATH, MGMT_TOPICS_TSG_PATH } from '../constants.js';
 import { request } from '../http/request.js';
 import type { AuthAdapter } from '../http/types.js';
 import { assertUuid } from '../validators.js';
@@ -35,6 +36,35 @@ export interface TopicsClientOptions {
 
 /** Client for AIRS custom topic CRUD operations. */
 export class TopicsClient {
+  /** List topics using the OpenAPI route scoped by the token. @example `const page = await mgmt.topics.listForToken({ limit: 20 });` */
+  async listForToken(
+    opts: Omit<PaginationOptions, 'latest'> = {},
+  ): Promise<CustomTopicListResponse> {
+    return request({
+      method: 'GET',
+      baseUrl: this.baseUrl,
+      path: '/v1/mgmt/topics',
+      params: { offset: String(opts.offset ?? 0), limit: String(opts.limit ?? 100) },
+      responseSchema: CustomTopicListResponseSchema,
+      auth: this.auth,
+      numRetries: this.numRetries,
+    });
+  }
+  /** Force-delete through the OpenAPI route, recording the acting user. @example `await mgmt.topics.forceDeleteWithAudit(topicUuid, 'admin@example.com');` */
+  async forceDeleteWithAudit(topicId: string, updatedBy: string): Promise<DeleteTopicResponse> {
+    assertUuid(topicId, 'topic_id');
+    if (!updatedBy.trim())
+      throw new AISecSDKException('updatedBy is required', ErrorType.USER_REQUEST_PAYLOAD_ERROR);
+    return request({
+      method: 'DELETE',
+      baseUrl: this.baseUrl,
+      path: `${MGMT_TOPIC_PATH}/${topicId}/force`,
+      params: { updated_by: updatedBy },
+      responseSchema: DeleteTopicResponseSchema,
+      auth: this.auth,
+      numRetries: this.numRetries,
+    });
+  }
   private readonly baseUrl: string;
   private readonly auth: AuthAdapter;
   private readonly tsgId: string;
@@ -69,6 +99,7 @@ export class TopicsClient {
    */
   async create(body: CreateCustomTopicRequest): Promise<CustomTopic> {
     return request({
+      requestSchema: CreateCustomTopicRequestSchema,
       method: 'POST',
       baseUrl: this.baseUrl,
       path: MGMT_TOPIC_PATH,
@@ -201,6 +232,7 @@ export class TopicsClient {
   async update(topicId: string, body: CreateCustomTopicRequest): Promise<CustomTopic> {
     assertUuid(topicId, 'topic_id');
     return request({
+      requestSchema: CreateCustomTopicRequestSchema,
       method: 'PUT',
       baseUrl: this.baseUrl,
       path: `${MGMT_TOPIC_PATH}/uuid/${topicId}`,
@@ -239,7 +271,9 @@ export class TopicsClient {
   /**
    * Force-delete a custom topic, removing it from any referencing profiles.
    * @param topicId - UUID of the topic to force-delete.
-   * @param updatedBy - Optional. Email of the user performing the deletion.
+   * @param updatedBy - Acting user, required by the API. The optional TypeScript parameter is
+   * retained for existing CLI wrappers; omitting it now fails locally. For a required parameter
+   * in new code, use {@link TopicsClient.forceDeleteWithAudit}.
    * @returns Deletion confirmation message.
    * @example
    * ```ts
@@ -254,19 +288,6 @@ export class TopicsClient {
    * ```
    */
   async forceDelete(topicId: string, updatedBy?: string): Promise<DeleteTopicResponse> {
-    assertUuid(topicId, 'topic_id');
-    const params: Record<string, string> | undefined = updatedBy
-      ? { updated_by: updatedBy }
-      : undefined;
-
-    return request({
-      method: 'DELETE',
-      baseUrl: this.baseUrl,
-      path: `${MGMT_TOPIC_FORCE_PATH}/${topicId}`,
-      params,
-      responseSchema: DeleteTopicResponseSchema,
-      auth: this.auth,
-      numRetries: this.numRetries,
-    });
+    return this.forceDeleteWithAudit(topicId, updatedBy ?? '');
   }
 }

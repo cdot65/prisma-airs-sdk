@@ -1,0 +1,2226 @@
+{
+  "source": "prisma-airs-redteam/data-plane/dp-openapi.yaml",
+  "sha256": "667ce2ea6842c5f96de7a41786d055fa6032d64186bdce4d23edfeeabf10d76d",
+  "corrections": [],
+  "cases": [
+    {
+      "method": "POST",
+      "path": "/v1/scan",
+      "call": {
+        "method": "POST",
+        "path": "/v1/scan",
+        "source": "src/red-team/scans-client.ts",
+        "member": "create",
+        "plane": "redteam-data",
+        "responseSchema": "JobResponseSchema",
+        "requestSchema": "JobCreateRequestSchema",
+        "requestType": "JobCreateRequest",
+        "className": "RedTeamScansClient",
+        "parameters": [
+          {
+            "name": "body",
+            "type": "JobCreateRequest"
+          }
+        ]
+      },
+      "query": {},
+      "queryWire": {},
+      "body": {
+        "name": "xxx",
+        "target": {
+          "uuid": "550e8400-e29b-41d4-a716-446655440000",
+          "version": 1
+        },
+        "job_type": "STATIC",
+        "job_metadata": {
+          "rate_limit_enabled": false,
+          "rate_limit": 1,
+          "rate_limit_error_code": 1,
+          "rate_limit_error_message": "x",
+          "rate_limit_error_json": {},
+          "content_filter_enabled": false,
+          "content_filter_error_code": 400,
+          "content_filter_error_message": "x",
+          "content_filter_error_json": {},
+          "language": {
+            "code": "x",
+            "name": "x"
+          },
+          "categories": {},
+          "include_file_attacks": false
+        },
+        "version": 1,
+        "extra_info": {}
+      },
+      "responseBody": {
+        "uuid": "550e8400-e29b-41d4-a716-446655440000",
+        "tsg_id": "x",
+        "name": "xxx",
+        "target": {
+          "uuid": "550e8400-e29b-41d4-a716-446655440000",
+          "tsg_id": "x",
+          "name": "x",
+          "description": "x",
+          "target_type": "APPLICATION",
+          "connection_type": "DATABRICKS",
+          "api_endpoint_type": "PUBLIC",
+          "response_mode": "REST",
+          "auth_type": "HEADERS",
+          "session_supported": false,
+          "extra_info": {},
+          "adapter_uuid": "550e8400-e29b-41d4-a716-446655440000",
+          "status": "DRAFT",
+          "active": false,
+          "validated": false,
+          "version": 1,
+          "secret_version": "x",
+          "created_by_user_id": "550e8400-e29b-41d4-a716-446655440000",
+          "updated_by_user_id": "550e8400-e29b-41d4-a716-446655440000",
+          "created_at": "2026-09-06T00:00:00Z",
+          "updated_at": "2026-09-06T00:00:00Z",
+          "profiling_status": "INIT",
+          "canonical_id": "x",
+          "target_metadata": {
+            "multi_turn": false,
+            "multi_turn_error_message": "x",
+            "supports_multimodal_files": false,
+            "supports_multimodal_files_error_message": "x",
+            "rate_limit": 1,
+            "rate_limit_enabled": false,
+            "rate_limit_error_code": 1,
+            "rate_limit_error_json": {},
+            "rate_limit_error_message": "x",
+            "content_filter_enabled": false,
+            "content_filter_error_code": 1,
+            "content_filter_error_json": {},
+            "content_filter_error_message": "x",
+            "probe_message": "x",
+            "request_timeout": 1
+          },
+          "adapter_secret_version": "x",
+          "target_background": {
+            "industry": "x",
+            "use_case": "x",
+            "competitors": ["x"],
+            "agentic_profiling_enabled": false
+          },
+          "profiling_progress": 1,
+          "additional_context": {
+            "base_model": "x",
+            "core_architecture": "x",
+            "system_prompt": "x",
+            "languages_supported": ["x"],
+            "banned_keywords": ["x"],
+            "tools_accessible": ["x"]
+          }
+        },
+        "job_type": "STATIC",
+        "job_metadata": {
+          "rate_limit_enabled": false,
+          "rate_limit": 1,
+          "rate_limit_error_code": 1,
+          "rate_limit_error_message": "x",
+          "rate_limit_error_json": {},
+          "content_filter_enabled": false,
+          "content_filter_error_code": 400,
+          "content_filter_error_message": "x",
+          "content_filter_error_json": {},
+          "language": {
+            "code": "x",
+            "name": "x"
+          },
+          "categories": {},
+          "include_file_attacks": false
+        },
+        "version": 1,
+        "extra_info": {},
+        "target_id": "550e8400-e29b-41d4-a716-446655440000",
+        "target_type": "x",
+        "total": 0,
+        "completed": 0,
+        "status": "INIT",
+        "score": 0,
+        "asr": 0,
+        "time_record": {
+          "queued_at": "2026-09-06T00:00:00Z",
+          "started_at": "2026-09-06T00:00:00Z",
+          "completed_at": "2026-09-06T00:00:00Z",
+          "time_taken": "x"
+        },
+        "created_at": "2026-09-06T00:00:00Z",
+        "updated_at": "2026-09-06T00:00:00Z",
+        "created_by_user_id": "550e8400-e29b-41d4-a716-446655440000",
+        "report_stats": {
+          "output_completion_percentage": 0,
+          "partial_report_unlocked": false,
+          "partial_report_unlocked_at": "2026-09-06T00:00:00Z",
+          "report_summary": "x"
+        },
+        "metering_quota_uuid": "550e8400-e29b-41d4-a716-446655440000",
+        "counted_towards_quota": "HELD",
+        "invocation_id": "x"
+      },
+      "responseStatus": 200,
+      "responseIsText": false
+    },
+    {
+      "method": "GET",
+      "path": "/v1/scan",
+      "call": {
+        "method": "GET",
+        "path": "/v1/scan",
+        "source": "src/red-team/scans-client.ts",
+        "member": "list",
+        "plane": "redteam-data",
+        "responseSchema": "JobListResponseSchema",
+        "queryType": "RedTeamScanListOptions",
+        "className": "RedTeamScansClient",
+        "parameters": [
+          {
+            "name": "opts",
+            "type": "RedTeamScanListOptions"
+          }
+        ]
+      },
+      "query": {
+        "limit": 1,
+        "skip": 0,
+        "status": "QUEUED",
+        "job_type": "STATIC",
+        "search": "x",
+        "target_id": "550e8400-e29b-41d4-a716-446655440000"
+      },
+      "queryWire": {
+        "limit": ["1"],
+        "skip": ["0"],
+        "status": ["QUEUED"],
+        "job_type": ["STATIC"],
+        "search": ["x"],
+        "target_id": ["550e8400-e29b-41d4-a716-446655440000"]
+      },
+      "responseBody": {
+        "pagination": {
+          "total_items": 1
+        },
+        "data": [
+          {
+            "uuid": "550e8400-e29b-41d4-a716-446655440000",
+            "tsg_id": "x",
+            "name": "xxx",
+            "target": {
+              "uuid": "550e8400-e29b-41d4-a716-446655440000",
+              "tsg_id": "x",
+              "name": "x",
+              "description": "x",
+              "target_type": "APPLICATION",
+              "connection_type": "DATABRICKS",
+              "api_endpoint_type": "PUBLIC",
+              "response_mode": "REST",
+              "auth_type": "HEADERS",
+              "session_supported": false,
+              "extra_info": {},
+              "adapter_uuid": "550e8400-e29b-41d4-a716-446655440000",
+              "status": "DRAFT",
+              "active": false,
+              "validated": false,
+              "version": 1,
+              "secret_version": "x",
+              "created_by_user_id": "550e8400-e29b-41d4-a716-446655440000",
+              "updated_by_user_id": "550e8400-e29b-41d4-a716-446655440000",
+              "created_at": "2026-09-06T00:00:00Z",
+              "updated_at": "2026-09-06T00:00:00Z",
+              "profiling_status": "INIT",
+              "canonical_id": "x",
+              "target_metadata": {
+                "multi_turn": false,
+                "multi_turn_error_message": "x",
+                "supports_multimodal_files": false,
+                "supports_multimodal_files_error_message": "x",
+                "rate_limit": 1,
+                "rate_limit_enabled": false,
+                "rate_limit_error_code": 1,
+                "rate_limit_error_json": {},
+                "rate_limit_error_message": "x",
+                "content_filter_enabled": false,
+                "content_filter_error_code": 1,
+                "content_filter_error_json": {},
+                "content_filter_error_message": "x",
+                "probe_message": "x",
+                "request_timeout": 1
+              },
+              "adapter_secret_version": "x",
+              "target_background": {
+                "industry": "x",
+                "use_case": "x",
+                "competitors": ["x"],
+                "agentic_profiling_enabled": false
+              },
+              "profiling_progress": 1,
+              "additional_context": {
+                "base_model": "x",
+                "core_architecture": "x",
+                "system_prompt": "x",
+                "languages_supported": ["x"],
+                "banned_keywords": ["x"],
+                "tools_accessible": ["x"]
+              }
+            },
+            "job_type": "STATIC",
+            "job_metadata": {
+              "rate_limit_enabled": false,
+              "rate_limit": 1,
+              "rate_limit_error_code": 1,
+              "rate_limit_error_message": "x",
+              "rate_limit_error_json": {},
+              "content_filter_enabled": false,
+              "content_filter_error_code": 400,
+              "content_filter_error_message": "x",
+              "content_filter_error_json": {},
+              "language": {
+                "code": "x",
+                "name": "x"
+              },
+              "categories": {},
+              "include_file_attacks": false
+            },
+            "version": 1,
+            "extra_info": {},
+            "target_id": "550e8400-e29b-41d4-a716-446655440000",
+            "target_type": "x",
+            "total": 0,
+            "completed": 0,
+            "status": "INIT",
+            "score": 0,
+            "asr": 0,
+            "time_record": {
+              "queued_at": "2026-09-06T00:00:00Z",
+              "started_at": "2026-09-06T00:00:00Z",
+              "completed_at": "2026-09-06T00:00:00Z",
+              "time_taken": "x"
+            },
+            "created_at": "2026-09-06T00:00:00Z",
+            "updated_at": "2026-09-06T00:00:00Z",
+            "created_by_user_id": "550e8400-e29b-41d4-a716-446655440000",
+            "report_stats": {
+              "output_completion_percentage": 0,
+              "partial_report_unlocked": false,
+              "partial_report_unlocked_at": "2026-09-06T00:00:00Z",
+              "report_summary": "x"
+            },
+            "metering_quota_uuid": "550e8400-e29b-41d4-a716-446655440000",
+            "counted_towards_quota": "HELD",
+            "invocation_id": "x"
+          }
+        ]
+      },
+      "responseStatus": 200,
+      "responseIsText": false
+    },
+    {
+      "method": "GET",
+      "path": "/v1/scan/{job_id}",
+      "call": {
+        "method": "GET",
+        "path": "/v1/scan/{jobId}",
+        "source": "src/red-team/scans-client.ts",
+        "member": "get",
+        "plane": "redteam-data",
+        "responseSchema": "JobResponseSchema",
+        "className": "RedTeamScansClient",
+        "parameters": [
+          {
+            "name": "jobId",
+            "type": "string"
+          }
+        ]
+      },
+      "query": {},
+      "queryWire": {},
+      "responseBody": {
+        "uuid": "550e8400-e29b-41d4-a716-446655440000",
+        "tsg_id": "x",
+        "name": "xxx",
+        "target": {
+          "uuid": "550e8400-e29b-41d4-a716-446655440000",
+          "tsg_id": "x",
+          "name": "x",
+          "description": "x",
+          "target_type": "APPLICATION",
+          "connection_type": "DATABRICKS",
+          "api_endpoint_type": "PUBLIC",
+          "response_mode": "REST",
+          "auth_type": "HEADERS",
+          "session_supported": false,
+          "extra_info": {},
+          "adapter_uuid": "550e8400-e29b-41d4-a716-446655440000",
+          "status": "DRAFT",
+          "active": false,
+          "validated": false,
+          "version": 1,
+          "secret_version": "x",
+          "created_by_user_id": "550e8400-e29b-41d4-a716-446655440000",
+          "updated_by_user_id": "550e8400-e29b-41d4-a716-446655440000",
+          "created_at": "2026-09-06T00:00:00Z",
+          "updated_at": "2026-09-06T00:00:00Z",
+          "profiling_status": "INIT",
+          "canonical_id": "x",
+          "target_metadata": {
+            "multi_turn": false,
+            "multi_turn_error_message": "x",
+            "supports_multimodal_files": false,
+            "supports_multimodal_files_error_message": "x",
+            "rate_limit": 1,
+            "rate_limit_enabled": false,
+            "rate_limit_error_code": 1,
+            "rate_limit_error_json": {},
+            "rate_limit_error_message": "x",
+            "content_filter_enabled": false,
+            "content_filter_error_code": 1,
+            "content_filter_error_json": {},
+            "content_filter_error_message": "x",
+            "probe_message": "x",
+            "request_timeout": 1
+          },
+          "adapter_secret_version": "x",
+          "target_background": {
+            "industry": "x",
+            "use_case": "x",
+            "competitors": ["x"],
+            "agentic_profiling_enabled": false
+          },
+          "profiling_progress": 1,
+          "additional_context": {
+            "base_model": "x",
+            "core_architecture": "x",
+            "system_prompt": "x",
+            "languages_supported": ["x"],
+            "banned_keywords": ["x"],
+            "tools_accessible": ["x"]
+          }
+        },
+        "job_type": "STATIC",
+        "job_metadata": {
+          "rate_limit_enabled": false,
+          "rate_limit": 1,
+          "rate_limit_error_code": 1,
+          "rate_limit_error_message": "x",
+          "rate_limit_error_json": {},
+          "content_filter_enabled": false,
+          "content_filter_error_code": 400,
+          "content_filter_error_message": "x",
+          "content_filter_error_json": {},
+          "language": {
+            "code": "x",
+            "name": "x"
+          },
+          "categories": {},
+          "include_file_attacks": false
+        },
+        "version": 1,
+        "extra_info": {},
+        "target_id": "550e8400-e29b-41d4-a716-446655440000",
+        "target_type": "x",
+        "total": 0,
+        "completed": 0,
+        "status": "INIT",
+        "score": 0,
+        "asr": 0,
+        "time_record": {
+          "queued_at": "2026-09-06T00:00:00Z",
+          "started_at": "2026-09-06T00:00:00Z",
+          "completed_at": "2026-09-06T00:00:00Z",
+          "time_taken": "x"
+        },
+        "created_at": "2026-09-06T00:00:00Z",
+        "updated_at": "2026-09-06T00:00:00Z",
+        "created_by_user_id": "550e8400-e29b-41d4-a716-446655440000",
+        "report_stats": {
+          "output_completion_percentage": 0,
+          "partial_report_unlocked": false,
+          "partial_report_unlocked_at": "2026-09-06T00:00:00Z",
+          "report_summary": "x"
+        },
+        "metering_quota_uuid": "550e8400-e29b-41d4-a716-446655440000",
+        "counted_towards_quota": "HELD",
+        "invocation_id": "x"
+      },
+      "responseStatus": 200,
+      "responseIsText": false
+    },
+    {
+      "method": "POST",
+      "path": "/v1/scan/{job_id}/abort",
+      "call": {
+        "method": "POST",
+        "path": "/v1/scan/{jobId}/abort",
+        "source": "src/red-team/scans-client.ts",
+        "member": "abort",
+        "plane": "redteam-data",
+        "responseSchema": "JobAbortResponseSchema",
+        "className": "RedTeamScansClient",
+        "parameters": [
+          {
+            "name": "jobId",
+            "type": "string"
+          }
+        ]
+      },
+      "query": {},
+      "queryWire": {},
+      "responseBody": {
+        "job_id": "550e8400-e29b-41d4-a716-446655440000",
+        "message": "x"
+      },
+      "responseStatus": 200,
+      "responseIsText": false
+    },
+    {
+      "method": "GET",
+      "path": "/v1/categories",
+      "call": {
+        "method": "GET",
+        "path": "/v1/categories",
+        "source": "src/red-team/scans-client.ts",
+        "member": "getCategories",
+        "plane": "redteam-data",
+        "responseSchema": "z.array(CategoryModelSchema)",
+        "className": "RedTeamScansClient",
+        "parameters": []
+      },
+      "query": {},
+      "queryWire": {},
+      "responseBody": [
+        {
+          "id": "x",
+          "display_name": "x",
+          "description": "x",
+          "preselect": false,
+          "sub_categories": [
+            {
+              "id": "x",
+              "display_name": "x",
+              "description": "x",
+              "preselect": false,
+              "prerequisites": [
+                {
+                  "id": "x",
+                  "display_name": "x",
+                  "description": "x"
+                }
+              ],
+              "active": false,
+              "file_supported": false
+            }
+          ]
+        }
+      ],
+      "responseStatus": 200,
+      "responseIsText": false
+    },
+    {
+      "method": "GET",
+      "path": "/v1/scan/scan-metadata",
+      "call": {
+        "method": "GET",
+        "path": "/v1/scan/scan-metadata",
+        "source": "src/red-team/client.ts",
+        "member": "getScanMetadata",
+        "plane": "redteam-data",
+        "responseSchema": "z.object({}).passthrough()",
+        "className": "RedTeamClient",
+        "parameters": []
+      },
+      "query": {},
+      "queryWire": {},
+      "responseBody": {},
+      "responseStatus": 200,
+      "responseIsText": false
+    },
+    {
+      "method": "GET",
+      "path": "/v1/report/static/{job_id}/list-attacks",
+      "call": {
+        "method": "GET",
+        "path": "/v1/report/static/{jobId}/list-attacks",
+        "source": "src/red-team/reports-client.ts",
+        "member": "listAttacks",
+        "plane": "redteam-data",
+        "responseSchema": "AttackListResponseSchema",
+        "queryType": "AttackListOptions",
+        "className": "RedTeamReportsClient",
+        "parameters": [
+          {
+            "name": "jobId",
+            "type": "string"
+          },
+          {
+            "name": "opts",
+            "type": "AttackListOptions"
+          }
+        ]
+      },
+      "query": {
+        "limit": 1,
+        "skip": 0,
+        "attack_status": "INIT",
+        "attack_type": "NORMAL",
+        "category": "SECURITY",
+        "sub_category": "ADVERSARIAL_SUFFIX",
+        "compliance": "OWASP",
+        "threat": false,
+        "severity": "LOW",
+        "status": "SUCCESSFUL",
+        "attack_modality": "TEXT"
+      },
+      "queryWire": {
+        "limit": ["1"],
+        "skip": ["0"],
+        "attack_status": ["INIT"],
+        "attack_type": ["NORMAL"],
+        "category": ["SECURITY"],
+        "sub_category": ["ADVERSARIAL_SUFFIX"],
+        "compliance": ["OWASP"],
+        "threat": ["false"],
+        "severity": ["LOW"],
+        "status": ["SUCCESSFUL"],
+        "attack_modality": ["TEXT"]
+      },
+      "responseBody": {
+        "pagination": {
+          "total_items": 1
+        },
+        "data": [
+          {
+            "uuid": "550e8400-e29b-41d4-a716-446655440000",
+            "tsg_id": "x",
+            "job_id": "550e8400-e29b-41d4-a716-446655440000",
+            "target_id": "550e8400-e29b-41d4-a716-446655440000",
+            "prompt": "x",
+            "status": "INIT",
+            "marked_safe": false,
+            "extra_info": {},
+            "threat": false,
+            "attack_type": "NORMAL",
+            "multi_turn": false,
+            "asr": 0,
+            "version": 1,
+            "error": false,
+            "prompt_mapping_id": "550e8400-e29b-41d4-a716-446655440000",
+            "prompt_id": "550e8400-e29b-41d4-a716-446655440000",
+            "category": "SECURITY",
+            "sub_category": "ADVERSARIAL_SUFFIX",
+            "severity": "x",
+            "category_display_name": "x",
+            "sub_category_display_name": "x",
+            "attack_modality": "TEXT"
+          }
+        ]
+      },
+      "responseStatus": 200,
+      "responseIsText": false
+    },
+    {
+      "method": "GET",
+      "path": "/v1/report/static/{job_id}/attack/{attack_id}",
+      "call": {
+        "method": "GET",
+        "path": "/v1/report/static/{jobId}/attack/{attackId}",
+        "source": "src/red-team/reports-client.ts",
+        "member": "getAttackDetail",
+        "plane": "redteam-data",
+        "responseSchema": "AttackDetailResponseSchema",
+        "className": "RedTeamReportsClient",
+        "parameters": [
+          {
+            "name": "jobId",
+            "type": "string"
+          },
+          {
+            "name": "attackId",
+            "type": "string"
+          }
+        ]
+      },
+      "query": {},
+      "queryWire": {},
+      "responseBody": {
+        "uuid": "550e8400-e29b-41d4-a716-446655440000",
+        "tsg_id": "x",
+        "job_id": "550e8400-e29b-41d4-a716-446655440000",
+        "target_id": "550e8400-e29b-41d4-a716-446655440000",
+        "prompt": "x",
+        "status": "INIT",
+        "marked_safe": false,
+        "extra_info": {},
+        "threat": false,
+        "attack_type": "NORMAL",
+        "multi_turn": false,
+        "asr": 0,
+        "version": 1,
+        "error": false,
+        "prompt_mapping_id": "550e8400-e29b-41d4-a716-446655440000",
+        "prompt_id": "550e8400-e29b-41d4-a716-446655440000",
+        "category": "SECURITY",
+        "sub_category": "ADVERSARIAL_SUFFIX",
+        "severity": "x",
+        "category_display_name": "x",
+        "sub_category_display_name": "x",
+        "compliance_frameworks": [
+          {
+            "id": "x",
+            "display_name": "x",
+            "description": "x",
+            "active": false,
+            "version": "x",
+            "link": "x",
+            "techniques": [
+              {
+                "id": "x",
+                "display_name": "x",
+                "compliance_id": "x",
+                "description": "x",
+                "link": "x",
+                "version": "x",
+                "active": false
+              }
+            ]
+          }
+        ],
+        "outputs": [
+          {
+            "uuid": "550e8400-e29b-41d4-a716-446655440000",
+            "tsg_id": "x",
+            "attack_id": "550e8400-e29b-41d4-a716-446655440000",
+            "job_id": "550e8400-e29b-41d4-a716-446655440000",
+            "target_id": "550e8400-e29b-41d4-a716-446655440000",
+            "output": "x",
+            "threat": false,
+            "marked_safe": false,
+            "error": false,
+            "error_message": "x"
+          }
+        ],
+        "goal": "x",
+        "attack_modality": "TEXT",
+        "file": {
+          "file_name": "x",
+          "signed_url": "x",
+          "file_type": "x"
+        }
+      },
+      "responseStatus": 200,
+      "responseIsText": false
+    },
+    {
+      "method": "GET",
+      "path": "/v1/report/static/{job_id}/report",
+      "call": {
+        "method": "GET",
+        "path": "/v1/report/static/{jobId}/report",
+        "source": "src/red-team/reports-client.ts",
+        "member": "getStaticReport",
+        "plane": "redteam-data",
+        "responseSchema": "StaticJobReportSchema",
+        "className": "RedTeamReportsClient",
+        "parameters": [
+          {
+            "name": "jobId",
+            "type": "string"
+          }
+        ]
+      },
+      "query": {},
+      "queryWire": {},
+      "responseBody": {
+        "asr": 0,
+        "score": 0,
+        "security_report": {
+          "id": "x",
+          "display_name": "x",
+          "description": "x",
+          "preselect": false,
+          "sub_categories": [
+            {
+              "id": "x",
+              "display_name": "x",
+              "description": "x",
+              "preselect": false,
+              "prerequisites": [
+                {
+                  "id": "x",
+                  "display_name": "x",
+                  "description": "x"
+                }
+              ],
+              "active": false,
+              "file_supported": false,
+              "successful": 1,
+              "failed": 1,
+              "total": 1
+            }
+          ],
+          "asr": 0,
+          "total_prompts": 1,
+          "total_attacks": 1,
+          "successful": 1,
+          "failed": 1
+        },
+        "safety_report": {
+          "id": "x",
+          "display_name": "x",
+          "description": "x",
+          "preselect": false,
+          "sub_categories": [
+            {
+              "id": "x",
+              "display_name": "x",
+              "description": "x",
+              "preselect": false,
+              "prerequisites": [
+                {
+                  "id": "x",
+                  "display_name": "x",
+                  "description": "x"
+                }
+              ],
+              "active": false,
+              "file_supported": false,
+              "successful": 1,
+              "failed": 1,
+              "total": 1
+            }
+          ],
+          "asr": 0,
+          "total_prompts": 1,
+          "total_attacks": 1,
+          "successful": 1,
+          "failed": 1
+        },
+        "brand_report": {
+          "id": "x",
+          "display_name": "x",
+          "description": "x",
+          "preselect": false,
+          "sub_categories": [
+            {
+              "id": "x",
+              "display_name": "x",
+              "description": "x",
+              "preselect": false,
+              "prerequisites": [
+                {
+                  "id": "x",
+                  "display_name": "x",
+                  "description": "x"
+                }
+              ],
+              "active": false,
+              "file_supported": false,
+              "successful": 1,
+              "failed": 1,
+              "total": 1
+            }
+          ],
+          "asr": 0,
+          "total_prompts": 1,
+          "total_attacks": 1,
+          "successful": 1,
+          "failed": 1
+        },
+        "compliance_report": [
+          {
+            "id": "x",
+            "display_name": "x",
+            "description": "x",
+            "active": false,
+            "version": "x",
+            "link": "x",
+            "techniques": [
+              {
+                "id": "x",
+                "display_name": "x",
+                "compliance_id": "x",
+                "description": "x",
+                "link": "x",
+                "version": "x",
+                "active": false,
+                "successful": 1,
+                "failed": 1,
+                "total": 1
+              }
+            ],
+            "score": 1
+          }
+        ],
+        "severity_report": {
+          "stats": [
+            {
+              "severity": "x",
+              "successful": 1,
+              "failed": 1
+            }
+          ],
+          "successful": 1,
+          "failed": 1,
+          "total_attacks": 1
+        },
+        "report_summary": "x",
+        "recommendations": {
+          "runtime_security_policy_configuration": [
+            {
+              "policy_id": "PROMPT_INJECTION",
+              "display_name": "x",
+              "config": {
+                "action": "ALLOW"
+              }
+            }
+          ],
+          "other_measures": [
+            {
+              "mapping_remediation_id": "x",
+              "subcategories": ["x"],
+              "effectiveness": 1,
+              "ease_of_implementation": 1,
+              "priority": 1,
+              "remediation": "x",
+              "description": "x",
+              "resource_links": ["x"],
+              "categories": ["x"]
+            }
+          ]
+        }
+      },
+      "responseStatus": 200,
+      "responseIsText": false
+    },
+    {
+      "method": "GET",
+      "path": "/v1/report/static/{job_id}/runtime-policy-config",
+      "call": {
+        "method": "GET",
+        "path": "/v1/report/static/{jobId}/runtime-policy-config",
+        "source": "src/red-team/reports-client.ts",
+        "member": "getStaticRuntimePolicy",
+        "plane": "redteam-data",
+        "responseSchema": "RuntimeSecurityProfileResponseSchema",
+        "className": "RedTeamReportsClient",
+        "parameters": [
+          {
+            "name": "jobId",
+            "type": "string"
+          }
+        ]
+      },
+      "query": {},
+      "queryWire": {},
+      "responseBody": {
+        "runtime_security_profile": [
+          {
+            "policy_id": "PROMPT_INJECTION",
+            "display_name": "x",
+            "config": {
+              "action": "ALLOW"
+            }
+          }
+        ]
+      },
+      "responseStatus": 200,
+      "responseIsText": false
+    },
+    {
+      "method": "GET",
+      "path": "/v1/report/static/{job_id}/remediation",
+      "call": {
+        "method": "GET",
+        "path": "/v1/report/static/{jobId}/remediation",
+        "source": "src/red-team/reports-client.ts",
+        "member": "getStaticRemediation",
+        "plane": "redteam-data",
+        "responseSchema": "RemediationResponseSchema",
+        "className": "RedTeamReportsClient",
+        "parameters": [
+          {
+            "name": "jobId",
+            "type": "string"
+          }
+        ]
+      },
+      "query": {},
+      "queryWire": {},
+      "responseBody": {
+        "remediations": [
+          {
+            "remediation": "x",
+            "description": "x",
+            "resource_links": ["x"],
+            "priority_level": "x",
+            "ease_of_implementation_level": "x",
+            "effectiveness_level": "x"
+          }
+        ]
+      },
+      "responseStatus": 200,
+      "responseIsText": false
+    },
+    {
+      "method": "GET",
+      "path": "/v1/report/dynamic/{job_id}/report",
+      "call": {
+        "method": "GET",
+        "path": "/v1/report/dynamic/{jobId}/report",
+        "source": "src/red-team/reports-client.ts",
+        "member": "getDynamicReport",
+        "plane": "redteam-data",
+        "responseSchema": "DynamicJobReportSchema",
+        "className": "RedTeamReportsClient",
+        "parameters": [
+          {
+            "name": "jobId",
+            "type": "string"
+          }
+        ]
+      },
+      "query": {},
+      "queryWire": {},
+      "responseBody": {
+        "total_goals": 0,
+        "total_streams": 0,
+        "total_threats": 0,
+        "goals_achieved": 0,
+        "report_summary": "x",
+        "score": 0,
+        "asr": 0
+      },
+      "responseStatus": 200,
+      "responseIsText": false
+    },
+    {
+      "method": "GET",
+      "path": "/v1/report/dynamic/{job_id}/runtime-policy-config",
+      "call": {
+        "method": "GET",
+        "path": "/v1/report/dynamic/{jobId}/runtime-policy-config",
+        "source": "src/red-team/reports-client.ts",
+        "member": "getDynamicRuntimePolicy",
+        "plane": "redteam-data",
+        "responseSchema": "RuntimeSecurityProfileResponseSchema",
+        "className": "RedTeamReportsClient",
+        "parameters": [
+          {
+            "name": "jobId",
+            "type": "string"
+          }
+        ]
+      },
+      "query": {},
+      "queryWire": {},
+      "responseBody": {
+        "runtime_security_profile": [
+          {
+            "policy_id": "PROMPT_INJECTION",
+            "display_name": "x",
+            "config": {
+              "action": "ALLOW"
+            }
+          }
+        ]
+      },
+      "responseStatus": 200,
+      "responseIsText": false
+    },
+    {
+      "method": "GET",
+      "path": "/v1/report/dynamic/{job_id}/remediation",
+      "call": {
+        "method": "GET",
+        "path": "/v1/report/dynamic/{jobId}/remediation",
+        "source": "src/red-team/reports-client.ts",
+        "member": "getDynamicRemediation",
+        "plane": "redteam-data",
+        "responseSchema": "RemediationResponseSchema",
+        "className": "RedTeamReportsClient",
+        "parameters": [
+          {
+            "name": "jobId",
+            "type": "string"
+          }
+        ]
+      },
+      "query": {},
+      "queryWire": {},
+      "responseBody": {
+        "remediations": [
+          {
+            "remediation": "x",
+            "description": "x",
+            "resource_links": ["x"],
+            "priority_level": "x",
+            "ease_of_implementation_level": "x",
+            "effectiveness_level": "x"
+          }
+        ]
+      },
+      "responseStatus": 200,
+      "responseIsText": false
+    },
+    {
+      "method": "GET",
+      "path": "/v1/report/dynamic/{job_id}/list-goals",
+      "call": {
+        "method": "GET",
+        "path": "/v1/report/dynamic/{jobId}/list-goals",
+        "source": "src/red-team/reports-client.ts",
+        "member": "listGoals",
+        "plane": "redteam-data",
+        "responseSchema": "GoalListResponseSchema",
+        "queryType": "GoalListOptions",
+        "className": "RedTeamReportsClient",
+        "parameters": [
+          {
+            "name": "jobId",
+            "type": "string"
+          },
+          {
+            "name": "opts",
+            "type": "GoalListOptions"
+          }
+        ]
+      },
+      "query": {
+        "skip": 0,
+        "limit": 1,
+        "count": false,
+        "status": "SUCCESSFUL",
+        "goal_type": "AGENT",
+        "search": "x",
+        "goal_category": "GOAL_MANIPULATION"
+      },
+      "queryWire": {
+        "skip": ["0"],
+        "limit": ["1"],
+        "count": ["false"],
+        "status": ["SUCCESSFUL"],
+        "goal_type": ["AGENT"],
+        "search": ["x"],
+        "goal_category": ["GOAL_MANIPULATION"]
+      },
+      "responseBody": {
+        "pagination": {
+          "total_items": 1
+        },
+        "data": [
+          {
+            "goal": "x",
+            "safe_response": "x",
+            "jailbroken_response": "x",
+            "goal_metadata": {},
+            "custom_goal": false,
+            "goal_type": "BASE",
+            "goal_category": "GOAL_MANIPULATION",
+            "uuid": "550e8400-e29b-41d4-a716-446655440000",
+            "tsg_id": "x",
+            "job_id": "550e8400-e29b-41d4-a716-446655440000",
+            "goal_to_show": "x",
+            "threat": false,
+            "version": 1,
+            "extra_info": {},
+            "error": false
+          }
+        ]
+      },
+      "responseStatus": 200,
+      "responseIsText": false
+    },
+    {
+      "method": "GET",
+      "path": "/v1/report/dynamic/{job_id}/goal/{goal_id}/list-streams",
+      "call": {
+        "method": "GET",
+        "path": "/v1/report/dynamic/{jobId}/goal/{goalId}/list-streams",
+        "source": "src/red-team/reports-client.ts",
+        "member": "listGoalStreams",
+        "plane": "redteam-data",
+        "responseSchema": "StreamListResponseSchema",
+        "queryType": "RedTeamListOptions",
+        "className": "RedTeamReportsClient",
+        "parameters": [
+          {
+            "name": "jobId",
+            "type": "string"
+          },
+          {
+            "name": "goalId",
+            "type": "string"
+          },
+          {
+            "name": "opts",
+            "type": "RedTeamListOptions"
+          }
+        ]
+      },
+      "query": {},
+      "queryWire": {},
+      "responseBody": {
+        "pagination": {
+          "total_items": 1
+        },
+        "data": [
+          {
+            "uuid": "550e8400-e29b-41d4-a716-446655440000",
+            "tsg_id": "x",
+            "job_id": "550e8400-e29b-41d4-a716-446655440000",
+            "target_id": "550e8400-e29b-41d4-a716-446655440000",
+            "stream_idx": 1,
+            "iteration": 1,
+            "goal_id": "550e8400-e29b-41d4-a716-446655440000",
+            "goal": {
+              "goal": "x",
+              "goal_english": "x",
+              "safe_response": "x",
+              "jailbroken_response": "x",
+              "goal_metadata": {},
+              "custom_goal": false,
+              "goal_type": "BASE",
+              "goal_category": "GOAL_MANIPULATION",
+              "uuid": "550e8400-e29b-41d4-a716-446655440000",
+              "tsg_id": "x",
+              "job_id": "550e8400-e29b-41d4-a716-446655440000",
+              "goal_to_show": "x",
+              "threat": false,
+              "version": 1,
+              "extra_info": {},
+              "error": false
+            },
+            "marked_safe": false,
+            "stream_type": "NORMAL",
+            "threat": false,
+            "first_threat_iteration": {
+              "uuid": "550e8400-e29b-41d4-a716-446655440000",
+              "tsg_id": "x",
+              "job_id": "550e8400-e29b-41d4-a716-446655440000",
+              "stream_id": "550e8400-e29b-41d4-a716-446655440000",
+              "goal_id": "550e8400-e29b-41d4-a716-446655440000",
+              "iteration": 0,
+              "prompt": "x",
+              "prompt_english": "x",
+              "techniques": "x",
+              "improvement": "x",
+              "prompts_objective": "x",
+              "summary": "x",
+              "output": "x",
+              "output_english": "x",
+              "score": 0,
+              "judge_reasoning": "x",
+              "threat": false,
+              "created_at": "2026-09-06T00:00:00Z",
+              "updated_at": "2026-09-06T00:00:00Z",
+              "extra_info": {},
+              "version": 1,
+              "error": false,
+              "error_message": "x"
+            },
+            "created_at": "2026-09-06T00:00:00Z",
+            "updated_at": "2026-09-06T00:00:00Z",
+            "extra_info": {},
+            "version": 1,
+            "error": false,
+            "error_message": "x"
+          }
+        ]
+      },
+      "responseStatus": 200,
+      "responseIsText": false
+    },
+    {
+      "method": "GET",
+      "path": "/v1/report/dynamic/stream/{stream_id}",
+      "call": {
+        "method": "GET",
+        "path": "/v1/report/dynamic/stream/{streamId}",
+        "source": "src/red-team/reports-client.ts",
+        "member": "getStreamDetail",
+        "plane": "redteam-data",
+        "responseSchema": "StreamDetailResponseSchema",
+        "className": "RedTeamReportsClient",
+        "parameters": [
+          {
+            "name": "streamId",
+            "type": "string"
+          }
+        ]
+      },
+      "query": {},
+      "queryWire": {},
+      "responseBody": {
+        "uuid": "550e8400-e29b-41d4-a716-446655440000",
+        "tsg_id": "x",
+        "job_id": "550e8400-e29b-41d4-a716-446655440000",
+        "target_id": "550e8400-e29b-41d4-a716-446655440000",
+        "stream_idx": 1,
+        "iteration": 1,
+        "goal_id": "550e8400-e29b-41d4-a716-446655440000",
+        "goal": "x",
+        "marked_safe": false,
+        "stream_type": "NORMAL",
+        "threat": false,
+        "first_threat_iteration": {
+          "uuid": "550e8400-e29b-41d4-a716-446655440000",
+          "tsg_id": "x",
+          "job_id": "550e8400-e29b-41d4-a716-446655440000",
+          "stream_id": "550e8400-e29b-41d4-a716-446655440000",
+          "goal_id": "550e8400-e29b-41d4-a716-446655440000",
+          "iteration": 0,
+          "prompt": "x",
+          "prompt_english": "x",
+          "techniques": "x",
+          "improvement": "x",
+          "prompts_objective": "x",
+          "summary": "x",
+          "output": "x",
+          "output_english": "x",
+          "score": 0,
+          "judge_reasoning": "x",
+          "threat": false,
+          "created_at": "2026-09-06T00:00:00Z",
+          "updated_at": "2026-09-06T00:00:00Z",
+          "extra_info": {},
+          "version": 1,
+          "error": false,
+          "error_message": "x"
+        },
+        "created_at": "2026-09-06T00:00:00Z",
+        "updated_at": "2026-09-06T00:00:00Z",
+        "extra_info": {},
+        "version": 1,
+        "error": false,
+        "error_message": "x",
+        "iterations": [
+          {
+            "uuid": "550e8400-e29b-41d4-a716-446655440000",
+            "tsg_id": "x",
+            "job_id": "550e8400-e29b-41d4-a716-446655440000",
+            "stream_id": "550e8400-e29b-41d4-a716-446655440000",
+            "goal_id": "550e8400-e29b-41d4-a716-446655440000",
+            "iteration": 0,
+            "prompt": "x",
+            "techniques": "x",
+            "improvement": "x",
+            "prompts_objective": "x",
+            "summary": "x",
+            "output": "x",
+            "score": 0,
+            "judge_reasoning": "x",
+            "threat": false,
+            "created_at": "2026-09-06T00:00:00Z",
+            "updated_at": "2026-09-06T00:00:00Z",
+            "extra_info": {},
+            "version": 1,
+            "error": false,
+            "error_message": "x"
+          }
+        ],
+        "goal_category": "GOAL_MANIPULATION",
+        "goal_metadata": {}
+      },
+      "responseStatus": 200,
+      "responseIsText": false
+    },
+    {
+      "method": "GET",
+      "path": "/v1/report/{job_id}/download",
+      "call": {
+        "method": "GET",
+        "path": "/v1/report/{jobId}/download",
+        "source": "src/red-team/reports-client.ts",
+        "member": "downloadReport",
+        "plane": "redteam-data",
+        "responseSchema": "z.unknown()",
+        "className": "RedTeamReportsClient",
+        "parameters": [
+          {
+            "name": "jobId",
+            "type": "string"
+          },
+          {
+            "name": "format",
+            "type": "string"
+          }
+        ]
+      },
+      "query": {
+        "file_format": "CSV"
+      },
+      "queryWire": {
+        "file_format": ["CSV"]
+      },
+      "responseBody": {},
+      "responseStatus": 200,
+      "responseIsText": false
+    },
+    {
+      "method": "POST",
+      "path": "/v1/report/{job_id}/generate-partial-report",
+      "call": {
+        "method": "POST",
+        "path": "/v1/report/{jobId}/generate-partial-report",
+        "source": "src/red-team/reports-client.ts",
+        "member": "generatePartialReport",
+        "plane": "redteam-data",
+        "responseSchema": "z.unknown()",
+        "className": "RedTeamReportsClient",
+        "parameters": [
+          {
+            "name": "jobId",
+            "type": "string"
+          }
+        ]
+      },
+      "query": {},
+      "queryWire": {},
+      "responseBody": {},
+      "responseStatus": 200,
+      "responseIsText": false
+    },
+    {
+      "method": "GET",
+      "path": "/v1/report/static/{job_id}/attack-multi-turn/{attack_id}",
+      "call": {
+        "method": "GET",
+        "path": "/v1/report/static/{jobId}/attack-multi-turn/{attackId}",
+        "source": "src/red-team/reports-client.ts",
+        "member": "getMultiTurnAttackDetail",
+        "plane": "redteam-data",
+        "responseSchema": "AttackMultiTurnDetailResponseSchema",
+        "className": "RedTeamReportsClient",
+        "parameters": [
+          {
+            "name": "jobId",
+            "type": "string"
+          },
+          {
+            "name": "attackId",
+            "type": "string"
+          }
+        ]
+      },
+      "query": {},
+      "queryWire": {},
+      "responseBody": {
+        "uuid": "550e8400-e29b-41d4-a716-446655440000",
+        "tsg_id": "x",
+        "job_id": "550e8400-e29b-41d4-a716-446655440000",
+        "target_id": "550e8400-e29b-41d4-a716-446655440000",
+        "prompt": "x",
+        "status": "INIT",
+        "marked_safe": false,
+        "extra_info": {},
+        "threat": false,
+        "attack_type": "NORMAL",
+        "multi_turn": false,
+        "asr": 0,
+        "version": 1,
+        "error": false,
+        "prompt_mapping_id": "550e8400-e29b-41d4-a716-446655440000",
+        "prompt_id": "550e8400-e29b-41d4-a716-446655440000",
+        "category": "SECURITY",
+        "sub_category": "ADVERSARIAL_SUFFIX",
+        "severity": "x",
+        "category_display_name": "x",
+        "sub_category_display_name": "x",
+        "compliance_frameworks": [
+          {
+            "id": "x",
+            "display_name": "x",
+            "description": "x",
+            "active": false,
+            "version": "x",
+            "link": "x",
+            "techniques": [
+              {
+                "id": "x",
+                "display_name": "x",
+                "compliance_id": "x",
+                "description": "x",
+                "link": "x",
+                "version": "x",
+                "active": false
+              }
+            ]
+          }
+        ],
+        "outputs": [
+          [
+            {
+              "uuid": "550e8400-e29b-41d4-a716-446655440000",
+              "tsg_id": "x",
+              "attack_id": "550e8400-e29b-41d4-a716-446655440000",
+              "job_id": "550e8400-e29b-41d4-a716-446655440000",
+              "target_id": "550e8400-e29b-41d4-a716-446655440000",
+              "output": "x",
+              "threat": false,
+              "marked_safe": false,
+              "prompt": "x",
+              "turn": 1,
+              "generation": 1,
+              "multi_turn": false,
+              "error": false,
+              "error_message": "x"
+            }
+          ]
+        ],
+        "goal": "x",
+        "attack_modality": "TEXT",
+        "file": {
+          "file_name": "x",
+          "signed_url": "x",
+          "file_type": "x"
+        }
+      },
+      "responseStatus": 200,
+      "responseIsText": false
+    },
+    {
+      "method": "POST",
+      "path": "/v1/metering/quota",
+      "call": {
+        "method": "POST",
+        "path": "/v1/metering/quota",
+        "source": "src/red-team/client.ts",
+        "member": "getQuota",
+        "plane": "redteam-data",
+        "responseSchema": "QuotaSummarySchema",
+        "className": "RedTeamClient",
+        "parameters": []
+      },
+      "query": {},
+      "queryWire": {},
+      "responseBody": {
+        "static": {
+          "allocated": 1,
+          "unlimited": false,
+          "consumed": 1
+        },
+        "dynamic": {
+          "allocated": 1,
+          "unlimited": false,
+          "consumed": 1
+        },
+        "custom": {
+          "allocated": 1,
+          "unlimited": false,
+          "consumed": 1
+        }
+      },
+      "responseStatus": 200,
+      "responseIsText": false
+    },
+    {
+      "method": "GET",
+      "path": "/v1/custom-attacks/report/{job_id}",
+      "call": {
+        "method": "GET",
+        "path": "/v1/custom-attacks/report/{jobId}",
+        "source": "src/red-team/custom-attack-reports-client.ts",
+        "member": "getReport",
+        "plane": "redteam-data",
+        "responseSchema": "CustomAttackReportResponseSchema",
+        "className": "RedTeamCustomAttackReportsClient",
+        "parameters": [
+          {
+            "name": "jobId",
+            "type": "string"
+          }
+        ]
+      },
+      "query": {},
+      "queryWire": {},
+      "responseBody": {
+        "total_prompts": 1,
+        "total_attacks": 1,
+        "total_threats": 1,
+        "failed_attacks": 1,
+        "score": 1,
+        "asr": 1,
+        "custom_attack_reports": [
+          {
+            "prompt_set_id": "550e8400-e29b-41d4-a716-446655440000",
+            "prompt_set_name": "x",
+            "total_prompts": 1,
+            "total_attacks": 1,
+            "total_threats": 1,
+            "failed_attacks": 1,
+            "threat_rate": 1,
+            "property_names": ["x"],
+            "property_statistics": [
+              {
+                "property_name": "x",
+                "values": [
+                  {
+                    "value": "x",
+                    "successful_attack_count": 1,
+                    "total_attack_count": 1,
+                    "success_rate": 1
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "property_statistics": [
+          {
+            "property_name": "x",
+            "values": [
+              {
+                "value": "x",
+                "successful_attack_count": 1,
+                "total_attack_count": 1,
+                "success_rate": 1
+              }
+            ]
+          }
+        ]
+      },
+      "responseStatus": 200,
+      "responseIsText": false
+    },
+    {
+      "method": "GET",
+      "path": "/v1/custom-attacks/report/{job_id}/prompt-sets",
+      "call": {
+        "method": "GET",
+        "path": "/v1/custom-attacks/report/{jobId}/prompt-sets",
+        "source": "src/red-team/custom-attack-reports-client.ts",
+        "member": "getPromptSets",
+        "plane": "redteam-data",
+        "responseSchema": "PromptSetsReportResponseSchema",
+        "queryType": "PromptSetsReportOptions",
+        "className": "RedTeamCustomAttackReportsClient",
+        "parameters": [
+          {
+            "name": "jobId",
+            "type": "string"
+          },
+          {
+            "name": "opts",
+            "type": "PromptSetsReportOptions"
+          }
+        ]
+      },
+      "query": {
+        "property_filters": "x",
+        "is_threat": false,
+        "skip": 0,
+        "limit": 1
+      },
+      "queryWire": {
+        "property_filters": ["x"],
+        "is_threat": ["false"],
+        "skip": ["0"],
+        "limit": ["1"]
+      },
+      "responseBody": {
+        "prompt_sets": [
+          {
+            "prompt_set_id": "550e8400-e29b-41d4-a716-446655440000",
+            "prompt_set_name": "x",
+            "total_prompts": 1,
+            "total_attacks": 1,
+            "total_threats": 1,
+            "failed_attacks": 1,
+            "threat_rate": 1,
+            "property_names": ["x"],
+            "property_statistics": [
+              {
+                "property_name": "x",
+                "values": [
+                  {
+                    "value": "x",
+                    "successful_attack_count": 1,
+                    "total_attack_count": 1,
+                    "success_rate": 1
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "total_prompt_sets": 1,
+        "applied_filters": {}
+      },
+      "responseStatus": 200,
+      "responseIsText": false
+    },
+    {
+      "method": "GET",
+      "path": "/v1/custom-attacks/report/{job_id}/prompt-set/{prompt_set_id}/prompts",
+      "call": {
+        "method": "GET",
+        "path": "/v1/custom-attacks/report/{jobId}/prompt-set/{promptSetId}/prompts",
+        "source": "src/red-team/custom-attack-reports-client.ts",
+        "member": "getPromptsBySet",
+        "plane": "redteam-data",
+        "responseSchema": "z.array(PromptDetailResponseSchema)",
+        "queryType": "PromptsBySetListOptions",
+        "className": "RedTeamCustomAttackReportsClient",
+        "parameters": [
+          {
+            "name": "jobId",
+            "type": "string"
+          },
+          {
+            "name": "promptSetId",
+            "type": "string"
+          },
+          {
+            "name": "opts",
+            "type": "PromptsBySetListOptions"
+          }
+        ]
+      },
+      "query": {
+        "is_threat": false,
+        "skip": 0,
+        "limit": 1
+      },
+      "queryWire": {
+        "is_threat": ["false"],
+        "skip": ["0"],
+        "limit": ["1"]
+      },
+      "responseBody": [
+        {
+          "prompt_id": "550e8400-e29b-41d4-a716-446655440000",
+          "prompt_text": "x",
+          "goal": "x",
+          "user_defined_goal": false,
+          "properties": [
+            {
+              "name": "x",
+              "value": "x"
+            }
+          ],
+          "attack_id": "550e8400-e29b-41d4-a716-446655440000",
+          "threat": false,
+          "attack_outputs": ["x"],
+          "asr": 0,
+          "prompt_set_id": "550e8400-e29b-41d4-a716-446655440000",
+          "prompt_set_name": "x",
+          "error": false
+        }
+      ],
+      "responseStatus": 200,
+      "responseIsText": false
+    },
+    {
+      "method": "GET",
+      "path": "/v1/custom-attacks/report/{job_id}/prompt/{prompt_id}",
+      "call": {
+        "method": "GET",
+        "path": "/v1/custom-attacks/report/{jobId}/prompt/{promptId}",
+        "source": "src/red-team/custom-attack-reports-client.ts",
+        "member": "getPromptDetail",
+        "plane": "redteam-data",
+        "responseSchema": "PromptDetailResponseSchema",
+        "className": "RedTeamCustomAttackReportsClient",
+        "parameters": [
+          {
+            "name": "jobId",
+            "type": "string"
+          },
+          {
+            "name": "promptId",
+            "type": "string"
+          }
+        ]
+      },
+      "query": {},
+      "queryWire": {},
+      "responseBody": {
+        "prompt_id": "550e8400-e29b-41d4-a716-446655440000",
+        "prompt_text": "x",
+        "goal": "x",
+        "user_defined_goal": false,
+        "properties": [
+          {
+            "name": "x",
+            "value": "x"
+          }
+        ],
+        "attack_id": "550e8400-e29b-41d4-a716-446655440000",
+        "threat": false,
+        "attack_outputs": ["x"],
+        "asr": 0,
+        "prompt_set_id": "550e8400-e29b-41d4-a716-446655440000",
+        "prompt_set_name": "x",
+        "error": false
+      },
+      "responseStatus": 200,
+      "responseIsText": false
+    },
+    {
+      "method": "GET",
+      "path": "/v1/custom-attacks/job/{job_id}/list-custom-attacks",
+      "call": {
+        "method": "GET",
+        "path": "/v1/custom-attacks/job/{jobId}/list-custom-attacks",
+        "source": "src/red-team/custom-attack-reports-client.ts",
+        "member": "listCustomAttacks",
+        "plane": "redteam-data",
+        "responseSchema": "CustomAttacksListResponseSchema",
+        "queryType": "CustomAttacksReportListOptions",
+        "className": "RedTeamCustomAttackReportsClient",
+        "parameters": [
+          {
+            "name": "jobId",
+            "type": "string"
+          },
+          {
+            "name": "opts",
+            "type": "CustomAttacksReportListOptions"
+          }
+        ]
+      },
+      "query": {
+        "skip": 0,
+        "limit": 1,
+        "threat": false,
+        "prompt_set_id": "x",
+        "property_value": "x",
+        "status": "SUCCESSFUL"
+      },
+      "queryWire": {
+        "skip": ["0"],
+        "limit": ["1"],
+        "threat": ["false"],
+        "prompt_set_id": ["x"],
+        "property_value": ["x"],
+        "status": ["SUCCESSFUL"]
+      },
+      "responseBody": {
+        "pagination": {
+          "total_items": 1
+        },
+        "data": [
+          {
+            "prompt_id": "550e8400-e29b-41d4-a716-446655440000",
+            "prompt_text": "x",
+            "goal": "x",
+            "user_defined_goal": false,
+            "properties": [
+              {
+                "name": "x",
+                "value": "x"
+              }
+            ],
+            "attack_id": "550e8400-e29b-41d4-a716-446655440000",
+            "threat": false,
+            "attack_outputs": ["x"],
+            "asr": 0,
+            "prompt_set_id": "550e8400-e29b-41d4-a716-446655440000",
+            "prompt_set_name": "x",
+            "error": false
+          }
+        ],
+        "total_attacks": 1,
+        "total_threats": 1
+      },
+      "responseStatus": 200,
+      "responseIsText": false
+    },
+    {
+      "method": "GET",
+      "path": "/v1/custom-attacks/job/{job_id}/attack/{attack_id}/list-outputs",
+      "call": {
+        "method": "GET",
+        "path": "/v1/custom-attacks/job/{jobId}/attack/{attackId}/list-outputs",
+        "source": "src/red-team/custom-attack-reports-client.ts",
+        "member": "getAttackOutputs",
+        "plane": "redteam-data",
+        "responseSchema": "z.array(CustomAttackOutputSchema)",
+        "className": "RedTeamCustomAttackReportsClient",
+        "parameters": [
+          {
+            "name": "jobId",
+            "type": "string"
+          },
+          {
+            "name": "attackId",
+            "type": "string"
+          }
+        ]
+      },
+      "query": {},
+      "queryWire": {},
+      "responseBody": [
+        {
+          "uuid": "550e8400-e29b-41d4-a716-446655440000",
+          "tsg_id": "x",
+          "custom_attack_id": "550e8400-e29b-41d4-a716-446655440000",
+          "job_id": "550e8400-e29b-41d4-a716-446655440000",
+          "target_id": "550e8400-e29b-41d4-a716-446655440000",
+          "output": "x",
+          "threat": false,
+          "marked_safe": false,
+          "error": false,
+          "error_message": "x"
+        }
+      ],
+      "responseStatus": 200,
+      "responseIsText": false
+    },
+    {
+      "method": "GET",
+      "path": "/v1/custom-attacks/job/{job_id}/property-stats",
+      "call": {
+        "method": "GET",
+        "path": "/v1/custom-attacks/job/{jobId}/property-stats",
+        "source": "src/red-team/custom-attack-reports-client.ts",
+        "member": "getPropertyStats",
+        "plane": "redteam-data",
+        "responseSchema": "z.array(PropertyStatisticResultSchema)",
+        "className": "RedTeamCustomAttackReportsClient",
+        "parameters": [
+          {
+            "name": "jobId",
+            "type": "string"
+          }
+        ]
+      },
+      "query": {},
+      "queryWire": {},
+      "responseBody": [{}],
+      "responseStatus": 200,
+      "responseIsText": false
+    },
+    {
+      "method": "GET",
+      "path": "/v1/error-log/job/{job_id}",
+      "call": {
+        "method": "GET",
+        "path": "/v1/error-log/job/{jobId}",
+        "source": "src/red-team/client.ts",
+        "member": "getErrorLogs",
+        "plane": "redteam-data",
+        "responseSchema": "ErrorLogListResponseSchema",
+        "queryType": "RedTeamListOptions",
+        "className": "RedTeamClient",
+        "parameters": [
+          {
+            "name": "jobId",
+            "type": "string"
+          },
+          {
+            "name": "opts",
+            "type": "RedTeamListOptions"
+          }
+        ]
+      },
+      "query": {
+        "limit": 1,
+        "skip": 0
+      },
+      "queryWire": {
+        "limit": ["1"],
+        "skip": ["0"]
+      },
+      "responseBody": {
+        "pagination": {
+          "total_items": 1
+        },
+        "data": [
+          {
+            "job_id": "550e8400-e29b-41d4-a716-446655440000",
+            "target_id": "550e8400-e29b-41d4-a716-446655440000",
+            "target_version": 1,
+            "attack_id": "550e8400-e29b-41d4-a716-446655440000",
+            "error_type": "CONTENT_FILTER",
+            "error_source": "TARGET",
+            "error_message": "x",
+            "target_object": {},
+            "extra_info": {},
+            "version": 1,
+            "created_at": "2026-09-06T00:00:00Z",
+            "updated_at": "2026-09-06T00:00:00Z"
+          }
+        ]
+      },
+      "responseStatus": 200,
+      "responseIsText": false
+    },
+    {
+      "method": "GET",
+      "path": "/v1/error-log/target-profile/{target_id}",
+      "call": {
+        "method": "GET",
+        "path": "/v1/error-log/target-profile/{targetId}",
+        "source": "src/red-team/client.ts",
+        "member": "getTargetProfileErrorLogs",
+        "plane": "redteam-data",
+        "responseSchema": "ErrorLogListResponseSchema",
+        "queryType": "RedTeamListOptions",
+        "className": "RedTeamClient",
+        "parameters": [
+          {
+            "name": "targetId",
+            "type": "string"
+          },
+          {
+            "name": "opts",
+            "type": "RedTeamListOptions"
+          }
+        ]
+      },
+      "query": {
+        "limit": 1
+      },
+      "queryWire": {
+        "limit": ["1"]
+      },
+      "responseBody": {
+        "pagination": {
+          "total_items": 1
+        },
+        "data": [
+          {
+            "job_id": "550e8400-e29b-41d4-a716-446655440000",
+            "target_id": "550e8400-e29b-41d4-a716-446655440000",
+            "target_version": 1,
+            "attack_id": "550e8400-e29b-41d4-a716-446655440000",
+            "error_type": "CONTENT_FILTER",
+            "error_source": "TARGET",
+            "error_message": "x",
+            "target_object": {},
+            "extra_info": {},
+            "version": 1,
+            "created_at": "2026-09-06T00:00:00Z",
+            "updated_at": "2026-09-06T00:00:00Z"
+          }
+        ]
+      },
+      "responseStatus": 200,
+      "responseIsText": false
+    },
+    {
+      "method": "GET",
+      "path": "/v1/goal-categories/{target_type}",
+      "call": {
+        "method": "GET",
+        "path": "/v1/goal-categories/{encodeURIComponent(targetType)}",
+        "source": "src/red-team/client.ts",
+        "member": "getGoalCategories",
+        "plane": "redteam-data",
+        "responseSchema": "GoalCategoryListResponseSchema",
+        "className": "RedTeamClient",
+        "parameters": [
+          {
+            "name": "targetType",
+            "type": "string"
+          }
+        ]
+      },
+      "query": {},
+      "queryWire": {},
+      "responseBody": {
+        "target_type": "x",
+        "categories": [
+          {
+            "category": "x",
+            "display_name": "x",
+            "description": "x"
+          }
+        ]
+      },
+      "responseStatus": 200,
+      "responseIsText": false
+    },
+    {
+      "method": "GET",
+      "path": "/v1/languages",
+      "call": {
+        "method": "GET",
+        "path": "/v1/languages",
+        "source": "src/red-team/client.ts",
+        "member": "getLanguages",
+        "plane": "redteam-data",
+        "responseSchema": "TenantLanguagesResponseSchema",
+        "className": "RedTeamClient",
+        "parameters": []
+      },
+      "query": {},
+      "queryWire": {},
+      "responseBody": {
+        "multilingual_enabled": false,
+        "supported_job_types": ["x"],
+        "languages": [
+          {
+            "code": "x",
+            "name": "x"
+          }
+        ]
+      },
+      "responseStatus": 200,
+      "responseIsText": false
+    },
+    {
+      "method": "GET",
+      "path": "/v1/dashboard/scan-statistics",
+      "call": {
+        "method": "GET",
+        "path": "/v1/dashboard/scan-statistics",
+        "source": "src/red-team/client.ts",
+        "member": "getScanStatistics",
+        "plane": "redteam-data",
+        "responseSchema": "ScanStatisticsResponseSchema",
+        "className": "RedTeamClient",
+        "parameters": [
+          {
+            "name": "params",
+            "type": "{\n    date_range?: string;\n    target_id?: string;\n  }"
+          }
+        ]
+      },
+      "query": {},
+      "queryWire": {},
+      "responseBody": {
+        "total_scans": 0,
+        "targets_scanned": 0,
+        "targets_scanned_by_type": [
+          {
+            "name": "x",
+            "count": 0
+          }
+        ],
+        "scan_status": [
+          {
+            "name": "x",
+            "count": 0
+          }
+        ],
+        "risk_profile": [
+          {
+            "risk_rating": "CRITICAL",
+            "total": 0,
+            "targets_by_type": [
+              {
+                "name": "x",
+                "count": 0
+              }
+            ]
+          }
+        ]
+      },
+      "responseStatus": 200,
+      "responseIsText": false
+    },
+    {
+      "method": "GET",
+      "path": "/v1/dashboard/score-trend",
+      "call": {
+        "method": "GET",
+        "path": "/v1/dashboard/score-trend",
+        "source": "src/red-team/client.ts",
+        "member": "getScoreTrend",
+        "plane": "redteam-data",
+        "responseSchema": "ScoreTrendResponseSchema",
+        "queryType": "{ date_range?: string; start_date?: string; end_date?: string }",
+        "className": "RedTeamClient",
+        "parameters": [
+          {
+            "name": "targetId",
+            "type": "string"
+          },
+          {
+            "name": "opts",
+            "type": "{ date_range?: string; start_date?: string; end_date?: string }"
+          }
+        ]
+      },
+      "query": {
+        "target_id": "550e8400-e29b-41d4-a716-446655440000",
+        "date_range": "LAST_7_DAYS",
+        "start_date": "2026-09-06",
+        "end_date": "2026-09-06"
+      },
+      "queryWire": {
+        "target_id": ["550e8400-e29b-41d4-a716-446655440000"],
+        "date_range": ["LAST_7_DAYS"],
+        "start_date": ["2026-09-06"],
+        "end_date": ["2026-09-06"]
+      },
+      "responseBody": {
+        "labels": ["x"],
+        "series": [
+          {
+            "label": "STATIC",
+            "data": [1]
+          }
+        ]
+      },
+      "responseStatus": 200,
+      "responseIsText": false
+    },
+    {
+      "method": "POST",
+      "path": "/v1/sentiment",
+      "call": {
+        "method": "POST",
+        "path": "/v1/sentiment",
+        "source": "src/red-team/client.ts",
+        "member": "updateSentiment",
+        "plane": "redteam-data",
+        "responseSchema": "SentimentResponseSchema",
+        "requestSchema": "SentimentRequestSchema",
+        "requestType": "SentimentRequest",
+        "className": "RedTeamClient",
+        "parameters": [
+          {
+            "name": "body",
+            "type": "SentimentRequest"
+          }
+        ]
+      },
+      "query": {},
+      "queryWire": {},
+      "body": {
+        "job_id": "550e8400-e29b-41d4-a716-446655440000",
+        "up_vote": false,
+        "down_vote": false
+      },
+      "responseBody": {
+        "job_id": "550e8400-e29b-41d4-a716-446655440000",
+        "up_vote": false,
+        "down_vote": false
+      },
+      "responseStatus": 200,
+      "responseIsText": false
+    },
+    {
+      "method": "GET",
+      "path": "/v1/sentiment/{job_id}",
+      "call": {
+        "method": "GET",
+        "path": "/v1/sentiment/{jobId}",
+        "source": "src/red-team/client.ts",
+        "member": "getSentiment",
+        "plane": "redteam-data",
+        "responseSchema": "SentimentResponseSchema",
+        "className": "RedTeamClient",
+        "parameters": [
+          {
+            "name": "jobId",
+            "type": "string"
+          }
+        ]
+      },
+      "query": {},
+      "queryWire": {},
+      "responseBody": {
+        "job_id": "550e8400-e29b-41d4-a716-446655440000",
+        "up_vote": false,
+        "down_vote": false
+      },
+      "responseStatus": 200,
+      "responseIsText": false
+    }
+  ]
+}

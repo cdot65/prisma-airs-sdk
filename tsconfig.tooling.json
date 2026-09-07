@@ -1,0 +1,16 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": { "noEmit": true },
+  "include": [
+    "scripts/check-doc-image-inputs.ts",
+    "scripts/check-verification-secrets.ts",
+    "scripts/verify-docs-preview.ts",
+    "scripts/verify-package-consumer.ts",
+    "scripts/openapi/**/*.ts",
+    "scripts/e2e/**/*.ts",
+    "scripts/e2e-*.ts",
+    "scripts/live-credentials.ts",
+    "scripts/probe-redteam-metadata.ts"
+  ],
+  "exclude": ["node_modules", "dist", "test"]
+}

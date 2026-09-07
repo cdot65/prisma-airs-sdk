@@ -1,3 +1,4 @@
+import { DictionaryPatchRequestSchema } from '../../models/index.js';
 import { DLP_DICTIONARIES_PATH } from '../../constants.js';
 import { request } from '../../http/request.js';
 import type { AuthAdapter } from '../../http/types.js';
@@ -265,6 +266,7 @@ export class DictionariesClient {
    */
   async patch(resourceId: string, body: DictionaryPatchRequest): Promise<DictionaryResponse> {
     return request({
+      requestSchema: DictionaryPatchRequestSchema,
       method: 'PATCH',
       baseUrl: this.baseUrl,
       path: `${DLP_DICTIONARIES_PATH}/${encodeURIComponent(resourceId)}`,

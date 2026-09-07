@@ -13,6 +13,7 @@ import { ModelSecurityScansClient } from './scans-client.js';
 import { ModelSecurityGroupsClient } from './security-groups-client.js';
 import { ModelSecurityRulesClient } from './security-rules-client.js';
 import { ModelSecurityModelsClient } from './models-client.js';
+import { ModelSecurityCustomRulesClient } from './custom-rules-client.js';
 import { PyPIAuthResponseSchema, type PyPIAuthResponse } from '../models/model-security.js';
 
 /** Options for constructing a {@link ModelSecurityClient}. */
@@ -57,6 +58,8 @@ export class ModelSecurityClient {
   public readonly securityRules: ModelSecurityRulesClient;
   /** Data plane model and model-version operations (read-only). */
   public readonly models: ModelSecurityModelsClient;
+  /** Tenant custom rules, assignments and snapshot history. */
+  public readonly customRules: ModelSecurityCustomRulesClient;
 
   private readonly mgmtEndpoint: string;
   private readonly auth: AuthAdapter;
@@ -85,6 +88,11 @@ export class ModelSecurityClient {
     this.numRetries = numRetries;
 
     this.scans = new ModelSecurityScansClient({ baseUrl: dataEndpoint, auth, numRetries });
+    this.customRules = new ModelSecurityCustomRulesClient({
+      baseUrl: mgmtEndpoint,
+      auth,
+      numRetries,
+    });
     this.models = new ModelSecurityModelsClient({ baseUrl: dataEndpoint, auth, numRetries });
     this.securityGroups = new ModelSecurityGroupsClient({
       baseUrl: mgmtEndpoint,

@@ -1,3 +1,4 @@
+import { CreateChannelRequestSchema, UpdateChannelRequestSchema } from '../models/index.js';
 import { RED_TEAM_CHANNELS_PATH, RED_TEAM_CHANNELS_STATS_PATH } from '../constants.js';
 import { request } from '../http/request.js';
 import type { AuthAdapter } from '../http/types.js';
@@ -98,6 +99,7 @@ export class RedTeamNetworkBrokerClient {
    */
   async createChannel(body: CreateChannelRequest): Promise<Channel> {
     return request({
+      requestSchema: CreateChannelRequestSchema,
       method: 'POST',
       baseUrl: this.baseUrl,
       path: RED_TEAM_CHANNELS_PATH,
@@ -178,6 +180,7 @@ export class RedTeamNetworkBrokerClient {
   async updateChannel(channelId: string, body: UpdateChannelRequest): Promise<Channel> {
     assertUuid(channelId, 'channel id');
     return request({
+      requestSchema: UpdateChannelRequestSchema,
       method: 'PATCH',
       baseUrl: this.baseUrl,
       path: `${RED_TEAM_CHANNELS_PATH}/${channelId}`,

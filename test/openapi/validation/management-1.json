@@ -1,0 +1,725 @@
+{
+  "source": "prisma-airs/management/mgmt-service_latest.yaml",
+  "sha256": "7ee421fd6ba31bd4f1c88d233ea032a52cd29ad59b71f2c3cbea9bc033fc215f",
+  "corrections": [
+    "management-topic-items-indentation",
+    "management-server-assigned-revisions",
+    "management-optional-topic-content",
+    "management-optional-dlp-members"
+  ],
+  "contracts": [
+    {
+      "direction": "response",
+      "validator": "SecurityProfileListResponseSchema",
+      "operations": ["GET /v1/mgmt/profiles"],
+      "schema": {
+        "type": "object",
+        "properties": {
+          "ai_profiles": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "profile_id": {
+                  "type": "string",
+                  "description": "Unique identifier for the profile."
+                },
+                "profile_name": {
+                  "type": "string",
+                  "description": "Name of the profile."
+                },
+                "revision": {
+                  "type": "integer",
+                  "format": "int32",
+                  "description": "AI Profile Revision"
+                },
+                "active": {
+                  "type": "boolean",
+                  "description": "Indicates if AI profile is active"
+                },
+                "policy": {
+                  "type": "object",
+                  "properties": {
+                    "dlp-data-profiles": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "name": {
+                            "type": "string",
+                            "description": "Name of the DLP data profile"
+                          },
+                          "uuid": {
+                            "type": "string",
+                            "description": "Unique identifier for the DLP data profile"
+                          },
+                          "id": {
+                            "type": "string",
+                            "description": "DLP data profile id"
+                          },
+                          "version": {
+                            "type": "string",
+                            "description": "DLP version"
+                          },
+                          "rule1": {
+                            "type": "object",
+                            "description": "First DLP data profile rule configuration",
+                            "properties": {
+                              "action": {
+                                "type": "string",
+                                "description": "Action to be taken for the first DLP data profile rule"
+                              }
+                            }
+                          },
+                          "rule2": {
+                            "type": "object",
+                            "description": "Second DLP data profile rule configuration",
+                            "properties": {
+                              "action": {
+                                "type": "string",
+                                "description": "Action to be taken for the second DLP data profile rule"
+                              }
+                            }
+                          },
+                          "log-severity": {
+                            "type": "string",
+                            "description": "Severity level for data leak detection logging"
+                          },
+                          "non-file-based": {
+                            "type": "string",
+                            "description": "Non-file based data leak detection configuration"
+                          },
+                          "file-based": {
+                            "type": "string",
+                            "description": "File-based data leak detection configuration"
+                          }
+                        },
+                        "required": ["name", "uuid"]
+                      }
+                    },
+                    "ai-security-profiles": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "model-type": {
+                            "type": "string",
+                            "description": "AI LLM model type"
+                          },
+                          "content-type": {
+                            "type": "string",
+                            "description": "Content for AI profile"
+                          },
+                          "model-configuration": {
+                            "type": "object",
+                            "description": "AI LLM model configuration",
+                            "properties": {
+                              "mask-data-in-storage": {
+                                "type": "boolean",
+                                "description": "Boolean flag to determine whether data is masked in storage"
+                              },
+                              "latency": {
+                                "description": "Latency configuration for AI profile",
+                                "type": "object",
+                                "properties": {
+                                  "inline-timeout-action": {
+                                    "type": "string",
+                                    "description": "Action to be taken when inline timeout occurs"
+                                  },
+                                  "max-inline-latency": {
+                                    "type": "integer",
+                                    "format": "int32",
+                                    "description": "Maximum allowed inline latency in seconds"
+                                  }
+                                }
+                              },
+                              "data-protection": {
+                                "description": "Data protection configuration for AI profile",
+                                "type": "object",
+                                "properties": {
+                                  "data-leak-detection": {
+                                    "type": "object",
+                                    "properties": {
+                                      "member": {
+                                        "type": "array",
+                                        "items": {
+                                          "type": "object",
+                                          "properties": {
+                                            "text": {
+                                              "type": "string"
+                                            },
+                                            "id": {
+                                              "type": "string"
+                                            },
+                                            "version": {
+                                              "type": "string"
+                                            }
+                                          },
+                                          "required": ["text"]
+                                        },
+                                        "nullable": true
+                                      },
+                                      "action": {
+                                        "type": "string",
+                                        "description": "Action to be taken for data leak detection"
+                                      },
+                                      "mask-data-inline": {
+                                        "type": "boolean",
+                                        "description": "Boolean flag to determine whether data is masked inline"
+                                      }
+                                    },
+                                    "required": ["action"]
+                                  }
+                                }
+                              },
+                              "app-protection": {
+                                "description": "App protection configuration for AI profile",
+                                "type": "object",
+                                "properties": {
+                                  "alert-url-category": {
+                                    "type": "object",
+                                    "description": "URL categories for raising alerts",
+                                    "properties": {
+                                      "member": {
+                                        "type": "array",
+                                        "items": {
+                                          "type": "string"
+                                        }
+                                      }
+                                    }
+                                  },
+                                  "block-url-category": {
+                                    "type": "object",
+                                    "description": "URL categories to be blocked",
+                                    "properties": {
+                                      "member": {
+                                        "type": "array",
+                                        "items": {
+                                          "type": "string"
+                                        }
+                                      }
+                                    }
+                                  },
+                                  "allow-url-category": {
+                                    "type": "object",
+                                    "description": "URL categories to be allowed",
+                                    "properties": {
+                                      "member": {
+                                        "type": "array",
+                                        "items": {
+                                          "type": "string"
+                                        }
+                                      }
+                                    }
+                                  }
+                                }
+                              },
+                              "model-protection": {
+                                "description": "Model protection configuration for AI profile",
+                                "type": "array",
+                                "items": {
+                                  "type": "object",
+                                  "description": "Model protection configuration details",
+                                  "properties": {
+                                    "name": {
+                                      "type": "string",
+                                      "description": "Name of the model protection configuration"
+                                    },
+                                    "action": {
+                                      "type": "string",
+                                      "description": "Action to be taken for model protection"
+                                    },
+                                    "toxic-category-list": {
+                                      "type": "array",
+                                      "description": "List of per-category configurations for toxic content",
+                                      "items": {
+                                        "type": "object",
+                                        "description": "Per-category configuration for toxic content",
+                                        "properties": {
+                                          "category": {
+                                            "type": "string",
+                                            "description": "Toxic content category name (e.g., hate, sexual-content, cybercrime)"
+                                          },
+                                          "action": {
+                                            "type": "string",
+                                            "description": "Action configuration for this category (e.g., \"high:block,moderate:allow\")"
+                                          }
+                                        },
+                                        "required": ["category", "action"]
+                                      }
+                                    },
+                                    "topic-list": {
+                                      "type": "array",
+                                      "description": "List of topics for model protection configuration",
+                                      "items": {
+                                        "type": "object",
+                                        "description": "Topic Array for Topic Guardrail",
+                                        "properties": {
+                                          "action": {
+                                            "type": "string",
+                                            "description": "Action to be taken for topic guardrails configuration"
+                                          },
+                                          "topic": {
+                                            "type": "array",
+                                            "description": "Custom Topic array",
+                                            "items": {
+                                              "type": "object",
+                                              "properties": {
+                                                "topic_name": {
+                                                  "type": "string",
+                                                  "description": "Name of the topic for topic guardrail configuration"
+                                                },
+                                                "topic_id": {
+                                                  "type": "string",
+                                                  "description": "Unique identifier for the topic"
+                                                },
+                                                "revision": {
+                                                  "type": "integer",
+                                                  "format": "int64",
+                                                  "description": "Revision number for the topic"
+                                                }
+                                              },
+                                              "required": ["topic_name", "topic_id", "revision"]
+                                            }
+                                          }
+                                        },
+                                        "required": ["action", "topic"]
+                                      }
+                                    }
+                                  }
+                                },
+                                "required": ["name", "action"]
+                              },
+                              "agent-protection": {
+                                "description": "Agent protection configuration for AI profile",
+                                "type": "array",
+                                "items": {
+                                  "type": "object",
+                                  "properties": {
+                                    "name": {
+                                      "type": "string",
+                                      "description": "Name of agent protection configuration"
+                                    },
+                                    "action": {
+                                      "type": "string",
+                                      "description": "Action to be taken for agent protection configuration"
+                                    }
+                                  },
+                                  "required": ["name", "action"]
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                "created_by": {
+                  "type": "string",
+                  "description": "Email of the user who created the Profile"
+                },
+                "updated_by": {
+                  "type": "string",
+                  "description": "Email of the user who updated the Profile"
+                },
+                "last_modified_ts": {
+                  "type": "string",
+                  "format": "date-time",
+                  "description": "Profile Last Modified Time Stamp"
+                }
+              },
+              "required": ["profile_name", "revision", "policy"]
+            }
+          },
+          "next_offset": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      }
+    },
+    {
+      "direction": "response",
+      "validator": "DlpProfileListResponseSchema",
+      "operations": ["GET /v1/mgmt/dlpprofiles"],
+      "schema": {
+        "type": "object",
+        "properties": {
+          "dlp_profiles": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string",
+                  "description": "Name of the DLP data profile"
+                },
+                "uuid": {
+                  "type": "string",
+                  "description": "Unique identifier for the DLP data profile"
+                },
+                "id": {
+                  "type": "string",
+                  "description": "DLP data profile id"
+                },
+                "version": {
+                  "type": "string",
+                  "description": "DLP version"
+                },
+                "rule1": {
+                  "type": "object",
+                  "description": "First DLP data profile rule configuration",
+                  "properties": {
+                    "action": {
+                      "type": "string",
+                      "description": "Action to be taken for the first DLP data profile rule"
+                    }
+                  }
+                },
+                "rule2": {
+                  "type": "object",
+                  "description": "Second DLP data profile rule configuration",
+                  "properties": {
+                    "action": {
+                      "type": "string",
+                      "description": "Action to be taken for the second DLP data profile rule"
+                    }
+                  }
+                },
+                "log-severity": {
+                  "type": "string",
+                  "description": "Severity level for data leak detection logging"
+                },
+                "non-file-based": {
+                  "type": "string",
+                  "description": "Non-file based data leak detection configuration"
+                },
+                "file-based": {
+                  "type": "string",
+                  "description": "File-based data leak detection configuration"
+                }
+              },
+              "required": ["name", "uuid"]
+            }
+          }
+        }
+      }
+    },
+    {
+      "direction": "response",
+      "validator": "DeploymentProfilesResponseSchema",
+      "operations": ["GET /v1/mgmt/deploymentprofiles"],
+      "schema": {
+        "type": "object",
+        "properties": {
+          "deployment_profiles": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "dp_name": {
+                  "type": "string"
+                },
+                "auth_code": {
+                  "type": "string"
+                },
+                "tsg_id": {
+                  "type": "string"
+                },
+                "status": {
+                  "type": "string"
+                },
+                "expiration_date": {
+                  "type": "string"
+                },
+                "ave_text_records": {
+                  "type": "integer",
+                  "format": "int32"
+                }
+              },
+              "required": ["dp_name", "auth_code"]
+            }
+          },
+          "status": {
+            "type": "string"
+          }
+        },
+        "required": ["deployment_profiles", "status"]
+      }
+    },
+    {
+      "direction": "response",
+      "validator": "CustomerAppSchema",
+      "operations": ["GET /v1/mgmt/customerapp", "PUT /v1/mgmt/customerapp"],
+      "schema": {
+        "type": "object",
+        "properties": {
+          "customer_appId": {
+            "type": "string",
+            "description": "Customer Application ID"
+          },
+          "tsg_id": {
+            "type": "string",
+            "description": "Tenant Service Group ID for Customer App"
+          },
+          "app_name": {
+            "type": "string",
+            "description": "Customer Application Name"
+          },
+          "model_name": {
+            "type": "string",
+            "description": "AI Model Name for Customer App"
+          },
+          "cloud_provider": {
+            "type": "string",
+            "description": "Cloud Provider Name for Customer App"
+          },
+          "environment": {
+            "type": "string",
+            "description": "Cloud Provider Name for Customer App"
+          },
+          "status": {
+            "type": "string",
+            "description": "Indicates Customer App Status whether completed or pending"
+          },
+          "created_by": {
+            "type": "string",
+            "description": "Customer App timestamp"
+          },
+          "updated_by": {
+            "type": "string",
+            "description": "Customer App timestamp"
+          },
+          "ai_agent_framework": {
+            "type": "string",
+            "description": "Framework associated for AI Agent"
+          }
+        },
+        "required": ["app_name", "cloud_provider", "environment"]
+      }
+    },
+    {
+      "direction": "response",
+      "validator": "CustomerAppDeleteResponseSchema",
+      "operations": ["DELETE /v1/mgmt/customerapp"],
+      "schema": {
+        "type": "object",
+        "properties": {
+          "customer_appId": {
+            "type": "string",
+            "description": "Customer Application ID"
+          },
+          "tsg_id": {
+            "type": "string",
+            "description": "Tenant Service Group ID for Customer App"
+          },
+          "app_name": {
+            "type": "string",
+            "description": "Customer Application Name"
+          },
+          "model_name": {
+            "type": "string",
+            "description": "AI Model Name for Customer App"
+          },
+          "cloud_provider": {
+            "type": "string",
+            "description": "Cloud Provider Name for Customer App"
+          },
+          "environment": {
+            "type": "string",
+            "description": "Cloud Provider Name for Customer App"
+          },
+          "status": {
+            "type": "string",
+            "description": "Indicates Customer App Status whether completed or pending"
+          },
+          "created_by": {
+            "type": "string",
+            "description": "Customer App timestamp"
+          },
+          "updated_by": {
+            "type": "string",
+            "description": "Customer App timestamp"
+          },
+          "ai_agent_framework": {
+            "type": "string",
+            "description": "Framework associated for AI Agent"
+          }
+        },
+        "required": ["app_name", "cloud_provider", "environment"]
+      }
+    },
+    {
+      "direction": "request",
+      "validator": "CustomerAppSchema",
+      "operations": ["PUT /v1/mgmt/customerapp"],
+      "schema": {
+        "type": "object",
+        "properties": {
+          "customer_appId": {
+            "type": "string",
+            "description": "Customer Application ID"
+          },
+          "tsg_id": {
+            "type": "string",
+            "description": "Tenant Service Group ID for Customer App"
+          },
+          "app_name": {
+            "type": "string",
+            "description": "Customer Application Name"
+          },
+          "model_name": {
+            "type": "string",
+            "description": "AI Model Name for Customer App"
+          },
+          "cloud_provider": {
+            "type": "string",
+            "description": "Cloud Provider Name for Customer App"
+          },
+          "environment": {
+            "type": "string",
+            "description": "Cloud Provider Name for Customer App"
+          },
+          "status": {
+            "type": "string",
+            "description": "Indicates Customer App Status whether completed or pending"
+          },
+          "created_by": {
+            "type": "string",
+            "description": "Customer App timestamp"
+          },
+          "updated_by": {
+            "type": "string",
+            "description": "Customer App timestamp"
+          },
+          "ai_agent_framework": {
+            "type": "string",
+            "description": "Framework associated for AI Agent"
+          }
+        },
+        "required": ["app_name", "cloud_provider", "environment"]
+      }
+    },
+    {
+      "direction": "response",
+      "validator": "CustomerAppListResponseSchema",
+      "operations": ["GET /v1/mgmt/customerapps"],
+      "schema": {
+        "type": "object",
+        "properties": {
+          "customer_apps": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "customer_appId": {
+                  "type": "string"
+                },
+                "tsg_id": {
+                  "type": "string",
+                  "description": "Tenant Service Group ID"
+                },
+                "app_name": {
+                  "type": "string"
+                },
+                "model_name": {
+                  "type": "string"
+                },
+                "cloud_provider": {
+                  "type": "string"
+                },
+                "environment": {
+                  "type": "string"
+                },
+                "ai_agent_framework": {
+                  "type": "string"
+                },
+                "api_keys_dp_info": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "api_key_name": {
+                        "type": "string"
+                      },
+                      "dp_name": {
+                        "type": "string"
+                      },
+                      "auth_code": {
+                        "type": "string"
+                      }
+                    },
+                    "required": ["api_key_name", "dp_name", "auth_code"]
+                  }
+                }
+              },
+              "required": ["tsg_id", "customer_appId", "app_name", "cloud_provider", "environment"]
+            }
+          },
+          "next_offset": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      }
+    },
+    {
+      "direction": "request",
+      "validator": "CreateCustomTopicRequestSchema",
+      "operations": ["POST /v1/mgmt/topic", "PUT /v1/mgmt/topic/uuid/{topic_id}"],
+      "schema": {
+        "type": "object",
+        "properties": {
+          "topic_id": {
+            "type": "string",
+            "description": "Unique identifier for the custom topic"
+          },
+          "topic_name": {
+            "type": "string",
+            "description": "Name of the custom topic"
+          },
+          "revision": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Revision number of the custom topic"
+          },
+          "active": {
+            "type": "boolean",
+            "description": "Indicates whether the custom topic is currently active or disabled"
+          },
+          "description": {
+            "type": "string",
+            "description": "Detailed explanation or purpose of the custom topic"
+          },
+          "examples": {
+            "type": "array",
+            "description": "List of example usages or scenarios for the custom topic",
+            "items": {
+              "type": "string"
+            }
+          },
+          "created_by": {
+            "type": "string",
+            "description": "Email address of the user who created the custom topic"
+          },
+          "updated_by": {
+            "type": "string",
+            "description": "Email address of the user who last modified the custom topic"
+          },
+          "last_modified_ts": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Timestamp of when the custom topic was last modified"
+          },
+          "created_ts": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Timestamp of when the custom topic was created"
+          }
+        },
+        "required": ["topic_name"]
+      }
+    }
+  ]
+}

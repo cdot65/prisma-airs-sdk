@@ -1,3 +1,4 @@
+import { DeviceRequestSchema, InstanceRequestSchema } from '../models/index.js';
 import { RED_TEAM_INSTANCES_PATH, RED_TEAM_REGISTRY_CREDENTIALS_PATH } from '../constants.js';
 import { request } from '../http/request.js';
 import type { AuthAdapter } from '../http/types.js';
@@ -54,6 +55,7 @@ export class RedTeamInstancesClient {
    */
   async createInstance(body: InstanceRequest): Promise<InstanceResponse> {
     return request({
+      requestSchema: InstanceRequestSchema,
       method: 'POST',
       baseUrl: this.baseUrl,
       path: RED_TEAM_INSTANCES_PATH,
@@ -111,6 +113,7 @@ export class RedTeamInstancesClient {
    */
   async updateInstance(tenantId: string, body: InstanceRequest): Promise<InstanceResponse> {
     return request({
+      requestSchema: InstanceRequestSchema,
       method: 'PUT',
       baseUrl: this.baseUrl,
       path: `${RED_TEAM_INSTANCES_PATH}/${tenantId}`,
@@ -166,6 +169,7 @@ export class RedTeamInstancesClient {
    */
   async createDevices(tenantId: string, body: DeviceRequest): Promise<DeviceResponse> {
     return request({
+      requestSchema: DeviceRequestSchema,
       method: 'POST',
       baseUrl: this.baseUrl,
       path: `${RED_TEAM_INSTANCES_PATH}/${tenantId}/devices`,
@@ -196,6 +200,7 @@ export class RedTeamInstancesClient {
    */
   async updateDevices(tenantId: string, body: DeviceRequest): Promise<DeviceResponse> {
     return request({
+      requestSchema: DeviceRequestSchema,
       method: 'PATCH',
       baseUrl: this.baseUrl,
       path: `${RED_TEAM_INSTANCES_PATH}/${tenantId}/devices`,

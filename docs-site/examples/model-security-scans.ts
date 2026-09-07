@@ -1,21 +1,26 @@
-import { ModelSecurityClient, AISecSDKException } from '@cdot65/prisma-airs-sdk';
+import { reportExampleError } from './example-support.js';
+import { ModelSecurityClient } from '@cdot65/prisma-airs-sdk';
 
 async function main() {
   // Uses PANW_MGMT_* env vars as fallback for auth
-  const client = new ModelSecurityClient();
+  const client = new ModelSecurityClient({ numRetries: 0 });
 
   try {
     // --- LIST SCANS ---
     console.log('Listing model security scans...');
-    const scans = await client.scans.list({ limit: 5 });
+    const scans = await client.scans.list({ limit: 20 });
     console.log(`Found ${scans.pagination?.total_items ?? 0} total scans:`);
     for (const scan of scans.scans) {
       console.log(`  - ${scan.uuid}: ${scan.name ?? 'unnamed'} [${scan.eval_outcome}]`);
     }
 
     // --- GET SCAN DETAILS ---
-    if (scans.scans.length) {
-      const scanId = scans.scans[0].uuid;
+    // Synthetic scanner-ingestion fixtures are not complete ML scans and may
+    // reference an archived test group. Select a real scan for detail examples.
+    const scanId =
+      process.env.MODEL_SECURITY_SCAN_ID ??
+      scans.scans.find((scan) => !/^(?:sdk-e2e-|cli-e2e-)/.test(scan.security_group_name))?.uuid;
+    if (scanId) {
       console.log(`\nGetting scan details for ${scanId}...`);
       const detail = await client.scans.get(scanId);
       console.log('  Name:', detail.name);
@@ -95,13 +100,8 @@ async function main() {
     const pickleRules = await client.securityRules.list({ search_query: 'pickle' });
     console.log(`Found ${pickleRules.pagination?.total_items ?? 0} matching rules`);
   } catch (error) {
-    if (error instanceof AISecSDKException) {
-      console.error('Error:', error.message);
-      console.error('Type:', error.errorType);
-    } else {
-      throw error;
-    }
+    reportExampleError(error);
   }
 }
 
-main().catch(console.error);
+main().catch(reportExampleError);

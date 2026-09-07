@@ -1,7 +1,8 @@
 import { AI_GW_INTEGRATIONS_PATH } from '../constants.js';
 import { request } from '../http/request.js';
 import type { AuthAdapter } from '../http/types.js';
-import { assertUuid, assertNumericId } from '../validators.js';
+import { assertUuid, assertNumericId, assertWorkspaceRef, assertLength } from '../validators.js';
+import { AISecSDKException, ErrorType } from '../errors.js';
 import {
   ListIntegrationsResponseSchema,
   GatewayIntegrationSchema,
@@ -36,6 +37,32 @@ export class AIGatewayIntegrationsClient {
     this.baseUrl = opts.baseUrl;
     this.auth = opts.auth;
     this.numRetries = opts.numRetries;
+  }
+
+  /** Remove explicitly named custom models from one integration.
+   * Verified on an owned integration and custom model, 2026-09-06. Base models cannot be deleted.
+   * @example `await gw.integrations.deleteModels('integration-slug', ['model-slug']);`
+   */
+  async deleteModels(integrationId: string, slugs: string[]): Promise<GatewayWriteResponse> {
+    assertWorkspaceRef(integrationId, 'integrationId');
+    assertLength(slugs.join(','), 1, 16384, 'slugs');
+    for (const slug of slugs) {
+      assertLength(slug, 1, 512, 'model slug');
+      if (slug.includes(','))
+        throw new AISecSDKException(
+          'A model slug cannot contain a comma',
+          ErrorType.USER_REQUEST_PAYLOAD_ERROR,
+        );
+    }
+    return request({
+      method: 'DELETE',
+      baseUrl: this.baseUrl,
+      path: `${AI_GW_INTEGRATIONS_PATH}/${encodeURIComponent(integrationId)}/models`,
+      params: { slugs: slugs.join(',') },
+      responseSchema: GatewayWriteResponseSchema,
+      auth: this.auth,
+      numRetries: this.numRetries,
+    });
   }
 
   /**

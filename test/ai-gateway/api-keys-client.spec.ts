@@ -113,6 +113,16 @@ describe('AIGatewayApiKeysClient', () => {
     );
   });
 
+  it('gets a user API key from its separate detail route', async () => {
+    const keyId = '11111111-1111-4111-8111-111111111111';
+    mockFetch({ id: keyId, name: 'owned-user-key', object: 'api-key' });
+    await expect(client.getUser(keyId)).resolves.toMatchObject({ id: keyId });
+    expect(globalThis.fetch).toHaveBeenLastCalledWith(
+      `https://gw.example.com/api-keys/user/${keyId}`,
+      expect.objectContaining({ method: 'GET' }),
+    );
+  });
+
   it('deletes an API key from the user detail route', async () => {
     const keyId = '11111111-1111-4111-8111-111111111111';
     globalThis.fetch = vi.fn().mockResolvedValue({ ok: true, status: 200, text: async () => '' });

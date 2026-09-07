@@ -34,6 +34,9 @@ import type { RedTeamListOptions } from './scans-client.js';
 
 /** Attack list filter options. */
 export interface AttackListOptions extends RedTeamListOptions {
+  attack_status?: string;
+  compliance?: string;
+  attack_modality?: string;
   status?: string;
   severity?: string;
   category?: string;
@@ -44,6 +47,7 @@ export interface AttackListOptions extends RedTeamListOptions {
 
 /** Goal list filter options. */
 export interface GoalListOptions extends RedTeamListOptions {
+  goal_category?: string;
   goal_type?: string;
   status?: string;
   count?: boolean;
@@ -93,6 +97,9 @@ export class RedTeamReportsClient {
   async listAttacks(jobId: string, opts?: AttackListOptions): Promise<AttackListResponse> {
     assertUuid(jobId, 'job id');
     const params = serializeListing(opts);
+    if (opts?.attack_status !== undefined) params.attack_status = opts.attack_status;
+    if (opts?.compliance !== undefined) params.compliance = opts.compliance;
+    if (opts?.attack_modality !== undefined) params.attack_modality = opts.attack_modality;
     if (opts?.status !== undefined) params.status = opts.status;
     if (opts?.severity !== undefined) params.severity = opts.severity;
     if (opts?.category !== undefined) params.category = opts.category;
@@ -354,6 +361,7 @@ export class RedTeamReportsClient {
   async listGoals(jobId: string, opts?: GoalListOptions): Promise<GoalListResponse> {
     assertUuid(jobId, 'job id');
     const params = serializeListing(opts);
+    if (opts?.goal_category !== undefined) params.goal_category = opts.goal_category;
     if (opts?.goal_type !== undefined) params.goal_type = opts.goal_type;
     if (opts?.status !== undefined) params.status = opts.status;
     if (opts?.count !== undefined) params.count = String(opts.count);

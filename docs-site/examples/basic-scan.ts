@@ -1,4 +1,5 @@
-import { init, Scanner, Content, AISecSDKException } from '@cdot65/prisma-airs-sdk';
+import { reportExampleError } from './example-support.js';
+import { init, Scanner, Content } from '@cdot65/prisma-airs-sdk';
 
 async function main() {
   // Reads PANW_AI_SEC_API_KEY and PANW_AI_SEC_API_ENDPOINT from env
@@ -31,13 +32,8 @@ async function main() {
     console.log('Scan ID:', result.scan_id);
     console.log('Report ID:', result.report_id);
   } catch (error) {
-    if (error instanceof AISecSDKException) {
-      console.error('AIRS SDK Error:', error.message);
-      console.error('Error type:', error.errorType);
-    } else {
-      console.error('Unexpected error:', error);
-    }
+    reportExampleError(error);
   }
 }
 
-main().catch(console.error);
+main().catch(reportExampleError);

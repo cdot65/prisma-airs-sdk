@@ -1,0 +1,1303 @@
+{
+  "source": "/home/cdot/development/others/ai-gateway-openapi/openapi.yaml",
+  "sha256": "de7a1bd98bdb2edb7428a33054d9f6000b9568d1cd5b603d1a8302c053d094d9",
+  "corrections": [
+    "gateway-pricing-overlapping-calculation-nodes",
+    "gateway-prompt-root-hyperparameters",
+    "gateway-prompt-native-completion-response",
+    "gateway-legacy-stream-null-fields",
+    "gateway-audio-overlapping-json-variants",
+    "gateway-audio-verbose-duration",
+    "gateway-provider-prefixed-response-models"
+  ],
+  "contracts": [
+    {
+      "direction": "response",
+      "validator": "GatewayInferenceListBatchesResponseSchema",
+      "operations": ["GET /batches"],
+      "schema": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string"
+                },
+                "object": {
+                  "type": "string",
+                  "enum": ["batch"],
+                  "description": "The object type, which is always `batch`."
+                },
+                "endpoint": {
+                  "type": "string",
+                  "description": "The Portkey API endpoint used by the batch."
+                },
+                "errors": {
+                  "type": "object",
+                  "properties": {
+                    "object": {
+                      "type": "string",
+                      "description": "The object type, which is always `list`."
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "code": {
+                            "type": "string",
+                            "description": "An error code identifying the error type."
+                          },
+                          "message": {
+                            "type": "string",
+                            "description": "A human-readable message providing more details about the error."
+                          },
+                          "param": {
+                            "type": "string",
+                            "description": "The name of the parameter that caused the error, if applicable.",
+                            "nullable": true
+                          },
+                          "line": {
+                            "type": "integer",
+                            "description": "The line number of the input file where the error occurred, if applicable.",
+                            "nullable": true
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                "input_file_id": {
+                  "type": "string",
+                  "description": "The ID of the input file for the batch."
+                },
+                "completion_window": {
+                  "type": "string",
+                  "description": "The time frame within which the batch should be processed."
+                },
+                "status": {
+                  "type": "string",
+                  "description": "The current status of the batch.",
+                  "enum": [
+                    "validating",
+                    "failed",
+                    "in_progress",
+                    "finalizing",
+                    "completed",
+                    "expired",
+                    "cancelling",
+                    "cancelled"
+                  ]
+                },
+                "output_file_id": {
+                  "type": "string",
+                  "description": "The ID of the file containing the outputs of successfully executed requests."
+                },
+                "error_file_id": {
+                  "type": "string",
+                  "description": "The ID of the file containing the outputs of requests with errors."
+                },
+                "created_at": {
+                  "type": "integer",
+                  "description": "The Unix timestamp (in seconds) for when the batch was created."
+                },
+                "in_progress_at": {
+                  "type": "integer",
+                  "description": "The Unix timestamp (in seconds) for when the batch started processing."
+                },
+                "expires_at": {
+                  "type": "integer",
+                  "description": "The Unix timestamp (in seconds) for when the batch will expire."
+                },
+                "finalizing_at": {
+                  "type": "integer",
+                  "description": "The Unix timestamp (in seconds) for when the batch started finalizing."
+                },
+                "completed_at": {
+                  "type": "integer",
+                  "description": "The Unix timestamp (in seconds) for when the batch was completed."
+                },
+                "failed_at": {
+                  "type": "integer",
+                  "description": "The Unix timestamp (in seconds) for when the batch failed."
+                },
+                "expired_at": {
+                  "type": "integer",
+                  "description": "The Unix timestamp (in seconds) for when the batch expired."
+                },
+                "cancelling_at": {
+                  "type": "integer",
+                  "description": "The Unix timestamp (in seconds) for when the batch started cancelling."
+                },
+                "cancelled_at": {
+                  "type": "integer",
+                  "description": "The Unix timestamp (in seconds) for when the batch was cancelled."
+                },
+                "request_counts": {
+                  "type": "object",
+                  "properties": {
+                    "total": {
+                      "type": "integer",
+                      "description": "Total number of requests in the batch."
+                    },
+                    "completed": {
+                      "type": "integer",
+                      "description": "Number of requests that have been completed successfully."
+                    },
+                    "failed": {
+                      "type": "integer",
+                      "description": "Number of requests that have failed."
+                    }
+                  },
+                  "required": ["total", "completed", "failed"],
+                  "description": "The request counts for different statuses within the batch."
+                },
+                "metadata": {
+                  "description": "Set of 16 key-value pairs that can be attached to an object. This can be useful for storing additional information about the object in a structured format. Keys can be a maximum of 64 characters long and values can be a maxium of 512 characters long.\n",
+                  "type": "object",
+                  "x-oaiTypeLabel": "map",
+                  "nullable": true
+                }
+              },
+              "required": [
+                "id",
+                "object",
+                "endpoint",
+                "input_file_id",
+                "completion_window",
+                "status",
+                "created_at"
+              ]
+            }
+          },
+          "first_id": {
+            "type": "string",
+            "example": "batch_abc123"
+          },
+          "last_id": {
+            "type": "string",
+            "example": "batch_abc456"
+          },
+          "has_more": {
+            "type": "boolean"
+          },
+          "object": {
+            "type": "string",
+            "enum": ["list"]
+          }
+        },
+        "required": ["object", "data", "has_more"]
+      }
+    },
+    {
+      "direction": "request",
+      "validator": "GatewayInferenceInputFeedbackRequestSchema",
+      "operations": ["POST /feedback"],
+      "schema": {
+        "type": "object",
+        "required": ["trace_id", "value"],
+        "properties": {
+          "trace_id": {
+            "type": "string",
+            "description": "Unique identifier for the request trace."
+          },
+          "value": {
+            "type": "integer",
+            "description": "Feedback value, an integer between -10 and 10.",
+            "minimum": -10,
+            "maximum": 10
+          },
+          "weight": {
+            "type": "number",
+            "format": "float",
+            "description": "Weight of the feedback, a float between 0 and 1. Default is 1.0.",
+            "minimum": 0,
+            "maximum": 1,
+            "default": 1
+          },
+          "metadata": {
+            "type": "object",
+            "additionalProperties": true,
+            "description": "Additional metadata for the feedback."
+          }
+        }
+      }
+    },
+    {
+      "direction": "response",
+      "validator": "GatewayInferenceFeedbackResponseSchema",
+      "operations": ["POST /feedback", "PUT /feedback/{id}"],
+      "schema": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "description": "success or failure"
+          },
+          "message": {
+            "type": "string",
+            "description": "Confirmation message indicating successful feedback submission."
+          },
+          "feedback_ids": {
+            "type": "array",
+            "description": "Ids of Feedbacks created returned in the same order as input",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    {
+      "direction": "request",
+      "validator": "GatewayInferenceInputFeedbackUpdateRequestSchema",
+      "operations": ["PUT /feedback/{id}"],
+      "schema": {
+        "type": "object",
+        "required": ["value"],
+        "properties": {
+          "value": {
+            "type": "integer",
+            "description": "Feedback value, an integer between -10 and 10.",
+            "minimum": -10,
+            "maximum": 10
+          },
+          "weight": {
+            "type": "number",
+            "format": "float",
+            "description": "Weight of the feedback, a float between 0 and 1. Default is 1.0.",
+            "minimum": 0,
+            "maximum": 1,
+            "default": 1
+          },
+          "metadata": {
+            "type": "object",
+            "additionalProperties": true,
+            "description": "Additional metadata for the feedback."
+          }
+        }
+      }
+    },
+    {
+      "direction": "request",
+      "validator": "GatewayInferenceInputCreateLogsRequestSchema",
+      "operations": ["POST /logs"],
+      "schema": {
+        "oneOf": [
+          {
+            "type": "object",
+            "properties": {
+              "request": {
+                "type": "object",
+                "properties": {
+                  "url": {
+                    "type": "string"
+                  },
+                  "method": {
+                    "type": "string"
+                  },
+                  "headers": {
+                    "type": "object",
+                    "additionalProperties": {
+                      "type": "string"
+                    }
+                  },
+                  "body": {
+                    "type": "object"
+                  }
+                },
+                "required": ["url", "body"]
+              },
+              "response": {
+                "type": "object",
+                "properties": {
+                  "status": {
+                    "type": "integer"
+                  },
+                  "headers": {
+                    "type": "object",
+                    "additionalProperties": {
+                      "type": "string"
+                    }
+                  },
+                  "body": {
+                    "type": "object"
+                  },
+                  "response_time": {
+                    "type": "integer"
+                  }
+                },
+                "required": ["body"]
+              },
+              "metadata": {
+                "type": "object",
+                "properties": {
+                  "trace_id": {
+                    "type": "string"
+                  },
+                  "span_id": {
+                    "type": "string"
+                  },
+                  "span_name": {
+                    "type": "string"
+                  },
+                  "additionalProperties": {
+                    "type": "string"
+                  }
+                }
+              }
+            },
+            "required": ["request", "response"]
+          },
+          {
+            "type": "array",
+            "items": {
+              "$ref": "#/oneOf/0"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "direction": "response",
+      "validator": "GatewayInferenceLogObjectSchema",
+      "operations": ["GET /logs/{logId}"],
+      "schema": {
+        "type": "object",
+        "required": ["_id", "request", "response", "organisation_id", "created_at"],
+        "properties": {
+          "_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Unique identifier for the log entry",
+            "nullable": true,
+            "example": "550e8400-e29b-41d4-a716-446655440000"
+          },
+          "request": {
+            "type": "object",
+            "required": ["url", "method", "portkeyHeaders"],
+            "properties": {
+              "url": {
+                "type": "string",
+                "format": "uri",
+                "description": "Sanitized request URL",
+                "example": "https://api.openai.com/v1/chat/completions"
+              },
+              "method": {
+                "type": "string",
+                "description": "HTTP method",
+                "enum": ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS", "HEAD"],
+                "example": "POST"
+              },
+              "headers": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "string"
+                },
+                "description": "Request headers (only present when debug logging is enabled)",
+                "example": {
+                  "Content-Type": "application/json",
+                  "Authorization": "Bearer hashed_value"
+                }
+              },
+              "body": {
+                "type": "object",
+                "additionalProperties": true,
+                "description": "Request body (only present when debug logging is enabled)"
+              },
+              "portkeyHeaders": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "string"
+                },
+                "description": "Portkey-specific headers",
+                "example": {
+                  "x-portkey-trace-id": "trace-123",
+                  "x-portkey-span-id": "span-456",
+                  "x-portkey-metadata": "{\"key\":\"value\"}"
+                }
+              }
+            }
+          },
+          "response": {
+            "type": "object",
+            "required": ["status", "responseTime", "lastUsedOptionJsonPath"],
+            "properties": {
+              "status": {
+                "type": "integer",
+                "format": "int32",
+                "description": "HTTP response status code",
+                "example": 200
+              },
+              "headers": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "string"
+                },
+                "description": "Response headers (only present when debug logging is enabled or request failed)",
+                "example": {
+                  "Content-Type": "application/json"
+                }
+              },
+              "body": {
+                "type": "object",
+                "additionalProperties": true,
+                "description": "Response body (only present when debug logging is enabled or request failed). May be redacted for certain embedding models.",
+                "example": {
+                  "id": "chatcmpl-123",
+                  "object": "chat.completion",
+                  "created": 1677652288
+                }
+              },
+              "responseTime": {
+                "type": "integer",
+                "format": "int64",
+                "description": "Response time in milliseconds",
+                "example": 1234
+              },
+              "lastUsedOptionJsonPath": {
+                "type": "string",
+                "description": "JSON path to the last used option in the config",
+                "example": "$.config.options[0]"
+              }
+            }
+          },
+          "organisation_id": {
+            "type": "string",
+            "description": "Organization identifier",
+            "nullable": true,
+            "example": "org-123"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Timestamp when the log was created",
+            "nullable": true,
+            "example": "2024-01-15T10:30:00.000Z"
+          },
+          "metrics": {
+            "description": "Analytics metrics object containing detailed metrics about the request",
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "format": "uuid",
+                "description": "Unique identifier for the log entry",
+                "example": "550e8400-e29b-41d4-a716-446655440000"
+              },
+              "organisation_id": {
+                "type": "string",
+                "description": "Organization identifier",
+                "example": "org-123"
+              },
+              "organisation_name": {
+                "type": "string",
+                "description": "Organization name",
+                "example": "Acme Corp"
+              },
+              "prompt_id": {
+                "type": "string",
+                "description": "Prompt identifier",
+                "example": "prompt-789"
+              },
+              "prompt_version_id": {
+                "type": "string",
+                "description": "Prompt version identifier",
+                "example": "prompt-v1"
+              },
+              "config_id": {
+                "type": "string",
+                "description": "Configuration identifier",
+                "example": "config-123"
+              },
+              "created_at": {
+                "type": "string",
+                "format": "date-time",
+                "description": "Timestamp when the log was created",
+                "example": "2024-01-15T10:30:00.000"
+              },
+              "is_success": {
+                "type": "boolean",
+                "description": "Whether the request was successful (status code 200-299)",
+                "example": true
+              },
+              "ai_org": {
+                "type": "string",
+                "description": "AI provider organization (e.g., openai, anthropic)",
+                "example": "openai"
+              },
+              "ai_model": {
+                "type": "string",
+                "description": "AI model used",
+                "example": "gpt-4o"
+              },
+              "req_units": {
+                "type": "number",
+                "format": "float",
+                "description": "Request token units",
+                "example": 100
+              },
+              "res_units": {
+                "type": "number",
+                "format": "float",
+                "description": "Response token units",
+                "example": 50
+              },
+              "total_units": {
+                "type": "number",
+                "format": "float",
+                "description": "Total token units (req_units + res_units)",
+                "example": 150
+              },
+              "cost": {
+                "type": "number",
+                "format": "float",
+                "description": "Cost in the specified currency",
+                "example": 0.002
+              },
+              "cost_currency": {
+                "type": "string",
+                "description": "Currency code for the cost",
+                "default": "USD",
+                "example": "USD"
+              },
+              "request_url": {
+                "type": "string",
+                "format": "uri",
+                "description": "Sanitized request URL",
+                "example": "https://api.openai.com/v1/chat/completions"
+              },
+              "request_method": {
+                "type": "string",
+                "description": "HTTP method",
+                "example": "POST"
+              },
+              "response_status_code": {
+                "type": "integer",
+                "format": "int32",
+                "description": "HTTP response status code",
+                "example": 200
+              },
+              "response_time": {
+                "type": "integer",
+                "format": "int64",
+                "description": "Response time in milliseconds",
+                "example": 1234
+              },
+              "is_proxy_call": {
+                "type": "boolean",
+                "description": "Whether this was a proxy call",
+                "example": true
+              },
+              "cache_status": {
+                "type": "string",
+                "nullable": true,
+                "description": "Cache status (e.g., HIT, MISS, DISABLED, SEMANTIC HIT)",
+                "example": "MISS"
+              },
+              "cache_type": {
+                "type": "string",
+                "nullable": true,
+                "description": "Type of cache used",
+                "example": "semantic"
+              },
+              "stream_mode": {
+                "type": "integer",
+                "nullable": true,
+                "description": "Whether streaming was enabled (1) or not (0)",
+                "example": 1
+              },
+              "retry_success_count": {
+                "type": "integer",
+                "description": "Number of successful retries",
+                "example": 0
+              },
+              "trace_id": {
+                "type": "string",
+                "description": "Distributed tracing trace ID",
+                "example": "trace-123"
+              },
+              "span_id": {
+                "type": "string",
+                "description": "Distributed tracing span ID",
+                "example": "span-456"
+              },
+              "span_name": {
+                "type": "string",
+                "description": "Name of the span",
+                "example": "llm"
+              },
+              "parent_span_id": {
+                "type": "string",
+                "description": "Parent span ID in distributed tracing",
+                "example": "span-789"
+              },
+              "mode": {
+                "type": "string",
+                "description": "Request mode (e.g., single, loadbalance, fallback)",
+                "example": "single"
+              },
+              "virtual_key": {
+                "type": "string",
+                "description": "Virtual key identifier",
+                "example": "vk-123"
+              },
+              "source": {
+                "type": "string",
+                "description": "Source of the request (e.g., rubeus, proxy)",
+                "example": "rubeus"
+              },
+              "runtime": {
+                "type": "string",
+                "description": "Runtime environment",
+                "example": "node"
+              },
+              "runtime_version": {
+                "type": "string",
+                "description": "Runtime version",
+                "example": "18.0.0"
+              },
+              "sdk_version": {
+                "type": "string",
+                "description": "SDK version",
+                "example": "1.0.0"
+              },
+              "config": {
+                "type": "string",
+                "description": "Configuration slug or ID",
+                "example": "pc-config-123"
+              },
+              "internal_trace_id": {
+                "type": "string",
+                "description": "Internal trace ID for gateway tracking",
+                "example": "internal-trace-123"
+              },
+              "last_used_option_index": {
+                "type": "integer",
+                "description": "Index of the last used option in the config",
+                "example": 0
+              },
+              "config_version_id": {
+                "type": "string",
+                "description": "Configuration version identifier",
+                "example": "config-v1"
+              },
+              "prompt_slug": {
+                "type": "string",
+                "description": "Prompt slug",
+                "example": "my-prompt"
+              },
+              "workspace_slug": {
+                "type": "string",
+                "nullable": true,
+                "description": "Workspace slug",
+                "example": "my-workspace"
+              },
+              "log_store_file_path_format": {
+                "type": "string",
+                "description": "Path format version for log storage",
+                "example": "v1"
+              },
+              "metadata.key": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "nullable": true
+                },
+                "description": "Array of metadata keys",
+                "example": ["key1", "key2"]
+              },
+              "metadata.value": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "nullable": true
+                },
+                "description": "Array of metadata values",
+                "example": ["value1", "value2"]
+              },
+              "api_key_id": {
+                "type": "string",
+                "description": "API key identifier",
+                "example": "api-key-123"
+              },
+              "request_parsing_time": {
+                "type": "integer",
+                "format": "int64",
+                "description": "Time taken to parse the request in milliseconds",
+                "example": 5
+              },
+              "pre_processing_time": {
+                "type": "integer",
+                "format": "int64",
+                "description": "Time taken for pre-processing in milliseconds",
+                "example": 10
+              },
+              "cache_processing_time": {
+                "type": "integer",
+                "format": "int64",
+                "description": "Time taken for cache processing in milliseconds",
+                "example": 2
+              },
+              "response_parsing_time": {
+                "type": "integer",
+                "format": "int64",
+                "description": "Time taken to parse the response in milliseconds",
+                "example": 8
+              },
+              "gateway_processing_time": {
+                "type": "integer",
+                "format": "int64",
+                "description": "Total gateway processing time in milliseconds",
+                "example": 50
+              },
+              "upstream_response_time": {
+                "type": "integer",
+                "format": "int64",
+                "description": "Upstream provider response time in milliseconds",
+                "example": 1200
+              }
+            }
+          },
+          "finalUntransformedRequest": {
+            "description": "The original request before any transformations (only present when debug logging is enabled)",
+            "type": "object",
+            "properties": {
+              "body": {
+                "type": "object",
+                "additionalProperties": true,
+                "description": "The body content"
+              },
+              "headers": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "string"
+                },
+                "description": "Headers if present"
+              },
+              "url": {
+                "type": "string",
+                "format": "uri",
+                "description": "URL if present"
+              },
+              "method": {
+                "type": "string",
+                "description": "HTTP method if present"
+              }
+            }
+          },
+          "originalResponse": {
+            "description": "The original response from the provider (only present when debug logging is enabled or request failed)",
+            "type": "object",
+            "properties": {
+              "body": {
+                "$ref": "#/properties/finalUntransformedRequest/properties/body"
+              },
+              "headers": {
+                "$ref": "#/properties/finalUntransformedRequest/properties/headers"
+              },
+              "url": {
+                "$ref": "#/properties/finalUntransformedRequest/properties/url"
+              },
+              "method": {
+                "$ref": "#/properties/finalUntransformedRequest/properties/method"
+              }
+            }
+          },
+          "transformedRequest": {
+            "description": "The request after transformations (only present when debug logging is enabled)",
+            "type": "object",
+            "properties": {
+              "body": {
+                "$ref": "#/properties/finalUntransformedRequest/properties/body"
+              },
+              "headers": {
+                "$ref": "#/properties/finalUntransformedRequest/properties/headers"
+              },
+              "url": {
+                "$ref": "#/properties/finalUntransformedRequest/properties/url"
+              },
+              "method": {
+                "$ref": "#/properties/finalUntransformedRequest/properties/method"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "direction": "response",
+      "validator": "GatewayModelPricingConfigSchema",
+      "operations": ["GET /model-configs/pricing/{provider}/{model}"],
+      "schema": {
+        "type": "object",
+        "description": "Complete pricing configuration for a model",
+        "properties": {
+          "pay_as_you_go": {
+            "type": "object",
+            "description": "Token-based pricing (all prices in USD cents)",
+            "properties": {
+              "request_token": {
+                "type": "object",
+                "description": "Price object (value is in USD cents)",
+                "properties": {
+                  "price": {
+                    "type": "number",
+                    "description": "Price in USD cents per token/unit.\n\nExample: `0.003` = 0.003 cents/token = $0.03 per 1K tokens\n"
+                  }
+                }
+              },
+              "response_token": {
+                "$ref": "#/properties/pay_as_you_go/properties/request_token"
+              },
+              "cache_write_input_token": {
+                "$ref": "#/properties/pay_as_you_go/properties/request_token"
+              },
+              "cache_read_input_token": {
+                "$ref": "#/properties/pay_as_you_go/properties/request_token"
+              },
+              "request_audio_token": {
+                "$ref": "#/properties/pay_as_you_go/properties/request_token"
+              },
+              "response_audio_token": {
+                "$ref": "#/properties/pay_as_you_go/properties/request_token"
+              },
+              "cache_read_audio_input_token": {
+                "$ref": "#/properties/pay_as_you_go/properties/request_token"
+              },
+              "additional_units": {
+                "type": "object",
+                "description": "Provider-specific additional pricing units.\n\nCommon additional units:\n- `web_search`: Web search tool usage\n- `file_search`: File search tool usage\n- `thinking_token`: Chain-of-thought reasoning tokens (Google)\n- `image_token`: Image generation tokens\n- `video_duration_seconds_*`: Video generation (OpenAI Sora)\n",
+                "additionalProperties": {
+                  "$ref": "#/properties/pay_as_you_go/properties/request_token"
+                }
+              },
+              "image": {
+                "type": "object",
+                "description": "Image generation pricing by quality and size",
+                "additionalProperties": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "$ref": "#/properties/pay_as_you_go/properties/request_token"
+                  }
+                },
+                "example": {
+                  "standard": {
+                    "1024x1024": {
+                      "price": 4
+                    },
+                    "1024x1792": {
+                      "price": 8
+                    }
+                  },
+                  "hd": {
+                    "1024x1024": {
+                      "price": 8
+                    },
+                    "1024x1792": {
+                      "price": 12
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "calculate": {
+            "type": "object",
+            "description": "Cost calculation formulas",
+            "properties": {
+              "request": {
+                "type": "object",
+                "description": "Mathematical operation for cost calculation",
+                "properties": {
+                  "operation": {
+                    "type": "string",
+                    "enum": ["sum", "multiply"],
+                    "description": "Operation type"
+                  },
+                  "operands": {
+                    "type": "array",
+                    "description": "Operands for the operation",
+                    "items": {
+                      "anyOf": [
+                        {
+                          "$ref": "#/properties/calculate/properties/request"
+                        },
+                        {
+                          "type": "object",
+                          "properties": {
+                            "value": {
+                              "type": "string",
+                              "description": "Reference to a value or rate.\n\nExamples:\n- `input_tokens`: Number of input tokens\n- `output_tokens`: Number of output tokens\n- `rates.request_token`: Request token rate\n- `rates.response_token`: Response token rate\n"
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  }
+                }
+              },
+              "response": {
+                "$ref": "#/properties/calculate/properties/request"
+              }
+            }
+          },
+          "currency": {
+            "type": "string",
+            "enum": ["USD"],
+            "description": "Currency code (always USD)"
+          },
+          "finetune_config": {
+            "type": "object",
+            "description": "Fine-tuning pricing configuration",
+            "properties": {
+              "pay_per_token": {
+                "$ref": "#/properties/pay_as_you_go/properties/request_token"
+              },
+              "pay_per_hour": {
+                "$ref": "#/properties/pay_as_you_go/properties/request_token"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "direction": "response",
+      "validator": "GatewayInferenceCreatePromptCompletionStreamResponseSchema",
+      "operations": ["POST /prompts/{promptId}/completions (SSE)"],
+      "schema": {
+        "anyOf": [
+          {
+            "type": "object",
+            "description": "Represents a streamed chunk of a chat completion response returned by model, based on the provided input.",
+            "properties": {
+              "id": {
+                "type": "string",
+                "description": "A unique identifier for the chat completion. Each chunk has the same ID."
+              },
+              "choices": {
+                "type": "array",
+                "description": "A list of chat completion choices. Can contain more than one elements if `n` is greater than 1. Can also be empty for the\nlast chunk if you set `stream_options: {\"include_usage\": true}`.\n",
+                "items": {
+                  "type": "object",
+                  "required": ["delta", "finish_reason", "index"],
+                  "properties": {
+                    "delta": {
+                      "type": "object",
+                      "description": "A chat completion delta generated by streamed model responses.",
+                      "properties": {
+                        "content": {
+                          "type": "string",
+                          "description": "The contents of the chunk message.",
+                          "nullable": true
+                        },
+                        "function_call": {
+                          "deprecated": true,
+                          "type": "object",
+                          "description": "Deprecated and replaced by `tool_calls`. The name and arguments of a function that should be called, as generated by the model.",
+                          "properties": {
+                            "arguments": {
+                              "type": "string",
+                              "description": "The arguments to call the function with, as generated by the model in JSON format. Note that the model does not always generate valid JSON, and may hallucinate parameters not defined by your function schema. Validate the arguments in your code before calling your function."
+                            },
+                            "name": {
+                              "type": "string",
+                              "description": "The name of the function to call."
+                            }
+                          }
+                        },
+                        "tool_calls": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "index": {
+                                "type": "integer"
+                              },
+                              "id": {
+                                "type": "string",
+                                "description": "The ID of the tool call."
+                              },
+                              "type": {
+                                "type": "string",
+                                "enum": ["function"],
+                                "description": "The type of the tool. Currently, only `function` is supported."
+                              },
+                              "function": {
+                                "type": "object",
+                                "properties": {
+                                  "name": {
+                                    "type": "string",
+                                    "description": "The name of the function to call."
+                                  },
+                                  "arguments": {
+                                    "type": "string",
+                                    "description": "The arguments to call the function with, as generated by the model in JSON format. Note that the model does not always generate valid JSON, and may hallucinate parameters not defined by your function schema. Validate the arguments in your code before calling your function."
+                                  }
+                                }
+                              }
+                            },
+                            "required": ["index"]
+                          }
+                        },
+                        "role": {
+                          "type": "string",
+                          "enum": ["system", "user", "assistant", "tool"],
+                          "description": "The role of the author of this message."
+                        }
+                      }
+                    },
+                    "logprobs": {
+                      "description": "Log probability information for the choice.",
+                      "type": "object",
+                      "nullable": true,
+                      "properties": {
+                        "content": {
+                          "description": "A list of message content tokens with log probability information.",
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "token": {
+                                "description": "The token.",
+                                "type": "string"
+                              },
+                              "logprob": {
+                                "description": "The log probability of this token, if it is within the top 20 most likely tokens. Otherwise, the value `-9999.0` is used to signify that the token is very unlikely.",
+                                "type": "number"
+                              },
+                              "bytes": {
+                                "description": "A list of integers representing the UTF-8 bytes representation of the token. Useful in instances where characters are represented by multiple tokens and their byte representations must be combined to generate the correct text representation. Can be `null` if there is no bytes representation for the token.",
+                                "type": "array",
+                                "items": {
+                                  "type": "integer"
+                                },
+                                "nullable": true
+                              },
+                              "top_logprobs": {
+                                "description": "List of the most likely tokens and their log probability, at this token position. In rare cases, there may be fewer than the number of requested `top_logprobs` returned.",
+                                "type": "array",
+                                "items": {
+                                  "type": "object",
+                                  "properties": {
+                                    "token": {
+                                      "$ref": "#/anyOf/0/properties/choices/items/properties/logprobs/properties/content/items/properties/token"
+                                    },
+                                    "logprob": {
+                                      "$ref": "#/anyOf/0/properties/choices/items/properties/logprobs/properties/content/items/properties/logprob"
+                                    },
+                                    "bytes": {
+                                      "$ref": "#/anyOf/0/properties/choices/items/properties/logprobs/properties/content/items/properties/bytes"
+                                    }
+                                  },
+                                  "required": ["token", "logprob", "bytes"]
+                                }
+                              }
+                            },
+                            "required": ["token", "logprob", "bytes", "top_logprobs"]
+                          },
+                          "nullable": true
+                        }
+                      },
+                      "required": ["content"]
+                    },
+                    "finish_reason": {
+                      "type": "string",
+                      "description": "The reason the model stopped generating tokens. This will be `stop` if the model hit a natural stop point or a provided stop sequence,\n`length` if the maximum number of tokens specified in the request was reached,\n`content_filter` if content was omitted due to a flag from our content filters,\n`tool_calls` if the model called a tool, or `function_call` (deprecated) if the model called a function.\n",
+                      "enum": ["stop", "length", "tool_calls", "content_filter", "function_call"],
+                      "nullable": true
+                    },
+                    "index": {
+                      "type": "integer",
+                      "description": "The index of the choice in the list of choices."
+                    }
+                  }
+                }
+              },
+              "created": {
+                "type": "integer",
+                "description": "The Unix timestamp (in seconds) of when the chat completion was created. Each chunk has the same timestamp."
+              },
+              "model": {
+                "type": "string",
+                "description": "The model to generate the completion."
+              },
+              "system_fingerprint": {
+                "type": "string",
+                "description": "This fingerprint represents the backend configuration that the model runs with.\nCan be used in conjunction with the `seed` request parameter to understand when backend changes have been made that might impact determinism.\n"
+              },
+              "object": {
+                "type": "string",
+                "description": "The object type, which is always `chat.completion.chunk`.",
+                "enum": ["chat.completion.chunk"]
+              },
+              "usage": {
+                "type": "object",
+                "description": "An optional field that will only be present when you set `stream_options: {\"include_usage\": true}` in your request.\nWhen present, it contains a null value except for the last chunk which contains the token usage statistics for the entire request.\n",
+                "properties": {
+                  "completion_tokens": {
+                    "type": "integer",
+                    "description": "Number of tokens in the generated completion."
+                  },
+                  "prompt_tokens": {
+                    "type": "integer",
+                    "description": "Number of tokens in the prompt."
+                  },
+                  "total_tokens": {
+                    "type": "integer",
+                    "description": "Total number of tokens used in the request (prompt + completion)."
+                  }
+                },
+                "required": ["prompt_tokens", "completion_tokens", "total_tokens"]
+              }
+            },
+            "required": ["choices", "created", "id", "model", "object"]
+          },
+          {
+            "type": "object",
+            "description": "Represents a completion response from the API. Note: both the streamed and non-streamed response objects share the same shape (unlike the chat endpoint).\n",
+            "properties": {
+              "id": {
+                "type": "string",
+                "description": "A unique identifier for the completion."
+              },
+              "choices": {
+                "type": "array",
+                "description": "The list of completion choices the model generated for the input prompt.",
+                "items": {
+                  "type": "object",
+                  "required": ["finish_reason", "index", "logprobs", "text"],
+                  "properties": {
+                    "finish_reason": {
+                      "type": "string",
+                      "description": "The reason the model stopped generating tokens. This will be `stop` if the model hit a natural stop point or a provided stop sequence,\n`length` if the maximum number of tokens specified in the request was reached,\nor `content_filter` if content was omitted due to a flag from our content filters.\n",
+                      "enum": ["stop", "length", "content_filter"],
+                      "nullable": true
+                    },
+                    "index": {
+                      "type": "integer"
+                    },
+                    "logprobs": {
+                      "type": "object",
+                      "nullable": true,
+                      "properties": {
+                        "text_offset": {
+                          "type": "array",
+                          "items": {
+                            "type": "integer"
+                          }
+                        },
+                        "token_logprobs": {
+                          "type": "array",
+                          "items": {
+                            "type": "number"
+                          }
+                        },
+                        "tokens": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        },
+                        "top_logprobs": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "additionalProperties": {
+                              "type": "number"
+                            }
+                          }
+                        }
+                      }
+                    },
+                    "text": {
+                      "type": "string"
+                    }
+                  }
+                }
+              },
+              "created": {
+                "type": "integer",
+                "description": "The Unix timestamp (in seconds) of when the completion was created."
+              },
+              "model": {
+                "type": "string",
+                "description": "The model used for completion."
+              },
+              "system_fingerprint": {
+                "type": "string",
+                "description": "This fingerprint represents the backend configuration that the model runs with.\n\nCan be used in conjunction with the `seed` request parameter to understand when backend changes have been made that might impact determinism.\n",
+                "nullable": true
+              },
+              "object": {
+                "type": "string",
+                "description": "The object type, which is always \"text_completion\"",
+                "enum": ["text_completion"]
+              },
+              "usage": {
+                "type": "object",
+                "description": "Usage statistics for the completion request.",
+                "properties": {
+                  "completion_tokens": {
+                    "type": "integer",
+                    "description": "Number of tokens in the generated completion."
+                  },
+                  "prompt_tokens": {
+                    "type": "integer",
+                    "description": "Number of tokens in the prompt."
+                  },
+                  "total_tokens": {
+                    "type": "integer",
+                    "description": "Total number of tokens used in the request (prompt + completion)."
+                  },
+                  "completion_tokens_details": {
+                    "type": "object",
+                    "nullable": true,
+                    "description": "Breakdown of tokens used in a completion.",
+                    "properties": {
+                      "reasoning_tokens": {
+                        "type": "integer",
+                        "description": "Tokens generated by the model for reasoning."
+                      },
+                      "accepted_prediction_tokens": {
+                        "type": "integer",
+                        "description": "When using Predicted Outputs, the number of tokens in the prediction that appeared in the completion."
+                      },
+                      "rejected_prediction_tokens": {
+                        "type": "integer",
+                        "description": "When using Predicted Outputs, the number of tokens in the prediction that did not appear in the completion."
+                      }
+                    }
+                  },
+                  "prompt_tokens_details": {
+                    "type": "object",
+                    "nullable": true,
+                    "description": "Breakdown of tokens used in the prompt.",
+                    "properties": {
+                      "cached_tokens": {
+                        "type": "integer",
+                        "description": "Cached tokens present in the prompt."
+                      }
+                    }
+                  }
+                },
+                "required": ["prompt_tokens", "completion_tokens", "total_tokens"],
+                "nullable": true
+              }
+            },
+            "required": ["id", "object", "created", "model", "choices"],
+            "x-code-samples": {
+              "name": "The completion object",
+              "legacy": true,
+              "example": "{\n  \"id\": \"cmpl-uqkvlQyYK7bGYrRHQ0eXlWi7\",\n  \"object\": \"text_completion\",\n  \"created\": 1589478378,\n  \"model\": \"gpt-4-turbo\",\n  \"choices\": [\n    {\n      \"text\": \"\\n\\nThis is indeed a test\",\n      \"index\": 0,\n      \"logprobs\": null,\n      \"finish_reason\": \"length\"\n    }\n  ],\n  \"usage\": {\n    \"prompt_tokens\": 5,\n    \"completion_tokens\": 7,\n    \"total_tokens\": 12\n  }\n}\n"
+            }
+          }
+        ]
+      }
+    }
+  ]
+}

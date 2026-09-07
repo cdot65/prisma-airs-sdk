@@ -1,6 +1,14 @@
 // src/models/model-security.ts — Zod schemas + types for AIRS Model Security API
 
 import { z } from 'zod';
+import {
+  ErrorCodes,
+  ModelScanStatus,
+  ScanOrigin,
+  SourceType,
+  RuleState,
+  ThreatCategory,
+} from './model-security-enums.js';
 
 // ---------------------------------------------------------------------------
 // Shared / utility schemas
@@ -23,8 +31,8 @@ export type ModelSecurityPagination = z.infer<typeof ModelSecurityPaginationSche
 /** Zod schema for a single label key-value pair. */
 export const LabelSchema = z
   .object({
-    key: z.string(),
-    value: z.string(),
+    key: z.string().min(1).max(128),
+    value: z.string().min(1).max(256),
   })
   .passthrough();
 
@@ -34,7 +42,7 @@ export type Label = z.infer<typeof LabelSchema>;
 /** Zod schema for creating/setting labels on a scan. */
 export const LabelsCreateRequestSchema = z
   .object({
-    labels: z.array(LabelSchema),
+    labels: z.array(LabelSchema).min(1),
   })
   .passthrough();
 
@@ -92,11 +100,11 @@ export type EvalSummary = z.infer<typeof EvalSummarySchema>;
 /** Zod schema for a single issue detected during model scanning. */
 export const ModelScanIssueSchema = z
   .object({
-    description: z.string(),
-    source: z.string(),
-    threat: z.string().nullable().optional(),
-    module: z.string().nullable().optional(),
-    operator: z.string().nullable().optional(),
+    description: z.string().max(4096),
+    source: z.string().max(1024),
+    threat: z.nativeEnum(ThreatCategory).nullable().optional(),
+    module: z.string().max(256).nullable().optional(),
+    operator: z.string().max(256).nullable().optional(),
   })
   .passthrough();
 
@@ -106,11 +114,13 @@ export type ModelScanIssue = z.infer<typeof ModelScanIssueSchema>;
 /** Zod schema for per-file scan data within a scan request. */
 export const FileScanDataSchema = z
   .object({
-    file_path: z.string(),
-    modelscan_status: z.string(),
-    blob_id: z.string(),
-    error_message: z.string().nullable().optional(),
-    formats: z.array(z.string()).nullable().optional(),
+    sha256: z.string().max(256).nullable().optional(),
+    size_bytes: z.number().int().nullable().optional(),
+    file_path: z.string().max(1024),
+    modelscan_status: z.nativeEnum(ModelScanStatus),
+    blob_id: z.string().max(256),
+    error_message: z.string().max(1024).nullable().optional(),
+    formats: z.array(z.string().max(256)).nullable().optional(),
     issues_detected: z.array(ModelScanIssueSchema).nullable().optional(),
   })
   .passthrough();
@@ -125,16 +135,16 @@ export type FileScanData = z.infer<typeof FileScanDataSchema>;
 /** Zod schema for detailed scan results submitted with a scan creation. */
 export const ScanDetailsSchema = z
   .object({
-    scanner_version: z.string(),
-    time_started: z.string(),
+    scanner_version: z.string().max(64),
+    time_started: z.string().datetime({ offset: true }),
     files: z.array(FileScanDataSchema),
     total_files_scanned: z.number().int(),
     total_files_skipped: z.number().int(),
-    model_formats: z.array(z.string()),
+    model_formats: z.array(z.string().max(64)),
     model_size_bytes: z.number().int(),
     scan_duration_ms: z.number().int(),
-    error_code: z.string().nullable().optional(),
-    error_message: z.string().nullable().optional(),
+    error_code: z.nativeEnum(ErrorCodes).nullable().optional(),
+    error_message: z.string().max(1024).nullable().optional(),
   })
   .passthrough();
 
@@ -149,15 +159,15 @@ export type ScanDetails = z.infer<typeof ScanDetailsSchema>;
 export const ScanCreateRequestSchema = z
   .object({
     model_uri: z.string(),
-    security_group_uuid: z.string(),
+    security_group_uuid: z.string().uuid(),
     // Optional per the OpenAPI spec (server defaults it); the scans-client example still sets it.
-    scan_origin: z.string().optional(),
-    allow_patterns: z.array(z.string()).nullable().optional(),
-    ignore_patterns: z.array(z.string()).nullable().optional(),
+    scan_origin: z.nativeEnum(ScanOrigin).nullable().optional(),
+    allow_patterns: z.array(z.string().max(256)).nullable().optional(),
+    ignore_patterns: z.array(z.string().max(256)).nullable().optional(),
     labels: z.array(LabelSchema).nullable().optional(),
-    model_author: z.string().nullable().optional(),
-    model_name: z.string().nullable().optional(),
-    model_version: z.string().nullable().optional(),
+    model_author: z.string().max(256).nullable().optional(),
+    model_name: z.string().max(256).nullable().optional(),
+    model_version: z.string().max(256).nullable().optional(),
     scan_details: ScanDetailsSchema.nullable().optional(),
   })
   .passthrough();
@@ -172,6 +182,7 @@ export type ScanCreateRequest = z.infer<typeof ScanCreateRequestSchema>;
 /** Zod schema for the base scan response returned by the API. */
 export const ScanBaseResponseSchema = z
   .object({
+    sdk_version: z.union([z.string(), z.null()]).optional(),
     uuid: z.string(),
     tsg_id: z.string(),
     created_at: z.string(),
@@ -209,6 +220,7 @@ export type ScanBaseResponse = z.infer<typeof ScanBaseResponseSchema>;
 /** Zod schema for a paginated list of scans. */
 export const ScanListSchema = z
   .object({
+    count_capped: z.boolean().optional(),
     pagination: ModelSecurityPaginationSchema,
     scans: z.array(ScanBaseResponseSchema),
   })
@@ -331,6 +343,7 @@ export type ModelVersionList = z.infer<typeof ModelVersionListSchema>;
 /** Zod schema for a single rule evaluation result. */
 export const RuleEvaluationResponseSchema = z
   .object({
+    rule_origin: z.string().optional(),
     uuid: z.string(),
     tsg_id: z.string(),
     created_at: z.string(),
@@ -367,7 +380,7 @@ export type RuleEvaluationList = z.infer<typeof RuleEvaluationListSchema>;
 export const ViolationRemediationSchema = z
   .object({
     steps: z.array(z.string()),
-    url: z.string().optional(),
+    url: z.string().nullable().optional(),
   })
   .passthrough();
 export type ViolationRemediation = z.infer<typeof ViolationRemediationSchema>;
@@ -375,6 +388,9 @@ export type ViolationRemediation = z.infer<typeof ViolationRemediationSchema>;
 /** Zod schema for a single violation response. */
 export const ViolationResponseSchema = z
   .object({
+    insights_url: z.union([z.string(), z.null()]).optional(),
+    rule_origin: z.string().optional(),
+    threat_kb_url: z.union([z.string(), z.null()]).optional(),
     uuid: z.string(),
     tsg_id: z.string(),
     created_at: z.string(),
@@ -384,7 +400,7 @@ export const ViolationResponseSchema = z
     rule_name: z.string(),
     rule_description: z.string(),
     rule_instance_state: z.string(),
-    remediation: ViolationRemediationSchema.optional(),
+    remediation: ViolationRemediationSchema.nullable().optional(),
     file: z.string().nullable().optional(),
     hash: z.string().nullable().optional(),
     module: z.string().nullable().optional(),
@@ -472,6 +488,7 @@ export type RuleConfiguration = z.infer<typeof RuleConfigurationSchema>;
 /** Zod schema for a model security rule definition. */
 export const ModelSecurityRuleResponseSchema = z
   .object({
+    enabled_security_group_count: z.union([z.number().int(), z.null()]).optional(),
     uuid: z.string(),
     name: z.string(),
     description: z.string(),
@@ -506,14 +523,23 @@ export type ListModelSecurityRulesResponse = z.infer<typeof ListModelSecurityRul
 /** Zod schema for a model security rule instance response. */
 export const ModelSecurityRuleInstanceResponseSchema = z
   .object({
+    created_by: z.union([z.string(), z.null()]).optional(),
+    custom_rule: z
+      .union([
+        z.object({ description: z.string(), name: z.string(), uuid: z.string() }).passthrough(),
+        z.null(),
+      ])
+      .optional(),
+    custom_rule_uuid: z.union([z.string(), z.null()]).optional(),
+    updated_by: z.union([z.string(), z.null()]).optional(),
     uuid: z.string(),
     tsg_id: z.string(),
-    created_at: z.string().optional(),
-    updated_at: z.string().optional(),
+    created_at: z.string().nullable().optional(),
+    updated_at: z.string().nullable().optional(),
     security_group_uuid: z.string(),
-    security_rule_uuid: z.string().optional(),
+    security_rule_uuid: z.string().nullable().optional(),
     state: z.string(),
-    rule: ModelSecurityRuleResponseSchema.optional(),
+    rule: ModelSecurityRuleResponseSchema.nullable().optional(),
     field_values: z.record(z.unknown()).optional(),
   })
   .passthrough();
@@ -526,8 +552,8 @@ export type ModelSecurityRuleInstanceResponse = z.infer<
 /** Zod schema for updating a rule instance. */
 export const ModelSecurityRuleInstanceUpdateRequestSchema = z
   .object({
-    security_group_uuid: z.string(),
-    state: z.string().nullable().optional(),
+    security_group_uuid: z.string().uuid(),
+    state: z.nativeEnum(RuleState).nullable().optional(),
     field_values: z.record(z.unknown()).nullable().optional(),
   })
   .passthrough();
@@ -557,9 +583,9 @@ export type ListModelSecurityRuleInstancesResponse = z.infer<
 /** Zod schema for creating a model security group. */
 export const ModelSecurityGroupCreateRequestSchema = z
   .object({
-    name: z.string(),
-    source_type: z.string(),
-    description: z.string().optional().default(''),
+    name: z.string().min(1).max(255),
+    source_type: z.nativeEnum(SourceType),
+    description: z.string().max(1000).optional().default(''),
     rule_configurations: z.record(RuleConfigurationSchema).optional(),
   })
   .passthrough();
@@ -570,6 +596,7 @@ export type ModelSecurityGroupCreateRequest = z.infer<typeof ModelSecurityGroupC
 /** Zod schema for a model security group response. */
 export const ModelSecurityGroupResponseSchema = z
   .object({
+    enabled_rule_count: z.number().int().optional(),
     uuid: z.string(),
     tsg_id: z.string(),
     created_at: z.string(),
@@ -588,8 +615,8 @@ export type ModelSecurityGroupResponse = z.infer<typeof ModelSecurityGroupRespon
 /** Zod schema for updating a model security group. */
 export const ModelSecurityGroupUpdateRequestSchema = z
   .object({
-    name: z.string().nullable().optional(),
-    description: z.string().nullable().optional(),
+    name: z.string().min(1).max(255).nullable().optional(),
+    description: z.string().max(1000).nullable().optional(),
   })
   .passthrough();
 

@@ -1,7 +1,15 @@
-import { RED_TEAM_CUSTOM_ATTACK_PATH, USER_AGENT } from '../constants.js';
-import { AISecSDKException, ErrorType } from '../errors.js';
+import {
+  CustomPromptCreateRequestSchema,
+  CustomPromptSetArchiveRequestSchema,
+  CustomPromptSetCreateRequestSchema,
+  CustomPromptSetUpdateRequestSchema,
+  CustomPromptUpdateRequestSchema,
+  PropertyNameCreateRequestSchema,
+  PropertyValueCreateRequestSchema,
+} from '../models/index.js';
+import { RED_TEAM_CUSTOM_ATTACK_PATH } from '../constants.js';
 import { request } from '../http/request.js';
-import type { AuthAdapter, PreparedRequest } from '../http/types.js';
+import type { AuthAdapter } from '../http/types.js';
 import { collectSkipPages, serializeListing, type CollectAllOptions } from '../listing.js';
 import { assertUuid } from '../validators.js';
 import {
@@ -14,6 +22,8 @@ import {
   CustomPromptResponseSchema,
   CustomPromptListSchema,
   PropertyNamesListResponseSchema,
+  PropertyNameCreateResponseSchema,
+  type PropertyNameCreateResponse,
   PropertyValuesResponseSchema,
   PropertyValuesMultipleResponseSchema,
   type CustomPromptSetCreateRequest,
@@ -39,6 +49,7 @@ import type { RedTeamListOptions } from './scans-client.js';
 
 /** Prompt set list filter options. */
 export interface PromptSetListOptions extends RedTeamListOptions {
+  language?: string;
   status?: string;
   active?: boolean;
   archive?: boolean;
@@ -95,6 +106,7 @@ export class RedTeamCustomAttacksClient {
    */
   async createPromptSet(body: CustomPromptSetCreateRequest): Promise<CustomPromptSetResponse> {
     return request({
+      requestSchema: CustomPromptSetCreateRequestSchema,
       method: 'POST',
       baseUrl: this.baseUrl,
       path: `${RED_TEAM_CUSTOM_ATTACK_PATH}/custom-prompt-set`,
@@ -121,6 +133,7 @@ export class RedTeamCustomAttacksClient {
    */
   async listPromptSets(opts?: PromptSetListOptions): Promise<CustomPromptSetList> {
     const params = serializeListing(opts);
+    if (opts?.language !== undefined) params.language = opts.language;
     if (opts?.status !== undefined) params.status = opts.status;
     if (opts?.active !== undefined) params.active = String(opts.active);
     if (opts?.archive !== undefined) params.archive = String(opts.archive);
@@ -195,6 +208,7 @@ export class RedTeamCustomAttacksClient {
   ): Promise<CustomPromptSetResponse> {
     assertUuid(uuid, 'prompt set uuid');
     return request({
+      requestSchema: CustomPromptSetUpdateRequestSchema,
       method: 'PUT',
       baseUrl: this.baseUrl,
       path: `${RED_TEAM_CUSTOM_ATTACK_PATH}/custom-prompt-set/${uuid}`,
@@ -228,6 +242,7 @@ export class RedTeamCustomAttacksClient {
   ): Promise<CustomPromptSetResponse> {
     assertUuid(uuid, 'prompt set uuid');
     return request({
+      requestSchema: CustomPromptSetArchiveRequestSchema,
       method: 'PUT',
       baseUrl: this.baseUrl,
       path: `${RED_TEAM_CUSTOM_ATTACK_PATH}/custom-prompt-set/${uuid}/archive`,
@@ -342,36 +357,19 @@ export class RedTeamCustomAttacksClient {
    */
   async downloadTemplate(uuid: string): Promise<string> {
     assertUuid(uuid, 'prompt set uuid');
-
-    const url = new URL(
-      `${this.baseUrl.replace(/\/+$/, '')}${RED_TEAM_CUSTOM_ATTACK_PATH}/download-template/${uuid}`,
-    );
-
-    const stub: PreparedRequest = {
+    return request<string>({
       method: 'GET',
-      url,
-      headers: { 'User-Agent': USER_AGENT },
-    };
-    const prepared = await this.auth.prepare(stub);
-
-    const response = await fetch(prepared.url.toString(), {
-      method: 'GET',
-      headers: prepared.headers,
+      baseUrl: this.baseUrl,
+      path: `${RED_TEAM_CUSTOM_ATTACK_PATH}/download-template/${uuid}`,
+      responseType: 'text',
+      auth: this.auth,
+      numRetries: this.numRetries,
     });
-
-    const text = await response.text();
-    if (!response.ok) {
-      throw new AISecSDKException(
-        `Download template failed (${response.status}): ${text}`,
-        ErrorType.SERVER_SIDE_ERROR,
-      );
-    }
-    return text;
   }
 
   /**
    * Upload a CSV file of custom prompts for a prompt set.
-   * Bypasses `request()` because the body is `FormData`, not JSON.
+   * Uses the shared transport for multipart encoding, authentication, retries and validation.
    * @param promptSetUuid - The prompt set UUID.
    * @param file - The CSV file blob.
    * @returns The upload response.
@@ -389,38 +387,19 @@ export class RedTeamCustomAttacksClient {
    */
   async uploadPromptsCsv(promptSetUuid: string, file: Blob): Promise<BaseResponse> {
     assertUuid(promptSetUuid, 'prompt set uuid');
-
-    const url = new URL(
-      `${this.baseUrl.replace(/\/+$/, '')}${RED_TEAM_CUSTOM_ATTACK_PATH}/upload-custom-prompts-csv`,
-    );
-    url.searchParams.set('prompt_set_uuid', promptSetUuid);
-
-    const stub: PreparedRequest = {
-      method: 'POST',
-      url,
-      headers: { 'User-Agent': USER_AGENT },
-    };
-    const prepared = await this.auth.prepare(stub);
-
     const formData = new FormData();
-    formData.append('file', file);
-
-    const response = await fetch(prepared.url.toString(), {
+    // Blob has no filename; the service checks the .csv extension, not just MIME type.
+    formData.append('file', file, 'prompts.csv');
+    return request({
       method: 'POST',
-      headers: prepared.headers,
-      body: formData,
+      baseUrl: this.baseUrl,
+      path: `${RED_TEAM_CUSTOM_ATTACK_PATH}/upload-custom-prompts-csv`,
+      params: { prompt_set_uuid: promptSetUuid },
+      formData,
+      responseSchema: BaseResponseSchema,
+      auth: this.auth,
+      numRetries: this.numRetries,
     });
-
-    const text = await response.text();
-    if (!response.ok) {
-      throw new AISecSDKException(
-        `Upload failed (${response.status}): ${text}`,
-        ErrorType.SERVER_SIDE_ERROR,
-      );
-    }
-    return text
-      ? (JSON.parse(text) as BaseResponse)
-      : ({ message: 'ok', status: 201 } as BaseResponse);
   }
 
   // -----------------------------------------------------------------------
@@ -446,6 +425,7 @@ export class RedTeamCustomAttacksClient {
    */
   async createPrompt(body: CustomPromptCreateRequest): Promise<CustomPromptResponse> {
     return request({
+      requestSchema: CustomPromptCreateRequestSchema,
       method: 'POST',
       baseUrl: this.baseUrl,
       path: `${RED_TEAM_CUSTOM_ATTACK_PATH}/custom-prompt-set/custom-prompt`,
@@ -561,6 +541,7 @@ export class RedTeamCustomAttacksClient {
     assertUuid(promptSetUuid, 'prompt set uuid');
     assertUuid(promptUuid, 'prompt uuid');
     return request({
+      requestSchema: CustomPromptUpdateRequestSchema,
       method: 'PUT',
       baseUrl: this.baseUrl,
       path: `${RED_TEAM_CUSTOM_ATTACK_PATH}/custom-prompt-set/${promptSetUuid}/custom-prompt/${promptUuid}`,
@@ -645,13 +626,16 @@ export class RedTeamCustomAttacksClient {
    * // { message: 'ok', status: 200 }
    * ```
    */
-  async createPropertyName(body: PropertyNameCreateRequest): Promise<BaseResponse | undefined> {
-    return request<BaseResponse | undefined>({
+  async createPropertyName(
+    body: PropertyNameCreateRequest,
+  ): Promise<PropertyNameCreateResponse | undefined> {
+    return request<PropertyNameCreateResponse | undefined>({
+      requestSchema: PropertyNameCreateRequestSchema,
       method: 'POST',
       baseUrl: this.baseUrl,
       path: `${RED_TEAM_CUSTOM_ATTACK_PATH}/property-names`,
       body,
-      responseSchema: BaseResponseSchema.optional(),
+      responseSchema: PropertyNameCreateResponseSchema.optional(),
       allowEmptyBody: true,
       auth: this.auth,
       numRetries: this.numRetries,
@@ -730,6 +714,7 @@ export class RedTeamCustomAttacksClient {
    */
   async createPropertyValue(body: PropertyValueCreateRequest): Promise<BaseResponse> {
     return request({
+      requestSchema: PropertyValueCreateRequestSchema,
       method: 'POST',
       baseUrl: this.baseUrl,
       path: `${RED_TEAM_CUSTOM_ATTACK_PATH}/property-values`,

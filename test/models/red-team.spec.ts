@@ -112,19 +112,19 @@ describe('JobCreateRequestSchema', () => {
     const req = {
       name: 'test-job',
       target: { uuid: validUuid },
-      job_type: 'static',
+      job_type: 'STATIC',
       job_metadata: { categories: { security: true } },
     };
     const parsed = JobCreateRequestSchema.parse(req);
     expect(parsed.name).toBe('test-job');
-    expect(parsed.job_type).toBe('static');
+    expect(parsed.job_type).toBe('STATIC');
   });
 
   it('parses with optional version and extra_info', () => {
     const req = {
       name: 'test-job',
       target: { uuid: validUuid, version: 2 },
-      job_type: 'dynamic',
+      job_type: 'DYNAMIC',
       job_metadata: { stream_breadth: 3, stream_depth: 5 },
       version: 1,
       extra_info: { note: 'test' },
@@ -138,7 +138,7 @@ describe('JobCreateRequestSchema', () => {
     const req = {
       name: 'test-job',
       target: { uuid: validUuid },
-      job_type: 'custom',
+      job_type: 'CUSTOM',
       job_metadata: { custom_prompt_sets: [validUuid] },
       version: null,
       extra_info: null,
@@ -730,11 +730,19 @@ describe('TargetCreateRequestSchema', () => {
   });
 
   it('rejects unknown fields (strict mode)', () => {
-    expect(() => TargetCreateRequestSchema.parse({ name: 'x', auth_type: 'HEADERS' })).toThrow();
+    expect(() =>
+      TargetCreateRequestSchema.parse({ name: 'x', unsupported_field: 'HEADERS' }),
+    ).toThrow();
   });
 
-  it('rejects unknown fields like auth_config', () => {
-    expect(() => TargetCreateRequestSchema.parse({ name: 'x', auth_config: {} })).toThrow();
+  it('accepts the newly documented auth_config and preserves omitted defaults', () => {
+    const body = {
+      name: 'x',
+      auth_type: 'HEADERS',
+      auth_config: { auth_header: { Authorization: 'Bearer test' } },
+      connection_params: { api_endpoint: 'https://example.test' },
+    };
+    expect(TargetCreateRequestSchema.parse(body)).toEqual(body);
   });
 
   it('accepts null for nullable fields', () => {
@@ -801,7 +809,9 @@ describe('TargetUpdateRequestSchema', () => {
   });
 
   it('rejects unknown fields (strict mode)', () => {
-    expect(() => TargetUpdateRequestSchema.parse({ name: 'x', auth_type: 'HEADERS' })).toThrow();
+    expect(() =>
+      TargetUpdateRequestSchema.parse({ name: 'x', unsupported_field: 'HEADERS' }),
+    ).toThrow();
   });
 
   it('rejects missing name', () => {
@@ -826,7 +836,9 @@ describe('TargetProbeRequestSchema', () => {
   });
 
   it('rejects unknown fields (strict mode)', () => {
-    expect(() => TargetProbeRequestSchema.parse({ name: 'x', auth_type: 'HEADERS' })).toThrow();
+    expect(() =>
+      TargetProbeRequestSchema.parse({ name: 'x', unsupported_field: 'HEADERS' }),
+    ).toThrow();
   });
 
   it('rejects missing name', () => {
@@ -971,9 +983,9 @@ describe('CustomPromptSetResponseSchema', () => {
       ...baseSet,
       description: 'A prompt set',
       property_names: ['cat'],
-      properties: [{ name: 'cat', value: 'security' }],
-      stats: { total_prompts: 10 },
-      version: 2,
+      properties: [{ property_name: 'cat', created_at: '2026-09-06T00:00:00Z' }],
+      stats: { total_prompts: 10, active_prompts: 8, inactive_prompts: 2 },
+      version: '2',
       created_by_user_id: 'user-1',
       updated_by_user_id: 'user-2',
     };
@@ -1000,7 +1012,7 @@ describe('CustomPromptCreateRequestSchema', () => {
       prompt: 'test',
       prompt_set_id: validUuid,
       goal: 'Extract secrets',
-      properties: [{ name: 'cat', value: 'security' }],
+      properties: { cat: 'security' },
     };
     const parsed = CustomPromptCreateRequestSchema.parse(req);
     expect(parsed.goal).toBe('Extract secrets');
@@ -1033,8 +1045,8 @@ describe('CustomPromptResponseSchema', () => {
     const full = {
       ...basePrompt,
       goal: 'Extract data',
-      properties: [{ name: 'cat', value: 'sec' }],
-      property_assignments: [{ name: 'cat', value: 'sec' }],
+      properties: { cat: 'sec' },
+      property_assignments: [{ property_name: 'cat', property_value: 'sec' }],
       detector_category: 'injection',
       severity: 'high',
       extra_info: { note: 'test' },
@@ -1350,7 +1362,7 @@ describe('TargetAuthValidationRequestSchema', () => {
 
   it('parses with optional target_id and network_broker_channel_uuid', () => {
     const parsed = TargetAuthValidationRequestSchema.parse({
-      auth_type: 'BASIC',
+      auth_type: 'BASIC_AUTH',
       auth_config: { username: 'u', password: 'p' },
       target_id: validUuid,
       network_broker_channel_uuid: validUuid,
