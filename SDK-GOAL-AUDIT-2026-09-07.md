@@ -93,3 +93,36 @@ the new session API is a different verified contract, not falsely counted as its
 The full objective stays active; no completed-goal claim is made by this audit. This follow-up
 updates tooling and documentation, not SDK/CLI runtime packages. Remote CI and public deployment
 must be checked separately after the commit is pushed.
+
+## Authorization diagnostic correction — 21:16 UTC
+
+The earlier tooling/example commit `c7d48d3` subsequently passed CI, the complete Node
+18/20/22/24 matrix and documentation deployment. Its public conformance, dashboard and
+examples pages were independently verified. The next two goal turns only revalidated
+unchanged prerequisites and are classified as no progress toward the original full objective.
+
+The third revalidation found a documentation inconsistency that changes an actionable
+recommendation: the older API guide and client JSDoc attributed every OPA-denied 403 to a
+missing tenant-root grant. This is not established by the available evidence. Fresh read-only
+checks finish at **21:16:26.357 UTC**, with successful workspace controls on both planes and
+OPA-denied, correctly paginated virtual-key GETs on both. All eight source hashes and credential
+bytes remain unchanged; no response bodies, tenant settings or IAM grants are modified.
+Private evidence is `artifacts/resumed-goal-authorization-audit-3.json`.
+
+The guide, client reference and historical release-note correction now distinguish policy
+denial from a proven missing grant; AB03/AB02 are diagnostic hints rather than universal
+permission/route diagnoses. They recommend checking the same-plane control and supported
+route/query before considering IAM changes, preserve least privilege, and distinguish SCM
+OAuth from runtime gateway keys. This is a concrete documentation safety correction, not new
+operation coverage or a backend fix. The complete acceptance target remains unmet and the
+full-project assessment remains **5/10**. SDK and CLI package versions remain unchanged.
+
+Verification of the correction: all **11,561 tests** pass, as do source/tooling/documentation
+typechecks, lint, formatting, public-example coverage and the production documentation build.
+Comparing the client's transpiled JavaScript with comments removed proves runtime output is
+unchanged. Local Chromium passes **4/4** checks across the guide, annotated release note,
+generated client reference and mobile evidence link, with no page errors. Initial browser
+launch attempts used unavailable system/glibc executables; the existing verified local Chromium
+wrapper runs successfully without changing system packages. The credential scan checks
+**17,628 files**, including built documentation, with zero matches and unchanged config bytes.
+Public deployment is a separate post-push verification, not inferred from this local result.

@@ -58,16 +58,19 @@ export interface AIGatewayClientOptions {
  * organisation-level config.
  *
  * @remarks
- * The two planes authorize against **different SCM role scopes**, and the service account
- * needs both grants or half the API returns 403:
+ * The two planes authorize against **different SCM role scopes**. Verified tenant workflows
+ * use grants at both scopes; authorization still depends on the requested operation:
  *
  * - an admin role at **tenant root** scope → `/ai_gw/admin/v2/*`
  * - `view_only_admin` or higher on the **`main_airs_workspace_<TSG>`** scope → `/ai_gw/v2/*`
  *
  * Both can coexist on one account, but SCM's Access Management UI edits an existing role row
  * by default — use *Add Role* to add the second, or you will move the first instead of
- * adding to it. A `403` whose body carries `errorCode: "AB03"` means the workspace-scope
- * grant is missing; a `403` carrying `x-opa-decision: false` means the tenant-root grant is.
+ * adding to it. `errorCode: "AB03"` indicates application authorization rejection; check the
+ * requested workspace and plane. `403` with `x-opa-decision: false` indicates SCM policy denial,
+ * not proof of a missing tenant-root grant or an available endpoint. Verified workspace reads
+ * can succeed on both planes while candidate routes remain denied. Compare a known-good read
+ * on the same plane and verify the route/query contract before considering permission changes.
  *
  * @example
  * ```ts

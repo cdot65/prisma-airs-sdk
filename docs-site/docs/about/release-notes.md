@@ -285,7 +285,13 @@ Fixes a documentation typo: the guardrail check id is `panw-prisma-airs.intercep
 
 New `AIGatewayClient` covering the SCM-managed Prisma AIRS AI Gateway across both of its planes: runtime telemetry (`/ai_gw/v2/logs/*`) and configuration (`/ai_gw/v2` and `/ai_gw/admin/v2`). Twelve sub-clients — `telemetry`, `workspaces`, `configs`, `guardrails`, `providers`, `apiKeys`, `integrations`, `mcpIntegrations`, `deployments`, `plugins`, `organisations`, and `auditLogs`. Configure with `PANW_AI_GW_*`, falling back to `PANW_MGMT_*`.
 
-The gateway's two planes authorize against **different SCM role scopes**, so a service account needs both an admin role at tenant-root scope _and_ `view_only_admin` (or higher) on the `main_airs_workspace_<TSG>` scope. With only one grant, half the API returns 403 — `errorCode: "AB03"` means the workspace-scope grant is missing, `x-opa-decision: false` means the tenant-root one is.
+The gateway's two planes authorize against **different SCM role scopes**. The workflows verified
+for this release used an admin role at tenant-root scope and `view_only_admin` (or higher) on
+`main_airs_workspace_<TSG>`. **September 7 diagnostic correction:** the original note attributed
+`AB03` and OPA-denied 403 responses to specific missing grants too broadly. These markers identify
+authorization rejections, not a unique cause. Later reads succeed on both planes while candidate
+routes remain OPA-denied. Review the current [authorization guidance](../guides/ai-gateway-api.mdx#authorization)
+before considering permission changes; this correction does not expand the release's API coverage.
 
 Monetary values are returned **in cents**, exactly as the API sends them; the SDK does not convert. `deployments.delete()` archives rather than removes, so the record remains in `list()` with `status: 'archived'`. Write response shapes are verified against a live tenant for `deployments` only; other create and update responses are typed permissively until confirmed.
 

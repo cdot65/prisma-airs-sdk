@@ -74,14 +74,20 @@ Unlike most of this SDK's other subsystems, the AI Gateway API has no Palo Alto 
 
 ## Authorization
 
-**This is the part most likely to waste your time.** The two planes authorize against **different SCM role scopes**, and a service account needs **both grants** or half the API returns 403.
+The two planes authorize against **different SCM role scopes**. The verified tenant workflows
+use both scopes below, but neither grant guarantees access to every route or operation. Use
+the least privilege required for the intended operation; do not add administrator permissions
+solely because an unverified route returns 403.
 
-| Grant | Scope | Unlocks |
+| Grant observed in verified workflows | Scope | Plane |
 | --- | --- | --- |
 | An admin role | Tenant root (empty final scope segment) | `/ai_gw/admin/v2/*` |
 | `view_only_admin` or higher | `main_airs_workspace_<TSG>` | `/ai_gw/v2/*` (telemetry **and** config) |
 
-Both grants can coexist on one service account. Decode the account's JWT `access` claim to check what it actually has:
+Both grants can coexist on one service account. Inspect the account's JWT `access` claim locally
+to review the scopes represented in the token. Do not paste a bearer token into an online decoder
+or retain it in diagnostics. Decoding a claim is not verification of a token or proof that a
+particular operation is authorized:
 
 ```json
 {
@@ -90,7 +96,7 @@ Both grants can coexist on one service account. Decode the account's JWT `access
 }
 ```
 
-The first key (empty final segment) is the tenant-root grant; the second, scoped to `main_airs_workspace_<TSG>`, is the workspace grant. You need a role present under **both** keys. The workspace scope's exact name is also returned as `scope_name` on each `gw.workspaces.list()` row (on `gw.workspaces.get()` it only arrives via `.passthrough()`, untyped) — use that to confirm you're granting the right scope in SCM.
+The first key (empty final segment) is the tenant-root grant; the second, scoped to `main_airs_workspace_<TSG>`, is the workspace grant. The example shows both scopes used by the verified workflows; its `superuser` roles are not a recommendation for every caller. The workspace scope's exact name is also returned as `scope_name` on each `gw.workspaces.list()` row (on `gw.workspaces.get()` it only arrives via `.passthrough()`, untyped) — use that to check the requested scope in SCM.
 
 :::warning[SCM's Access Management UI edits, it does not add]
 SCM's Access Management UI **edits an existing role row by default**. If a service account already has a tenant-root role and you need to add the workspace-scope role too, you must explicitly **Add Role** to create a second row — otherwise you will move the existing grant to the new scope instead of adding to it, and the plane you thought you kept will go dark.
@@ -98,19 +104,33 @@ SCM's Access Management UI **edits an existing role row by default**. If a servi
 
 ### Telling the failure modes apart
 
-Three different rejections look superficially alike (all `4xx`) but mean completely different things:
+These response markers help locate a rejection, but do not establish its complete cause:
 
-| Response | Layer | Meaning |
+| Response | Layer | What to check |
 | --- | --- | --- |
-| `403` with header `x-opa-decision: false` and body `{"msg":"Access denied"}` | SCM OPA policy | Blocked before reaching the gateway app. Missing the **tenant-root** grant. |
-| `403` with body `{"success":false,"data":{"errorCode":"AB03"}}` | Gateway app RBAC | Real endpoint, reached the app. Missing the **workspace-scope** grant. |
-| `404` with `errorCode: "AB02"` | Gateway routing | Real collection, wrong read form — usually a missing `workspace_id` query param. |
+| `403` with header `x-opa-decision: false` and body `{"msg":"Access denied"}` | SCM OPA policy | Policy denied this request. The header alone does not identify a missing grant or prove the endpoint is available. Verify the plane, supported route and exact query before reviewing permissions. |
+| `403` with body `{"success":false,"data":{"errorCode":"AB03"}}` | Gateway app authorization | Check the requested workspace, resource access and selected plane. Missing workspace scope is one observed cause, not a universal diagnosis or instruction to assign a particular role. |
+| `404` with `errorCode: "AB02"` | Gateway lookup/routing | Verify the supported route, resource identifier and required query. A missing `workspace_id` caused some observed failures, but 404 alone does not prove a collection exists. |
 
-`AISecSDKException` surfaces `errorCode` directly in its `message` (see [Error Handling](#error-handling)), so you don't need to inspect headers or parse the body yourself to tell these apart.
+`AISecSDKException` appends a returned `errorCode` to its `message` (see [Error Handling](#error-handling)).
+That message is not a substitute for an OPA response header and cannot reliably identify a
+missing role. Debug logging can capture response metadata without enabling body logging; do
+not retain tokens, keys or member payloads while diagnosing access.
+
+The September 7 [read-only administration probes](./examples.mdx#administration-route-availability)
+passed both workspace authentication controls while all 24 candidate route requests were
+OPA-denied. A successful control proves that request worked on its plane, not that every other
+route is supported or authorized. Conversely, a denied candidate does not prove feature absence
+or that broader permissions would make it work. Correct pagination did not remove these denials.
+The [coverage ledger](../developer/gateway-coverage.md) retains those operations as unverified.
 
 ## Configuration
 
-The AI Gateway client uses OAuth2 `client_credentials`, exactly like every other client in this SDK. The `PANW_AI_GW_CLIENT_ID` / `_CLIENT_SECRET` / `_TSG_ID` / `_TOKEN_ENDPOINT` variables fall back to the corresponding `PANW_MGMT_*` ones if unset (the two endpoint overrides have no fallback), so an account already configured for `ManagementClient` needs nothing extra beyond the two SCM grants above.
+The SCM AI Gateway client uses OAuth2 `client_credentials`, like `ManagementClient`. The
+`PANW_AI_GW_CLIENT_ID` / `_CLIENT_SECRET` / `_TSG_ID` / `_TOKEN_ENDPOINT` variables fall back
+to the corresponding `PANW_MGMT_*` ones if unset (the two endpoint overrides have no fallback).
+Reusing management credentials does not establish Gateway authorization: verify the scopes and
+intended operation. The separate runtime inference client uses its own gateway key, not OAuth.
 
 | Env Var | Fallback | Required | Description |
 | --- | --- | --- | --- |
@@ -666,9 +686,10 @@ try {
         console.error('Auth failed:', err.message);
         break;
       case ErrorType.CLIENT_SIDE_ERROR:
-        // AB03 in the message -> missing view_only_admin on main_airs_workspace_<TSG>
-        // "Access denied" (OPA) in the message -> missing admin role at tenant-root scope
-        // AB02 in the message -> real collection, wrong read form (usually missing workspace_id)
+        // AB03: check workspace/resource access and the selected plane.
+        // "Access denied" alone cannot identify OPA or a missing role.
+        // AB02: verify the route, resource identifier and required query.
+        // Compare a known-good read on the same plane before considering permission changes.
         console.error('Client error:', err.statusCode, err.message);
         break;
       case ErrorType.USER_REQUEST_PAYLOAD_ERROR:
@@ -679,7 +700,9 @@ try {
 }
 ```
 
-`AISecSDKException.message` has the API's `errorCode` appended automatically (e.g. `"... (errorCode: AB03)"`), so you can branch on the error codes above by inspecting `message` without parsing the response body yourself.
+`AISecSDKException.message` has the API's `errorCode` appended automatically (e.g. `"... (errorCode: AB03)"`).
+Use it as a diagnostic hint, not an automatic instruction to change IAM grants or retry an
+unsupported route. Explicit OPA policy denials are returned without a token-refresh retry.
 
 ID parameters are also validated **before** any network call. UUID-shaped fields (config, guardrail, provider, integration, deployment IDs, and the `workspaceId` list filter) use `assertUuid`; workspace refs on `workspaces.get/update/delete` use `assertWorkspaceRef`, which accepts a UUID or a slug; the TSG/organisation ID field uses `assertNumericId`, since it's a numeric string rather than a UUID. Both throw `AISecSDKException` with `ErrorType.USER_REQUEST_PAYLOAD_ERROR` immediately, without hitting the network:
 
