@@ -1,0 +1,348 @@
+{
+  "source": "ai-gateway-openapi/openapi.yaml",
+  "sha256": "de7a1bd98bdb2edb7428a33054d9f6000b9568d1cd5b603d1a8302c053d094d9",
+  "classification": "scm-adapted-partial",
+  "correction": "SCM uses camel-case query names and a distinct envelope. One trace, string-valued metadata, status/API-key/provider-model CSV lists and inclusive total-token/cost bounds are verified. Other upstream filters and the complete aggregation contract remain unimplemented.",
+  "operations": [
+    {
+      "metric": "users",
+      "method": "GET",
+      "upstreamPath": "/analytics/groups/users",
+      "scmPath": "/logs/groups/users",
+      "scmOnlyFilters": [],
+      "declaredQueryNames": [
+        "workspace_slug",
+        "time_of_generation_min",
+        "time_of_generation_max",
+        "total_units_min",
+        "total_units_max",
+        "cost_min",
+        "cost_max",
+        "prompt_token_min",
+        "prompt_token_max",
+        "completion_token_min",
+        "completion_token_max",
+        "status_code",
+        "weighted_feedback_min",
+        "weighted_feedback_max",
+        "virtual_keys",
+        "configs",
+        "api_key_ids",
+        "current_page",
+        "page_size",
+        "metadata",
+        "ai_org_model",
+        "trace_id",
+        "span_id",
+        "prompt_slug"
+      ],
+      "filters": [
+        {
+          "in": "query",
+          "name": "total_units_min",
+          "schema": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "description": "Minimum total units (tokens)"
+        },
+        {
+          "in": "query",
+          "name": "total_units_max",
+          "schema": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "description": "Maximum total units (tokens)"
+        },
+        {
+          "in": "query",
+          "name": "cost_min",
+          "schema": {
+            "type": "number",
+            "minimum": 0
+          },
+          "description": "Minimum cost (in cents)"
+        },
+        {
+          "in": "query",
+          "name": "cost_max",
+          "schema": {
+            "type": "number",
+            "minimum": 0
+          },
+          "description": "Maximum cost (in cents)"
+        },
+        {
+          "in": "query",
+          "name": "status_code",
+          "schema": {
+            "type": "string"
+          },
+          "description": "Comma separated response status codes",
+          "example": "401,403"
+        },
+        {
+          "in": "query",
+          "name": "api_key_ids",
+          "schema": {
+            "type": "string"
+          },
+          "description": "Comma separated API key UUIDs",
+          "example": "765768a9-b4ec-4694-962c-d55f40cdb0dc,7c22af5a-8119-46b8-8d9b-bad3ad382387"
+        },
+        {
+          "in": "query",
+          "name": "metadata",
+          "schema": {
+            "type": "string"
+          },
+          "description": "Stringifed json object with key value metadata pairs",
+          "example": "{\"_user\":\"user_1\", \"env\": \"staging\"}"
+        },
+        {
+          "in": "query",
+          "name": "ai_org_model",
+          "schema": {
+            "type": "string"
+          },
+          "description": "Comma separated ai provider and model combination. Double underscore (__) should be used as a separator for each provider and model combination",
+          "example": "openai__gpt-3.5-turbo,azure-openai__gpt-35-turbo"
+        },
+        {
+          "in": "query",
+          "name": "trace_id",
+          "schema": {
+            "type": "string"
+          },
+          "description": "Comma separated trace IDs",
+          "example": "my-unique-trace-1,my-unique-trace-2"
+        }
+      ]
+    },
+    {
+      "metric": "model",
+      "method": "GET",
+      "upstreamPath": "/analytics/groups/ai-models",
+      "scmPath": "/logs/groups/model",
+      "scmOnlyFilters": [],
+      "declaredQueryNames": [
+        "workspace_slug",
+        "time_of_generation_min",
+        "time_of_generation_max",
+        "total_units_min",
+        "total_units_max",
+        "cost_min",
+        "cost_max",
+        "prompt_token_min",
+        "prompt_token_max",
+        "completion_token_min",
+        "completion_token_max",
+        "status_code",
+        "weighted_feedback_min",
+        "weighted_feedback_max",
+        "virtual_keys",
+        "configs",
+        "api_key_ids",
+        "current_page",
+        "page_size",
+        "metadata",
+        "ai_org_model",
+        "trace_id",
+        "span_id",
+        "prompt_slug"
+      ],
+      "filters": [
+        {
+          "in": "query",
+          "name": "total_units_min",
+          "schema": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "description": "Minimum total units (tokens)"
+        },
+        {
+          "in": "query",
+          "name": "total_units_max",
+          "schema": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "description": "Maximum total units (tokens)"
+        },
+        {
+          "in": "query",
+          "name": "cost_min",
+          "schema": {
+            "type": "number",
+            "minimum": 0
+          },
+          "description": "Minimum cost (in cents)"
+        },
+        {
+          "in": "query",
+          "name": "cost_max",
+          "schema": {
+            "type": "number",
+            "minimum": 0
+          },
+          "description": "Maximum cost (in cents)"
+        },
+        {
+          "in": "query",
+          "name": "status_code",
+          "schema": {
+            "type": "string"
+          },
+          "description": "Comma separated response status codes",
+          "example": "401,403"
+        },
+        {
+          "in": "query",
+          "name": "api_key_ids",
+          "schema": {
+            "type": "string"
+          },
+          "description": "Comma separated API key UUIDs",
+          "example": "765768a9-b4ec-4694-962c-d55f40cdb0dc,7c22af5a-8119-46b8-8d9b-bad3ad382387"
+        },
+        {
+          "in": "query",
+          "name": "metadata",
+          "schema": {
+            "type": "string"
+          },
+          "description": "Stringifed json object with key value metadata pairs",
+          "example": "{\"_user\":\"user_1\", \"env\": \"staging\"}"
+        },
+        {
+          "in": "query",
+          "name": "ai_org_model",
+          "schema": {
+            "type": "string"
+          },
+          "description": "Comma separated ai provider and model combination. Double underscore (__) should be used as a separator for each provider and model combination",
+          "example": "openai__gpt-3.5-turbo,azure-openai__gpt-35-turbo"
+        },
+        {
+          "in": "query",
+          "name": "trace_id",
+          "schema": {
+            "type": "string"
+          },
+          "description": "Comma separated trace IDs",
+          "example": "my-unique-trace-1,my-unique-trace-2"
+        }
+      ]
+    },
+    {
+      "metric": "provider",
+      "method": "GET",
+      "upstreamPath": "/analytics/groups/provider",
+      "scmPath": "/logs/groups/provider",
+      "scmOnlyFilters": ["traceId"],
+      "declaredQueryNames": [
+        "workspace_slug",
+        "time_of_generation_min",
+        "time_of_generation_max",
+        "total_units_min",
+        "total_units_max",
+        "cost_min",
+        "cost_max",
+        "prompt_token_min",
+        "prompt_token_max",
+        "completion_token_min",
+        "completion_token_max",
+        "status_code",
+        "weighted_feedback_min",
+        "weighted_feedback_max",
+        "virtual_keys",
+        "configs",
+        "api_key_ids",
+        "current_page",
+        "page_size",
+        "metadata",
+        "ai_org_model",
+        "order_by",
+        "order_by_type",
+        "columns",
+        "include_total"
+      ],
+      "filters": [
+        {
+          "in": "query",
+          "name": "total_units_min",
+          "schema": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "description": "Minimum total units (tokens)"
+        },
+        {
+          "in": "query",
+          "name": "total_units_max",
+          "schema": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "description": "Maximum total units (tokens)"
+        },
+        {
+          "in": "query",
+          "name": "cost_min",
+          "schema": {
+            "type": "number",
+            "minimum": 0
+          },
+          "description": "Minimum cost (in cents)"
+        },
+        {
+          "in": "query",
+          "name": "cost_max",
+          "schema": {
+            "type": "number",
+            "minimum": 0
+          },
+          "description": "Maximum cost (in cents)"
+        },
+        {
+          "in": "query",
+          "name": "status_code",
+          "schema": {
+            "type": "string"
+          },
+          "description": "Comma separated response status codes",
+          "example": "401,403"
+        },
+        {
+          "in": "query",
+          "name": "api_key_ids",
+          "schema": {
+            "type": "string"
+          },
+          "description": "Comma separated API key UUIDs",
+          "example": "765768a9-b4ec-4694-962c-d55f40cdb0dc,7c22af5a-8119-46b8-8d9b-bad3ad382387"
+        },
+        {
+          "in": "query",
+          "name": "metadata",
+          "schema": {
+            "type": "string"
+          },
+          "description": "Stringifed json object with key value metadata pairs",
+          "example": "{\"_user\":\"user_1\", \"env\": \"staging\"}"
+        },
+        {
+          "in": "query",
+          "name": "ai_org_model",
+          "schema": {
+            "type": "string"
+          },
+          "description": "Comma separated ai provider and model combination. Double underscore (__) should be used as a separator for each provider and model combination",
+          "example": "openai__gpt-3.5-turbo,azure-openai__gpt-35-turbo"
+        }
+      ]
+    }
+  ]
+}

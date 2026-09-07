@@ -36,10 +36,11 @@ const credentials = loadLiveCredentials();
 const harness = new LiveHarness();
 const sdk = process.argv.includes('--sdk');
 const cli = process.argv.includes('--cli');
+const versioned = process.argv.includes('--versioned');
 const suite = cli
   ? 'gateway-analytics-query-contracts-cli'
   : sdk
-    ? 'gateway-analytics-query-contracts-sdk'
+    ? `gateway-analytics-query-contracts-sdk${versioned ? `-v${SDK_VERSION}` : ''}`
     : 'gateway-analytics-query-contracts';
 const installedEntry = process.env.E2E_ANALYTICS_SDK_ENTRY;
 const cliEntry = process.env.E2E_CLI_ENTRY;
@@ -77,6 +78,7 @@ const evidence: {
 }[] = [];
 try {
   assert(!(sdk && cli), 'Choose one consumer mode');
+  assert(!versioned || (sdk && !cli), 'Versioned report names require SDK consumer mode');
   if (cli) {
     assert(cliEntry && isAbsolute(cliEntry) && !installedEntry);
     const packageFile = resolve(dirname(cliEntry), '../../package.json');

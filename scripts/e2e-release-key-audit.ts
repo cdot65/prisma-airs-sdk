@@ -4,14 +4,13 @@ import { readFileSync, readdirSync } from 'node:fs';
 import { AIGatewayClient } from '../src/index.js';
 import { loadLiveCredentials } from './live-credentials.js';
 import { LiveHarness } from './e2e/harness.js';
+import { isReleaseInferenceHistoryFile } from './e2e/release-history.js';
 
 const credentials = loadLiveCredentials();
 const harness = new LiveHarness();
 try {
   const fixtures = new Map<string, { id: string; name: string }>();
-  for (const file of readdirSync('artifacts/e2e/history').filter((name) =>
-    /^(?:release-sdk-inference(?:-022|-023|-024)?|cli-inference)-\d{4}-.*\.json$/.test(name),
-  )) {
+  for (const file of readdirSync('artifacts/e2e/history').filter(isReleaseInferenceHistoryFile)) {
     const report = JSON.parse(readFileSync(`artifacts/e2e/history/${file}`, 'utf8')) as {
       credentialsUnchanged: boolean;
       fixtures: { resource: string; id: string; name: string }[];

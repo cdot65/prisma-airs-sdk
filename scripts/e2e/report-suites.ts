@@ -13,6 +13,8 @@ export const liveReportSuites = [
   'gateway-analytics-query-contracts',
   'gateway-analytics-query-contracts-sdk',
   'gateway-analytics-query-contracts-cli',
+  'gateway-analytics-group-filters',
+  'gateway-analytics-group-filters-sdk',
   'gateway-extensions',
   'gateway-usage-reset',
   'gateway-usage-reset-audit',

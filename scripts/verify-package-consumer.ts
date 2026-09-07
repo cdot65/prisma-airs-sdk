@@ -2,7 +2,7 @@
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
-import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
@@ -485,6 +485,9 @@ for (const module of [esm, cjs]) {
     requests(options: object): Promise<unknown>;
     cost(options: object): Promise<unknown>;
     tokens(options: object): Promise<unknown>;
+    groupBy(dimension: string, options: object): Promise<unknown>;
+    byStatusCode(options: object): Promise<unknown>;
+    byUser(options: object): Promise<unknown>;
     latency(options: object): Promise<{
       data: { total: number | null; p50: number | null; p90: number | null; p99: number | null };
     }>;
@@ -505,6 +508,14 @@ for (const module of [esm, cjs]) {
   try {
     globalThis.fetch = async (input) => {
       urls.push(String(input));
+      if (
+        new URL(String(input)).pathname.startsWith('/logs/groups/') &&
+        !new URL(String(input)).pathname.endsWith('/users')
+      ) {
+        return new Response(
+          JSON.stringify({ object: 'list', is_quota_exceeded: false, total: 0, data: [] }),
+        );
+      }
       return new Response(
         JSON.stringify({
           success: true,
@@ -590,26 +601,95 @@ for (const module of [esm, cjs]) {
         for (const field of ['total', 'p50', 'p90', 'p99']) assert.equal(data[field], null);
       }
     }
+    for (const dimension of [
+      'ai_service',
+      'model',
+      'api_key',
+      'provider',
+      'status_code',
+      'users',
+    ]) {
+      const call = (options: object) =>
+        dimension === 'users'
+          ? telemetry.byUser(options)
+          : dimension === 'status_code'
+            ? telemetry.byStatusCode(options)
+            : telemetry.groupBy(dimension, options);
+      const before: number = authCalls;
+      const beforeRequests: number = urls.length;
+      for (const invalid of [
+        { metadata: { count: 1 } },
+        { costMin: 2, costMax: 1 },
+        { statusCodes: [] },
+      ]) {
+        await assert.rejects(call({ workspaceSlug: 'ws-dev', ...invalid }), {
+          errorType: (module.ErrorType as Record<string, string>).USER_REQUEST_PAYLOAD_ERROR,
+        });
+      }
+      assert.equal(authCalls, before);
+      assert.equal(urls.length, beforeRequests);
+      await call({
+        workspaceSlug: 'ws-dev',
+        traceId: 'owned+a&b',
+        metadata: { tag: 'a+b&c' },
+        statusCodes: [418, 200],
+        apiKeyIds: ['11111111-1111-4111-8111-111111111111'],
+        aiOrgModels: ['openai__model'],
+        totalUnitsMin: 0,
+        totalUnitsMax: 42,
+        costMin: 0,
+        costMax: 0.125,
+        ...(dimension === 'users' ? {} : { columns: ['cost', 'total_tokens'] }),
+      });
+      const grouped = new URL(urls.at(-1)!);
+      assert.equal(grouped.pathname, `/logs/groups/${dimension}`);
+      assert.equal(grouped.searchParams.get('traceId'), 'owned+a&b');
+      assert.equal(grouped.searchParams.get('metadata'), '{"tag":"a+b&c"}');
+      assert.equal(grouped.searchParams.get('statusCode'), '418,200');
+      assert.equal(grouped.searchParams.get('apiKeyIds'), '11111111-1111-4111-8111-111111111111');
+      assert.equal(grouped.searchParams.get('aiOrgModel'), 'openai__model');
+      assert.equal(grouped.searchParams.get('totalUnitsMin'), '0');
+      assert.equal(grouped.searchParams.get('totalUnitsMax'), '42');
+      assert.equal(grouped.searchParams.get('costMin'), '0');
+      assert.equal(grouped.searchParams.get('costMax'), '0.125');
+      assert.equal(
+        grouped.searchParams.get('columns'),
+        dimension === 'users' ? null : 'cost,total_tokens',
+      );
+      assert.equal(authCalls, before + 1);
+    }
   } finally {
     globalThis.fetch = originalFetch;
   }
 }
 const bytes = readFileSync(archive);
-execFileSync(
-  process.execPath,
-  [
-    resolve(root, 'node_modules/typescript/bin/tsc'),
-    '--noEmit',
-    '--strict',
-    '--skipLibCheck',
-    '--target',
-    'ES2022',
-    '--module',
-    'NodeNext',
-    resolve(installed, '../../../type-smoke.ts'),
-  ],
-  { cwd: root, stdio: 'pipe' },
-);
+// Resolve the actual installed package from a sibling, never this checkout's TS aliases.
+// The specimen is version controlled; callers cannot substitute an empty passing file.
+const typeDirectory = mkdtempSync(resolve(installed, '../../../.prisma-airs-sdk-types-'));
+try {
+  const specimen = resolve(typeDirectory, 'type-smoke.ts');
+  writeFileSync(specimen, readFileSync(resolve(root, 'scripts/fixtures/package-type-smoke.ts')), {
+    flag: 'wx',
+    mode: 0o600,
+  });
+  execFileSync(
+    process.execPath,
+    [
+      resolve(root, 'node_modules/typescript/bin/tsc'),
+      '--noEmit',
+      '--strict',
+      '--skipLibCheck',
+      '--target',
+      'ES2022',
+      '--module',
+      'NodeNext',
+      specimen,
+    ],
+    { cwd: root, stdio: 'pipe' },
+  );
+} finally {
+  rmSync(typeDirectory, { recursive: true, force: true });
+}
 const report = {
   checkedAt: new Date().toISOString(),
   nodeVersion: process.version,
@@ -624,7 +704,11 @@ const report = {
   runtimeExports: Object.keys(esm).length,
   formats: ['ESM', 'CommonJS'],
   strictNodeNextTypesPassed: true,
+  typeSpecimenSha256: createHash('sha256')
+    .update(readFileSync(resolve(root, 'scripts/fixtures/package-type-smoke.ts')))
+    .digest('hex'),
   telemetryFilterWireAndPreAuthValidationPassed: true,
+  telemetryGroupFilterWireAndPreAuthValidationPassed: true,
   providerHttpFormatsAndMultipartPassed: true,
   legacyPromptJsonAndSsePassed: true,
   publicPricingNoAuthAndTypesPassed: true,

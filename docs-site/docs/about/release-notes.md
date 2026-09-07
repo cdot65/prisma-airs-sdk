@@ -1,5 +1,15 @@
 # Release Notes
 
+## v0.25.0 (2026-09-07) — Verified grouped analytics filtering
+
+- Extend trace/metadata, status/API-key/provider-model lists and inclusive token/cost bounds to all six grouped analytics endpoints. Preserve columns, fractional cents, zero and the distinct user response envelope.
+- Share the existing strict filter validation and serializer across charts and groups. Reject invalid inputs before authentication, without widening unrelated chart or log contracts.
+- Serialize chart, group and log options from the validated copy, without rereading caller-owned getters after validation. Eleven failing-first single-read regressions cover all affected endpoints.
+- Verify positive/absent cohorts and combined filters against existing owned traffic. Independently freeze the supplied user/model/provider query declarations; record SCM-only provider `traceId` separately instead of inventing an upstream field.
+- Add 295 group regressions and four source-contract checks. Packaged ESM/CommonJS consumers verify exact group queries and pre-authentication rejection; strict consumer types use a tracked, hashed specimen instead of a caller-supplied smoke file.
+
+See [grouped analytics](../guides/ai-gateway-api.mdx#groupby-byuser-bystatuscode) and its [captured checks](../guides/examples.mdx#verified-grouped-analytics-filters). Direct gateway coverage remains **138/242 (57.02%)**, with all 22 analytics adaptations still partial. This release does not resolve the remaining service/model/entitlement failures or certify the full 99% target. CLI group-filter verification and release are separate follow-up work.
+
 ## v0.24.0 (2026-09-07) — Verified analytics query contracts
 
 - Add `statusCodes`, `apiKeyIds`, `aiOrgModels`, `totalUnitsMin`, `totalUnitsMax`, `costMin` and `costMax` to the shared request/cost/token/latency chart options.

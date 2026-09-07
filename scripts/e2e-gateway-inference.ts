@@ -1,10 +1,30 @@
 /** @internal Bounded live inference through the actual SDK client, with disposable SCM keys. */
 import assert from 'node:assert/strict';
-import { AIGatewayInferenceClient, ErrorType } from '../src/index.js';
+import { isAbsolute } from 'node:path';
+import { pathToFileURL } from 'node:url';
+import { AIGatewayInferenceClient, ErrorType, SDK_VERSION } from '../src/index.js';
 import { runtimeSuite } from './e2e/gateway-runtime.js';
 
-await runtimeSuite('gateway-inference', async ({ harness, endpoint, apiKey }) => {
-  const inference = new AIGatewayInferenceClient({ endpoint, apiKey, numRetries: 0 });
+// Complete package loading/version checks before runtimeSuite reads credentials or creates a key.
+const installedEntry = process.env.E2E_RELEASE_SDK_ENTRY;
+let InferenceClient = AIGatewayInferenceClient;
+if (installedEntry !== undefined) {
+  assert(isAbsolute(installedEntry), 'The installed SDK entry must be an absolute local path');
+  const installed = (await import(
+    pathToFileURL(installedEntry).href
+  )) as typeof import('../src/index.js');
+  assert.equal(
+    installed.SDK_VERSION,
+    SDK_VERSION,
+    'The installed SDK must match the candidate version',
+  );
+  assert.equal(typeof installed.AIGatewayInferenceClient, 'function');
+  InferenceClient = installed.AIGatewayInferenceClient;
+}
+const suiteName =
+  installedEntry === undefined ? 'gateway-inference' : `release-sdk-inference-v${SDK_VERSION}`;
+await runtimeSuite(suiteName, async ({ harness, endpoint, apiKey }) => {
+  const inference = new InferenceClient({ endpoint, apiKey, numRetries: 0 });
   const model = '@openai/gpt-5.6-terra';
   const embeddingModel = '@openai/text-embedding-3-small';
   const messages = [{ role: 'user' as const, content: 'Reply with READY.' }];

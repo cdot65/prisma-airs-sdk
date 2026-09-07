@@ -60,15 +60,27 @@ export function serializeWindow(
   opts: AIGatewayWindowOptions,
   schema: z.ZodType<AIGatewayWindowOptions, z.ZodTypeDef, unknown> = telemetryWindowSchema,
 ): Record<string, string> {
+  return serializeWindowWithOptions(tsgId, opts, schema).params;
+}
+
+/** @internal Validate once, retaining the parsed copy for endpoint-specific query serialization. */
+export function serializeWindowWithOptions<T extends AIGatewayWindowOptions>(
+  tsgId: string,
+  opts: T,
+  schema: z.ZodType<T, z.ZodTypeDef, unknown>,
+): { params: Record<string, string>; options: T } {
   const result = schema.safeParse(opts);
   if (!result.success || typeof tsgId !== 'string' || !/^\d+$/.test(tsgId)) invalidWindow();
   const end = result.data.end ?? new Date();
   const start = result.data.start ?? new Date(end.getTime() - (result.data.days ?? 7) * 86_400_000);
   if (start.getTime() > end.getTime()) invalidWindow();
   return {
-    organisationId: tsgId,
-    workspaceSlug: result.data.workspaceSlug,
-    timeOfGenerationMin: toOffsetIso(start),
-    timeOfGenerationMax: toOffsetIso(end),
+    options: result.data,
+    params: {
+      organisationId: tsgId,
+      workspaceSlug: result.data.workspaceSlug,
+      timeOfGenerationMin: toOffsetIso(start),
+      timeOfGenerationMax: toOffsetIso(end),
+    },
   };
 }

@@ -20,28 +20,54 @@ const verifiedNames = [
   'cost_min',
   'cost_max',
 ];
-const operations = ['requests', 'cost', 'tokens', 'latency'].map((metric) => {
-  const upstreamPath = `/analytics/graphs/${metric}`;
+const groups = process.argv.includes('--groups');
+const targets = groups
+  ? [
+      { metric: 'users', upstreamPath: '/analytics/groups/users', scmPath: '/logs/groups/users' },
+      {
+        metric: 'model',
+        upstreamPath: '/analytics/groups/ai-models',
+        scmPath: '/logs/groups/model',
+      },
+      {
+        metric: 'provider',
+        upstreamPath: '/analytics/groups/provider',
+        scmPath: '/logs/groups/provider',
+      },
+    ]
+  : ['requests', 'cost', 'tokens', 'latency'].map((metric) => ({
+      metric,
+      upstreamPath: `/analytics/graphs/${metric}`,
+      scmPath: `/logs/charts/${metric}`,
+    }));
+const operations = targets.map(({ metric, upstreamPath, scmPath }) => {
   const operation = spec.paths?.[upstreamPath]?.get;
   assert(operation);
   const queries = (operation.parameters ?? []).filter(
     (parameter) => 'in' in parameter && parameter.in === 'query',
   );
+  // The pinned provider grouping does not declare trace_id. SCM independently supports
+  // traceId there; retain that as an SCM extension, not a fabricated upstream declaration.
+  const matchedNames =
+    groups && metric === 'provider'
+      ? verifiedNames.filter((name) => name !== 'trace_id')
+      : verifiedNames;
   const filters = queries.filter(
-    (parameter) => 'name' in parameter && verifiedNames.includes(parameter.name),
+    (parameter) => 'name' in parameter && matchedNames.includes(parameter.name),
   );
-  assert.equal(filters.length, verifiedNames.length);
+  assert.equal(filters.length, matchedNames.length);
   return {
     metric,
     method: 'GET',
     upstreamPath,
-    scmPath: `/logs/charts/${metric}`,
+    scmPath,
+    ...(groups ? { scmOnlyFilters: metric === 'provider' ? ['traceId'] : [] } : {}),
     declaredQueryNames: queries.map((parameter) => ('name' in parameter ? parameter.name : '')),
     filters,
   };
 });
 emitPatch(
-  'test/openapi/analytics-adapters.json',
+  groups ? 'test/openapi/analytics-group-adapters.json' : 'test/openapi/analytics-adapters.json',
   JSON.stringify(
     {
       source: 'ai-gateway-openapi/openapi.yaml',

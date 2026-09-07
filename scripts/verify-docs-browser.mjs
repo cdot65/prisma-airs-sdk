@@ -87,6 +87,14 @@ const analyticsQueryEvidence = cli
         'utf8',
       ),
     );
+const analyticsGroupEvidence = cli
+  ? undefined
+  : JSON.parse(
+      readFileSync(
+        new URL('../artifacts/examples/gateway-analytics-group-filters-sdk.json', import.meta.url),
+        'utf8',
+      ),
+    );
 const browser = await puppeteer.launch({
   executablePath: process.env.DOCS_CHROMIUM_EXECUTABLE ?? '/usr/bin/chromium',
   headless: true,
@@ -294,6 +302,20 @@ try {
         'Analytics query installation mode is absent',
       );
       await assertCapturedJson(analyticsQueryEvidence.evidence);
+      assert(
+        text.includes(analyticsGroupEvidence.capturedAt),
+        'Grouped analytics capture is stale',
+      );
+      assert(
+        text.includes(analyticsGroupEvidence.sdkVersion),
+        'Grouped analytics SDK version is stale',
+      );
+      assert(
+        text.includes(analyticsGroupEvidence.mode),
+        'Grouped analytics installed provenance is absent',
+      );
+      assert(text.includes('102/102'), 'Grouped analytics result count is absent');
+      await assertCapturedJson(analyticsGroupEvidence.evidence);
       const runtimeDiagnostics = JSON.parse(
         readFileSync(
           new URL('../artifacts/examples/gateway-runtime-diagnostics.json', import.meta.url),

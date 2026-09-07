@@ -39,7 +39,12 @@ import {
   type UserGroupResponse,
   type GatewayLogsResponse,
 } from '../models/ai-gateway.js';
-import { serializeWindow, telemetryWindowSchema, type AIGatewayWindowOptions } from './window.js';
+import {
+  serializeWindow,
+  serializeWindowWithOptions,
+  telemetryWindowSchema,
+  type AIGatewayWindowOptions,
+} from './window.js';
 import { AISecSDKException, ErrorType } from '../errors.js';
 import { GatewayJsonObjectSchema } from '../models/ai-gateway-routing.js';
 
@@ -47,11 +52,6 @@ const nonBlankString = z
   .string()
   .min(1)
   .refine((value) => value.trim().length > 0);
-const groupOptionsSchema = telemetryWindowSchema
-  .extend({
-    columns: z.array(z.enum(AI_GW_GROUP_COLUMNS)).optional(),
-  })
-  .strict();
 const logsOptionsSchema = telemetryWindowSchema
   .extend({
     pageSize: z.number().int().nonnegative().safe().optional(),
@@ -88,7 +88,7 @@ function validChartBounds(opts: {
 }
 
 /**
- * Standalone verified chart-filter validation, without workspace resolution or authentication.
+ * Standalone verified chart/group filter validation, without workspace resolution or authentication.
  * Shared by the SDK transport and CLI input adapters; excludes time-window and workspace fields.
  * Cost bounds use cents. Lists use OR, distinct filters use AND, and bounds are inclusive.
  * @example
@@ -103,7 +103,7 @@ export const AIGatewayChartFiltersSchema = z
   .strict()
   .refine(validChartBounds);
 
-/** Validated filters shared by the request, cost, token and latency charts. */
+/** Validated filters shared by four charts and all six grouped analytics endpoints. */
 export type AIGatewayChartFilters = z.infer<typeof AIGatewayChartFiltersSchema>;
 
 const filteredChartOptionsSchema = telemetryWindowSchema
@@ -111,8 +111,20 @@ const filteredChartOptionsSchema = telemetryWindowSchema
   .strict()
   .refine(validChartBounds);
 
-function serializeChartOptions(tsgId: string, opts: AIGatewayChartOptions): Record<string, string> {
-  const params = serializeWindow(tsgId, opts, filteredChartOptionsSchema);
+const groupOptionsSchema = telemetryWindowSchema
+  .extend({
+    ...chartFilterFields,
+    columns: z.array(z.enum(AI_GW_GROUP_COLUMNS)).optional(),
+  })
+  .strict()
+  .refine(validChartBounds);
+
+function serializeFilteredOptions(
+  tsgId: string,
+  input: AIGatewayGroupOptions,
+  schema: z.ZodType<AIGatewayGroupOptions, z.ZodTypeDef, unknown> = filteredChartOptionsSchema,
+): Record<string, string> {
+  const { params, options: opts } = serializeWindowWithOptions(tsgId, input, schema);
   if (opts.traceId !== undefined) params.traceId = opts.traceId;
   if (opts.metadata !== undefined) params.metadata = JSON.stringify(opts.metadata);
   if (opts.statusCodes !== undefined) params.statusCode = opts.statusCodes.join(',');
@@ -121,6 +133,7 @@ function serializeChartOptions(tsgId: string, opts: AIGatewayChartOptions): Reco
   for (const key of ['totalUnitsMin', 'totalUnitsMax', 'costMin', 'costMax'] as const) {
     if (opts[key] !== undefined) params[key] = String(opts[key]);
   }
+  if (opts.columns?.length) params.columns = opts.columns.join(',');
   return params;
 }
 
@@ -133,7 +146,7 @@ export interface AIGatewayTelemetryClientOptions {
 }
 
 /** Options for a `logs/groups/{dimension}` query. */
-export interface AIGatewayGroupOptions extends AIGatewayWindowOptions {
+export interface AIGatewayGroupOptions extends AIGatewayChartOptions {
   /**
    * Extra columns to aggregate. The SDK rejects unsupported names before I/O; the API would
    * silently drop them. See {@link AI_GW_GROUP_COLUMNS} for the valid set.
@@ -142,7 +155,9 @@ export interface AIGatewayGroupOptions extends AIGatewayWindowOptions {
 }
 
 /**
- * Verified SCM filters for requests, cost, tokens and latency charts only.
+ * Verified SCM filters for requests, cost, tokens and latency charts, and grouped analytics.
+ * The historical chart-options name is retained for compatibility. Other charts still accept
+ * only time-window options; user grouping accepts these filters but not extra columns.
  * Members of each list match with OR; distinct supplied filters combine with AND.
  * Total-token and cost ranges are inclusive. Cost bounds are in cents, not dollars.
  * These are partial adapters, not the complete upstream analytics query contract.
@@ -260,7 +275,7 @@ export class AIGatewayTelemetryClient {
       'cost',
       opts,
       CostChartResponseSchema,
-      serializeChartOptions(this.tsgId, opts),
+      serializeFilteredOptions(this.tsgId, opts),
     );
   }
 
@@ -282,7 +297,7 @@ export class AIGatewayTelemetryClient {
       'requests',
       opts,
       CountChartResponseSchema,
-      serializeChartOptions(this.tsgId, opts),
+      serializeFilteredOptions(this.tsgId, opts),
     );
   }
 
@@ -305,7 +320,7 @@ export class AIGatewayTelemetryClient {
       'latency',
       opts,
       LatencyChartResponseSchema,
-      serializeChartOptions(this.tsgId, opts),
+      serializeFilteredOptions(this.tsgId, opts),
     );
   }
 
@@ -327,7 +342,7 @@ export class AIGatewayTelemetryClient {
       'tokens',
       opts,
       TokensChartResponseSchema,
-      serializeChartOptions(this.tsgId, opts),
+      serializeFilteredOptions(this.tsgId, opts),
     );
   }
 
@@ -525,7 +540,7 @@ export class AIGatewayTelemetryClient {
   /**
    * Aggregate requests by a dimension.
    * @param dimension - One of {@link AI_GW_GROUP_DIMENSIONS}. Underscore names only.
-   * @param opts - Window plus optional extra columns.
+   * @param opts - Window, verified trace/metadata/list/range filters, and optional extra columns.
    * @returns One row per distinct dimension value.
    * @example
    * ```ts
@@ -548,8 +563,7 @@ export class AIGatewayTelemetryClient {
         'Invalid telemetry grouping dimension',
         ErrorType.USER_REQUEST_PAYLOAD_ERROR,
       );
-    const params = serializeWindow(this.tsgId, opts, groupOptionsSchema);
-    if (opts.columns?.length) params.columns = opts.columns.join(',');
+    const params = serializeFilteredOptions(this.tsgId, opts, groupOptionsSchema);
 
     return request({
       method: 'GET',
@@ -564,7 +578,7 @@ export class AIGatewayTelemetryClient {
 
   /**
    * Requests and cost per end user.
-   * @param opts - Workspace slug and time window.
+   * @param opts - Workspace slug, time window and verified trace/metadata/list/range filters.
    * @returns One record per user; `_user: ''` means calls with no end-user id. Costs in cents.
    * @example
    * ```ts
@@ -575,12 +589,12 @@ export class AIGatewayTelemetryClient {
    * // users.data.records[0] => { _user: '', count: 25748, cost: 411060.85 }
    * ```
    */
-  async byUser(opts: AIGatewayWindowOptions): Promise<UserGroupResponse> {
+  async byUser(opts: AIGatewayChartOptions): Promise<UserGroupResponse> {
     return request({
       method: 'GET',
       baseUrl: this.baseUrl,
       path: `${AI_GW_GROUPS_PATH}/users`,
-      params: serializeWindow(this.tsgId, opts),
+      params: serializeFilteredOptions(this.tsgId, opts),
       responseSchema: UserGroupResponseSchema,
       auth: this.auth,
       numRetries: this.numRetries,
@@ -589,7 +603,7 @@ export class AIGatewayTelemetryClient {
 
   /**
    * Requests grouped by HTTP status code.
-   * @param opts - Window plus optional extra columns.
+   * @param opts - Window, verified trace/metadata/list/range filters, and optional extra columns.
    * @returns One row per status. **446 = AIRS security block** (cost 0, never reached the LLM).
    * @example
    * ```ts
@@ -604,8 +618,7 @@ export class AIGatewayTelemetryClient {
    * ```
    */
   async byStatusCode(opts: AIGatewayGroupOptions): Promise<GroupListResponse> {
-    const params = serializeWindow(this.tsgId, opts, groupOptionsSchema);
-    if (opts.columns?.length) params.columns = opts.columns.join(',');
+    const params = serializeFilteredOptions(this.tsgId, opts, groupOptionsSchema);
 
     return request({
       method: 'GET',
@@ -642,10 +655,14 @@ export class AIGatewayTelemetryClient {
    * ```
    */
   async logs(opts: AIGatewayLogsOptions): Promise<GatewayLogsResponse> {
-    const params = serializeWindow(this.tsgId, opts, logsOptionsSchema);
-    if (opts.pageSize !== undefined) params.pageSize = String(opts.pageSize);
-    if (opts.traceId !== undefined) params.traceId = opts.traceId;
-    if (opts.statusCode !== undefined) params.statusCode = String(opts.statusCode);
+    const { params, options: validated } = serializeWindowWithOptions(
+      this.tsgId,
+      opts,
+      logsOptionsSchema,
+    );
+    if (validated.pageSize !== undefined) params.pageSize = String(validated.pageSize);
+    if (validated.traceId !== undefined) params.traceId = validated.traceId;
+    if (validated.statusCode !== undefined) params.statusCode = String(validated.statusCode);
 
     return request({
       method: 'GET',

@@ -279,6 +279,83 @@ if (page === 'examples') {
   const runtimeDiagnostics = JSON.parse(
     readFileSync(new URL('artifacts/examples/gateway-runtime-diagnostics.json', root), 'utf8'),
   ) as { suite: string; finishedAt: string; passed: number; failed: number; total: number }[];
+  const groupFilters = JSON.parse(
+    readFileSync(
+      new URL('artifacts/examples/gateway-analytics-group-filters-sdk.json', root),
+      'utf8',
+    ),
+  );
+  const rawGroups = JSON.parse(
+    readFileSync(new URL('artifacts/examples/gateway-analytics-group-filters.json', root), 'utf8'),
+  );
+  const groupCases = [
+    'traceId',
+    'metadata',
+    'trace-and-metadata.intersection',
+    'statusCode.single',
+    'statusCode.csv-or',
+    'apiKeyIds.single',
+    'apiKeyIds.csv-or',
+    'aiOrgModel.single',
+    'aiOrgModel.csv-or',
+    'totalUnitsMin.inclusive',
+    'totalUnitsMax.inclusive',
+    'costMin.inclusive',
+    'costMax.inclusive',
+    'totalUnits.exact-range',
+    'cost.exact-range',
+    'all.intersection',
+  ];
+  const expectedGroups = [
+    'ai_service',
+    'model',
+    'api_key',
+    'provider',
+    'status_code',
+    'users',
+  ].flatMap((dimension) =>
+    [...groupCases, ...(dimension === 'users' ? [] : ['all.with-columns'])].map((filter) => ({
+      dimension,
+      filter,
+      knownPositive: true,
+      absentEmpty: true,
+      respected: true,
+    })),
+  );
+  for (const [capture, suiteName, mode] of [
+    [rawGroups, 'gateway-analytics-group-filters', 'raw-scm'],
+    [groupFilters, 'gateway-analytics-group-filters-sdk', 'installed-sdk'],
+  ] as const) {
+    const suite = JSON.parse(
+      readFileSync(new URL(`artifacts/e2e/${suiteName}.json`, root), 'utf8'),
+    );
+    assert.equal(capture.capturedAt, suite.finishedAt);
+    assert.equal(capture.credentialsUnchanged, true);
+    assert.equal(capture.mutations, false);
+    assert.equal(capture.mode, mode);
+    assert.deepEqual(capture.suite, { passed: 102, failed: 0, total: 102 });
+    assert.equal(suite.credentialsUnchanged, true);
+    assert.equal(suite.passed, 102);
+    assert.equal(suite.failed, 0);
+    assert.equal(suite.skipped, 0);
+    assert.equal(suite.total, 102);
+    assert.deepEqual(suite.fixtures, []);
+    assert.deepEqual(capture.evidence, expectedGroups);
+    assert.deepEqual(
+      suite.results.map((result: { name: string; status: string }) => ({
+        name: result.name,
+        status: result.status,
+      })),
+      [
+        { name: 'analytics-groups.owned-positive-control', status: 'PASS' },
+        ...expectedGroups.map(({ dimension, filter }) => ({
+          name: `analytics-groups.${dimension}.${filter}`,
+          status: 'PASS',
+        })),
+      ],
+    );
+  }
+  assert.equal(groupFilters.sdkVersion, '0.25.0');
   const detailDiagnostics = runtimeDiagnostics.find(
     (row) => row.suite === 'gateway-observability-details-sdk',
   );
@@ -491,6 +568,22 @@ ${queryFilters.disclosure}
 ${fence(JSON.stringify(queryFilters.evidence, null, 2), 'json')}
 
 The first discovery run compared upstream snake-case names with SCM camel-case names. It retained **11 passing / 14 failing checks** across controls and 22 hypotheses; it is not an all-green API suite. Upstream names were ignored, and several prompt/completion-token bounds failed their known/absent controls. Only the seven additional options verified by the full 53-check contract run are exposed. This adds no directly matched upstream operation: **138/242**, the 22 partial analytics adaptations and the other live failures remain unchanged. This is separate from the ${report.output.length} primary runnable examples and the realtime example above. No CLI filter flags are implied.
+
+## Verified grouped analytics filters
+
+The SDK **0.25.0** installed-package check passes **102/102** at **${groupFilters.capturedAt}**, using **${groupFilters.mode}**. The independent raw SCM run passes **102/102** at **${rawGroups.capturedAt}**. Both use existing owned positive traffic, with no new inference, keys, logs or configuration changes. These are installed-package checks; registry publication is a separate release gate.
+
+All six group endpoints verify trace and metadata filters, singleton/CSV-OR lists, inclusive token/cost bounds, equal-bound ranges and intersections. The five non-user groups additionally check that filtered cost and total-token columns match the owned source record. The user endpoint retains its distinct response envelope and does not gain column options. The raw and SDK runs produce the same sanitized result matrix below.
+
+${fence('npx tsx scripts/e2e-gateway-analytics-group-filters.ts\nE2E_ANALYTICS_SDK_ENTRY=/absolute/installed/package/dist/index.js npx tsx scripts/e2e-gateway-analytics-group-filters.ts --sdk', 'bash')}
+
+${fence("const grouped = await gw.telemetry.groupBy('model', {\n  workspaceSlug: 'ws-develo-71f8d8',\n  days: 1,\n  traceId: ownedTraceId, // a trace already recorded by your application\n  statusCodes: [200, 446],\n  columns: ['cost', 'total_tokens'],\n  costMax: 1, // cents\n});\nconsole.log(grouped.data);", 'ts')}
+
+${groupFilters.disclosure}
+
+${fence(JSON.stringify(groupFilters.evidence, null, 2), 'json')}
+
+The independently source-hashed user/model/provider fixtures retain all declared upstream query names. The provider specification omits \`trace_id\`; verified SCM \`traceId\` is recorded as an SCM-only extension, not invented upstream coverage. This remains partial adaptation: direct gateway coverage stays **138/242**, and all 22 partial analytics operations and earlier failed workflows remain visible. See the [group contract](./ai-gateway-api.mdx#groupby-byuser-bystatuscode).
 
 ## AI Gateway inference output
 

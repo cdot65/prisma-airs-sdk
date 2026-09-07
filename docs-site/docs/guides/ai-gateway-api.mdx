@@ -284,11 +284,17 @@ const selectedCost = await gw.telemetry.cost({
 console.log(selectedCost.data.total); // cents
 ```
 
-Read-only tests checked singleton/CSV alternatives, inclusive bounds and combined filters against one existing owned inference trace on each chart. The corresponding upstream snake-case filter names were silently ignored by SCM. Prompt/completion-token bound probes did not establish the complete promised semantics, so those options remain unexposed. See the [actual captured query-contract output](./examples.mdx#verified-chart-query-contracts). No additional operation is counted as directly covered by these partial adapters, and the CLI does not yet add filter flags for these SDK options.
+Read-only tests checked singleton/CSV alternatives, inclusive bounds and combined filters against one existing owned inference trace on each chart. The corresponding upstream snake-case filter names were silently ignored by SCM. Prompt/completion-token bound probes did not establish the complete promised semantics, so those options remain unexposed. See the [actual captured query-contract output](./examples.mdx#verified-chart-query-contracts). No additional operation is counted as directly covered by these partial adapters. CLI 4.3.0 and later expose these chart filters with shared SDK validation.
 
-Telemetry options are validated before authentication/network I/O. Unknown fields, invalid dates, non-finite days, reversed windows, malformed log options and unsupported grouping dimensions/columns raise `USER_REQUEST_PAYLOAD_ERROR` without including rejected values. Fractional days remain valid; explicit `start` overrides finite `days`. Dates retain numeric UTC offsets required by SCM. A zero-length explicit window is allowed; no unverified server maximum is imposed.
+Telemetry options are validated before authentication/network I/O. Filters, columns and log options are serialized from the parsed copy, so caller-owned getters are not reevaluated after validation. Unknown fields, invalid dates, non-finite days, reversed windows, malformed log options and unsupported grouping dimensions/columns raise `USER_REQUEST_PAYLOAD_ERROR` without including rejected values. Fractional days remain valid; explicit `start` overrides finite `days`. Dates retain numeric UTC offsets required by SCM. A zero-length explicit window is allowed; no unverified server maximum is imposed.
 
 ### groupBy, byUser, byStatusCode
+
+SDK 0.25.0 extends the same nine verified filters to all six group endpoints: `groupBy` dimensions `ai_service`, `model`, `api_key`, and `provider`, plus `byStatusCode` and `byUser`. `AIGatewayGroupOptions` combines the shared filters/window with existing optional columns. `byUser` accepts `AIGatewayChartOptions` for compatibility with the shared filter type name, but **not** extra columns.
+
+Lists use OR, distinct filters use AND, and token/cost bounds are inclusive. The shared standalone `AIGatewayChartFiltersSchema` also validates group filters before workspace resolution. Validation and serialization reuse the chart contract; unsupported columns, coercible strings, unsafe numbers and reversed ranges still fail before authentication.
+
+SCM's user response remains `{ success, data: { records: [{ _user, count, cost }], total, isQuotaExceeded } }`; the other groups retain `{ object, data: [...], total, is_quota_exceeded }`. No response is renamed to imitate Portkey. The source-pinned provider grouping omits `trace_id` even though SCM supports `traceId`; its fixture records this as an SCM-only extension. Remaining upstream pagination, sorting, filters and aggregation differences keep these adapters partial. See the [actual grouped-filter checks](./examples.mdx#verified-grouped-analytics-filters).
 
 ```ts
 // Spend by model — dimension names are underscore-only: 'ai_service' | 'model' | 'api_key' | 'provider'.
@@ -296,10 +302,15 @@ const byModel = await gw.telemetry.groupBy('model', {
   workspaceSlug: 'ws-main-a-349e0e',
   days: 7,
   columns: ['cost', 'total_tokens'],
+  statusCodes: [200, 446],
+  costMax: 1, // cents
 });
 
 // Requests and cost per end user.
-const byUser = await gw.telemetry.byUser({ workspaceSlug: 'ws-main-a-349e0e', days: 7 });
+const byUser = await gw.telemetry.byUser({
+  workspaceSlug: 'ws-main-a-349e0e', days: 7,
+  metadata: { environment: 'dev' },
+});
 
 // Requests by HTTP status — 446 is an AIRS security block, not a server error.
 const byStatus = await gw.telemetry.byStatusCode({
