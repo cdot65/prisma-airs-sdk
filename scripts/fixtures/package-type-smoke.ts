@@ -10,7 +10,33 @@ import {
   type GatewayWebSocketFactory,
   GatewayRealtimeEventSchema,
   GatewayRealtimeConnectRequestSchema,
+  ManagementClient,
+  DashboardScanContentSchema,
+  type DashboardSessionTransactionQuery,
 } from '@cdot65/prisma-airs-sdk';
+
+async function verifyDashboard(client: ManagementClient) {
+  const query: DashboardSessionTransactionQuery = {
+    sessionId: 'session',
+    appId: 'app',
+    appName: 'exact name',
+    scanId: 'scan',
+    scanSubReqId: 0,
+  };
+  const inventory = await client.dashboard.sessionsOverview({ limit: 25, offset: 0 });
+  const id: string | undefined = inventory.items[0]?.session_id;
+  const transaction = await client.dashboard.sessionTransaction(query);
+  const index: number = transaction.scan_sub_req_id;
+  const raw: unknown = await client.dashboard.scanContentRaw(query);
+  const content = DashboardScanContentSchema.parse(raw);
+  const text: string | null | undefined = content.scan_contents?.response;
+  await client.dashboard.sessionsChart();
+  await client.dashboard.appsList();
+  // @ts-expect-error Sub-request index is required, not implicitly zero.
+  await client.dashboard.scanContent({ scanId: 'scan' });
+  void [id, index, text];
+}
+void verifyDashboard;
 
 async function verify(
   gateway: AIGatewayClient,

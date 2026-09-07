@@ -1,0 +1,168 @@
+---
+title: SCM Dashboard Extensions
+description: OAuth dashboard summaries and session-to-scan drill-down in SDK 0.26.0.
+---
+
+# SCM dashboard extensions
+
+These undocumented routes were verified with service-account OAuth on 2026-09-07 and are
+included in SDK **0.26.0**. CLI **5.0.0** exposes them through `runtime dashboard` and
+`runtime sessions`, and uses daily telemetry for `runtime report`. Use a dashboard-only host
+override; all other management resources retain their configured endpoint.
+
+:::danger Broken legacy scan-log retrieval — under refactor
+
+`ScanLogsClient` / `client.scanLogs.query()` must currently be considered broken. Observed
+HTTP 400 and empty HTTP 200 results do not establish zero activity. Use the session methods
+below for retrieval; their schema and counters are different. The legacy SDK class remains
+available but is deprecated; CLI 5.0.0 explicitly rejects its old query command.
+
+:::
+
+```ts
+import { ManagementClient } from '@cdot65/prisma-airs-sdk';
+
+const mgmt = new ManagementClient({
+  dashboardEndpoint: 'https://api.apps.paloaltonetworks.com/aisec',
+}); // PANW_MGMT_CLIENT_ID, PANW_MGMT_CLIENT_SECRET, PANW_MGMT_TSG_ID
+```
+
+The shared OAuth client obtains and reuses a tenant-scoped `client_credentials` token. Requests
+include the configured `x-tsg-id`. No browser cookies, pasted browser token, Origin or Referer
+are required. There is no implicit host fallback or change to the configured tenant.
+
+## Methods and observed windows
+
+All methods below also have a `Raw` counterpart returning `Promise<unknown>`, such as
+`sessionsOverviewRaw()`. Raw JSON is not constrained by an endpoint response schema, but query
+validation, OAuth, HTTP errors and invalid-JSON checks still apply. Empty raw HTTP bodies return
+`undefined`, not an invented empty collection. Typed methods validate with exported, forward-compatible
+Zod schemas and reject missing required envelopes; legitimate empty arrays remain valid.
+
+| Method on `mgmt.dashboard`        | Route suffix                         | Default window               | Pagination               |
+| --------------------------------- | ------------------------------------ | ---------------------------- | ------------------------ |
+| `applicationsOverview()`          | `apps/applicationsoverview`          | 30 days; 1 day also verified | `limit`, `offset`        |
+| `application()`                   | `apps/application`                   | 30 days                      | None                     |
+| `applicationViolationBreakdown()` | `apps/applicationviolationbreakdown` | 30 days                      | None                     |
+| `topApplicationsViolations()`     | `apps/topapplicationsviolations`     | 1 day                        | No verified contract     |
+| `applicationsViolationsTrend()`   | `apps/applicationsviolationstrend`   | 1 day                        | No verified contract     |
+| `appsList()`                      | `apps/appslist`                      | 30 days                      | No verified contract     |
+| `sessionsChart()`                 | `sessions/sessionschart`             | 1 day                        | None                     |
+| `sessionsOverview()`              | `sessions/sessionsoverview`          | 1 day                        | `limit`, `offset`        |
+| `session()`                       | `sessions/session`                   | 30 days                      | Action `limit`, `offset` |
+| `sessionTransaction()`            | `sessions/sessiontransaction`        | 30 days                      | None                     |
+| `scanContent()`                   | `/v1/mgmt/reports/scancontent`       | No window                    | None                     |
+
+Except for scan content, route suffixes are relative to `/v1/mgmt/dashboard/v2/`. Scan content
+uses the same configured dashboard host and OAuth workflow but the separate reports path.
+It is never fetched automatically by overview, session or transaction methods.
+
+Detail methods `application` and `applicationViolationBreakdown` retain their `7 | 30 | 60` days
+query contract. New ranking/trend/session queries accept positive integer intervals and nonblank
+units for deployment-specific discovery, but only the windows in the supplied/live examples are
+claimed verified. Limit defaults to 25 and offset to zero on paginated routes. Invalid identity,
+session-pagination, and new time-range queries fail before authentication; no unverified filter parameters
+have been invented.
+
+## Application summaries
+
+```ts
+const daily = { timeInterval: 1, timeUnit: 'day' } as const;
+const overview = await mgmt.dashboard.applicationsOverview({ ...daily, limit: 25, offset: 0 });
+const top = await mgmt.dashboard.topApplicationsViolations(daily);
+const trend = await mgmt.dashboard.applicationsViolationsTrend(daily);
+const chart = await mgmt.dashboard.sessionsChart(daily);
+const applications = await mgmt.dashboard.appsList({ timeInterval: 30, timeUnit: 'days' });
+```
+
+Preserve `(application ID, application name)` pairs: names can repeat across IDs and IDs can
+repeat across names. The ranking is not a complete tenant inventory. `appsList` returned 25
+identities without pagination metadata; do not infer completeness or silently deduplicate them.
+The application detail model now includes the optional boolean `has_webhook_sig`. Token values
+retain their API-provided scale strings, and timestamps retain their original fractional precision.
+
+## Session to transaction to content
+
+```ts
+const page = await mgmt.dashboard.sessionsOverview({
+  timeInterval: 1,
+  timeUnit: 'day',
+  limit: 25,
+  offset: 0,
+});
+const entry = page.items[0];
+if (entry) {
+  const identity = {
+    sessionId: entry.session_id,
+    appId: entry.application_id,
+    appName: entry.application_name,
+    timeInterval: 30,
+    timeUnit: 'days',
+  };
+  const session = await mgmt.dashboard.session({ ...identity, limit: 25, offset: 0 });
+  const action = session.session_actions[0];
+  if (action) {
+    const scan = { scanId: action.scan_id, scanSubReqId: action.scan_sub_req_id };
+    const transaction = await mgmt.dashboard.sessionTransaction({ ...identity, ...scan });
+
+    // Explicit sensitive read: do not log or include this in public reports by default.
+    const content = await mgmt.dashboard.scanContent(scan);
+  }
+}
+```
+
+The SDK maps `appId`/`appName` to **`app_id`/`app_name`** on session routes, unlike the application
+detail route's `appid`/`appname`. A `scanSubReqId` of zero is valid and is serialized as
+`scan_sub_req_id=0`. The scan-content response uses **`sub_scan_req_id`** instead. Response names
+are preserved, not normalized into a misleading common shape. Transaction identifiers are also
+preserved verbatim and are not assumed to equal the session ID.
+
+Session and transaction models retain nullable correlation/inspection fields, arrays of `kind`,
+forward-compatible status/detector strings, latency, token counts, and transaction attributes.
+Literal strings such as `"None"` remain strings. Stored content can be explicitly null; missing
+text is not converted into an empty string.
+
+To enumerate all sessions, increment offset by the actual returned item count and inspect
+`pagination.total_items`; stop on completion or a caller-chosen cap. Session-action pagination
+is separate. These are rolling queries, not snapshot-consistent exports: detect duplicates,
+unexpected empty pages, and changing totals rather than claiming a capped/unstable read is complete.
+
+## Privacy and metric semantics
+
+All raw method bodies are suppressed in SDK debug logs. Typed session inventory/detail,
+transaction and scan-content bodies are also suppressed, even with body debugging enabled.
+This does not protect data that your application explicitly prints, stores or hands to another
+logger. Protect returned prompts/responses, user attributes and identifiers as confidential data.
+
+- Violating sessions and detector-policy violations are different counters. The live Academy
+  30-day response had 174 sessions and 34 violating sessions; the detector breakdown totaled 40.
+- Do not compare one-day and 30-day values as if they share a reporting window.
+- Session-chart and severity-trend buckets are separate from application overview buckets.
+  Overview bucket totals may be zero even with nonzero violations; do not reconstruct its
+  top-level counters from those bucket sums.
+- During the 16:25 UTC read, the chart reported 706 sessions/92 violating, while full session
+  pagination returned 705 entries. The calls are separate rolling-window measurements; the
+  discrepancy is preserved, not corrected or attributed to a verified cause.
+- A final **16:39 UTC** E2E rerun required unchanged inventory totals on every page, no duplicate
+  session identities and an exact terminal count. It passed with **698 entries across 28 pages**;
+  the separately fetched chart had **699 sessions and 90 violating sessions**. Earlier captures
+  remain timestamped rather than being silently replaced by this later rolling query.
+
+## Reproduce the live validation
+
+```sh
+npm run build
+npx tsx scripts/e2e-dashboard-overview.ts
+npx tsx scripts/e2e-dashboard-details.ts
+npx tsx scripts/e2e-dashboard-sessions.ts
+```
+
+These scripts read `~/.prisma-airs/config.json` without changing it, authenticate afresh, first
+retrieve raw payloads, check lossless Zod parsing, and exercise typed calls. The session script
+walks the full observed session inventory with a safety cap, validates action pagination and
+the transaction/content identity chain, and never prints or saves scan text. Its target is a
+Terminal session discovered from the first session page, not a hard-coded scan or tenant UUID.
+
+All eleven routes returned populated HTTP 200 responses with raw and typed SDK calls. These
+extensions provide a working detailed session retrieval path; the legacy `scan-logs query`
+command has not been rerouted or repaired by these SDK-only changes.

@@ -1,5 +1,17 @@
 # Release Notes
 
+## v0.26.0 (2026-09-07) — SCM Runtime dashboard and session retrieval
+
+- Support all eleven supplied undocumented SCM dashboard/report routes, with raw feasibility methods and forward-compatible Zod-validated typed methods. Add application rankings/trends, identity pairs, session chart/inventory/detail, transaction metadata and explicit stored scan content.
+- Reuse tenant-scoped OAuth and `x-tsg-id` with a dashboard-only endpoint override. Preserve all other Management resource endpoints; browser headers and tokens are not required.
+- Preserve zero sub-request indexes, nullable fields, timestamp precision, additive fields, exact identity pairs and independent session/detector counters. Validate new request options before authentication.
+- Suppress raw/session/transaction/content bodies in SDK debug logs. Never fetch stored content automatically; callers remain responsible for handling sensitive output.
+- Mark `ScanLogsClient` and `query()` deprecated, broken and under refactor. Keep the SDK API for compatibility; the verified session workflow has a different response contract. CLI 5.0.0 consumes these new routes and migrates its daily report to schema 2.
+
+See [SCM dashboard methods and dated live evidence](../guides/scm-dashboard.mdx).
+This focused Runtime release does not change the separately documented incomplete AI Gateway
+coverage or claim full-product 99% conformance.
+
 ## v0.25.0 (2026-09-07) — Verified grouped analytics filtering
 
 - Extend trace/metadata, status/API-key/provider-model lists and inclusive token/cost bounds to all six grouped analytics endpoints. Preserve columns, fractional cents, zero and the distinct user response envelope.

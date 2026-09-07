@@ -50,7 +50,7 @@ export type DashboardSessionStats = z.infer<typeof DashboardSessionStatsSchema>;
  * Per-application overview - powers SCM's "API Applications" detail panel (token consumption,
  * sessions, monitoring metadata, attached profiles).
  *
- * History window is 30 days (the API's max). `appname` is REQUIRED on the request; omitting it
+ * The requested history window defaults to 30 days. `appname` is REQUIRED on the request; omitting it
  * returns an all-null body.
  */
 export const DashboardApplicationSchema = z
@@ -61,9 +61,10 @@ export const DashboardApplicationSchema = z
     source: z.string().nullable().optional(),
     created_at: z.string().nullable().optional(),
     updated_at: z.string().nullable().optional(),
+    has_webhook_sig: z.boolean().optional(),
     profiles: z.array(z.string()).nullable().optional(),
-    token_stats: TokenStatsSchema.nullable().optional(),
-    session_stats: DashboardSessionStatsSchema.nullable().optional(),
+    token_stats: TokenStatsSchema.nullable(),
+    session_stats: DashboardSessionStatsSchema.nullable(),
   })
   .passthrough();
 
@@ -91,7 +92,7 @@ export type DetectorViolationBreakdownEntry = z.infer<typeof DetectorViolationBr
 /** Per-application violation breakdown response - detector by detector. */
 export const DashboardApplicationViolationBreakdownSchema = z
   .object({
-    detection_type_violation_breakdown: z.array(DetectorViolationBreakdownEntrySchema).optional(),
+    detection_type_violation_breakdown: z.array(DetectorViolationBreakdownEntrySchema),
     total_violating: z.number().optional(),
   })
   .passthrough();
@@ -106,7 +107,8 @@ export type DashboardApplicationViolationBreakdown = z.infer<
  *
  * The dashboard returns a series of buckets covering the requested window, useful for spark-line
  * style rendering. The exact shape varies by `time_unit`/`time_interval` combination; fields
- * use forward-compatible parsing.
+ * use forward-compatible parsing. Observed buckets may have `total: 0` and nonzero `violated`;
+ * do not assume their sums equal the item's `sessions_total` / `sessions_violated` counters.
  */
 export const DashboardApplicationSessionsBucketSchema = z
   .object({
@@ -171,10 +173,68 @@ export type DashboardPagination = z.infer<typeof DashboardPaginationSchema>;
  */
 export const DashboardApplicationsOverviewSchema = z
   .object({
-    items: z.array(DashboardApplicationsOverviewItemSchema).optional(),
+    // A missing body/array is unavailable data, not a successful empty inventory.
+    items: z.array(DashboardApplicationsOverviewItemSchema),
     pagination: DashboardPaginationSchema.optional(),
   })
   .passthrough();
 
 /** Dashboard applications-overview response. */
 export type DashboardApplicationsOverview = z.infer<typeof DashboardApplicationsOverviewSchema>;
+
+/** One detector's policy-violation count, not a count of distinct violating sessions. */
+export const DashboardPolicyViolationSchema = z
+  .object({
+    detection_type: z.string(),
+    total: z.number().int().nonnegative(),
+  })
+  .passthrough();
+/** One detector's policy-violation count. */
+export type DashboardPolicyViolation = z.infer<typeof DashboardPolicyViolationSchema>;
+
+/** One ranked application. Preserve server order and use (id, name) as the bucket identity. */
+export const DashboardTopApplicationViolationsSchema = z
+  .object({
+    id: z.string(),
+    name: z.string(),
+    policy_violations: z.array(DashboardPolicyViolationSchema),
+    total_violations: z.number().int().nonnegative(),
+  })
+  .passthrough();
+/** One application in the server's top-violations ranking. */
+export type DashboardTopApplicationViolations = z.infer<
+  typeof DashboardTopApplicationViolationsSchema
+>;
+
+/** Server-ranked applications; not a complete or paginated tenant inventory. */
+export const DashboardTopApplicationsViolationsSchema = z
+  .object({
+    applications: z.array(DashboardTopApplicationViolationsSchema),
+  })
+  .passthrough();
+/** Top-application violation ranking response. */
+export type DashboardTopApplicationsViolations = z.infer<
+  typeof DashboardTopApplicationsViolationsSchema
+>;
+
+/** One aggregate violation-trend bucket. Timestamp strings retain their original precision. */
+export const DashboardViolationsTrendBucketSchema = z
+  .object({
+    bucket_number: z.number().int().nonnegative(),
+    date: z.string(),
+    violation_breakdown: ViolationSeverityCountsSchema,
+  })
+  .passthrough();
+/** One aggregate severity bucket, not a distinct-session count. */
+export type DashboardViolationsTrendBucket = z.infer<typeof DashboardViolationsTrendBucketSchema>;
+
+/** Aggregate severity time series. Do not force totals to match session or ranked-app counts. */
+export const DashboardApplicationsViolationsTrendSchema = z
+  .object({
+    violations: z.array(DashboardViolationsTrendBucketSchema),
+  })
+  .passthrough();
+/** Aggregate application violation-trend response. */
+export type DashboardApplicationsViolationsTrend = z.infer<
+  typeof DashboardApplicationsViolationsTrendSchema
+>;

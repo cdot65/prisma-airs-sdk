@@ -26,7 +26,12 @@ export interface ScanLogQueryOptions {
   page_token?: string;
 }
 
-/** Client for retrieving scan logs. */
+/**
+ * Legacy scan-log retrieval client.
+ * @deprecated Broken retrieval path under refactor: observed HTTP 200 empty bodies and HTTP 400
+ * rejections do not establish zero activity. Use `ManagementClient.dashboard.sessionsOverview`,
+ * `session`, and `sessionTransaction` instead. Retained for compatibility, not recommended for reports.
+ */
 export class ScanLogsClient {
   private readonly baseUrl: string;
   private readonly auth: AuthAdapter;
@@ -40,6 +45,8 @@ export class ScanLogsClient {
 
   /**
    * Retrieve scan logs by time interval.
+   * @deprecated Currently broken/under refactor. Do not interpret empty results as no activity.
+   * Use the dashboard session APIs for verified retrieval; their response shape is different.
    * @param opts - Query options including time range, pagination, and filter.
    * @returns Paginated scan results.
    * @example

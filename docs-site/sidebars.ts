@@ -20,6 +20,7 @@ const sidebars: SidebarsConfig = {
       items: [
         'guides/scan-api',
         'guides/management-api',
+        'guides/scm-dashboard',
         'guides/oauth-lifecycle',
         'guides/model-security-api',
         'guides/red-team-api',

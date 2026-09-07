@@ -47,7 +47,7 @@ export const MAX_NUMBER_OF_RETRIES = 5;
 export const HTTP_FORCE_RETRY_STATUS_CODES = [500, 502, 503, 504];
 
 // User-Agent (version injected at build time or read from package.json)
-export const SDK_VERSION = '0.25.0';
+export const SDK_VERSION = '0.26.0';
 export const USER_AGENT = `PAN-AIRS/${SDK_VERSION}-typescript-sdk`;
 
 // Management API defaults
@@ -89,6 +89,18 @@ export const MGMT_DASHBOARD_APPLICATION_VIOLATION_BREAKDOWN_PATH =
   '/v1/mgmt/dashboard/v2/apps/applicationviolationbreakdown';
 export const MGMT_DASHBOARD_APPLICATIONS_OVERVIEW_PATH =
   '/v1/mgmt/dashboard/v2/apps/applicationsoverview';
+export const MGMT_DASHBOARD_TOP_APPLICATIONS_VIOLATIONS_PATH =
+  '/v1/mgmt/dashboard/v2/apps/topapplicationsviolations';
+export const MGMT_DASHBOARD_APPLICATIONS_VIOLATIONS_TREND_PATH =
+  '/v1/mgmt/dashboard/v2/apps/applicationsviolationstrend';
+export const MGMT_DASHBOARD_APPS_LIST_PATH = '/v1/mgmt/dashboard/v2/apps/appslist';
+export const MGMT_DASHBOARD_SESSIONS_CHART_PATH = '/v1/mgmt/dashboard/v2/sessions/sessionschart';
+export const MGMT_DASHBOARD_SESSIONS_OVERVIEW_PATH =
+  '/v1/mgmt/dashboard/v2/sessions/sessionsoverview';
+export const MGMT_DASHBOARD_SESSION_PATH = '/v1/mgmt/dashboard/v2/sessions/session';
+export const MGMT_DASHBOARD_SESSION_TRANSACTION_PATH =
+  '/v1/mgmt/dashboard/v2/sessions/sessiontransaction';
+export const MGMT_REPORT_SCAN_CONTENT_PATH = '/v1/mgmt/reports/scancontent';
 
 // DLP (Data Loss Prevention) API defaults
 export const DEFAULT_DLP_ENDPOINT = 'https://api.dlp.paloaltonetworks.com';

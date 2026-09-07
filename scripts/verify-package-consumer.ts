@@ -9,6 +9,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 import WebSocket, { WebSocketServer } from 'ws';
 import { once } from 'node:events';
 import type { AIGatewayInferenceClient } from '../src/index.js';
+import type { ManagementClient } from '../src/index.js';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
 assert(process.argv[2], 'Pass the installed package root, not a source checkout');
@@ -166,7 +167,70 @@ async function verifyOAuthDeadline(module: Record<string, unknown>): Promise<voi
     globalThis.fetch = originalFetch;
   }
 }
+async function verifyDashboard(module: Record<string, unknown>): Promise<void> {
+  const beforeFetch = globalThis.fetch;
+  const Client = module.ManagementClient as typeof ManagementClient;
+  const urls: URL[] = [];
+  const content = {
+    report_id: 'report',
+    scan_id: 'scan',
+    sub_scan_req_id: 0,
+    transaction_id: 'transaction',
+    scan_contents: { response: 'synthetic', future: true },
+  };
+  globalThis.fetch = async (input, init) => {
+    const url = new URL(String(input));
+    urls.push(url);
+    assert.equal(url.hostname, 'dashboard.offline.test');
+    if (url.pathname === '/token')
+      return new Response(JSON.stringify({ access_token: 'synthetic', expires_in: 3600 }));
+    const headers = new Headers(init?.headers);
+    assert.equal(headers.get('authorization'), 'Bearer synthetic');
+    assert.equal(headers.get('x-tsg-id'), '123');
+    return new Response(JSON.stringify(content));
+  };
+  try {
+    const client = new Client({
+      clientId: 'synthetic',
+      clientSecret: 'synthetic',
+      tsgId: '123',
+      apiEndpoint: 'https://management.offline.test',
+      dashboardEndpoint: 'https://dashboard.offline.test/aisec',
+      tokenEndpoint: 'https://dashboard.offline.test/token',
+      numRetries: 0,
+    });
+    for (const method of [
+      'applicationsOverview',
+      'application',
+      'applicationViolationBreakdown',
+      'topApplicationsViolations',
+      'applicationsViolationsTrend',
+      'appsList',
+      'sessionsChart',
+      'sessionsOverview',
+      'session',
+      'sessionTransaction',
+      'scanContent',
+    ]) {
+      const dashboard = client.dashboard as unknown as Record<string, unknown>;
+      assert.equal(typeof dashboard[method], 'function');
+      assert.equal(typeof dashboard[`${method}Raw`], 'function');
+    }
+    const query = { scanId: 'scan', scanSubReqId: 0 };
+    assert.deepEqual(await client.dashboard.scanContentRaw(query), content);
+    assert.deepEqual(await client.dashboard.scanContent(query), content);
+    assert.equal(urls.length, 3, 'Shared OAuth token must be reused');
+    assert.equal(urls[1].pathname, '/aisec/v1/mgmt/reports/scancontent');
+    assert.equal(urls[1].searchParams.get('scan_sub_req_id'), '0');
+    await assert.rejects(client.dashboard.scanContent({ scanId: 'scan', scanSubReqId: -1 }));
+    assert.equal(urls.length, 3, 'Invalid query must not authenticate or fetch');
+    assert.equal(module.SDK_VERSION, version);
+  } finally {
+    globalThis.fetch = beforeFetch;
+  }
+}
 for (const module of [esm, cjs]) {
+  await verifyDashboard(module);
   await verifyOAuthDeadline(module);
   const RealtimeClient = module.AIGatewayInferenceClient as typeof AIGatewayInferenceClient;
   const server = new WebSocketServer({ port: 0, host: '127.0.0.1', perMessageDeflate: false });
@@ -704,6 +768,7 @@ const report = {
   runtimeExports: Object.keys(esm).length,
   formats: ['ESM', 'CommonJS'],
   strictNodeNextTypesPassed: true,
+  dashboardExportsZeroIndexAndPreAuthPassed: true,
   typeSpecimenSha256: createHash('sha256')
     .update(readFileSync(resolve(root, 'scripts/fixtures/package-type-smoke.ts')))
     .digest('hex'),

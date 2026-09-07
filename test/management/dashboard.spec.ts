@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { DashboardClient } from '../../src/management/dashboard.js';
 import type { AuthAdapter } from '../../src/http/types.js';
+import { ErrorType } from '../../src/errors.js';
 
 function passthroughAuth(): AuthAdapter {
   return { prepare: async (req) => req };
@@ -237,6 +238,109 @@ describe('DashboardClient', () => {
       const result = await client.applicationsOverview();
       expect(result.items).toEqual([]);
       expect(result.pagination?.total_items).toBe(0);
+    });
+
+    it('preserves the observed daily buckets without inferring totals or truncating timestamps', async () => {
+      const payload = {
+        items: [
+          {
+            id: 'app-1',
+            name: 'example-app',
+            cloud: 'other',
+            source: 'api',
+            created_at: '2026-09-06T15:50:05.050594169Z',
+            sessions: [
+              {
+                bucket_number: 0,
+                date: '2026-09-06T18:14:05.050594209Z',
+                total: 0,
+                violated: 2,
+                future_bucket: true,
+              },
+            ],
+            sessions_total: 8,
+            sessions_violated: 2,
+            future_item: { enabled: true },
+          },
+        ],
+        pagination: { limit: 25, skip: 0, total_items: 1, future_page: true },
+        future_envelope: { version: 3 },
+      };
+      mockFetch(payload);
+      expect(await client.applicationsOverview({ timeInterval: 1, timeUnit: 'day' })).toEqual(
+        payload,
+      );
+    });
+
+    it.each([{}, { items: null }, { items: 'not-an-array' }, { items: [{ sessions_total: '8' }] }])(
+      'rejects a missing or malformed typed inventory: %j',
+      async (payload) => {
+        mockFetch(payload);
+        await expect(client.applicationsOverview()).rejects.toMatchObject({
+          errorType: ErrorType.RESPONSE_VALIDATION,
+        });
+      },
+    );
+
+    it('rejects an empty HTTP body instead of inventing an empty inventory', async () => {
+      globalThis.fetch = vi.fn().mockResolvedValue(new Response(null, { status: 200 }));
+      await expect(client.applicationsOverview()).rejects.toMatchObject({
+        errorType: ErrorType.RESPONSE_VALIDATION,
+      });
+    });
+  });
+
+  describe('applicationsOverviewRaw', () => {
+    it.each([{ undocumented: [1, null, { field: true }] }, ['new-shape'], null, 'value', 42])(
+      'returns unstructured JSON unchanged: %j',
+      async (payload) => {
+        mockFetch(payload);
+        expect(await client.applicationsOverviewRaw()).toEqual(payload);
+      },
+    );
+
+    it('sends the same daily query and tenant header to the supplied dashboard URL', async () => {
+      client = new DashboardClient({
+        baseUrl: 'https://api.apps.example.com/aisec/',
+        auth: passthroughAuth(),
+        tsgId: 'tenant-1',
+        numRetries: 0,
+      });
+      mockFetch({ items: [], pagination: { limit: 25, skip: 0, total_items: 0 } });
+      await client.applicationsOverviewRaw({
+        timeInterval: 1,
+        timeUnit: 'day',
+        limit: 25,
+        offset: 0,
+      });
+      const [url, init] = vi.mocked(globalThis.fetch).mock.calls[0];
+      expect(String(url)).toBe(
+        'https://api.apps.example.com/aisec/v1/mgmt/dashboard/v2/apps/applicationsoverview?time_interval=1&time_unit=day&limit=25&offset=0',
+      );
+      expect(init?.method).toBe('GET');
+      const headers = new Headers(init?.headers);
+      expect(headers.get('x-tsg-id')).toBe('tenant-1');
+      expect(headers.has('origin')).toBe(false);
+      expect(headers.has('referer')).toBe(false);
+    });
+
+    it.each([200, 204])('preserves an empty HTTP %i body as undefined', async (status) => {
+      globalThis.fetch = vi.fn().mockResolvedValue(new Response(null, { status }));
+      expect(await client.applicationsOverviewRaw()).toBeUndefined();
+    });
+
+    it('still rejects invalid JSON', async () => {
+      globalThis.fetch = vi
+        .fn()
+        .mockResolvedValue(new Response('<html>not JSON</html>', { status: 200 }));
+      await expect(client.applicationsOverviewRaw()).rejects.toMatchObject({
+        errorType: ErrorType.RESPONSE_VALIDATION,
+      });
+    });
+
+    it('does not turn upstream errors into data', async () => {
+      globalThis.fetch = vi.fn().mockResolvedValue(new Response('unavailable', { status: 400 }));
+      await expect(client.applicationsOverviewRaw()).rejects.toMatchObject({ statusCode: 400 });
     });
   });
 });

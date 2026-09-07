@@ -38,7 +38,7 @@ The thing you'll touch most is the **security profile**: a named ruleset that tu
 | `client.dlpProfiles`        | Management-plane DLP profile references (list only).                          |
 | `client.dlp`                | DLP API namespace for filtering profiles, data patterns, profiles, and dictionaries. |
 | `client.deploymentProfiles` | Deployment profiles for the tenant (list).                                    |
-| `client.scanLogs`           | Query historical scan activity by time range.                                 |
+| `client.scanLogs`           | Deprecated, broken historical retrieval; use dashboard session methods.       |
 | `client.oauth`              | Mint / invalidate OAuth tokens for client-credential flows.                   |
 
 Two ideas to keep in mind:
@@ -47,7 +47,7 @@ Two ideas to keep in mind:
 - **Everything is tenant-scoped.** All operations run against the Tenant Service Group (TSG) you authenticate with — there's no cross-tenant access.
 
 :::tip[Typical workflow]
-Create a profile (and any custom topics it needs) here → reference that profile by name from a [scan](scan-api.md) → later, query `scanLogs` to see what it caught and refine the profile.
+Create a profile (and any custom topics it needs) here → reference that profile by name from a [scan](scan-api.md) → review [SCM dashboard sessions](scm-dashboard.mdx) and detector evidence to refine the profile. The legacy scan-log query is broken and under refactor.
 :::
 ## Authentication
 
@@ -425,6 +425,9 @@ const result = await client.customerApps.delete('my-app', 'user@example.com');
 
 ## Dashboard
 
+For the SDK 0.26.0 alternate-host methods, rankings, session inventory, transaction details,
+and explicit scan-content retrieval, see [SCM Dashboard Extensions](scm-dashboard.mdx).
+
 Per-application token consumption and per-detector violation counts — the same data SCM renders in the **AI Security > Runtime > API Applications** panel.
 
 Use `dashboard.applicationsOverview()` to enumerate dashboard buckets. This is the canonical source for reporting because AIRS dashboard data is bucketed by the literal `metadata.app_name` value sent in scan payloads. A registered customer app can therefore appear as multiple dashboard buckets when the same app ID sends different scan metadata names.
@@ -450,6 +453,48 @@ for (const app of apps.items ?? []) {
 ```
 
 This endpoint accepts `timeUnit: 'days'` with `timeInterval: 7 | 30 | 60`, plus the singular windows `timeUnit: 'day'` / `timeInterval: 1` and `timeUnit: 'hour'` / `timeInterval: 1`.
+
+### Alternate SCM dashboard host
+
+The local SDK also supports the undocumented SCM dashboard host without rerouting other
+management resources. The constructor-only `dashboardEndpoint` overrides the base URL for
+`client.dashboard` only; its default remains the management endpoint. Dashboard requests share
+the existing OAuth client and include the configured tenant's `x-tsg-id` header.
+
+```ts
+import { ManagementClient, DashboardApplicationsOverviewSchema } from '@cdot65/prisma-airs-sdk';
+
+const scm = new ManagementClient({
+  dashboardEndpoint: 'https://api.apps.paloaltonetworks.com/aisec',
+}); // reads PANW_MGMT_CLIENT_ID, PANW_MGMT_CLIENT_SECRET, PANW_MGMT_TSG_ID
+
+const query = { timeInterval: 1, timeUnit: 'day', limit: 25, offset: 0 } as const;
+const raw: unknown = await scm.dashboard.applicationsOverviewRaw(query);
+const inspected = DashboardApplicationsOverviewSchema.parse(raw);
+
+// Prefer this typed call once the deployment's response has been verified:
+const daily = await scm.dashboard.applicationsOverview(query);
+```
+
+`applicationsOverviewRaw()` preserves unstructured JSON, returns `undefined` for an empty HTTP
+body, and omits response bodies from SDK debug logging. HTTP errors and invalid JSON still fail.
+The typed overview requires an `items` array: a missing body/array is not silently treated as an
+empty inventory. Unknown fields are preserved by the Zod response model.
+
+On 2026-09-07 a fresh service-account `client_credentials` token succeeded against this host,
+followed by the raw read, lossless Zod validation, typed read, and four offset-pagination reads.
+No browser cookies, pasted bearer token, Origin, Referer, or browser-only headers were needed.
+This verifies application activity summaries, **not detailed scan-log retrieval**.
+
+Use `sessions_total` and `sessions_violated` for the API's per-application counters. Observed
+time-series buckets can contain `total: 0` alongside nonzero `violated`; do not sum those buckets
+to reconstruct totals or assume `violated <= total` within a bucket. Preserve timestamp strings
+(including fractional seconds) and treat `(id, name)` as the bucket identity, not `id` alone.
+
+Runnable example: `npx tsx --env-file=.env docs-site/examples/mgmt-dashboard-overview.ts` after
+building this local SDK. For the read-only credential-file E2E, run
+`npx tsx scripts/e2e-dashboard-overview.ts`. It prints validation metadata/counts, not credentials
+or complete response bodies. This feature has not been published yet.
 
 ### Application overview
 
@@ -555,6 +600,19 @@ const all = await client.deploymentProfiles.list({ unactivated: true });
 
 ## Scan Logs
 
+:::danger Broken legacy retrieval — under refactor
+
+`ScanLogsClient` / `client.scanLogs.query()` must currently be considered broken for historical
+retrieval. Live validation observed HTTP 200 responses with no body, as well as HTTP 400 for
+some query windows. An empty SDK result is **not evidence that no activity occurred**.
+
+Use the [SCM dashboard session workflow](./scm-dashboard.mdx) instead: `sessionsOverview()` →
+`session()` → `sessionTransaction()`, with explicit `scanContent()` only when needed.
+These are different data models, not a transparent replacement for the old scan-log payload.
+The legacy class remains for compatibility while its integration is refactored.
+
+:::
+
 Query scan activity logs by time range.
 
 ```ts
@@ -650,7 +708,7 @@ A standard `delete` on a profile or topic that's still referenced by a policy fa
 
 **Rotate keys, don't recreate them.** `apiKeys.regenerate(id, …)` issues a new secret under the same key ID (you pass the rotation schedule for the new key) — cleaner than deleting and re-adding.
 
-**Tune profiles from real traffic.** Use `scanLogs.query({ time_interval, time_unit, pageNumber: 1, pageSize: 50, filter: 'threat' })` to see what a profile actually caught (or missed), then adjust detectors and custom topics. Close the loop instead of guessing.
+**Tune profiles from real traffic.** Use [SCM dashboard sessions and detector breakdowns](scm-dashboard.mdx) to investigate observed traffic, then review detectors and custom topics. The legacy `scanLogs.query()` path is broken and must not be used to infer a lack of threats.
 
 **Set the right region.** All control-plane calls share one OAuth identity but must target the matching regional endpoint — override `PANW_MGMT_ENDPOINT` (see [Regional Endpoints](#regional-endpoints)) for EU/UK/FedRAMP tenants.
 

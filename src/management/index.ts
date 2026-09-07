@@ -39,6 +39,11 @@ export {
   type DashboardClientOptions,
   type DashboardAppQuery,
   type DashboardApplicationsOverviewQuery,
+  type DashboardTimeRangeQuery,
+  type DashboardSessionsOverviewQuery,
+  type DashboardSessionQuery,
+  type DashboardSessionTransactionQuery,
+  type DashboardScanContentQuery,
 } from './dashboard.js';
 export { DlpNamespace, type DlpNamespaceOptions } from './dlp/index.js';
 export {

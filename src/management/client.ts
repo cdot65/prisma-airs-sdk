@@ -23,6 +23,13 @@ export interface ManagementClientOptions {
   /** Management API endpoint URL. Falls back to `PANW_MGMT_ENDPOINT` env var. */
   apiEndpoint?: string;
   /**
+   * Optional dashboard-only base URL, including `/aisec` where applicable.
+   * Defaults to the management endpoint. Shares the same OAuth client and tenant;
+   * does not reroute profiles, scan logs, or other management resources.
+   * @example `'https://api.apps.paloaltonetworks.com/aisec'`
+   */
+  dashboardEndpoint?: string;
+  /**
    * DLP (Data Loss Prevention) API endpoint URL. Used by the `dlp` subclients.
    * Defaults to `https://api.dlp.paloaltonetworks.com`. Constructor-only — no env var override
    * (DLP shares OAuth credentials with the management API).
@@ -91,7 +98,12 @@ export class ManagementClient {
     this.deploymentProfiles = new DeploymentProfilesClient({ baseUrl, auth, numRetries });
     this.scanLogs = new ScanLogsClient({ baseUrl, auth, numRetries });
     this.oauth = new OAuthManagementClient({ baseUrl, auth, numRetries });
-    this.dashboard = new DashboardClient({ baseUrl, auth, numRetries });
+    this.dashboard = new DashboardClient({
+      baseUrl: opts.dashboardEndpoint ?? baseUrl,
+      auth,
+      tsgId,
+      numRetries,
+    });
     this.dlp = new DlpNamespace({ baseUrl: dlpEndpoint, auth, numRetries });
   }
 }

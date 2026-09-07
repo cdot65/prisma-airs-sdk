@@ -38,6 +38,34 @@ All 21 documentation scripts were executed in the primary batch: 18 passed and 3
 
 ## Setup
 
+### Additional SCM dashboard validation (SDK 0.26.0)
+
+On **2026-09-07T16:33:27.854Z**, `mgmt-dashboard-sessions.ts --include-content` passed
+against the SCM host using fresh service-account OAuth. This is a later, SDK-only extension;
+it does not revise the historical batch totals above or claim the installed CLI has changed.
+The [SCM dashboard guide](./scm-dashboard.mdx) documents all eleven verified routes, query
+differences, pagination limits, and privacy requirements.
+
+```text
+{ rankedApps: 4, trendBuckets: 10, sessionBuckets: 10,
+  returnedApps: 25, sessionPageItems: 25, totalSessions: 705 }
+{ sessionActions: 1, transactionStatus: 'passed', tokens: 13 }
+{ contentAvailable: true }
+```
+
+The script prints only counters and content availability, never stored prompts/responses.
+Omit `--include-content` to avoid fetching scan text. The separate read-only session E2E
+script walked all 705 observed entries; this short example intentionally reads only one page.
+The independently fetched chart reported 706 sessions, a discrepancy retained in the guide.
+
+The final session E2E rerun at **2026-09-07T16:39:04.187Z** passed stricter pagination checks:
+698 unique entries across 28 pages, an unchanged reported inventory total throughout, and an
+exact terminal count. One fresh OAuth token served 40 HTTP 200 reads. The separate chart showed
+699 sessions and 90 violating sessions; transaction and protected scan-content retrieval passed
+again. These later measurements do not alter the earlier example capture above.
+
+### Running examples
+
 Run from the repository root. The root TypeScript configuration resolves the package import to this checkout's source; examples do not silently exercise a globally installed SDK.
 
 ```bash

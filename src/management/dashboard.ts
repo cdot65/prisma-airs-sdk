@@ -1,24 +1,54 @@
+import { z } from 'zod';
 import {
   MGMT_DASHBOARD_APPLICATION_PATH,
   MGMT_DASHBOARD_APPLICATIONS_OVERVIEW_PATH,
   MGMT_DASHBOARD_APPLICATION_VIOLATION_BREAKDOWN_PATH,
+  MGMT_DASHBOARD_TOP_APPLICATIONS_VIOLATIONS_PATH,
+  MGMT_DASHBOARD_APPLICATIONS_VIOLATIONS_TREND_PATH,
+  MGMT_DASHBOARD_APPS_LIST_PATH,
+  MGMT_DASHBOARD_SESSIONS_CHART_PATH,
+  MGMT_DASHBOARD_SESSIONS_OVERVIEW_PATH,
+  MGMT_DASHBOARD_SESSION_PATH,
+  MGMT_DASHBOARD_SESSION_TRANSACTION_PATH,
+  MGMT_REPORT_SCAN_CONTENT_PATH,
 } from '../constants.js';
+import { AISecSDKException, ErrorType } from '../errors.js';
 import { request } from '../http/request.js';
 import type { AuthAdapter } from '../http/types.js';
 import {
   DashboardApplicationSchema,
   DashboardApplicationsOverviewSchema,
   DashboardApplicationViolationBreakdownSchema,
+  DashboardTopApplicationsViolationsSchema,
+  DashboardApplicationsViolationsTrendSchema,
   type DashboardApplication,
   type DashboardApplicationsOverview,
   type DashboardApplicationViolationBreakdown,
+  type DashboardTopApplicationsViolations,
+  type DashboardApplicationsViolationsTrend,
 } from '../models/mgmt-dashboard.js';
+import {
+  DashboardAppsListSchema,
+  type DashboardAppsList,
+  DashboardSessionsChartSchema,
+  type DashboardSessionsChart,
+  DashboardSessionsOverviewSchema,
+  type DashboardSessionsOverview,
+  DashboardSessionSchema,
+  type DashboardSession,
+  DashboardSessionTransactionSchema,
+  type DashboardSessionTransaction,
+  DashboardScanContentSchema,
+  type DashboardScanContent,
+} from '../models/mgmt-dashboard-sessions.js';
 
 /** @internal */
 export interface DashboardClientOptions {
   baseUrl: string;
   auth: AuthAdapter;
   numRetries: number;
+  /** Tenant routing header for SCM dashboard hosts. */
+  tsgId?: string;
 }
 
 /**
@@ -87,6 +117,87 @@ export interface DashboardApplicationsOverviewQuery {
   offset?: number;
 }
 
+/** Time window for undocumented dashboard rankings and trends. */
+export interface DashboardTimeRangeQuery {
+  /** Positive integer look-back length. Defaults to 1; verified with `timeUnit: 'day'`. */
+  timeInterval?: number;
+  /** Non-empty API time unit. Defaults to 'day'; other windows are server-dependent. */
+  timeUnit?: string;
+}
+
+/** Paginated session inventory. Defaults to one day, offset 0, limit 25. */
+export interface DashboardSessionsOverviewQuery extends DashboardTimeRangeQuery {
+  /** Positive page size; default 25. */
+  limit?: number;
+  /** Nonnegative item offset; default 0. */
+  offset?: number;
+}
+/** Session detail identity and action pagination. Defaults to 30 days. */
+export interface DashboardSessionQuery extends DashboardSessionsOverviewQuery {
+  sessionId: string;
+  appId: string;
+  appName: string;
+}
+/** Transaction identity. Sub-request zero is valid and must be sent. Defaults to 30 days. */
+export interface DashboardSessionTransactionQuery extends Omit<
+  DashboardSessionQuery,
+  'limit' | 'offset'
+> {
+  scanId: string;
+  scanSubReqId: number;
+}
+/** Exact scan content identity; no guessed date window or application filters. */
+export interface DashboardScanContentQuery {
+  scanId: string;
+  scanSubReqId: number;
+}
+
+const nonBlank = z.string().refine((value) => value.trim().length > 0);
+const appQuerySchema = z
+  .object({
+    appId: nonBlank,
+    appName: nonBlank,
+    timeInterval: z.union([z.literal(7), z.literal(30), z.literal(60)]).default(30),
+    timeUnit: z.literal('days').default('days'),
+  })
+  .strict();
+const timeRangeSchema = z
+  .object({
+    timeInterval: z.number().int().positive().safe().default(1),
+    timeUnit: nonBlank.default('day'),
+  })
+  .strict();
+const pageShape = {
+  limit: z.number().int().positive().safe().default(25),
+  offset: z.number().int().nonnegative().safe().default(0),
+};
+const sessionsOverviewQuerySchema = timeRangeSchema.extend(pageShape);
+const sessionIdentityShape = { sessionId: nonBlank, appId: nonBlank, appName: nonBlank };
+const sessionWindowSchema = timeRangeSchema.extend({
+  timeInterval: z.number().int().positive().safe().default(30),
+  timeUnit: nonBlank.default('days'),
+});
+const sessionQuerySchema = sessionWindowSchema.extend({ ...sessionIdentityShape, ...pageShape });
+const scanContentQuerySchema = z
+  .object({ scanId: nonBlank, scanSubReqId: z.number().int().nonnegative().safe() })
+  .strict();
+const sessionTransactionQuerySchema = sessionWindowSchema.extend({
+  ...sessionIdentityShape,
+  ...scanContentQuerySchema.shape,
+});
+
+function parseQuery<T>(schema: z.ZodType<T, z.ZodTypeDef, unknown>, value: unknown): T {
+  const result = schema.safeParse(value);
+  if (!result.success) {
+    // Never echo rejected values: app names and identifiers may be confidential.
+    throw new AISecSDKException(
+      'Invalid dashboard query parameters',
+      ErrorType.USER_REQUEST_PAYLOAD_ERROR,
+    );
+  }
+  return result.data;
+}
+
 /**
  * Client for AIRS SCM dashboard endpoints that power the
  * "AI Security > Runtime > API Applications" panel.
@@ -123,11 +234,13 @@ export class DashboardClient {
   private readonly baseUrl: string;
   private readonly auth: AuthAdapter;
   private readonly numRetries: number;
+  private readonly headers: Record<string, string>;
 
   constructor(opts: DashboardClientOptions) {
     this.baseUrl = opts.baseUrl;
     this.auth = opts.auth;
     this.numRetries = opts.numRetries;
+    this.headers = opts.tsgId ? { 'x-tsg-id': opts.tsgId } : {};
   }
 
   /**
@@ -155,18 +268,22 @@ export class DashboardClient {
    */
   async application(query: DashboardAppQuery): Promise<DashboardApplication> {
     return request({
-      method: 'GET',
-      baseUrl: this.baseUrl,
-      path: MGMT_DASHBOARD_APPLICATION_PATH,
-      params: {
-        appid: query.appId,
-        appname: query.appName,
-        time_interval: String(query.timeInterval ?? 30),
-        time_unit: query.timeUnit ?? 'days',
-      },
+      ...this.applicationRequest(MGMT_DASHBOARD_APPLICATION_PATH, query),
       responseSchema: DashboardApplicationSchema,
-      auth: this.auth,
-      numRetries: this.numRetries,
+    });
+  }
+
+  /**
+   * Inspect per-application JSON without a response model. Empty body becomes `undefined`;
+   * debug bodies are suppressed. Query validation and OAuth still apply.
+   * @example `const raw = await mgmt.dashboard.applicationRaw({ appId: 'app-id', appName: 'chatbot', timeInterval: 30 });`
+   */
+  async applicationRaw(query: DashboardAppQuery): Promise<unknown> {
+    return request({
+      ...this.applicationRequest(MGMT_DASHBOARD_APPLICATION_PATH, query),
+      responseSchema: z.unknown(),
+      allowEmptyBody: true,
+      omitDebugBody: true,
     });
   }
 
@@ -202,18 +319,290 @@ export class DashboardClient {
     query: DashboardAppQuery,
   ): Promise<DashboardApplicationViolationBreakdown> {
     return request({
-      method: 'GET',
-      baseUrl: this.baseUrl,
-      path: MGMT_DASHBOARD_APPLICATION_VIOLATION_BREAKDOWN_PATH,
-      params: {
-        appid: query.appId,
-        appname: query.appName,
-        time_interval: String(query.timeInterval ?? 30),
-        time_unit: query.timeUnit ?? 'days',
-      },
+      ...this.applicationRequest(MGMT_DASHBOARD_APPLICATION_VIOLATION_BREAKDOWN_PATH, query),
       responseSchema: DashboardApplicationViolationBreakdownSchema,
+    });
+  }
+
+  /**
+   * Inspect per-detector breakdown JSON without imposing a response model.
+   * Empty body becomes `undefined`; debug bodies are suppressed.
+   * @example `const raw = await mgmt.dashboard.applicationViolationBreakdownRaw({ appId: 'app-id', appName: 'chatbot' });`
+   */
+  async applicationViolationBreakdownRaw(query: DashboardAppQuery): Promise<unknown> {
+    return request({
+      ...this.applicationRequest(MGMT_DASHBOARD_APPLICATION_VIOLATION_BREAKDOWN_PATH, query),
+      responseSchema: z.unknown(),
+      allowEmptyBody: true,
+      omitDebugBody: true,
+    });
+  }
+
+  /**
+   * Inspect top-application policy-violation JSON. Defaults to the verified one-day window.
+   * Empty body becomes `undefined`; debug bodies are suppressed.
+   * @example `const raw = await mgmt.dashboard.topApplicationsViolationsRaw({ timeInterval: 1, timeUnit: 'day' });`
+   */
+  async topApplicationsViolationsRaw(query?: DashboardTimeRangeQuery): Promise<unknown> {
+    return request({
+      ...this.timeRangeRequest(MGMT_DASHBOARD_TOP_APPLICATIONS_VIOLATIONS_PATH, query),
+      responseSchema: z.unknown(),
+      allowEmptyBody: true,
+      omitDebugBody: true,
+    });
+  }
+
+  /**
+   * Retrieve the server's top applications by detector-policy violations.
+   * Defaults to one day; rankings are not a complete inventory or distinct-session counts.
+   * @example `const top = await mgmt.dashboard.topApplicationsViolations({ timeInterval: 1, timeUnit: 'day' });`
+   */
+  async topApplicationsViolations(
+    query?: DashboardTimeRangeQuery,
+  ): Promise<DashboardTopApplicationsViolations> {
+    return request({
+      ...this.timeRangeRequest(MGMT_DASHBOARD_TOP_APPLICATIONS_VIOLATIONS_PATH, query),
+      responseSchema: DashboardTopApplicationsViolationsSchema,
+    });
+  }
+
+  /**
+   * Inspect aggregate violation-trend JSON. Defaults to the verified one-day window.
+   * Empty body becomes `undefined`; debug bodies are suppressed.
+   * @example `const raw = await mgmt.dashboard.applicationsViolationsTrendRaw({ timeInterval: 1, timeUnit: 'day' });`
+   */
+  async applicationsViolationsTrendRaw(query?: DashboardTimeRangeQuery): Promise<unknown> {
+    return request({
+      ...this.timeRangeRequest(MGMT_DASHBOARD_APPLICATIONS_VIOLATIONS_TREND_PATH, query),
+      responseSchema: z.unknown(),
+      allowEmptyBody: true,
+      omitDebugBody: true,
+    });
+  }
+
+  /**
+   * Retrieve aggregate severity counts over time, preserving server bucket order and timestamps.
+   * Defaults to one day. These counters need not equal distinct violating-session counts.
+   * @example `const trend = await mgmt.dashboard.applicationsViolationsTrend({ timeInterval: 1, timeUnit: 'day' });`
+   */
+  async applicationsViolationsTrend(
+    query?: DashboardTimeRangeQuery,
+  ): Promise<DashboardApplicationsViolationsTrend> {
+    return request({
+      ...this.timeRangeRequest(MGMT_DASHBOARD_APPLICATIONS_VIOLATIONS_TREND_PATH, query),
+      responseSchema: DashboardApplicationsViolationsTrendSchema,
+    });
+  }
+
+  /**
+   * Unstructured dashboard application identities; defaults to 30 days. Names and IDs can repeat.
+   * @example `const raw = await mgmt.dashboard.appsListRaw({ timeInterval: 30, timeUnit: 'days' });`
+   */
+  async appsListRaw(query?: DashboardTimeRangeQuery): Promise<unknown> {
+    return this.rawRead(this.appsListRequest(query));
+  }
+
+  /**
+   * Retrieve dashboard application identities. Defaults to 30 days; preserves duplicate names and IDs.
+   * @example `const apps = await mgmt.dashboard.appsList({ timeInterval: 30, timeUnit: 'days' });`
+   */
+  async appsList(query?: DashboardTimeRangeQuery): Promise<DashboardAppsList> {
+    return request({ ...this.appsListRequest(query), responseSchema: DashboardAppsListSchema });
+  }
+
+  /**
+   * Unstructured session-count time series; defaults to one day.
+   * @example `const raw = await mgmt.dashboard.sessionsChartRaw({ timeInterval: 1, timeUnit: 'day' });`
+   */
+  async sessionsChartRaw(query?: DashboardTimeRangeQuery): Promise<unknown> {
+    return this.rawRead(this.timeRangeRequest(MGMT_DASHBOARD_SESSIONS_CHART_PATH, query));
+  }
+
+  /**
+   * Retrieve aggregate session-count buckets. Defaults to one day; violation counts remain separate.
+   * @example `const chart = await mgmt.dashboard.sessionsChart({ timeInterval: 1, timeUnit: 'day' });`
+   */
+  async sessionsChart(query?: DashboardTimeRangeQuery): Promise<DashboardSessionsChart> {
+    return request({
+      ...this.timeRangeRequest(MGMT_DASHBOARD_SESSIONS_CHART_PATH, query),
+      responseSchema: DashboardSessionsChartSchema,
+    });
+  }
+
+  /**
+   * Unstructured paginated session inventory; defaults to one day, offset 0, limit 25.
+   * @example `const raw = await mgmt.dashboard.sessionsOverviewRaw({ limit: 25, offset: 0 });`
+   */
+  async sessionsOverviewRaw(query?: DashboardSessionsOverviewQuery): Promise<unknown> {
+    return this.rawRead(this.sessionsOverviewRequest(query));
+  }
+
+  /**
+   * Retrieve one session-inventory page. Defaults to one day, offset 0, limit 25.
+   * @example `const page = await mgmt.dashboard.sessionsOverview({ limit: 25, offset: 0 });`
+   */
+  async sessionsOverview(
+    query?: DashboardSessionsOverviewQuery,
+  ): Promise<DashboardSessionsOverview> {
+    return request({
+      ...this.sessionsOverviewRequest(query),
+      responseSchema: DashboardSessionsOverviewSchema,
+      omitDebugBody: true,
+    });
+  }
+
+  /**
+   * Unstructured session detail and actions. Defaults to 30 days. Bodies never enter SDK debug logs.
+   * @example `const raw = await mgmt.dashboard.sessionRaw({ sessionId: 'session', appId: 'app', appName: 'demo' });`
+   */
+  async sessionRaw(query: DashboardSessionQuery): Promise<unknown> {
+    return this.rawRead(this.sessionRequest(query));
+  }
+
+  /**
+   * Retrieve a session and one page of its actions. Defaults to 30 days; content is not fetched.
+   * @example `const detail = await mgmt.dashboard.session({ sessionId: 'session', appId: 'app', appName: 'demo', limit: 25, offset: 0 });`
+   */
+  async session(query: DashboardSessionQuery): Promise<DashboardSession> {
+    return request({
+      ...this.sessionRequest(query),
+      responseSchema: DashboardSessionSchema,
+      omitDebugBody: true,
+    });
+  }
+
+  /**
+   * Unstructured transaction detail. Bodies never enter SDK debug logs.
+   * @example `const raw = await mgmt.dashboard.sessionTransactionRaw({ sessionId: 'session', appId: 'app', appName: 'demo', scanId: 'scan', scanSubReqId: 0 });`
+   */
+  async sessionTransactionRaw(query: DashboardSessionTransactionQuery): Promise<unknown> {
+    return this.rawRead(this.sessionTransactionRequest(query));
+  }
+
+  /**
+   * Retrieve transaction metadata, preserving null and literal sentinel values. Defaults to 30 days.
+   * @example `const tx = await mgmt.dashboard.sessionTransaction({ sessionId: 'session', appId: 'app', appName: 'demo', scanId: 'scan', scanSubReqId: 0 });`
+   */
+  async sessionTransaction(
+    query: DashboardSessionTransactionQuery,
+  ): Promise<DashboardSessionTransaction> {
+    return request({
+      ...this.sessionTransactionRequest(query),
+      responseSchema: DashboardSessionTransactionSchema,
+      omitDebugBody: true,
+    });
+  }
+
+  /**
+   * Explicitly retrieve potentially sensitive scan content from the same dashboard host.
+   * No automatic content retrieval is performed by session methods; bodies never enter SDK debug logs.
+   * @example `const raw = await mgmt.dashboard.scanContentRaw({ scanId: 'scan', scanSubReqId: 0 });`
+   */
+  async scanContentRaw(query: DashboardScanContentQuery): Promise<unknown> {
+    return this.rawRead(this.scanContentRequest(query));
+  }
+
+  /**
+   * Explicitly retrieve scan content from `/v1/mgmt/reports/scancontent` on the configured dashboard host.
+   * This may expose prompts/responses; SDK debug bodies are always suppressed. Never fetched automatically.
+   * @example `const report = await mgmt.dashboard.scanContent({ scanId: 'scan', scanSubReqId: 0 }); // protect report.scan_contents`
+   */
+  async scanContent(query: DashboardScanContentQuery): Promise<DashboardScanContent> {
+    return request({
+      ...this.scanContentRequest(query),
+      responseSchema: DashboardScanContentSchema,
+      omitDebugBody: true,
+    });
+  }
+
+  private rawRead(spec: ReturnType<DashboardClient['getRequest']>): Promise<unknown> {
+    return request({
+      ...spec,
+      responseSchema: z.unknown(),
+      allowEmptyBody: true,
+      omitDebugBody: true,
+    });
+  }
+
+  private appsListRequest(query?: DashboardTimeRangeQuery) {
+    const parsed = parseQuery(sessionWindowSchema, query ?? {});
+    return this.getRequest(MGMT_DASHBOARD_APPS_LIST_PATH, {
+      time_interval: String(parsed.timeInterval),
+      time_unit: parsed.timeUnit,
+    });
+  }
+
+  private sessionsOverviewRequest(query?: DashboardSessionsOverviewQuery) {
+    const parsed = parseQuery(sessionsOverviewQuerySchema, query ?? {});
+    return this.getRequest(MGMT_DASHBOARD_SESSIONS_OVERVIEW_PATH, {
+      time_interval: String(parsed.timeInterval),
+      time_unit: parsed.timeUnit,
+      limit: String(parsed.limit),
+      offset: String(parsed.offset),
+    });
+  }
+
+  private sessionRequest(query: DashboardSessionQuery) {
+    const p = parseQuery(sessionQuerySchema, query);
+    return this.getRequest(MGMT_DASHBOARD_SESSION_PATH, {
+      session_id: p.sessionId,
+      app_id: p.appId,
+      app_name: p.appName,
+      offset: String(p.offset),
+      limit: String(p.limit),
+      time_interval: String(p.timeInterval),
+      time_unit: p.timeUnit,
+    });
+  }
+
+  private sessionTransactionRequest(query: DashboardSessionTransactionQuery) {
+    const p = parseQuery(sessionTransactionQuerySchema, query);
+    return this.getRequest(MGMT_DASHBOARD_SESSION_TRANSACTION_PATH, {
+      session_id: p.sessionId,
+      app_id: p.appId,
+      app_name: p.appName,
+      scan_id: p.scanId,
+      scan_sub_req_id: String(p.scanSubReqId),
+      time_interval: String(p.timeInterval),
+      time_unit: p.timeUnit,
+    });
+  }
+
+  private scanContentRequest(query: DashboardScanContentQuery) {
+    const p = parseQuery(scanContentQuerySchema, query);
+    return this.getRequest(MGMT_REPORT_SCAN_CONTENT_PATH, {
+      scan_id: p.scanId,
+      scan_sub_req_id: String(p.scanSubReqId),
+    });
+  }
+
+  private getRequest(path: string, params: Record<string, string>) {
+    return {
+      method: 'GET' as const,
+      baseUrl: this.baseUrl,
+      path,
+      params,
+      headers: this.headers,
       auth: this.auth,
       numRetries: this.numRetries,
+    };
+  }
+
+  private applicationRequest(path: string, query: DashboardAppQuery) {
+    const parsed = parseQuery(appQuerySchema, query);
+    return this.getRequest(path, {
+      appid: parsed.appId,
+      appname: parsed.appName,
+      time_interval: String(parsed.timeInterval),
+      time_unit: parsed.timeUnit,
+    });
+  }
+
+  private timeRangeRequest(path: string, query?: DashboardTimeRangeQuery) {
+    const parsed = parseQuery(timeRangeSchema, query ?? {});
+    return this.getRequest(path, {
+      time_interval: String(parsed.timeInterval),
+      time_unit: parsed.timeUnit,
     });
   }
 
@@ -252,18 +641,49 @@ export class DashboardClient {
     query?: DashboardApplicationsOverviewQuery,
   ): Promise<DashboardApplicationsOverview> {
     return request({
-      method: 'GET',
+      ...this.applicationsOverviewRequest(query),
+      responseSchema: DashboardApplicationsOverviewSchema,
+    });
+  }
+
+  /**
+   * Retrieve unstructured JSON for an undocumented dashboard deployment.
+   * Uses the same OAuth, tenant routing, query, and retry workflow as the typed method.
+   * No response fields are validated or discarded. An empty HTTP body returns `undefined`,
+   * not an invented empty result. Prefer {@link applicationsOverview} for normal consumers.
+   * @example
+   * ```ts
+   * const mgmt = new ManagementClient({
+   *   dashboardEndpoint: 'https://api.apps.paloaltonetworks.com/aisec',
+   * });
+   * const raw: unknown = await mgmt.dashboard.applicationsOverviewRaw({
+   *   timeInterval: 1, timeUnit: 'day', limit: 25, offset: 0,
+   * });
+   * ```
+   */
+  async applicationsOverviewRaw(query?: DashboardApplicationsOverviewQuery): Promise<unknown> {
+    return request({
+      ...this.applicationsOverviewRequest(query),
+      responseSchema: z.unknown(),
+      allowEmptyBody: true,
+      omitDebugBody: true,
+    });
+  }
+
+  private applicationsOverviewRequest(query?: DashboardApplicationsOverviewQuery) {
+    return {
+      method: 'GET' as const,
       baseUrl: this.baseUrl,
       path: MGMT_DASHBOARD_APPLICATIONS_OVERVIEW_PATH,
+      headers: this.headers,
       params: {
         time_interval: String(query?.timeInterval ?? 30),
         time_unit: query?.timeUnit ?? 'days',
         limit: String(query?.limit ?? 25),
         offset: String(query?.offset ?? 0),
       },
-      responseSchema: DashboardApplicationsOverviewSchema,
       auth: this.auth,
       numRetries: this.numRetries,
-    });
+    };
   }
 }

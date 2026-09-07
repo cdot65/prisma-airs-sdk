@@ -1,4 +1,4 @@
-import { describe, it, expect, afterEach } from 'vitest';
+import { describe, it, expect, afterEach, vi } from 'vitest';
 import { ManagementClient } from '../../src/management/client.js';
 import { ProfilesClient } from '../../src/management/profiles.js';
 import { TopicsClient } from '../../src/management/topics.js';
@@ -17,9 +17,11 @@ import { AISecSDKException } from '../../src/errors.js';
 
 describe('ManagementClient', () => {
   const originalEnv = { ...process.env };
+  const originalFetch = globalThis.fetch;
 
   afterEach(() => {
     process.env = { ...originalEnv };
+    globalThis.fetch = originalFetch;
   });
 
   it('constructs with explicit options', () => {
@@ -103,6 +105,75 @@ describe('ManagementClient', () => {
     });
     expect(client.profiles).toBeInstanceOf(ProfilesClient);
   });
+
+  it.each([undefined, 'https://dashboard.example.com/aisec/'])(
+    'routes dashboard requests independently while sharing OAuth: %s',
+    async (dashboardEndpoint) => {
+      globalThis.fetch = vi.fn().mockImplementation(async (input) => {
+        const url = String(input);
+        if (url.endsWith('/access_token'))
+          return Response.json({
+            access_token: 'test-access-token',
+            token_type: 'Bearer',
+            expires_in: 900,
+          });
+        if (url.includes('/applicationsoverview'))
+          return Response.json({ items: [], pagination: { limit: 25, skip: 0, total_items: 0 } });
+        if (url.includes('/profiles/')) return Response.json({ ai_profiles: [] });
+        if (url.includes('/applicationviolationbreakdown'))
+          return Response.json({ detection_type_violation_breakdown: [] });
+        if (url.includes('/topapplicationsviolations')) return Response.json({ applications: [] });
+        if (url.includes('/applicationsviolationstrend')) return Response.json({ violations: [] });
+        if (url.includes('/application?'))
+          return Response.json({ token_stats: null, session_stats: null });
+        return Response.json({});
+      });
+      const client = new ManagementClient({
+        clientId: 'cid',
+        clientSecret: 'secret',
+        tsgId: '123',
+        apiEndpoint: 'https://management.example.com/aisec',
+        tokenEndpoint: 'https://auth.example.com/access_token',
+        dashboardEndpoint,
+        numRetries: 0,
+      });
+      await client.dashboard.applicationsOverviewRaw({ timeInterval: 1, timeUnit: 'day' });
+      await client.dashboard.applicationsOverview();
+      await client.dashboard.application({ appId: 'app-1', appName: 'example' });
+      await client.dashboard.applicationViolationBreakdown({ appId: 'app-1', appName: 'example' });
+      await client.dashboard.applicationRaw({ appId: 'app-1', appName: 'example' });
+      await client.dashboard.applicationViolationBreakdownRaw({
+        appId: 'app-1',
+        appName: 'example',
+      });
+      await client.dashboard.topApplicationsViolations();
+      await client.dashboard.topApplicationsViolationsRaw();
+      await client.dashboard.applicationsViolationsTrend();
+      await client.dashboard.applicationsViolationsTrendRaw();
+      await client.profiles.list();
+      const calls = vi.mocked(globalThis.fetch).mock.calls;
+      expect(calls.filter(([url]) => String(url).includes('/access_token'))).toHaveLength(1);
+      const dashboardCalls = calls.filter(([url]) => String(url).includes('/dashboard/'));
+      expect(dashboardCalls).toHaveLength(10);
+      for (const [url, init] of dashboardCalls) {
+        expect(String(url)).toMatch(
+          dashboardEndpoint
+            ? /^https:\/\/dashboard\.example\.com\/aisec\/v1\//
+            : /^https:\/\/management\.example\.com\/aisec\/v1\//,
+        );
+        const headers = new Headers(init?.headers);
+        expect(headers.get('authorization')).toBe('Bearer test-access-token');
+        expect(headers.get('x-tsg-id')).toBe('123');
+      }
+      const [profileUrl, profileInit] = calls.find(([url]) => String(url).includes('/profiles/'))!;
+      expect(String(profileUrl)).toContain(
+        'https://management.example.com/aisec/v1/mgmt/profiles/',
+      );
+      expect(new Headers(profileInit?.headers).get('authorization')).toBe(
+        'Bearer test-access-token',
+      );
+    },
+  );
 
   it('reads endpoint from env var', () => {
     process.env.PANW_MGMT_CLIENT_ID = 'cid';
