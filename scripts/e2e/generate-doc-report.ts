@@ -43,23 +43,23 @@ const table = reports
 const oauthReads = reports.find((report) => report.name === 'oauth-service-reads');
 assert(oauthReads, 'Missing cross-service OAuth validation report');
 const native = JSON.parse(
-  readFileSync(new URL('../../artifacts/cli431-dlp-registry.json', import.meta.url), 'utf8'),
+  readFileSync(new URL('../../artifacts/cli440-dlp-registry.json', import.meta.url), 'utf8'),
 );
 const container = JSON.parse(
   readFileSync(
-    new URL('../../artifacts/cli431-container-verification.json', import.meta.url),
+    new URL('../../artifacts/cli440-container-verification.json', import.meta.url),
     'utf8',
   ),
 );
 assert.equal(native.passed, true);
-assert.equal(native.cliVersion, '4.3.1');
+assert.equal(native.cliVersion, '4.4.0');
 assert.equal(native.cases.length, 11);
 assert(native.cases.every((result: { passed: boolean }) => result.passed));
 assert.equal(container.passed, true);
 assert.deepEqual(Object.keys(container.platforms).sort(), ['linux/amd64', 'linux/arm64']);
 for (const report of Object.values(container.platforms) as Array<typeof native>) {
   assert.equal(report.passed, true);
-  assert.equal(report.cliVersion, '4.3.1');
+  assert.equal(report.cliVersion, '4.4.0');
   assert.equal(report.cases.length, 11);
   assert(report.cases.every((result: { passed: boolean }) => result.passed));
 }
@@ -93,9 +93,9 @@ ${table}
 
 ## Native CLI release verification
 
-CLI **4.3.1** adds separate, credential-free native validation: **11/11** independently registry-installed checks at **${native.generatedAt}**, and **11/11 on each actual container architecture** in the [release workflow](https://github.com/cdot65/prisma-airs-cli/actions/runs/34110815270). Container processes have no runtime network access. The tests validate all five DLP formats, 26 signatures, manifest counts, JSON stdout, output precedence and invalid-input preflight. Temporary fixtures are removed before success is recorded. These are repeated consumer checks, not additional OpenAPI operations or replacements for the failures below.
+CLI **4.4.0**, pinning SDK **0.25.0**, passes separate, credential-free native validation: **11/11** independently registry-installed checks at **${native.generatedAt}**, and **11/11 on each actual container architecture** in the [release workflow](https://github.com/cdot65/prisma-airs-cli/actions/runs/${container.workflowRun}). Container processes have no runtime network access. The tests validate all five DLP formats, 26 signatures, manifest counts, JSON stdout, output precedence and invalid-input preflight. Temporary fixtures are removed before success is recorded. These are repeated consumer checks, not additional OpenAPI operations or replacements for the failures below.
 
-Container minor/latest aliases are read back at **${container.digest}** only after both architectures pass. Registry and frozen production dependency audits are clean; SDK documentation development-dependency advisories remain open. See [actual native output](https://cdot65.github.io/prisma-airs-cli/cli/runtime/dlp/generate/) and [version-specific registry and container evidence](../guides/release-verification.md#sdk-0240-and-cli-431-registry-verification). Public WAN and anonymous container access remain separate limitations.
+Container minor/latest aliases are read back at **${container.digest}** only after both architectures pass. Registry and frozen production dependency audits are clean; SDK documentation development-dependency advisories remain open. See [actual native output](https://cdot65.github.io/prisma-airs-cli/cli/runtime/dlp/generate/) and [version-specific registry and container evidence](../guides/release-verification.md#cli-440-registry-and-container-verification), including preserved earlier releases. Public WAN and anonymous container access remain separate limitations.
 
 ## Failures and explicit skips
 

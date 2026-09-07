@@ -20,6 +20,7 @@ import { OAuthClient } from '../src/management/oauth-client.js';
 import { loadLiveCredentials } from './live-credentials.js';
 import { LiveHarness, writePrivateReport } from './e2e/harness.js';
 import { cliReleaseSelection, verifyCliConsumer } from './e2e/cli-consumer.js';
+import { cliQueryError } from './e2e/cli-error.js';
 
 const credentials = loadLiveCredentials();
 const harness = new LiveHarness();
@@ -51,22 +52,7 @@ async function cliCommand(args: string[]): Promise<string> {
     assert(result.stdout.trim().length > 0);
     return result.stdout;
   } catch (error) {
-    const code = (error as { code?: unknown }).code;
-    const stderr = (error as { stderr?: unknown }).stderr;
-    const status =
-      typeof stderr === 'string'
-        ? stderr.match(/(?:^|\n)\s*HTTP ([1-5]\d{2})\s*(?:\n|$)/)?.[1]
-        : undefined;
-    if (status) {
-      throw new AISecSDKException(
-        'CLI grouped analytics returned an HTTP failure',
-        Number(status) >= 500 ? ErrorType.SERVER_SIDE_ERROR : ErrorType.CLIENT_SIDE_ERROR,
-        { statusCode: Number(status) },
-      );
-    }
-    throw new Error(
-      `CLI group check failed; exit code ${typeof code === 'number' ? code : 'unknown'}`,
-    );
+    throw cliQueryError(error);
   }
 }
 const evidence: {

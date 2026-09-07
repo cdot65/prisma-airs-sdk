@@ -27,7 +27,13 @@ const evidence = JSON.parse(
 );
 const capturedAt = cli ? evidence.capturedAt : evidence.finishedAt;
 const nativeEvidence = JSON.parse(
-  readFileSync(new URL('../artifacts/cli431-dlp-registry.json', import.meta.url), 'utf8'),
+  readFileSync(
+    new URL(
+      cli ? '../artifacts/cli440-dlp-registry.json' : '../artifacts/cli431-dlp-registry.json',
+      import.meta.url,
+    ),
+    'utf8',
+  ),
 );
 const batchEvidence = cli
   ? undefined
@@ -171,11 +177,11 @@ try {
       ['cli/runtime/dlp/profiles', ['not live-verified', '501']],
       [
         'runtime/dlp/generate',
-        [nativeEvidence.generatedAt, '4.3.1', '11/11', '26 file signatures', 'sharp'],
+        [nativeEvidence.generatedAt, '4.4.0', '11/11', '26 file signatures', 'sharp'],
       ],
       [
         'cli/runtime/dlp/generate',
-        [nativeEvidence.generatedAt, '4.3.1', '11/11', 'instead of JSON', 'sharp'],
+        [nativeEvidence.generatedAt, '4.4.0', '11/11', 'instead of JSON', 'sharp'],
       ],
       ['cli/aigateway/telemetry', ['null', '0.25.0', '4.4.0', '103/103', '--cost-max']],
       ['cli/aigateway/workflows', ['400', 'AB01']],
@@ -474,6 +480,30 @@ try {
         await assertCapturedJson(empty.output);
         assert(text.includes(nativeEvidence.generatedAt), 'Registry native CLI capture is stale');
         await assertCapturedJson(nativeEvidence.summary);
+        const latestCli = (path) =>
+          JSON.parse(readFileSync(new URL(`../artifacts/${path}`, import.meta.url), 'utf8'));
+        const cliChat = latestCli('examples/cli-inference-v4.4.0.json');
+        const cliEmpty = latestCli('examples/cli-analytics-v4.4.0.json');
+        const cliNative = latestCli('cli440-dlp-registry.json');
+        const cliRegistry = latestCli('package/registry-cli-v4.4.0.json');
+        const cliContainer = latestCli('cli440-container-verification.json');
+        for (const value of [
+          'CLI 4.4.0 registry and container verification',
+          cliChat.capturedAt,
+          cliEmpty.capturedAt,
+          cliNative.generatedAt,
+          cliRegistry.checkedAt,
+          cliRegistry.sha256,
+          cliContainer.digest,
+          latestCli('e2e/gateway-analytics-group-filters-cli-v4.4.0.json').finishedAt,
+          latestCli('e2e/gateway-analytics-query-contracts-cli-v4.4.0.json').finishedAt,
+          '103/103',
+          '54/54',
+        ])
+          assert(text.includes(value), 'Latest CLI registry evidence is stale or incomplete');
+        await assertCapturedJson(cliChat.chat);
+        await assertCapturedJson(cliEmpty.output);
+        await assertCapturedJson(cliNative.summary);
         const usageEvidence = JSON.parse(
           readFileSync(
             new URL('../artifacts/e2e/gateway-usage-reset-observations.json', import.meta.url),

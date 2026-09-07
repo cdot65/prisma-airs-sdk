@@ -23,6 +23,7 @@ import { serializeWindow } from '../src/ai-gateway/window.js';
 import { loadLiveCredentials } from './live-credentials.js';
 import { LiveHarness, writePrivateReport } from './e2e/harness.js';
 import { cliReleaseSelection, verifyCliConsumer } from './e2e/cli-consumer.js';
+import { cliQueryError } from './e2e/cli-error.js';
 
 type Filters = Omit<AIGatewayChartFilters, 'traceId' | 'metadata'>;
 type ChartData = {
@@ -63,10 +64,7 @@ async function cliCommand(args: string[]): Promise<string> {
     assert(result.stdout.trim().length > 0);
     return result.stdout;
   } catch (error) {
-    const code = (error as { code?: unknown }).code;
-    throw new Error(
-      `CLI query-contract check failed; exit code ${typeof code === 'number' ? code : 'unknown'}`,
-    );
+    throw cliQueryError(error);
   }
 }
 const evidence: {

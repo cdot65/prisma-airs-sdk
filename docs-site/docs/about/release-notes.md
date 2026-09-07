@@ -8,7 +8,7 @@
 - Verify positive/absent cohorts and combined filters against existing owned traffic. Independently freeze the supplied user/model/provider query declarations; record SCM-only provider `traceId` separately instead of inventing an upstream field.
 - Add 295 group regressions and four source-contract checks. Packaged ESM/CommonJS consumers verify exact group queries and pre-authentication rejection; strict consumer types use a tracked, hashed specimen instead of a caller-supplied smoke file.
 
-See [grouped analytics](../guides/ai-gateway-api.mdx#groupby-byuser-bystatuscode) and its [captured checks](../guides/examples.mdx#verified-grouped-analytics-filters). Direct gateway coverage remains **138/242 (57.02%)**, with all 22 analytics adaptations still partial. This release does not resolve the remaining service/model/entitlement failures or certify the full 99% target. CLI group-filter verification and release are separate follow-up work.
+See [grouped analytics](../guides/ai-gateway-api.mdx#groupby-byuser-bystatuscode) and its [captured checks](../guides/examples.mdx#verified-grouped-analytics-filters). Direct gateway coverage remains **138/242 (57.02%)**, with all 22 analytics adaptations still partial. This release does not resolve the remaining service/model/entitlement failures or certify the full 99% target. Separately published CLI 4.4.0 now exposes these filters and passes all registry group, chart and inference checks; see [version-bound release evidence](../guides/release-verification.md#cli-440-registry-and-container-verification).
 
 ## v0.24.0 (2026-09-07) — Verified analytics query contracts
 
