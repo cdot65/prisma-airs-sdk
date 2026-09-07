@@ -146,3 +146,24 @@ timeouts before an HTTP response; an unauthenticated curl request reproduced the
 the SCM dashboard host still returned HTTP 401. These attempts are not counted as passing E2E.
 The earlier successful captures remain dated, and release follow-up must verify fresh installed
 packages separately. No credential, DNS, tenant or service configuration was changed.
+
+### Publication and consumer verification
+
+SDK **0.26.0** is published, with passing
+[npm publication](https://github.com/cdot65/prisma-airs-sdk/actions/runs/34149891869),
+[CI](https://github.com/cdot65/prisma-airs-sdk/actions/runs/34149690144),
+[Node 18/20/22/24 tests](https://github.com/cdot65/prisma-airs-sdk/actions/runs/34149690202), and
+[Docusaurus deployment](https://github.com/cdot65/prisma-airs-sdk/actions/runs/34149690196).
+A fresh registry installation independently matches all nine candidate payload files, source
+maps, strict type specimen and all packed checks. Registry SHA-1:
+`6ce98aa0a3c06ef36be03d6a05af6d7d104c6c8b`.
+
+CLI **5.0.0** is also published and installed in the user's existing npm prefix. It pins registry
+SDK 0.26.0, passes 1,354 regression tests and exact seven-file/23-export installed verification.
+Both Docusaurus sites are live; CLI public browser/download checks pass 9/9. The legacy SDK
+class warning, CLI command migration and report schema-2 changes are explicit.
+
+The later authentication connection failure reproduces with both SDK 0.25.0 and 0.26.0, before
+any Management API result. Publication is not a claim that this external availability issue
+has recovered. The CLI release assessment records the final installed live attempts separately
+from the earlier positive results; no successful current live run is invented here.
