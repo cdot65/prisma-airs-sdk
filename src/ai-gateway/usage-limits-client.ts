@@ -151,7 +151,8 @@ export class AIGatewayUsageLimitsClient {
   }
 
   /** Reset Usage Limits Policy Entity.
-   * @experimental No traffic-derived entity existed on the isolated policy; existing counters were not reset.
+   * @experimental Owned traffic-derived counters were reset and independently audited
+   * on 2026-09-07. Experimental stability is retained; existing counters are never test fixtures.
    * @example `await gw.usageLimits.resetEntity('resource-id', 'resource-id');`
    */
   async resetEntity(

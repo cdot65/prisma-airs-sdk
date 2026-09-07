@@ -335,6 +335,22 @@ try {
           toolsInvoked: mcpEvidence.toolsInvoked,
           sessionIssued: mcpEvidence.sessionIssued,
         });
+        const publicMcp = JSON.parse(
+          readFileSync(
+            new URL('../artifacts/e2e/gateway-mcp-public-observations.json', import.meta.url),
+            'utf8',
+          ),
+        );
+        assert.equal(publicMcp.passed, true);
+        assert(text.includes(publicMcp.finishedAt), 'Public MCP lifecycle capture is stale');
+        await assertCapturedJson({
+          capabilitiesBefore: publicMcp.capabilitiesBefore,
+          capabilitiesAfter: publicMcp.capabilitiesAfter,
+          capabilityStates: publicMcp.capabilityStates,
+          runtimeToolCounts: publicMcp.runtimeToolCounts,
+          runtimeCapabilityStates: publicMcp.runtimeCapabilityStates,
+          toolsInvoked: publicMcp.toolsInvoked,
+        });
         await page.screenshot({ path: `${directory}published-package-examples.png` });
       });
     }

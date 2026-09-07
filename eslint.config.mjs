@@ -22,6 +22,7 @@ export default [
       '**/.venv/',
       '**/site/',
       'docs-site/',
+      'artifacts/e2e/mcp-bundle/', // Generated, bundled third-party fixture runtime; source remains linted.
     ],
   },
   ...compat.extends('eslint:recommended', 'plugin:@typescript-eslint/recommended'),

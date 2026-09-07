@@ -11,6 +11,7 @@ import {
 } from '../src/index.js';
 import { loadLiveCredentials } from './live-credentials.js';
 import { LiveHarness } from './e2e/harness.js';
+import { getSyntheticKubeObject, syntheticKubeKind } from './e2e/synthetic-mcp-kubernetes.js';
 const credentials = loadLiveCredentials();
 const h = new LiveHarness();
 const mgmt = new ManagementClient({ numRetries: 0 });
@@ -150,6 +151,15 @@ try {
           return retired(() => gw.rateLimits.get(f.id));
         case 'gateway.secret-reference':
           return retired(() => gw.secretReferences.get(f.id));
+        case 'kubernetes.synthetic-mcp.ConfigMap':
+        case 'kubernetes.synthetic-mcp.NetworkPolicy':
+        case 'kubernetes.synthetic-mcp.Service':
+        case 'kubernetes.synthetic-mcp.Pod': {
+          const kind = syntheticKubeKind(f.resource);
+          assert(kind);
+          assert.equal(await getSyntheticKubeObject(kind, f.name), undefined);
+          return { state: 'owned-kubernetes-object-absent' };
+        }
         case 'gateway.mcp-integration':
           return absentFrom(mcpIntegrations.data, f.id);
         case 'gateway.mcp-server':

@@ -92,8 +92,11 @@ export function discoveryFetch(
         },
         async cancel(reason) {
           release();
+          // Close the reader before aborting the native fetch. Reversing this order
+          // makes ordinary empty-202 cleanup reject with AbortError during MCP init.
+          const cancelled = reader.cancel(reason);
           controller.abort(reason);
-          await reader.cancel(reason);
+          await cancelled;
         },
       });
       return new Response(stream, {

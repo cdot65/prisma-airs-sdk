@@ -4,6 +4,7 @@ import { readFileSync } from 'node:fs';
 import { AIGatewayClient, RedTeamClient, AISecSDKException } from '../src/index.js';
 import { loadLiveCredentials } from './live-credentials.js';
 import { LiveHarness } from './e2e/harness.js';
+import { deleteSyntheticKubeObject, syntheticKubeKind } from './e2e/synthetic-mcp-kubernetes.js';
 
 const source = loadLiveCredentials();
 const h = new LiveHarness();
@@ -37,9 +38,33 @@ async function retire(f: Fixture, read: () => Promise<unknown>, remove: () => Pr
 }
 try {
   for (const f of [...fixtures].reverse()) {
-    assert(/^sdk-e2e-[a-f0-9]{8}$/.test(f.name), 'Only uniquely named SDK fixtures may be retired');
+    const kind = syntheticKubeKind(f.resource);
+    if (kind) {
+      await h.check(`recover.${f.resource}:${f.id}`, () =>
+        deleteSyntheticKubeObject(kind, f.name, f.id),
+      );
+      continue;
+    }
+    const runtimeMcpFixture =
+      ['gateway.service-api-key', 'gateway.mcp-integration', 'gateway.mcp-server'].includes(
+        f.resource,
+      ) && /^sdk-e2e-inference-[a-f0-9]{8}(?:-(?:mcp|integration))?$/.test(f.name);
+    assert(
+      /^sdk-e2e-[a-f0-9]{8}$/.test(f.name) || runtimeMcpFixture,
+      'Only uniquely named SDK fixtures may be retired',
+    );
     await h.check(`recover.${f.resource}:${f.id}`, async () => {
       switch (f.resource) {
+        case 'gateway.service-api-key':
+          return retire(
+            f,
+            async () => {
+              const key = await gw.apiKeys.getService(f.id);
+              h.protect(key);
+              return key;
+            },
+            () => gw.apiKeys.deleteService(f.id),
+          );
         case 'red-team.scan-audit-record': {
           const row = await rt.scans.get(f.id);
           assert.equal(row.name, f.name);

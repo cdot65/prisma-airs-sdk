@@ -25,6 +25,9 @@ These timestamped reports include pre-release candidate checks and subsequent re
 | gateway-usage-reset-audit | 2 | 0 | 0 | 2 | 2026-09-07 03:39:59.498Z |
 | gateway-mcp-discovery | 9 | 1 | 0 | 10 | 2026-09-07 04:15:58.219Z |
 | gateway-mcp-discovery-audit | 19 | 0 | 0 | 19 | 2026-09-07 04:16:47.605Z |
+| gateway-mcp-synthetic | 15 | 1 | 0 | 16 | 2026-09-07 04:50:42.788Z |
+| gateway-mcp-public | 16 | 0 | 0 | 16 | 2026-09-07 05:03:17.184Z |
+| gateway-mcp-fixture-audit | 17 | 0 | 0 | 17 | 2026-09-07 05:05:16.697Z |
 | gateway-owned-writes | 26 | 1 | 0 | 27 | 2026-09-06 13:58:07.890Z |
 | gateway-secret-references | 7 | 0 | 0 | 7 | 2026-09-06 19:40:18.695Z |
 | gateway-model-pricing | 3 | 0 | 0 | 3 | 2026-09-07 00:34:56.061Z |
@@ -77,6 +80,7 @@ These timestamped reports include pre-release candidate checks and subsequent re
 | gateway-extensions: `mcpServers.deleteConnections` | FAIL | HTTP 403 |
 | gateway-extensions: `logExports.start` | FAIL | HTTP 500 |
 | gateway-mcp-discovery: `mcp.initialize-owned-runtime` | FAIL | Error |
+| gateway-mcp-synthetic: `mcp.initialize-owned-runtime` | FAIL | Error |
 | gateway-owned-writes: `workspaces.create` | FAIL | HTTP 400 |
 | gateway-runtime-authoring: `runtime-authoring.collections.id` | FAIL | HTTP 400 |
 | gateway-runtime-authoring: `runtime-authoring.collections.slug` | FAIL | HTTP 400 |
@@ -150,7 +154,7 @@ These timestamped reports include pre-release candidate checks and subsequent re
 
 Gateway workspace creation was also tested with explicit defaults and a wire-level metadata variant; SCM still returned 400 AB01. The probes used synthetic scope names. An unused SCM-provisioned scope or a known-good creation request is needed to separate missing provisioning from an API contract change. Existing workspace/IAM settings were not changed to bypass the failure.
 
-The post-release owned MCP discovery attempt preserves the source integration's authentication configuration and uses the separate MCP ingress with an existing, narrowly scoped service-key permission. Initialization returns HTTP 401 for a required caller authentication header, before tool listing or capability updates. Earlier minimal clones returned gateway HTTP 500 after an upstream unauthorized response. No tools were invoked. The separate retirement audit includes every attempt and checks for implicit owned servers as well as explicit fixtures. See the [exact captured observations](../guides/release-verification.md#post-release-mcp-discovery-verification). These negative results do not promote capability updates out of experimental status.
+The authenticated-source MCP discovery attempt retains its HTTP 401 prerequisite. A subsequent owned public-reference upstream passes the complete 16/16 lifecycle, including eventual runtime visibility after capability disable/re-enable. A private synthetic fixture was rejected by unchanged SSRF protection; it is not counted as successful discovery. No tools were invoked. The independent fixture audit includes all synthetic/public attempts and implicit servers. See the [exact positive and negative observations](../guides/release-verification.md#public-upstream-capability-lifecycle), including observed propagation delays. Published experimental stability is retained.
 
 Gateway log-detail reads returned 500 even with an existing log's real storage metadata. SCM denies log ingestion and feedback creation, but the explicit runtime endpoint accepts both with a runtime key. The typed SDK observability suite passes 5/5, including single/batch log ingestion; a separate 5/5 SCM read audit confirms both owned feedback records and both journaled synthetic log traces. Experimental `getLog` and `updateFeedback` methods now implement both confirmed detail routes. Their typed E2E suite reproduces both HTTP 500 failures with passing ownership/authentication/key-cleanup controls; no new log or feedback is created. These routing differences are not grounds to use runtime credentials on SCM or to classify the entire family as unsupported. Passing offline contracts are not passing live retrieval/update workflows.
 

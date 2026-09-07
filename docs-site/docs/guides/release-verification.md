@@ -81,6 +81,8 @@ SDK 0.21.0's published experimental annotation is unchanged. This new verificati
 
 ## Post-release MCP discovery verification
 
+The authenticated-source failure below is retained as historical evidence. Capability updates and runtime tool visibility were subsequently verified with an owned server using a public reference upstream; see the [successful lifecycle](#public-upstream-capability-lifecycle).
+
 The owned-server discovery run finished at **2026-09-07T04:15:58.219Z** with **9 passing checks and 1 failing check**. This is not a passing MCP lifecycle: initialization returned **HTTP 401**, reporting a missing caller-authentication header required by the copied integration configuration. Tool listing and capability updates could not run. Earlier minimal clones returned HTTP 500; the deployed gateway handler's narrowly scoped diagnostic showed an upstream `unauthorized` response. Keeping the source integration's JWT, identity-forwarding and header-passthrough configuration made the authentication prerequisite explicit.
 
 Actual bounded-run observations:
@@ -98,7 +100,32 @@ The harness uses the separately verified MCP ingress over HTTPS, an owned server
 
 A separate read-only audit passed **19/19** at **2026-09-07T04:16:47.605Z**: every journaled key, explicit server and integration from all seven attempts was absent, and the complete dev server inventory contained no implicit server associated with those owned integrations. The attempts include two harness corrections, an unavailable HTTPS source variant, and the retained authentication failures. Existing integrations, servers, IAM grants and credentials were not changed. No session ID was issued. The first 400 and subsequent ownership-assertion failure remain in the historical reports; neither was reclassified as a pass.
 
-Reproduce with `npx tsx scripts/e2e-gateway-mcp-discovery.ts --writes` and audit all recorded attempts with `npx tsx scripts/e2e-gateway-mcp-discovery-audit.ts`. These source-checkout checks require the documented process-only DNS accommodation, including a separately verified `E2E_MCP_GATEWAY_IPV4_ADDRESS` for the exact MCP hostname. With the currently available credential source, expect the documented authentication failure. A correctly provisioned caller identity is still needed before capability-update behavior can be verified; changing existing authentication policies is not an SDK fix.
+Reproduce with `npx tsx scripts/e2e-gateway-mcp-discovery.ts --writes` and audit all recorded attempts with `npx tsx scripts/e2e-gateway-mcp-discovery-audit.ts`. These source-checkout checks require the documented process-only DNS accommodation, including a separately verified `E2E_MCP_GATEWAY_IPV4_ADDRESS` for the exact MCP hostname. With the currently available credential source, expect the documented authentication failure for these authenticated upstreams. Their required caller identity is still needed to certify those integrations; changing existing authentication policies is not an SDK fix.
+
+## Public-upstream capability lifecycle
+
+The complete owned-server lifecycle passed **16/16** at **2026-09-07T05:03:17.184Z**, including runtime enforcement. It used Microsoft's [documented public, no-auth MCP endpoint](https://learn.microsoft.com/en-us/training/support/mcp) only for initialization and tool metadata. The gateway integration had no identity-forwarding, passthrough or credential headers configured. All requests from the test client stayed on its exact owned HTTPS gateway endpoint. Neither Microsoft tools nor any existing upstream's tools were invoked.
+
+Actual observations:
+
+```json
+{
+  "capabilitiesBefore": 0,
+  "capabilitiesAfter": 3,
+  "capabilityStates": [false, true],
+  "runtimeToolCounts": [3, 2, 3],
+  "runtimeCapabilityStates": [false, true],
+  "toolsInvoked": 0
+}
+```
+
+The SDK updated one owned capability, verified its SCM readback, confirmed that it disappeared from the runtime tool list, re-enabled it, and confirmed its return. Unrelated capabilities remained visible. The hidden state was observed after **30.751 seconds** and the restored state after **60.601 seconds**, at the configured polling intervals; these are observation times, not exact propagation latency. An earlier 20-second check failed and remains in history. The inspected gateway 2.20.0 code caches disabled-capability lookups for 300 seconds, so the final test permits a bounded 330-second observation window per transition. It neither flushes shared caches nor promises immediate enforcement. MCP initialization negotiated protocol `2025-11-25`; notifications returned 202, optional GET streaming returned 405, and no downstream session ID was issued.
+
+The prior synthetic-upstream attempt is also retained: **15 pass / 1 fail** at **2026-09-07T04:50:42.788Z**. Four temporary Kubernetes resources hosted a stateless discovery-only server, but the gateway's existing SSRF policy blocked its private-cluster address. The upstream counters confirm zero initialization, tool-list or tool-execution attempts reached it. No SSRF exception, public route or production configuration change was made. All four resources were removed with UID-preconditioned deletion.
+
+An independent read-only audit passed **17/17** at **2026-09-07T05:05:16.697Z** across the synthetic run and all three public-upstream attempts. All 16 journaled resources were absent; a complete dev-workspace inventory also confirmed no implicit server remained attached to an owned integration. Credentials were unchanged. The public upstream itself was not created or modified by the test.
+
+Run `npx tsx scripts/e2e-gateway-mcp-public.ts --writes`, then `npx tsx scripts/e2e-gateway-mcp-fixture-audit.ts`. These are source-checkout verification tools. A local regression using the official MCP client found and fixed the test transport's empty-202 cancellation ordering; the production SDK transport was not affected. The source API comments now reflect both the verified MCP tool-capability lifecycle and usage-counter reset, while retaining experimental stability. The published SDK remains 0.21.0; prompt/resource capability variants and the authenticated upstreams are not certified by this result.
 
 ## Limits remain explicit
 
