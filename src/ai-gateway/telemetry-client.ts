@@ -59,12 +59,19 @@ const logsOptionsSchema = telemetryWindowSchema
     statusCode: z.number().int().nonnegative().safe().optional(),
   })
   .strict();
-const requestChartOptionsSchema = telemetryWindowSchema
+const filteredChartOptionsSchema = telemetryWindowSchema
   .extend({
     traceId: nonBlankString.optional(),
     metadata: GatewayJsonObjectSchema.pipe(z.record(z.string())).optional(),
   })
   .strict();
+
+function serializeChartOptions(tsgId: string, opts: AIGatewayChartOptions): Record<string, string> {
+  const params = serializeWindow(tsgId, opts, filteredChartOptionsSchema);
+  if (opts.traceId !== undefined) params.traceId = opts.traceId;
+  if (opts.metadata !== undefined) params.metadata = JSON.stringify(opts.metadata);
+  return params;
+}
 
 /** @internal */
 export interface AIGatewayTelemetryClientOptions {
@@ -83,13 +90,30 @@ export interface AIGatewayGroupOptions extends AIGatewayWindowOptions {
   columns?: (typeof AI_GW_GROUP_COLUMNS)[number][];
 }
 
-/** Verified filters for the request-count chart. Other chart methods retain their own contracts. */
-export interface AIGatewayRequestChartOptions extends AIGatewayWindowOptions {
+/**
+ * Verified SCM filters for requests, cost, tokens and latency charts only.
+ * These are partial adapters, not the complete upstream analytics query contract.
+ * @example
+ * ```ts
+ * import { AIGatewayClient, type AIGatewayChartOptions } from '@cdot65/prisma-airs-sdk';
+ * const options: AIGatewayChartOptions = {
+ *   workspaceSlug: 'ws-dev', days: 1, metadata: { environment: 'dev' },
+ * };
+ * const cost = await new AIGatewayClient().telemetry.cost(options);
+ * console.log(cost.data.total); // cents
+ * ```
+ */
+export interface AIGatewayChartOptions extends AIGatewayWindowOptions {
   /** One trace ID. Serialized as SCM `traceId`, not the ignored upstream `trace_id`. */
   traceId?: string;
   /** Exact string-valued metadata matches. Serialized as JSON in the `metadata` query parameter. */
   metadata?: Record<string, string>;
 }
+
+/** Backwards-compatible name for the verified request-count chart options. */
+// Preserve the interface's declaration-merging surface for existing consumers.
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
+export interface AIGatewayRequestChartOptions extends AIGatewayChartOptions {}
 
 /**
  * Options for the raw `logs` collection.
@@ -148,7 +172,7 @@ export class AIGatewayTelemetryClient {
 
   /**
    * Total and per-day spend. **Values are in cents.**
-   * @param opts - Workspace slug and time window.
+   * @param opts - Workspace slug, time window and optional verified trace/metadata filters.
    * @returns Cost series plus the period total, in cents.
    * @example
    * ```ts
@@ -159,8 +183,13 @@ export class AIGatewayTelemetryClient {
    * console.log(`$${(cost.data.total / 100).toFixed(2)}`); // => "$4110.83"
    * ```
    */
-  async cost(opts: AIGatewayWindowOptions): Promise<CostChartResponse> {
-    return this.chart('cost', opts, CostChartResponseSchema);
+  async cost(opts: AIGatewayChartOptions): Promise<CostChartResponse> {
+    return this.chart(
+      'cost',
+      opts,
+      CostChartResponseSchema,
+      serializeChartOptions(this.tsgId, opts),
+    );
   }
 
   /**
@@ -177,16 +206,19 @@ export class AIGatewayTelemetryClient {
    * ```
    */
   async requests(opts: AIGatewayRequestChartOptions): Promise<CountChartResponse> {
-    const params = serializeWindow(this.tsgId, opts, requestChartOptionsSchema);
-    if (opts.traceId !== undefined) params.traceId = opts.traceId;
-    if (opts.metadata !== undefined) params.metadata = JSON.stringify(opts.metadata);
-    return this.chart('requests', opts, CountChartResponseSchema, params);
+    return this.chart(
+      'requests',
+      opts,
+      CountChartResponseSchema,
+      serializeChartOptions(this.tsgId, opts),
+    );
   }
 
   /**
    * Latency in milliseconds. Percentiles are returned per-bucket and for the period.
-   * @param opts - Workspace slug and time window.
+   * @param opts - Workspace slug, time window and optional verified trace/metadata filters.
    * @returns Latency series with p50/p90/p99; `data.total` is the period mean, not a sum.
+   * The period mean and percentiles are null when the cohort has no matching requests.
    * @example
    * ```ts
    * import { AIGatewayClient } from '@cdot65/prisma-airs-sdk';
@@ -196,13 +228,18 @@ export class AIGatewayTelemetryClient {
    * // l.data.p99 => 8329.14
    * ```
    */
-  async latency(opts: AIGatewayWindowOptions): Promise<LatencyChartResponse> {
-    return this.chart('latency', opts, LatencyChartResponseSchema);
+  async latency(opts: AIGatewayChartOptions): Promise<LatencyChartResponse> {
+    return this.chart(
+      'latency',
+      opts,
+      LatencyChartResponseSchema,
+      serializeChartOptions(this.tsgId, opts),
+    );
   }
 
   /**
    * Token usage, split into request and response units.
-   * @param opts - Workspace slug and time window.
+   * @param opts - Workspace slug, time window and optional verified trace/metadata filters.
    * @returns Token series plus request/response unit totals.
    * @example
    * ```ts
@@ -213,8 +250,13 @@ export class AIGatewayTelemetryClient {
    * // t.data.total_request_units => 4919015459
    * ```
    */
-  async tokens(opts: AIGatewayWindowOptions): Promise<TokensChartResponse> {
-    return this.chart('tokens', opts, TokensChartResponseSchema);
+  async tokens(opts: AIGatewayChartOptions): Promise<TokensChartResponse> {
+    return this.chart(
+      'tokens',
+      opts,
+      TokensChartResponseSchema,
+      serializeChartOptions(this.tsgId, opts),
+    );
   }
 
   /**

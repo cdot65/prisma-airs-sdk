@@ -14,7 +14,17 @@ describe('telemetry rejects invalid options before authentication or network I/O
       new Response(
         JSON.stringify({
           success: true,
-          data: { records: [], total: 0, avg: 0, isQuotaExceeded: false },
+          data: {
+            records: [],
+            total: 0,
+            avg: 0,
+            isQuotaExceeded: false,
+            p50: 0,
+            p90: 0,
+            p99: 0,
+            total_request_units: 0,
+            total_response_units: 0,
+          },
         }),
       ),
     );
@@ -108,8 +118,58 @@ describe('telemetry rejects invalid options before authentication or network I/O
     await rejected(() => client.requests({ workspaceSlug: 'ws-dev', traceId: '' } as never));
   });
   it('does not imply verified filtering on other charts', async () => {
-    await rejected(() => client.cost({ workspaceSlug: 'ws-dev', traceId: 'owned-trace' } as never));
+    await rejected(() =>
+      client.errors({ workspaceSlug: 'ws-dev', traceId: 'owned-trace' } as never),
+    );
   });
+  describe.each(['requests', 'cost', 'tokens', 'latency'] as const)(
+    '%s verified chart filters',
+    (method) => {
+      it('serializes both filters together without changing values or casing', async () => {
+        const metadata = { sdk_e2e: 'owned', punctuation: 'a+b&c="quoted",d' };
+        await client[method]({ workspaceSlug: 'ws-dev', traceId: 'trace+a&b', metadata } as never);
+        const url = new URL(vi.mocked(globalThis.fetch).mock.calls[0][0] as string);
+        expect(url.pathname).toBe(`/logs/charts/${method}`);
+        expect(url.searchParams.get('traceId')).toBe('trace+a&b');
+        expect(url.searchParams.has('trace_id')).toBe(false);
+        expect(JSON.parse(url.searchParams.get('metadata')!)).toEqual(metadata);
+      });
+      it('omits filters when undefined', async () => {
+        await client[method]({
+          workspaceSlug: 'ws-dev',
+          traceId: undefined,
+          metadata: undefined,
+        } as never);
+        const url = new URL(vi.mocked(globalThis.fetch).mock.calls[0][0] as string);
+        expect([...url.searchParams.keys()].sort()).toEqual([
+          'organisationId',
+          'timeOfGenerationMax',
+          'timeOfGenerationMin',
+          'workspaceSlug',
+        ]);
+      });
+      it.each([
+        ['traceId', ''],
+        ['traceId', ' '],
+        ['traceId', null],
+        ['traceId', 123],
+        ['metadata', null],
+        ['metadata', []],
+        ['metadata', { count: 1 }],
+        ['metadata', { nested: { key: 'value' } }],
+        ['metadata', { constructor: 'unsafe' }],
+        ['metadata', JSON.parse('{"__proto__":"unsafe"}')],
+        ['trace_id', 'ignored'],
+        ['costMin', 0],
+        ['statusCode', 200],
+        ['pageSize', 1],
+      ])('rejects invalid or unverified %s=%j before I/O', async (key, value) => {
+        await rejected(() =>
+          client[method]({ workspaceSlug: 'ws-dev', [String(key)]: value } as never),
+        );
+      });
+    },
+  );
   it.each([
     ['pageSize', -1],
     ['pageSize', 1.5],

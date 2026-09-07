@@ -1,5 +1,14 @@
 # Release Notes
 
+## v0.23.0 (2026-09-07) — Verified telemetry filtering and empty latency
+
+- Fix valid empty latency responses: period mean and percentiles are nullable, while bucket values remain numeric. Strict TypeScript consumers must account for `number | null`; the SDK does not turn missing measurements into zero.
+- Add optional `traceId` and string-valued `metadata` filters to cost, token and latency charts, sharing `AIGatewayChartOptions` with requests. Preserve the existing request-options interface and validate before authentication/network activity.
+- Verify separate and combined filters against positive owned traffic and nonexistent cohorts. No new runtime key, inference request or audit record is created by these read-only checks. Preserve earlier failed fixture/schema checks in the private history.
+- Add failing-first regressions, an independently source-hashed partial-adapter query fixture, and packed ESM/CommonJS checks. See the [actual analytics outputs](../guides/examples.mdx#verified-request-chart-filters).
+
+Direct gateway coverage remains **138/242 (57.02%)**: these are improved SCM adapters, not four newly covered upstream operations. AIRS remains **149/149**, and all existing experimental/provider/service limitations remain disclosed. No new CLI filter flags are implied by the SDK release.
+
 ## v0.22.0 (2026-09-07) — Experimental realtime transport
 
 - Add `AIGatewayInferenceClient.connectRealtime()` with an explicit caller-owned Node WebSocket adapter. No new production dependency; runtime keys and SCM OAuth remain separate.

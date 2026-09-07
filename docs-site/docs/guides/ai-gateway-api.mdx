@@ -237,7 +237,7 @@ console.log(tokens.data.total_request_units, tokens.data.total_response_units);
 
 Use an explicit window instead of a rolling one by passing `start`/`end` `Date`s instead of `days`.
 
-The request-count chart additionally accepts semantically verified filters:
+The request-count, cost, token and latency charts accept semantically verified filters (SDK 0.23.0+):
 
 ```ts
 const selected = await gw.telemetry.requests({
@@ -252,7 +252,9 @@ const tagged = await gw.telemetry.requests({
 });
 ```
 
-`AIGatewayRequestChartOptions` exports this contract. SCM respects camel-case `traceId`, but ignores upstream `trace_id`; metadata is encoded as JSON with exact string-valued matches. Known and nonexistent synthetic filters were tested separately, not inferred from HTTP 200. See [actual captured filter output](./examples.mdx#verified-request-chart-filters). Other chart methods do not accept these filters until their semantics are independently verified.
+`AIGatewayChartOptions` exports the shared contract; the existing `AIGatewayRequestChartOptions` interface remains available. SCM uses camel-case `traceId`; the request-chart probe found that upstream `trace_id` is ignored. Metadata is encoded as JSON with exact string-valued matches. Known, nonexistent and combined filters were tested against existing owned traffic, not inferred from HTTP 200. See [actual captured filter output](./examples.mdx#verified-request-chart-filters). Other chart methods retain their own contracts and do not accept these filters.
+
+An empty latency cohort returns `null` for `data.total`, `p50`, `p90` and `p99`, with zero-valued time buckets. SDK 0.23.0 preserves those nulls instead of rejecting the response. Callers must handle `number | null`; null is an undefined aggregate, not measured zero latency. These four methods remain partial SCM adapters: the remaining upstream filters, envelopes and aggregations are not fully equivalent.
 
 Telemetry options are validated before authentication/network I/O. Unknown fields, invalid dates, non-finite days, reversed windows, malformed log options and unsupported grouping dimensions/columns raise `USER_REQUEST_PAYLOAD_ERROR` without including rejected values. Fractional days remain valid; explicit `start` overrides finite `days`. Dates retain numeric UTC offsets required by SCM. A zero-length explicit window is allowed; no unverified server maximum is imposed.
 

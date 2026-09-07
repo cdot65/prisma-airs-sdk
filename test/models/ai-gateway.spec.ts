@@ -76,6 +76,36 @@ describe('AI Gateway telemetry schemas', () => {
     expect(r.data.trend[0].y).toEqual([]);
   });
 
+  it('preserves null latency aggregates for an empty SCM cohort', () => {
+    const empty = {
+      success: true,
+      data: {
+        records: [{ x: '2026-09-06T00:00:00.000Z', y: 0, p50: 0, p90: 0, p99: 0 }],
+        total: null,
+        p50: null,
+        p90: null,
+        p99: null,
+        isQuotaExceeded: false,
+      },
+    };
+    expect(LatencyChartResponseSchema.parse(empty)).toEqual(empty);
+  });
+
+  it.each(['total', 'p50', 'p90', 'p99'])('still requires latency aggregate %s', (field) => {
+    const data: Record<string, unknown> = {
+      records: [],
+      total: null,
+      p50: null,
+      p90: null,
+      p99: null,
+      isQuotaExceeded: false,
+    };
+    delete data[field];
+    expect(LatencyChartResponseSchema.safeParse({ success: true, data }).success).toBe(false);
+    data[field] = '0';
+    expect(LatencyChartResponseSchema.safeParse({ success: true, data }).success).toBe(false);
+  });
+
   it('accepts an unobserved-shape rescued-retries trend[].y element', () => {
     // y's element shape has never been observed on a live tenant (only empty arrays so far).
     // It's typed z.array(z.unknown()) like its trends[].retry/fallback siblings — confirm it

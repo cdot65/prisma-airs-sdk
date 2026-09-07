@@ -177,6 +177,38 @@ if (page === 'examples') {
     traceId: { knownTotal: 1, absentTotal: 0 },
     metadata: { knownMatched: true, absentTotal: 0 },
   });
+  const chartFilters = JSON.parse(
+    readFileSync(
+      new URL('artifacts/examples/gateway-analytics-chart-filters-sdk.json', root),
+      'utf8',
+    ),
+  );
+  const chartSuite = JSON.parse(
+    readFileSync(new URL('artifacts/e2e/gateway-analytics-chart-filters-sdk.json', root), 'utf8'),
+  );
+  assert.equal(chartFilters.capturedAt, chartSuite.finishedAt);
+  assert.equal(chartFilters.credentialsUnchanged, true);
+  assert.equal(chartFilters.mutations, false);
+  assert.equal(chartSuite.credentialsUnchanged, true);
+  assert.equal(chartSuite.passed, 13);
+  assert.equal(chartSuite.failed, 0);
+  assert.equal(chartSuite.total, 13);
+  assert(chartSuite.results.every((result: { status: string }) => result.status === 'PASS'));
+  assert.equal(chartFilters.sdkVersion, '0.23.0');
+  assert(['source-sdk', 'installed-sdk'].includes(chartFilters.mode));
+  assert.deepEqual(
+    chartFilters.evidence,
+    ['requests', 'cost', 'tokens', 'latency'].flatMap((metric) =>
+      ['traceId', 'metadata', 'combined'].map((filter) => ({
+        metric,
+        filter,
+        knownPositive: true,
+        absentEmpty: true,
+        absentAggregate: metric === 'latency' ? null : 0,
+        respected: true,
+      })),
+    ),
+  );
   const runtimeDiagnostics = JSON.parse(
     readFileSync(new URL('artifacts/examples/gateway-runtime-diagnostics.json', root), 'utf8'),
   ) as { suite: string; finishedAt: string; passed: number; failed: number; total: number }[];
@@ -371,7 +403,15 @@ ${analyticsFilters.disclosure}
 
 ${fence(JSON.stringify(analyticsFilters.output, null, 2), 'json')}
 
-Use camel-case \`traceId\` and string-valued metadata on \`telemetry.requests\` only. Invalid dates, non-finite/reversed windows, unknown query fields, unsupported grouping dimensions/columns and malformed log filters fail locally before authentication. These two verified filters do not establish equivalence for all 22 partially adapted analytics operations. See [telemetry contracts](./ai-gateway-api.mdx#telemetry).
+The preceding result is the original request-only checkpoint. SDK 0.23.0 extends the same filters to cost, token and latency charts, using \`AIGatewayChartOptions\` and preserving the original request-options interface. The additional read-only check passes **13/13** at **${chartFilters.capturedAt}**, using **${chartFilters.mode}** version **${chartFilters.sdkVersion}**. Its actual captured output follows. Positive controls are existing, journaled inference traffic with matching owned key and metadata, not the zero-token synthetic log-ingestion fixtures. No inference, runtime key or log was created in this run.
+
+${fence('npx tsx scripts/e2e-gateway-analytics-chart-filters.ts --sdk', 'bash')}
+
+${chartFilters.disclosure}
+
+${fence(JSON.stringify(chartFilters.evidence, null, 2), 'json')}
+
+Empty latency period aggregates are genuinely \`null\`; the SDK now preserves them while time buckets remain numeric zero. The first raw run exposed the previous schema rejection, which a failing-first regression reproduced. Known/nonexistent trace and metadata filters pass separately and together after correction. Invalid dates, non-finite/reversed windows, unknown query fields, unsupported grouping dimensions/columns and malformed filters still fail locally before authentication. Other chart/group methods do not gain unverified filters. All 22 analytics operations remain partially adapted and outside **138/242** direct coverage. See [telemetry contracts](./ai-gateway-api.mdx#telemetry).
 
 ## AI Gateway inference output
 

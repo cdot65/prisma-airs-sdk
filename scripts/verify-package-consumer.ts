@@ -483,6 +483,11 @@ for (const module of [esm, cjs]) {
   }
   const Telemetry = module.AIGatewayTelemetryClient as new (options: object) => {
     requests(options: object): Promise<unknown>;
+    cost(options: object): Promise<unknown>;
+    tokens(options: object): Promise<unknown>;
+    latency(options: object): Promise<{
+      data: { total: number | null; p50: number | null; p90: number | null; p99: number | null };
+    }>;
   };
   let authCalls = 0;
   const urls: string[] = [];
@@ -493,7 +498,17 @@ for (const module of [esm, cjs]) {
       return new Response(
         JSON.stringify({
           success: true,
-          data: { records: [], total: 0, avg: 0, isQuotaExceeded: false },
+          data: {
+            records: [],
+            total: String(input).includes('/latency?') ? null : 0,
+            avg: 0,
+            p50: null,
+            p90: null,
+            p99: null,
+            total_request_units: 0,
+            total_response_units: 0,
+            isQuotaExceeded: false,
+          },
         }),
       );
     };
@@ -524,6 +539,26 @@ for (const module of [esm, cjs]) {
     assert.equal(url.searchParams.get('traceId'), 'owned-trace');
     assert.equal(url.searchParams.has('trace_id'), false);
     assert.deepEqual(JSON.parse(url.searchParams.get('metadata')!), { tag: 'a+b&c' });
+    for (const metric of ['cost', 'tokens', 'latency'] as const) {
+      const before: number = authCalls;
+      await assert.rejects(telemetry[metric]({ workspaceSlug: 'ws-dev', metadata: { count: 1 } }), {
+        errorType: (module.ErrorType as Record<string, string>).USER_REQUEST_PAYLOAD_ERROR,
+      });
+      assert.equal(authCalls, before);
+      const result = await telemetry[metric]({
+        workspaceSlug: 'ws-dev',
+        traceId: 'owned-trace',
+        metadata: { tag: 'a+b&c' },
+      });
+      const filtered = new URL(urls.at(-1)!);
+      assert.equal(filtered.pathname, `/logs/charts/${metric}`);
+      assert.equal(filtered.searchParams.get('traceId'), 'owned-trace');
+      assert.deepEqual(JSON.parse(filtered.searchParams.get('metadata')!), { tag: 'a+b&c' });
+      if (metric === 'latency') {
+        const data = (result as { data: Record<string, unknown> }).data;
+        for (const field of ['total', 'p50', 'p90', 'p99']) assert.equal(data[field], null);
+      }
+    }
   } finally {
     globalThis.fetch = originalFetch;
   }

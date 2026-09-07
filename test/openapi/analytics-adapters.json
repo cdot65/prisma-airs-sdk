@@ -1,0 +1,208 @@
+{
+  "source": "ai-gateway-openapi/openapi.yaml",
+  "sha256": "de7a1bd98bdb2edb7428a33054d9f6000b9568d1cd5b603d1a8302c053d094d9",
+  "classification": "scm-adapted-partial",
+  "correction": "SCM uses camel-case traceId and a distinct envelope. Only one trace and string-valued metadata are exposed; the complete upstream query/aggregation contract is not implemented.",
+  "operations": [
+    {
+      "metric": "requests",
+      "method": "GET",
+      "upstreamPath": "/analytics/graphs/requests",
+      "scmPath": "/logs/charts/requests",
+      "declaredQueryNames": [
+        "workspace_slug",
+        "time_of_generation_min",
+        "time_of_generation_max",
+        "total_units_min",
+        "total_units_max",
+        "cost_min",
+        "cost_max",
+        "prompt_token_min",
+        "prompt_token_max",
+        "completion_token_min",
+        "completion_token_max",
+        "status_code",
+        "weighted_feedback_min",
+        "weighted_feedback_max",
+        "virtual_keys",
+        "configs",
+        "api_key_ids",
+        "metadata",
+        "ai_org_model",
+        "trace_id",
+        "span_id",
+        "prompt_slug"
+      ],
+      "filters": [
+        {
+          "in": "query",
+          "name": "metadata",
+          "schema": {
+            "type": "string"
+          },
+          "description": "Stringifed json object with key value metadata pairs",
+          "example": "{\"_user\":\"user_1\", \"env\": \"staging\"}"
+        },
+        {
+          "in": "query",
+          "name": "trace_id",
+          "schema": {
+            "type": "string"
+          },
+          "description": "Comma separated trace IDs",
+          "example": "my-unique-trace-1,my-unique-trace-2"
+        }
+      ]
+    },
+    {
+      "metric": "cost",
+      "method": "GET",
+      "upstreamPath": "/analytics/graphs/cost",
+      "scmPath": "/logs/charts/cost",
+      "declaredQueryNames": [
+        "workspace_slug",
+        "time_of_generation_min",
+        "time_of_generation_max",
+        "total_units_min",
+        "total_units_max",
+        "cost_min",
+        "cost_max",
+        "prompt_token_min",
+        "prompt_token_max",
+        "completion_token_min",
+        "completion_token_max",
+        "status_code",
+        "weighted_feedback_min",
+        "weighted_feedback_max",
+        "virtual_keys",
+        "configs",
+        "api_key_ids",
+        "metadata",
+        "ai_org_model",
+        "trace_id",
+        "span_id",
+        "prompt_slug"
+      ],
+      "filters": [
+        {
+          "in": "query",
+          "name": "metadata",
+          "schema": {
+            "type": "string"
+          },
+          "description": "Stringifed json object with key value metadata pairs",
+          "example": "{\"_user\":\"user_1\", \"env\": \"staging\"}"
+        },
+        {
+          "in": "query",
+          "name": "trace_id",
+          "schema": {
+            "type": "string"
+          },
+          "description": "Comma separated trace IDs",
+          "example": "my-unique-trace-1,my-unique-trace-2"
+        }
+      ]
+    },
+    {
+      "metric": "tokens",
+      "method": "GET",
+      "upstreamPath": "/analytics/graphs/tokens",
+      "scmPath": "/logs/charts/tokens",
+      "declaredQueryNames": [
+        "workspace_slug",
+        "time_of_generation_min",
+        "time_of_generation_max",
+        "total_units_min",
+        "total_units_max",
+        "cost_min",
+        "cost_max",
+        "prompt_token_min",
+        "prompt_token_max",
+        "completion_token_min",
+        "completion_token_max",
+        "status_code",
+        "weighted_feedback_min",
+        "weighted_feedback_max",
+        "virtual_keys",
+        "configs",
+        "api_key_ids",
+        "metadata",
+        "ai_org_model",
+        "trace_id",
+        "span_id",
+        "prompt_slug"
+      ],
+      "filters": [
+        {
+          "in": "query",
+          "name": "metadata",
+          "schema": {
+            "type": "string"
+          },
+          "description": "Stringifed json object with key value metadata pairs",
+          "example": "{\"_user\":\"user_1\", \"env\": \"staging\"}"
+        },
+        {
+          "in": "query",
+          "name": "trace_id",
+          "schema": {
+            "type": "string"
+          },
+          "description": "Comma separated trace IDs",
+          "example": "my-unique-trace-1,my-unique-trace-2"
+        }
+      ]
+    },
+    {
+      "metric": "latency",
+      "method": "GET",
+      "upstreamPath": "/analytics/graphs/latency",
+      "scmPath": "/logs/charts/latency",
+      "declaredQueryNames": [
+        "workspace_slug",
+        "time_of_generation_min",
+        "time_of_generation_max",
+        "total_units_min",
+        "total_units_max",
+        "cost_min",
+        "cost_max",
+        "prompt_token_min",
+        "prompt_token_max",
+        "completion_token_min",
+        "completion_token_max",
+        "status_code",
+        "weighted_feedback_min",
+        "weighted_feedback_max",
+        "virtual_keys",
+        "configs",
+        "api_key_ids",
+        "metadata",
+        "ai_org_model",
+        "trace_id",
+        "span_id",
+        "prompt_slug"
+      ],
+      "filters": [
+        {
+          "in": "query",
+          "name": "metadata",
+          "schema": {
+            "type": "string"
+          },
+          "description": "Stringifed json object with key value metadata pairs",
+          "example": "{\"_user\":\"user_1\", \"env\": \"staging\"}"
+        },
+        {
+          "in": "query",
+          "name": "trace_id",
+          "schema": {
+            "type": "string"
+          },
+          "description": "Comma separated trace IDs",
+          "example": "my-unique-trace-1,my-unique-trace-2"
+        }
+      ]
+    }
+  ]
+}

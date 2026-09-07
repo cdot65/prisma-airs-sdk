@@ -4,6 +4,8 @@ title: OpenAPI conformance and live validation
 
 # OpenAPI conformance and live validation
 
+The 0.23.0 telemetry correction adds 74 regression/source-contract checks: **10,668 tests in 134 files** pass locally, with 99.71% lines/statements, 100% functions and 96.53% branches. Packed SDK analytics checks pass **13/13** at **2026-09-07T07:16:54.357Z**. Cost, tokens and latency now share the verified trace/metadata filters; empty latency mean/percentiles retain actual nulls. All **22 analytics operations remain partial**, and direct coverage stays **138/242**. See [current captured output](../guides/examples.mdx#verified-request-chart-filters). The preceding realtime/release checkpoint below retains its own package versions and timestamps.
+
 This page records the September 6–7, 2026 SDK verification through the 0.22.0 realtime increment, including public pricing, the standalone OAuth deadline correction and experimental runtime observability detail methods. The user authorized shipping the implemented surface with the limitations below; publication does not certify the missing or failed workflows. See the [release notes](../about/release-notes.md) for release scope. The full assessment is in `SDK-ASSESSMENT.md`; private machine-readable evidence remains in the local `artifacts/` directory and is not published.
 
 ## What the percentages measure

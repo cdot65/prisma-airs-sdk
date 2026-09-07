@@ -141,7 +141,10 @@ export const CountChartResponseSchema = aiGatewayEnvelope(
 );
 export type CountChartResponse = z.infer<typeof CountChartResponseSchema>;
 
-/** `logs/charts/latency`. Percentiles appear per-bucket AND at top level; ms. */
+/**
+ * `logs/charts/latency`. Percentiles appear per-bucket AND at top level; ms.
+ * Empty cohorts retain zero-valued buckets, but the period mean/percentiles are null.
+ */
 export const LatencyChartResponseSchema = aiGatewayEnvelope(
   z
     .object({
@@ -156,10 +159,10 @@ export const LatencyChartResponseSchema = aiGatewayEnvelope(
           })
           .passthrough(),
       ),
-      total: z.number(),
-      p50: z.number(),
-      p90: z.number(),
-      p99: z.number(),
+      total: z.number().nullable(),
+      p50: z.number().nullable(),
+      p90: z.number().nullable(),
+      p99: z.number().nullable(),
       ...quotaFlag,
     })
     .passthrough(),

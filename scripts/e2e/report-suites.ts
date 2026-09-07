@@ -8,6 +8,8 @@ export const liveReportSuites = [
   'gateway-read',
   'gateway-analytics-filters',
   'gateway-analytics-request-filters',
+  'gateway-analytics-chart-filters',
+  'gateway-analytics-chart-filters-sdk',
   'gateway-extensions',
   'gateway-usage-reset',
   'gateway-usage-reset-audit',

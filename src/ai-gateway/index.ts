@@ -27,6 +27,7 @@ export {
   type AIGatewayGroupOptions,
   type AIGatewayLogsOptions,
   type AIGatewayRequestChartOptions,
+  type AIGatewayChartOptions,
 } from './telemetry-client.js';
 export { type AIGatewayWindowOptions } from './window.js';
 export {

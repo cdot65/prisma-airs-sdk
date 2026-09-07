@@ -85,11 +85,11 @@ export function gatewayDisposition(method: string, path: string, direct: boolean
       reason:
         'SCM splits service and user API keys into /api-keys/service and /api-keys/user. Virtual keys are not aliases.',
     };
-  if (path === '/analytics/graphs/requests')
+  if (/^\/analytics\/graphs\/(requests|cost|tokens|latency)$/.test(path))
     return {
       status: 'scm-adapted-partial',
       reason:
-        'SCM /logs/charts/requests has live-verified traceId and string-valued metadata filters; known and nonexistent synthetic controls pass. Upstream trace_id is ignored. Full upstream aggregation/filter equivalence is not established and this remains outside direct operation coverage.',
+        'The corresponding SCM /logs/charts route has live-verified traceId and string-valued metadata filters, separately and together, using positive owned traffic and absent cohorts. Empty latency aggregates are null. Upstream query names/envelopes and the remaining filters are not fully equivalent; this remains outside direct operation coverage.',
     };
   if (path.startsWith('/analytics/'))
     return {

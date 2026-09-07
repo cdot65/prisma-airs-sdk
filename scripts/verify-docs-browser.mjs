@@ -65,6 +65,14 @@ const analyticsFilterEvidence = cli
         'utf8',
       ),
     );
+const analyticsChartEvidence = cli
+  ? undefined
+  : JSON.parse(
+      readFileSync(
+        new URL('../artifacts/examples/gateway-analytics-chart-filters-sdk.json', import.meta.url),
+        'utf8',
+      ),
+    );
 const browser = await puppeteer.launch({
   executablePath: process.env.DOCS_CHROMIUM_EXECUTABLE ?? '/usr/bin/chromium',
   headless: true,
@@ -221,6 +229,16 @@ try {
         'Request-chart filter timestamp is stale',
       );
       await assertCapturedJson(analyticsFilterEvidence.output);
+      assert(
+        text.includes(analyticsChartEvidence.capturedAt),
+        'Multi-chart filter timestamp is stale',
+      );
+      assert(text.includes(analyticsChartEvidence.sdkVersion), 'Analytics SDK version is stale');
+      assert(
+        text.includes(analyticsChartEvidence.mode),
+        'Analytics source/installed provenance is stale',
+      );
+      await assertCapturedJson(analyticsChartEvidence.evidence);
       const runtimeDiagnostics = JSON.parse(
         readFileSync(
           new URL('../artifacts/examples/gateway-runtime-diagnostics.json', import.meta.url),
