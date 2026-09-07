@@ -22,7 +22,11 @@ const cli = process.env.CLI_COMPAT_DIR ?? resolve(root, '../prisma-airs-cli');
 const path = resolve(cli, 'docs-site/docs/cli/aigateway/inference.md');
 const source = readFileSync(path, 'utf8');
 const start = source.indexOf('## Latest verified example output\n');
-const end = source.indexOf('## Validated candidate and release ordering\n', start);
+const releaseSection = source.indexOf('## Validation and release dependency', start);
+const end =
+  releaseSection >= 0
+    ? releaseSection
+    : source.indexOf('## Validated candidate and release ordering\n', start);
 assert(start >= 0 && end > start, 'Expected CLI transcript section was not found');
 const json = JSON.stringify(capture.chat, null, 2);
 const fence = '`'.repeat(
@@ -30,7 +34,7 @@ const fence = '`'.repeat(
 );
 const replacement = `## Latest verified example output
 
-Captured **${capture.capturedAt}** from the built CLI against the freshly packed SDK candidate.
+Captured **${capture.capturedAt}** from actual CLI execution against AI Gateway.
 ${capture.disclosure}
 
 The chat command above returned:
@@ -39,7 +43,7 @@ ${fence}json
 ${json}
 ${fence}
 
-Streaming chat/Responses, both embedding encodings, invalid-input exit codes and temporary-key cleanup passed in the same 8/8 suite. This is candidate evidence, not a published release.
+Streaming chat/Responses, both embedding encodings, invalid-input exit codes and temporary-key cleanup passed in the same 8/8 suite. This verifies those workflows, not the missing or failed AI Gateway operations.
 
 This run used an opt-in, process-only DNS accommodation in the test workspace: fully qualified service lookups and the gateway's existing LAN ingress address, independently verified through its configured secondary DNS resolver. The original HTTPS hostname/SNI, certificate verification and gateway authentication were preserved. No infrastructure settings changed. The public WAN path timed out from this workspace and is not certified by these results.
 

@@ -62,7 +62,7 @@ title: Validated live E2E results
 
 Latest retained checks from the September 6–7, 2026 SDK review, generated directly from \`artifacts/e2e/*.json\` by \`scripts/e2e/generate-doc-report.ts\`. The generator verifies every counter against individual results and requires an unchanged credential-source hash. Failed checks are not converted into passes. Earlier exploratory attempts remain in \`artifacts/e2e/history/\` and other probe reports.
 
-This is a local, unreleased SDK candidate. The CLI includes inference commands and uses the packed SDK through a development dependency link; its published dependency pin has not been updated. Latest CLI read/write and inference checks use the original CLI checkout with that candidate installed. These counters measure workflow checks, not unique OpenAPI operations. Diagnostic suites are retained separately and may revisit the same failing operation. See [contract coverage](./openapi-conformance.md), the [242-operation gateway ledger](./gateway-coverage.md), and [actual executable-example output](../guides/examples.mdx).
+These timestamped reports include pre-release candidate checks and subsequent release verification. The user authorized shipping the implemented SDK/CLI surface with the recorded limitations; publication does not certify failed or missing operations. See the [release notes](../about/release-notes.md) for package scope. These counters measure workflow checks, not unique OpenAPI operations. Diagnostic suites are retained separately and may revisit the same failing operation. See [contract coverage](./openapi-conformance.md), the [242-operation gateway ledger](./gateway-coverage.md), and [actual executable-example output](../guides/examples.mdx).
 
 ## Latest results
 

@@ -45,7 +45,7 @@ function fence(text: string, language = 'text'): string {
   return `${delimiter}${language}\n${safe}\n${delimiter}`;
 }
 const capturedAt = report.finishedAt;
-const disclosure = `Captured **${capturedAt}**, from the actual runnable files against the local SDK candidate. Credential values and resource identifiers are redacted. Tenant inventories are intentionally not published. These results are not a claim that every service operation or the complete Portkey API passes.`;
+const disclosure = `Captured **${capturedAt}**, from the actual runnable files against the local SDK candidate. Credential values and resource identifiers are redacted. Tenant inventories are intentionally not published. These results are not a claim that every service operation or the complete Portkey API passes. See [published-package examples](./release-verification.md) for subsequent registry-install verification.`;
 function transcript(script: string): string {
   const result = report.output.find((item) => item.script === script);
   assert(result, `Missing example: ${script}`);

@@ -194,7 +194,7 @@ One report ID can also return multiple rows. Preserve every row and correlate it
 
 ## Example output
 
-Captured **2026-09-07T02:00:36.854Z**, from the actual runnable files against the local SDK candidate. Credential values and resource identifiers are redacted. Tenant inventories are intentionally not published. These results are not a claim that every service operation or the complete Portkey API passes.
+Captured **2026-09-07T02:00:36.854Z**, from the actual runnable files against the local SDK candidate. Credential values and resource identifiers are redacted. Tenant inventories are intentionally not published. These results are not a claim that every service operation or the complete Portkey API passes. See [published-package examples](./release-verification.md) for subsequent registry-install verification.
 
 These are actual validated `Scanner.syncScan()` results from three synthetic inputs, not hand-written expected responses. The inputs were a capital-of-France question, an instruction to reveal the system prompt, and synthetic SSN/card strings. Redacted identifiers and profile names are not usable API arguments. Detection categories and masking depend on the chosen policy.
 

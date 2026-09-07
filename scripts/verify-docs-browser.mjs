@@ -1,14 +1,20 @@
-/** @internal Real Chromium checks of the loopback-only documentation candidate. */
+/** @internal Real Chromium checks of loopback previews or explicitly selected public docs. */
 import assert from 'node:assert/strict';
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import puppeteer from '../artifacts/browser-verification/node_modules/puppeteer-core/lib/puppeteer/puppeteer-core.js';
 
 const cli = process.argv.includes('--cli');
-const base = cli
-  ? 'http://127.0.0.1:4174/prisma-airs-cli/'
-  : 'http://127.0.0.1:4173/prisma-airs-sdk/';
-const directory = fileURLToPath(new URL('../artifacts/docs/', import.meta.url));
+const publicSite = process.argv.includes('--public');
+const origin = publicSite
+  ? 'https://cdot65.github.io'
+  : cli
+    ? 'http://127.0.0.1:4174'
+    : 'http://127.0.0.1:4173';
+const base = `${origin}/${cli ? 'prisma-airs-cli' : 'prisma-airs-sdk'}/`;
+const directory = fileURLToPath(
+  new URL(publicSite ? '../artifacts/docs/public/' : '../artifacts/docs/', import.meta.url),
+);
 mkdirSync(directory, { recursive: true });
 const evidence = JSON.parse(
   readFileSync(
@@ -87,6 +93,7 @@ async function check(name, action) {
 }
 try {
   const page = await browser.newPage();
+  if (publicSite) await page.setCacheEnabled(false);
   page.on('pageerror', (error) => errors.push(String(error)));
   await page.setRequestInterception(true);
   page.on('request', (request) => {
@@ -278,6 +285,42 @@ try {
       );
     });
   }
+  if (publicSite) {
+    if (!cli) {
+      await check('public.published-package-examples.current-capture', async () => {
+        const releaseEvidence = JSON.parse(
+          readFileSync(
+            new URL('../artifacts/examples/cli-inference.json', import.meta.url),
+            'utf8',
+          ),
+        );
+        const response = await page.goto(`${base}guides/release-verification`, {
+          waitUntil: 'networkidle0',
+          timeout: 30_000,
+        });
+        assert.equal(response.status(), 200);
+        const text = await page.$eval('main', (element) => element.innerText);
+        for (const value of [releaseEvidence.capturedAt, '10/10', '8/8', '137/242 (56.61%)'])
+          assert(text.includes(value), 'Published-package evidence is stale or incomplete');
+        await assertCapturedJson(releaseEvidence.chat);
+        await page.screenshot({ path: `${directory}published-package-examples.png` });
+      });
+    }
+    await check('public.release-notes.version', async () => {
+      const version = JSON.parse(
+        readFileSync(
+          new URL(cli ? '../../prisma-airs-cli/package.json' : '../package.json', import.meta.url),
+          'utf8',
+        ),
+      ).version;
+      const response = await page.goto(`${base}about/release-notes`, {
+        waitUntil: 'networkidle0',
+        timeout: 30_000,
+      });
+      assert.equal(response.status(), 200);
+      assert((await page.$eval('main', (element) => element.innerText)).includes(`v${version}`));
+    });
+  }
   await check('browser.no-uncaught-javascript-errors', async () => assert.equal(errors.length, 0));
   await check('browser.no-unexpected-external-requests', async () =>
     assert.equal(blockedRequests.length, 0),
@@ -291,8 +334,7 @@ try {
     browser: version,
     browserInteractionVerified: true,
     sandboxDisabled: noSandbox,
-    isolation:
-      'Only loopback documentation, its configured Google Fonts assets, and data/blob URLs allowed; no live credentials loaded.',
+    isolation: `Only ${publicSite ? 'public GitHub Pages' : 'loopback'} documentation, its configured Google Fonts assets, and data/blob URLs allowed; no live credentials loaded.`,
     capturedExampleTimestamp: capturedAt,
     capturedBatchTimestamp: capturedBatchAt,
     capturedSecretReferenceTimestamp: secretReferenceEvidence?.capturedAt,

@@ -6,7 +6,7 @@ title: Validated live E2E results
 
 Latest retained checks from the September 6–7, 2026 SDK review, generated directly from `artifacts/e2e/*.json` by `scripts/e2e/generate-doc-report.ts`. The generator verifies every counter against individual results and requires an unchanged credential-source hash. Failed checks are not converted into passes. Earlier exploratory attempts remain in `artifacts/e2e/history/` and other probe reports.
 
-This is a local, unreleased SDK candidate. The CLI includes inference commands and uses the packed SDK through a development dependency link; its published dependency pin has not been updated. Latest CLI read/write and inference checks use the original CLI checkout with that candidate installed. These counters measure workflow checks, not unique OpenAPI operations. Diagnostic suites are retained separately and may revisit the same failing operation. See [contract coverage](./openapi-conformance.md), the [242-operation gateway ledger](./gateway-coverage.md), and [actual executable-example output](../guides/examples.mdx).
+These timestamped reports include pre-release candidate checks and subsequent release verification. The user authorized shipping the implemented SDK/CLI surface with the recorded limitations; publication does not certify failed or missing operations. See the [release notes](../about/release-notes.md) for package scope. These counters measure workflow checks, not unique OpenAPI operations. Diagnostic suites are retained separately and may revisit the same failing operation. See [contract coverage](./openapi-conformance.md), the [242-operation gateway ledger](./gateway-coverage.md), and [actual executable-example output](../guides/examples.mdx).
 
 ## Latest results
 
@@ -50,7 +50,7 @@ This is a local, unreleased SDK candidate. The CLI includes inference commands a
 | gateway-vector-batches | 12 | 3 | 0 | 15 | 2026-09-06 18:08:18.294Z |
 | gateway-vector-batches-json | 12 | 3 | 0 | 15 | 2026-09-06 18:17:23.385Z |
 | gateway-vector-batches-beta | 12 | 3 | 0 | 15 | 2026-09-06 18:18:30.106Z |
-| cli-inference | 8 | 0 | 0 | 8 | 2026-09-07 02:01:20.260Z |
+| cli-inference | 8 | 0 | 0 | 8 | 2026-09-07 02:52:01.411Z |
 | doc-examples | 21 | 3 | 0 | 24 | 2026-09-07 02:00:36.853Z |
 | doc-gateway-key | 1 | 0 | 0 | 1 | 2026-09-07 02:00:35.691Z |
 | recover-interrupted | 11 | 0 | 0 | 11 | 2026-09-06 16:37:05.866Z |

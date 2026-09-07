@@ -27,6 +27,7 @@ const sidebars: SidebarsConfig = {
         'guides/ai-gateway-inference',
         'guides/ai-gateway-model-pricing',
         'guides/examples',
+        'guides/release-verification',
         {
           type: 'category',
           label: 'DLP',
