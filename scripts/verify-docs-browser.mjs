@@ -254,6 +254,11 @@ try {
         page.waitForFunction(() => globalThis.location.pathname.endsWith('/guides/scan-api')),
         page.click(selector),
       ]);
+      // A client-side router updates the URL before React commits the new page.
+      // Wait for the destination heading, then validate its actual captured output.
+      await page.waitForFunction(
+        () => globalThis.document.querySelector('main h1')?.textContent === 'Scan API',
+      );
       const text = await page.$eval('main', (element) => element.innerText);
       assert(text.includes(evidence.finishedAt));
       assert(text.includes('prompt_masked_data') && text.includes('pattern_detections'));
