@@ -28,6 +28,7 @@ export const liveReportSuites = [
   'gateway-provider-http-sdk',
   'gateway-deployment-diagnostics',
   'cli',
+  'cli-analytics',
   'cli-writes',
   'gateway-inference',
   'gateway-observability',

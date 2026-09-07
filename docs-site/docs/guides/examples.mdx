@@ -259,7 +259,7 @@ Read-only typed SDK calls against previously journaled synthetic records. Known 
 }
 ```
 
-The preceding result is the original request-only checkpoint. SDK 0.23.0 extends the same filters to cost, token and latency charts, using `AIGatewayChartOptions` and preserving the original request-options interface. The additional read-only check passes **13/13** at **2026-09-07T07:16:54.357Z**, using **installed-sdk** version **0.23.0**. Its actual captured output follows. Positive controls are existing, journaled inference traffic with matching owned key and metadata, not the zero-token synthetic log-ingestion fixtures. No inference, runtime key or log was created in this run.
+The preceding result is the original request-only checkpoint. SDK 0.23.0 extends the same filters to cost, token and latency charts, using `AIGatewayChartOptions` and preserving the original request-options interface. The additional read-only check passes **13/13** at **2026-09-07T07:28:54.307Z**, using **installed-sdk** version **0.23.0**. Its actual captured output follows. Positive controls are existing, journaled inference traffic with matching owned key and metadata, not the zero-token synthetic log-ingestion fixtures. No inference, runtime key or log was created in this run.
 
 ```bash
 npx tsx scripts/e2e-gateway-analytics-chart-filters.ts --sdk

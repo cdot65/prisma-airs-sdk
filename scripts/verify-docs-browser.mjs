@@ -147,7 +147,7 @@ try {
       ['cli/aigateway/inference', [capturedAt, 'gpt-5.6-terra', 'READY', 'response-id']],
       ['runtime/dlp/profiles', ['500', '501']],
       ['cli/runtime/dlp/profiles', ['not live-verified', '501']],
-      ['cli/aigateway/telemetry', ['nullable', '0.20.0']],
+      ['cli/aigateway/telemetry', ['null', '0.23.0', '4.2.2']],
       ['cli/aigateway/workflows', ['400', 'AB01']],
     ])
       await check(`cli.desktop.${path}`, async () => {
@@ -162,6 +162,16 @@ try {
         if (path.endsWith('/inference')) {
           await assertCapturedJson(evidence.chat);
           await page.screenshot({ path: `${directory}cli-inference-desktop.png` });
+        }
+        if (path.endsWith('/telemetry')) {
+          const empty = JSON.parse(
+            readFileSync(
+              new URL('../artifacts/examples/cli-analytics.json', import.meta.url),
+              'utf8',
+            ),
+          );
+          assert(text.includes(empty.capturedAt), 'Empty latency capture is stale');
+          await assertCapturedJson(empty.output);
         }
       });
     await check('cli.mobile.inference-and-navigation', async () => {
@@ -336,6 +346,14 @@ try {
         for (const value of [releaseEvidence.capturedAt, '10/10', '8/8', '138/242 (57.02%)'])
           assert(text.includes(value), 'Published-package evidence is stale or incomplete');
         await assertCapturedJson(releaseEvidence.chat);
+        const empty = JSON.parse(
+          readFileSync(
+            new URL('../artifacts/examples/cli-analytics.json', import.meta.url),
+            'utf8',
+          ),
+        );
+        assert(text.includes(empty.capturedAt), 'Registry CLI analytics capture is stale');
+        await assertCapturedJson(empty.output);
         const usageEvidence = JSON.parse(
           readFileSync(
             new URL('../artifacts/e2e/gateway-usage-reset-observations.json', import.meta.url),
