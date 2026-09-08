@@ -47,6 +47,14 @@ import {
 } from './window.js';
 import { AISecSDKException, ErrorType } from '../errors.js';
 import { GatewayJsonObjectSchema } from '../models/ai-gateway-routing.js';
+import {
+  ErrorCategoryTrendsResponseSchema,
+  GroupedErrorsResponseSchema,
+  GatewayFilterBoundariesResponseSchema,
+  type ErrorCategoryTrendsResponse,
+  type GroupedErrorsResponse,
+  type GatewayFilterBoundariesResponse,
+} from '../models/ai-gateway-dashboard.js';
 
 const nonBlankString = z
   .string()
@@ -55,6 +63,7 @@ const nonBlankString = z
 const logsOptionsSchema = telemetryWindowSchema
   .extend({
     pageSize: z.number().int().nonnegative().safe().optional(),
+    currentPage: z.number().int().nonnegative().safe().optional(),
     traceId: nonBlankString.optional(),
     statusCode: z.number().int().nonnegative().safe().optional(),
   })
@@ -205,15 +214,17 @@ export interface AIGatewayRequestChartOptions extends AIGatewayChartOptions {}
 /**
  * Options for the raw `logs` collection.
  *
- * Deliberately NOT {@link ListingOptions}: offset paging is broken upstream. `skip`/`offset`/
- * `page` are ignored by the API and every unfiltered call returns the same most-recent batch.
+ * Deliberately NOT {@link ListingOptions}: SCM uses zero-based `currentPage`, not
+ * `skip`, `offset` or `page`. Use a fixed window when traversing multiple pages.
  */
 export interface AIGatewayLogsOptions extends AIGatewayWindowOptions {
-  /** Rows per response. The only working pagination control. */
+  /** Requested rows per response. The server may cap this value. */
   pageSize?: number;
+  /** Zero-based page index. Omitted means the server's first-page default. */
+  currentPage?: number;
   /** Return the single row for one trace id. */
   traceId?: string;
-  /** Filter by HTTP status. **Bypasses the ~50-row cap** — use 446 to pull every AIRS block. */
+  /** Filter by HTTP status; do not assume all matches fit one page. */
   statusCode?: number;
 }
 
@@ -234,6 +245,33 @@ export class AIGatewayTelemetryClient {
     this.auth = opts.auth;
     this.numRetries = opts.numRetries;
     this.tsgId = opts.tsgId;
+  }
+
+  /** Error counts by status code. @example `await gw.telemetry.errorCategoryTrends({ workspaceSlug: 'ws-dev', days: 1 });` */
+  async errorCategoryTrends(opts: AIGatewayWindowOptions): Promise<ErrorCategoryTrendsResponse> {
+    return this.chart('error-category-trends', opts, ErrorCategoryTrendsResponseSchema);
+  }
+
+  /** Error counts per status code in each time bucket. @example `await gw.telemetry.groupedErrors({ workspaceSlug: 'ws-dev', days: 1 });` */
+  async groupedErrors(opts: AIGatewayWindowOptions): Promise<GroupedErrorsResponse> {
+    return this.chart('grouped-errors', opts, GroupedErrorsResponseSchema);
+  }
+
+  /** Available analytics filter values; may contain sensitive metadata keys/identifiers. @example `await gw.telemetry.filterBoundaries({ workspaceSlug: 'ws-dev', days: 1 });` */
+  async filterBoundaries(opts: AIGatewayWindowOptions): Promise<GatewayFilterBoundariesResponse> {
+    const params = serializeWindow(this.tsgId, opts);
+    // Unlike charts, the captured boundary route does not take organisationId.
+    delete params.organisationId;
+    return request({
+      method: 'GET',
+      baseUrl: this.baseUrl,
+      path: '/analytics/filter-boundaries',
+      params,
+      responseSchema: GatewayFilterBoundariesResponseSchema,
+      auth: this.auth,
+      numRetries: this.numRetries,
+      secretOperation: 'telemetry.filterBoundaries',
+    });
   }
 
   /** @internal Shared GET for every `logs/charts/*` endpoint. */
@@ -635,18 +673,18 @@ export class AIGatewayTelemetryClient {
    * Raw per-request log rows — the deepest granularity this API offers.
    *
    * @remarks
-   * Upstream pagination is broken: only `pageSize` works, and an unfiltered call always
-   * returns the same most-recent batch (~50 rows) regardless of offset. To read beyond that,
-   * filter by `statusCode`, which bypasses the cap and returns every match in the window.
+   * Use zero-based `currentPage` with `pageSize` and a fixed start/end window. Offset-style
+   * aliases are not supported. Check returned identities and totals while paging: live data
+   * can change and the service does not promise a snapshot.
    *
-   * @param opts - Window plus `pageSize` / `traceId` / `statusCode` filters.
-   * @returns Log records plus the full-period `total` (which you cannot page to).
+   * @param opts - Window, pagination and optional trace/status filters.
+   * @returns One page of log records and server totals.
    * @example
    * ```ts
    * import { AIGatewayClient } from '@cdot65/prisma-airs-sdk';
    * const gw = new AIGatewayClient();
    *
-   * // Every AIRS security block in the window, not just the most recent page.
+   * // First page of AIRS security blocks in the window.
    * const blocked = await gw.telemetry.logs({
    *   workspaceSlug: 'ws-main-a-349e0e',
    *   statusCode: 446,
@@ -661,6 +699,7 @@ export class AIGatewayTelemetryClient {
       logsOptionsSchema,
     );
     if (validated.pageSize !== undefined) params.pageSize = String(validated.pageSize);
+    if (validated.currentPage !== undefined) params.currentPage = String(validated.currentPage);
     if (validated.traceId !== undefined) params.traceId = validated.traceId;
     if (validated.statusCode !== undefined) params.statusCode = String(validated.statusCode);
 

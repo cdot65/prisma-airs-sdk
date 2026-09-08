@@ -47,7 +47,7 @@ export const MAX_NUMBER_OF_RETRIES = 5;
 export const HTTP_FORCE_RETRY_STATUS_CODES = [500, 502, 503, 504];
 
 // User-Agent (version injected at build time or read from package.json)
-export const SDK_VERSION = '0.27.0';
+export const SDK_VERSION = '0.28.0';
 export const USER_AGENT = `PAN-AIRS/${SDK_VERSION}-typescript-sdk`;
 
 // Management API defaults
@@ -248,6 +248,8 @@ export const AI_GW_CHART_METRICS = [
   'cache-hit-trend',
   'user-trends',
   'error-trends',
+  'error-category-trends',
+  'grouped-errors',
   'rescued-retries',
   'feedback-trend',
   'feedback-weighted',

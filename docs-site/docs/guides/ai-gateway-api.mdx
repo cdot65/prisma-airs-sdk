@@ -239,7 +239,7 @@ console.log(`AIRS blocks: ${blocks?.requests ?? 0}`); // 446 = blocked before it
 
 ## Telemetry
 
-`gw.telemetry` has 19 read methods: 15 chart endpoints (`cost`, `requests`, `latency`, `tokens`, `errors`, `users`, `cacheSummary`, `cacheHitTrend`, `userTrends`, `errorTrends`, `rescuedRetries`, `feedbackTrend`, `feedbackWeighted`, `feedbackScoreDistribution`, `feedbackModels`), 3 group-by aggregates (`groupBy`, `byUser`, `byStatusCode`), and raw `logs`. Every method takes a window: `{ workspaceSlug, days? }` or `{ workspaceSlug, start, end }`.
+`gw.telemetry` has 22 read methods: 17 chart endpoints (`cost`, `requests`, `latency`, `tokens`, `errors`, `users`, `cacheSummary`, `cacheHitTrend`, `userTrends`, `errorTrends`, `errorCategoryTrends`, `groupedErrors`, `rescuedRetries`, `feedbackTrend`, `feedbackWeighted`, `feedbackScoreDistribution`, `feedbackModels`), 3 group-by aggregates (`groupBy`, `byUser`, `byStatusCode`), `filterBoundaries`, and raw `logs`. Every method takes a window: `{ workspaceSlug, days? }` or `{ workspaceSlug, start, end }`. The September 8 additions below require **SDK 0.28.0 or later**.
 
 ### Charts
 
@@ -343,15 +343,103 @@ const byStatus = await gw.telemetry.byStatusCode({
 ### logs
 
 ```ts
-// Only pageSize actually pages upstream; an unfiltered call always returns the same
-// ~50-row recent batch regardless of offset.
-const recent = await gw.telemetry.logs({ workspaceSlug: 'ws-main-a-349e0e', days: 1, pageSize: 3 });
+// SDK 0.28.0+: use a fixed window and zero-based currentPage.
+const end = new Date();
+const window = { workspaceSlug: 'ws-main-a-349e0e', start: new Date(end.getTime() - 86400000), end };
+const recent = await gw.telemetry.logs({ ...window, pageSize: 50, currentPage: 0 });
+const next = await gw.telemetry.logs({ ...window, pageSize: 50, currentPage: 1 });
 
-// statusCode is the one filter that bypasses the ~50-row cap — use it to pull every
-// AIRS block in the window, not just the most recent page.
-const blocked = await gw.telemetry.logs({ workspaceSlug: 'ws-main-a-349e0e', days: 7, statusCode: 446 });
+// A filtered page is not necessarily the entire matching dataset.
+const blocked = await gw.telemetry.logs({ ...window, statusCode: 446, pageSize: 50, currentPage: 0 });
 console.log(blocked.data.records.length);
 ```
+
+`currentPage`, not `offset`, `skip`, or `page`, advances the SCM log collection. This corrects
+the earlier conclusion that pagination was unavailable. Validate stable totals, unique row
+identities and nonempty intermediate pages; bound the number of requests. A fixed window
+reduces drift but does not guarantee snapshot consistency. Do not use `capturedTotal` as
+the termination count: the verified response returned zero while `total` was 174.
+
+### September 8 dashboard feed additions (0.28.0)
+
+These reads use the existing OAuth client-credentials workflow plus `x-tsg-id`. Browser
+cookies, copied bearer tokens, browser-identification headers and runtime gateway API keys
+are unnecessary. The five new response schemas preserve unknown fields. The guardrail
+catalog describes available evaluators; it is not a list of configured security policies.
+
+| SDK method | SCM route relative to its plane | Plane |
+| --- | --- | --- |
+| `telemetry.errorCategoryTrends(window)` | `/logs/charts/error-category-trends` | Data |
+| `telemetry.groupedErrors(window)` | `/logs/charts/grouped-errors` | Data |
+| `telemetry.filterBoundaries(window)` | `/analytics/filter-boundaries` | Data |
+| `organisations.getInfo(tsgId)` | `/organisations/{tsgId}/info` | Admin |
+| `guardrails.getCatalog()` | `/utils/static-resources/schema?resource=guardrails` | Admin |
+
+Data-plane base: `https://api.apps.paloaltonetworks.com/ai_gw/v2`.
+Admin-plane base: `https://api.apps.paloaltonetworks.com/ai_gw/admin/v2`.
+The root client routes the catalog explicitly to admin; direct sub-client users must supply
+`adminBaseUrl` for this operation. Existing guardrail configuration methods stay on data.
+
+```ts
+const window = { workspaceSlug: 'ws-develo-71f8d8', days: 1 };
+const categories = await gw.telemetry.errorCategoryTrends(window);
+const grouped = await gw.telemetry.groupedErrors(window);
+const bounds = await gw.telemetry.filterBoundaries(window);
+const catalog = await gw.guardrails.getCatalog();
+console.log({
+  errorCount: categories.data.summary.totalErrors,
+  errorBuckets: grouped.data.trend.length,
+  availableModels: bounds.data.unique_ai_models.length,
+  evaluatorCount: catalog.evals.length,
+});
+```
+
+`groupedErrors.data.trend[].y` is an array of `{ response_status_code, count }`, including
+empty arrays for quiet buckets. Filter boundaries retain nullable numeric bounds for empty
+windows. Request/error/token charts now type optional LLM/MCP/A2A breakdown fields while
+retaining compatibility with older responses that omit them. Zero counts and null averages
+remain distinct. Costs stay in cents. Do not sum overlapping aggregate and per-protocol counts.
+
+#### Verified live SDK output
+
+At **2026-09-08T00:44:12.217Z**, all **25 supplied response fixtures** passed validation, and fresh OAuth
+reads through the **built SDK** passed **27/27 checks**: all 25 supplied calls, full log pagination, and an empty
+filter-boundary window. No remote mutations or inference requests were made. Both the
+credential file and input capture remained unchanged. The following are aggregate-only
+projections from the live verification runner, **not CLI command output**:
+
+```json
+{
+  "pagination": {
+    "pages": 4,
+    "returned": 174,
+    "total": 174,
+    "complete": true,
+    "pastEndEmpty": true
+  },
+  "guardrailCatalog": { "evalsCount": 83 },
+  "filterBoundaries": {
+    "isQuotaExceeded": false,
+    "unique_ai_modelsCount": 8,
+    "unique_status_codesCount": 3
+  },
+  "groupedErrors": { "total": 38, "isQuotaExceeded": false, "trendCount": 68 }
+}
+```
+
+The supplied captures use different windows (some approximately one day, others September 5–8).
+These numbers are not one unified daily report and should not be combined without aligned
+query windows. Log rows can contain metadata, identities and request URLs; API-key inventories
+can contain credentials. The verification output retains only approved counts/aggregates.
+Organisation settings and boundary response data have operation-specific debug redaction.
+Treat catalog descriptions and parameter schemas as untrusted display data, never executable code.
+
+Runnable example: `docs-site/examples/gateway-dashboard-feeds.ts`. Reproduce the read-only
+fixture/live checks from this checkout with `npx tsx scripts/e2e-gateway-dashboard-inputs.ts`
+(`GATEWAY_DASHBOARD_CAPTURE` selects the private input file; default `/var/tmp/t2.txt`).
+Use `--fixtures-only` to validate captured responses without credentials or network access.
+Use `--built` after `npm run build` to verify the distributable SDK rather than source imports.
+SDK 0.28.0 includes these reads. The CLI consumes these methods for its AI Gateway dashboard; SDK verification projections above are not CLI stdout.
 
 ## Config Plane
 
@@ -669,7 +757,7 @@ const summary = audit.records.map((r) => `${r.timestamp} ${r.method} ${r.uri.spl
   // receipt.credentials.password — capture now; gw.deployments.get(receipt.id) masks it.
   ```
 
-- **`telemetry.logs()` paging is broken upstream.** Only `pageSize` works; `offset`/`page`/`skip` are ignored and every unfiltered call returns the same recent ~50-row batch. `statusCode` is the one filter that bypasses the cap — use `statusCode: 446` to pull every AIRS security block in the window, since `446` means the request was blocked before it ever reached the LLM (cost `0`).
+- **`telemetry.logs()` uses zero-based `currentPage` (SDK 0.28.0+).** `offset`/`page`/`skip` are not the pagination contract. Full pagination was verified September 8 with 174 unique rows across four pages. Filter by `statusCode: 446` for AIRS blocks, but still validate completeness; do not assume any filtered response contains every match.
 - **`organisation_id` is polymorphic across request and response.** Write requests take the TSG as a numeric string (e.g. `'1852583913'`); read responses return the internal organisation **UUID** in the same-named field. Never round-trip a response `organisation_id` back into a request — use the TSG value you already have.
 
 ## Error Handling

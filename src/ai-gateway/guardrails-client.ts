@@ -2,6 +2,11 @@ import { AI_GW_GUARDRAILS_PATH } from '../constants.js';
 import { request } from '../http/request.js';
 import type { AuthAdapter } from '../http/types.js';
 import { assertUuid } from '../validators.js';
+import { AISecSDKException, ErrorType } from '../errors.js';
+import {
+  GatewayGuardrailCatalogResponseSchema,
+  type GatewayGuardrailCatalogResponse,
+} from '../models/ai-gateway-dashboard.js';
 import {
   ListGuardrailsResponseSchema,
   GatewayGuardrailDetailSchema,
@@ -32,16 +37,37 @@ import {
   type GatewayUpsertMcpServerMappingResponse,
 } from '../models/ai-gateway-extensions.js';
 
-/** Client for AI Gateway guardrail operations (data plane). */
+/** Client for AI Gateway guardrail operations (data plane), with an admin-plane capability catalog. */
 export class AIGatewayGuardrailsClient {
   private readonly baseUrl: string;
   private readonly auth: AuthAdapter;
   private readonly numRetries: number;
+  private readonly adminBaseUrl?: string;
 
-  constructor(opts: AIGatewaySubClientOptions) {
+  constructor(opts: AIGatewaySubClientOptions & { adminBaseUrl?: string }) {
     this.baseUrl = opts.baseUrl;
     this.auth = opts.auth;
     this.numRetries = opts.numRetries;
+    this.adminBaseUrl = opts.adminBaseUrl;
+  }
+
+  /** Available guardrail evaluators and parameter schemas, not configured guardrail instances. @example `await gw.guardrails.getCatalog();` */
+  async getCatalog(): Promise<GatewayGuardrailCatalogResponse> {
+    if (!this.adminBaseUrl) {
+      throw new AISecSDKException(
+        'Guardrail catalog requires an explicit adminBaseUrl; use AIGatewayClient',
+        ErrorType.USER_REQUEST_PAYLOAD_ERROR,
+      );
+    }
+    return request({
+      method: 'GET',
+      baseUrl: this.adminBaseUrl,
+      path: '/utils/static-resources/schema',
+      params: { resource: 'guardrails' },
+      responseSchema: GatewayGuardrailCatalogResponseSchema,
+      auth: this.auth,
+      numRetries: this.numRetries,
+    });
   }
 
   /** List guardrail mappings to MCP servers. @example `await gw.guardrails.getMcpServers(id);` */

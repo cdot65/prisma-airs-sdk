@@ -51,6 +51,8 @@ const empty = [] as const;
  * A generic field named `key` is not considered secret without an operation context.
  */
 export const AI_GATEWAY_SECRET_FIELDS = {
+  'telemetry.filterBoundaries': { request: empty, response: [subtree('data')] },
+  'organisations.getInfo': { request: empty, response: [subtree('settings')] },
   'secretReferences.list': { request: empty, response: [subtree('data', '*', 'auth_config')] },
   'secretReferences.create': {
     request: [subtree('auth_config')],

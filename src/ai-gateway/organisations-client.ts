@@ -17,6 +17,10 @@ import {
 } from '../models/ai-gateway-requests.js';
 import type { AIGatewaySubClientOptions } from './types.js';
 import { assertNumericId } from '../validators.js';
+import {
+  GatewayOrganisationInfoSchema,
+  type GatewayOrganisationInfo,
+} from '../models/ai-gateway-dashboard.js';
 
 /** Client for AI Gateway organisation settings (admin plane). */
 export class AIGatewayOrganisationsClient {
@@ -28,6 +32,20 @@ export class AIGatewayOrganisationsClient {
     this.baseUrl = opts.baseUrl;
     this.auth = opts.auth;
     this.numRetries = opts.numRetries;
+  }
+
+  /** Organisation capabilities/settings (bare response, not getSelf's envelope). @example `await gw.organisations.getInfo('1852583913');` */
+  async getInfo(tsgId: string): Promise<GatewayOrganisationInfo> {
+    assertNumericId(tsgId, 'tsgId');
+    return request({
+      method: 'GET',
+      baseUrl: this.baseUrl,
+      path: `/organisations/${tsgId}/info`,
+      responseSchema: GatewayOrganisationInfoSchema,
+      auth: this.auth,
+      numRetries: this.numRetries,
+      secretOperation: 'organisations.getInfo',
+    });
   }
 
   /**

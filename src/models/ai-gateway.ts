@@ -112,7 +112,17 @@ const quotaFlag = { isQuotaExceeded: z.boolean() };
 
 /** A `{x, y}` time-bucket, optionally carrying a bucket average. */
 export const GatewayChartRecordSchema = z
-  .object({ x: z.string(), y: z.number(), avg: z.number().optional() })
+  .object({
+    x: z.string(),
+    y: z.number(),
+    avg: z.number().optional(),
+    llm_count: z.number().optional(),
+    mcp_count: z.number().optional(),
+    a2a_count: z.number().optional(),
+    llm_error_count: z.number().optional(),
+    mcp_error_count: z.number().optional(),
+    a2a_error_count: z.number().optional(),
+  })
   .passthrough();
 export type GatewayChartRecord = z.infer<typeof GatewayChartRecordSchema>;
 
@@ -135,6 +145,12 @@ export const CountChartResponseSchema = aiGatewayEnvelope(
     .object({
       records: z.array(GatewayChartRecordSchema),
       total: z.number().nullable(),
+      total_llm_count: z.number().optional(),
+      total_mcp_count: z.number().optional(),
+      total_a2a_count: z.number().optional(),
+      total_llm_error_count: z.number().optional(),
+      total_mcp_error_count: z.number().optional(),
+      total_a2a_error_count: z.number().optional(),
       ...quotaFlag,
     })
     .passthrough(),
@@ -180,6 +196,12 @@ export const TokensChartResponseSchema = aiGatewayEnvelope(
             y: z.number(),
             total_request_units: z.number(),
             total_response_units: z.number(),
+            llm_request_units: z.number().optional(),
+            llm_response_units: z.number().optional(),
+            mcp_request_units: z.number().optional(),
+            mcp_response_units: z.number().optional(),
+            a2a_request_units: z.number().optional(),
+            a2a_response_units: z.number().optional(),
             avg: z.number(),
           })
           .passthrough(),
@@ -188,6 +210,12 @@ export const TokensChartResponseSchema = aiGatewayEnvelope(
       avg: z.number(),
       total_request_units: z.number(),
       total_response_units: z.number(),
+      total_llm_request_units: z.number().optional(),
+      total_llm_response_units: z.number().optional(),
+      total_mcp_request_units: z.number().optional(),
+      total_mcp_response_units: z.number().optional(),
+      total_a2a_request_units: z.number().optional(),
+      total_a2a_response_units: z.number().optional(),
       ...quotaFlag,
     })
     .passthrough(),
@@ -412,7 +440,7 @@ export const GatewayLogRecordSchema = z
   .passthrough();
 export type GatewayLogRecord = z.infer<typeof GatewayLogRecordSchema>;
 
-/** Bare `logs`. `capturedTotal` is always 0 upstream; `total` is the full-period count. */
+/** Bare `logs`. Preserve the server's capturedTotal; total is the full-period count. */
 export const GatewayLogsResponseSchema = aiGatewayEnvelope(
   z
     .object({

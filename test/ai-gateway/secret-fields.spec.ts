@@ -19,6 +19,7 @@ describe('AI Gateway secret metadata', () => {
       'mcpIntegrations.create',
       'mcpIntegrations.update',
       'organisations.getAuthSettings',
+      'organisations.getInfo',
       'organisations.updateAuthSettings',
       'plugins.create',
       'providers.get',
@@ -27,6 +28,7 @@ describe('AI Gateway secret metadata', () => {
       'secretReferences.get',
       'secretReferences.list',
       'secretReferences.update',
+      'telemetry.filterBoundaries',
     ]);
   });
 

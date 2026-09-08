@@ -420,6 +420,7 @@ export * from './red-team-enums.js';
 export * from './red-team.js';
 export * from './red-team-network-broker.js';
 export * from './ai-gateway.js';
+export * from './ai-gateway-dashboard.js';
 export * from './ai-gateway-routing.js';
 export * from './ai-gateway-requests.js';
 export * from './ai-gateway-inference.js';
