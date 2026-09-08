@@ -88,3 +88,20 @@ gaps remain out of scope and are not reclassified as resolved.
 
 Bounded assessment: **9/10** for these supplied SDK reads. They are implemented and live-verified;
 the next independent step is a privacy-preserving CLI AI Gateway dashboard and its report E2E.
+
+## Published release follow-through
+
+The subsequent delivery phase is complete: SDK **0.28.0** is published with npm's `latest`
+tag at source commit `5f7aafa` / release `v0.28.0`. SDK CI, npm publication and Docusaurus
+deployment all succeed. A fresh built-package run passes 27/27 checks at
+2026-09-08T01:10:17.506Z, with the credential file unchanged.
+
+CLI **5.2.0** pins registry SDK 0.28.0 and is published as npm `latest`, pushed to both CLI
+remotes, and installed globally. Its AI Gateway dashboard consumes all 25 supplied read feeds;
+the npm-installed CLI passes 5/5 live workflows, including 1,431 unique transactions across
+29 pages in the separate September 7 UTC window. Docusaurus examples now contain exact CLI
+stdout, not the SDK projections above. Both container architectures and alias promotion pass.
+
+The CLI checkout's `AI-GATEWAY-DASHBOARD-ASSESSMENT-2026-09-08.md` records release evidence,
+privacy/compatibility gates and the independent agent's **9.1/10** bounded-feature assessment.
+Historical whole-product OpenAPI availability limitations remain outside this release claim.
