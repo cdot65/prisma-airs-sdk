@@ -4,6 +4,8 @@ This file provides guidance to coding agents when working with code in this repo
 
 ## Overview
 
+AgentGuard browser API support is experimental, introduced in SDK 0.29.0: `src/agentguard/client.ts` and `src/models/agentguard.ts`. Four read-only methods share OAuth and `x-tsg-id`, validate queries before authentication, and omit debug bodies. Rules pagination `total_items` is the observed page count; do not treat it as a global total. Failed scans have nullable summaries/durations and historical outcomes can be null. See `docs-site/docs/guides/agentguard.md`; CLI live acceptance resides in its actual repository at `scripts/e2e-agentguard.mjs`. Do not add undocumented APIs to the official OpenAPI coverage denominator.
+
 TypeScript SDK for Palo Alto Networks Prisma AIRS — covers the full lifecycle across all three service domains (AI Runtime Security, Model Security, AI Red Teaming) plus configuration management. Extends beyond the official Python `pan-aisecurity` SDK. Published as `@cdot65/prisma-airs-sdk` on npm. Zero external HTTP dependencies (native fetch + crypto).
 
 ## Commands

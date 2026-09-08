@@ -1,3 +1,4 @@
+import { z } from 'zod';
 import { LabelsCreateRequestSchema, ScanCreateRequestSchema } from '../models/index.js';
 import {
   MODEL_SEC_SCANS_PATH,
@@ -40,6 +41,8 @@ import {
 
 /** Pagination + filter options for model security scan listing. */
 export interface ModelSecurityScanListOptions extends ListingOptions {
+  /** Browser API refresh hint (experimental); false is sent explicitly. */
+  isBackgroundRefresh?: boolean;
   /** Limit scans to a particular model version. */
   model_version_uuid?: string;
   /** Sort field: 'created_at' or 'updated_at'. */
@@ -109,6 +112,8 @@ function buildScanListParams(
   opts?: ModelSecurityScanListOptions,
 ): Record<string, string | string[]> {
   const params: Record<string, string | string[]> = serializeListing(opts);
+  if (opts?.isBackgroundRefresh !== undefined)
+    params.isBackgroundRefresh = String(z.boolean().parse(opts.isBackgroundRefresh));
   if (opts?.model_version_uuid !== undefined) params.model_version_uuid = opts.model_version_uuid;
   if (opts?.sort_by !== undefined) params.sort_by = opts.sort_by;
   if (opts?.sort_order !== undefined) params.sort_order = opts.sort_order;

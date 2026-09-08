@@ -23,6 +23,7 @@ const sidebars: SidebarsConfig = {
         'guides/scm-dashboard',
         'guides/oauth-lifecycle',
         'guides/model-security-api',
+        'guides/agentguard',
         'guides/red-team-api',
         'guides/ai-gateway-api',
         'guides/ai-gateway-inference',

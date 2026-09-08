@@ -1,3 +1,4 @@
+import { z } from 'zod';
 import { MODEL_SEC_MODELS_PATH, MODEL_SEC_MODEL_VERSIONS_PATH } from '../constants.js';
 import { request } from '../http/request.js';
 import type { AuthAdapter } from '../http/types.js';
@@ -23,6 +24,8 @@ import {
 
 /** Pagination + filter options for listing models. */
 export interface ModelSecurityModelListOptions extends ListingOptions {
+  /** Browser API refresh hint (experimental); false is sent explicitly. */
+  isBackgroundRefresh?: boolean;
   /** Search query (matches model UUID or name). */
   search_query?: string;
   /** Sort field: 'created_at' or 'updated_at'. */
@@ -69,6 +72,8 @@ function buildModelListParams(
   opts?: ModelSecurityModelListOptions,
 ): Record<string, string | string[]> {
   const params: Record<string, string | string[]> = serializeListing(opts);
+  if (opts?.isBackgroundRefresh !== undefined)
+    params.isBackgroundRefresh = String(z.boolean().parse(opts.isBackgroundRefresh));
   if (opts?.search_query !== undefined) params.search_query = opts.search_query;
   if (opts?.sort_field !== undefined) params.sort_field = opts.sort_field;
   if (opts?.sort_order !== undefined) params.sort_order = opts.sort_order;

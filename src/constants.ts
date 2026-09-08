@@ -47,7 +47,7 @@ export const MAX_NUMBER_OF_RETRIES = 5;
 export const HTTP_FORCE_RETRY_STATUS_CODES = [500, 502, 503, 504];
 
 // User-Agent (version injected at build time or read from package.json)
-export const SDK_VERSION = '0.28.0';
+export const SDK_VERSION = '0.29.0';
 export const USER_AGENT = `PAN-AIRS/${SDK_VERSION}-typescript-sdk`;
 
 // Management API defaults
@@ -269,3 +269,13 @@ export const AI_GW_GROUP_COLUMNS = [
   'success_rate',
   'last_seen',
 ] as const;
+/** Experimental AgentGuard browser API data endpoint. */
+export const AGENT_GUARD_DATA_ENDPOINT = 'https://api.apps.paloaltonetworks.com/aiag/data';
+/** Experimental AgentGuard browser API management endpoint. */
+export const AGENT_GUARD_MGMT_ENDPOINT = 'https://api.apps.paloaltonetworks.com/aiag/mgmt';
+/** AgentGuard scan inventory path. */
+export const AGENT_GUARD_SCANS_PATH = '/v1/scans';
+/** AgentGuard scan statistics path. */
+export const AGENT_GUARD_STATS_PATH = '/v1/stats/scans';
+/** AgentGuard rule catalog path. */
+export const AGENT_GUARD_RULES_PATH = '/v1/rules';

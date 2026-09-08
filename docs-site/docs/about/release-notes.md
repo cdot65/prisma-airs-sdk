@@ -1,5 +1,16 @@
 # Release Notes
 
+## v0.29.0 (2026-09-08) — AgentGuard AI Supply Chain telemetry
+
+- Add experimental, read-only `AgentGuardClient` scan inventory, statistics, vulnerability and rule retrieval using tenant-scoped Management OAuth.
+- Validate requests before authentication, suppress sensitive debug bodies and preserve additive response fields, nullable outcomes and unknown metrics.
+- Preserve rule page-count metadata without treating it as an inventory total.
+- Add the captured Model Security `isBackgroundRefresh` filter to model and scan queries.
+- Verify all nine supplied Supply Chain routes with fresh OAuth; the combined SDK/CLI acceptance workflow passes 26 checks. New AgentGuard client and model coverage is 100%.
+
+See the [AgentGuard guide and live evidence](../guides/agentguard.md).
+These undocumented routes are not added to the official OpenAPI coverage denominator.
+
 ## v0.27.0 (2026-09-07) — Red Team dashboard quota retrieval
 
 - Add `RedTeamClient.getQuotaSummary()` for the verified GET quota route, reusing OAuth,
