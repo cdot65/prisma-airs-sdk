@@ -1,5 +1,21 @@
 # Release Notes
 
+## v0.30.0 (2026-09-09) — typed Runtime policy severity extensions
+
+- Model observed database, source-code, malicious-code, URL, model and agent severity
+  fields, including toxicity severity-by-confidence, instead of exposing them as unknown.
+- Export source-code detection and confidence-severity schemas and inferred types.
+- Export `ToxicCategorySchema` / `ToxicCategory` with optional nested confidence severities;
+  preserve explicit category settings and validate malformed values.
+- Type optional per-topic reference severity in `TopicObjectSchema`, validated during
+  full cross-tenant Runtime profile migration; no SDK defaults are injected.
+- Preserve omitted fields and unknown extensions without injecting defaults; validate
+  known field types and retain explicitly configured values on round trips.
+- These are observed API extensions, not changes to the published OpenAPI denominator.
+  The CLI's server-default comparison and restore-resume work remains separate.
+
+See [policy extension details](../guides/management-api.mdx#observed-runtime-policy-extensions-sdk-0300).
+
 ## v0.29.0 (2026-09-08) — AgentGuard AI Supply Chain telemetry
 
 - Add experimental, read-only `AgentGuardClient` scan inventory, statistics, vulnerability and rule retrieval using tenant-scoped Management OAuth.

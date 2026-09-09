@@ -1,6 +1,6 @@
 {
   "name": "@cdot65/prisma-airs-sdk",
-  "version": "0.29.0",
+  "version": "0.30.0",
   "description": "TypeScript SDK for Palo Alto Networks Prisma AIRS — scanning, management, model security, red teaming, and AI Gateway APIs",
   "author": "Calvin Remsburg <cremsburg.dev@gmail.com>",
   "license": "MIT",

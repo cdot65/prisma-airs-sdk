@@ -1,6 +1,9 @@
 import { z } from 'zod';
 
-// ── Policy sub-schemas (matching OpenAPI spec) ────────────────────────────
+// ── Policy sub-schemas (OpenAPI plus documented live-response extensions) ──
+// Severity extensions observed 2026-09-08 are optional: older profiles omit them.
+// Do not insert defaults here or infer policy equivalence across tenants.
+// Keep severity strings open-ended until upstream documents an exhaustive enum.
 
 /** Zod schema for inline latency configuration within a security profile policy. */
 export const PolicyLatencySchema = z
@@ -30,11 +33,35 @@ export const DatabaseSecurityItemSchema = z
   .object({
     name: z.string(),
     action: z.string(),
+    /** Live-response extension; not documented in the published Management OpenAPI. */
+    severity: z.string().optional(),
   })
   .passthrough();
 
 /** Database-security rule item. */
 export type DatabaseSecurityItem = z.infer<typeof DatabaseSecurityItemSchema>;
+
+/** Source-code detection settings observed in live Runtime profile policies. */
+export const SourceCodeDetectionSchema = z
+  .object({
+    action: z.string().optional(),
+    severity: z.string().optional(),
+  })
+  .passthrough();
+
+/** Source-code detection policy; omitted fields remain omitted. */
+export type SourceCodeDetection = z.infer<typeof SourceCodeDetectionSchema>;
+
+/** Observed toxicity severity settings per confidence level; future fields pass through. */
+export const SeverityByConfidenceSchema = z
+  .object({
+    high: z.string().optional(),
+    moderate: z.string().optional(),
+  })
+  .passthrough();
+
+/** Severity overrides by toxicity confidence, not SDK-generated defaults. */
+export type SeverityByConfidence = z.infer<typeof SeverityByConfidenceSchema>;
 
 /** Zod schema for the data-protection section of a model configuration. */
 //
@@ -55,6 +82,8 @@ export const DataProtectionSchema = z
       .passthrough()
       .optional(),
     'database-security': z.array(DatabaseSecurityItemSchema).nullable().optional(),
+    /** Live-response extension, not part of the published Management OpenAPI. */
+    'source-code-detection': SourceCodeDetectionSchema.optional(),
   })
   .passthrough();
 
@@ -76,6 +105,8 @@ export const MaliciousCodeProtectionSchema = z
   .object({
     name: z.string(),
     action: z.string(),
+    /** Observed live severity; no default is supplied by the SDK. */
+    severity: z.string().optional(),
   })
   .passthrough();
 
@@ -90,6 +121,8 @@ export const PolicyAppProtectionSchema = z
     'allow-url-category': UrlCategorySchema.optional(),
     'default-url-category': UrlCategorySchema.optional(),
     'url-detected-action': z.string().optional(),
+    /** Observed live URL-detection severity. */
+    'url-detected-severity': z.string().optional(),
     'malicious-code-protection': MaliciousCodeProtectionSchema.optional(),
   })
   .passthrough();
@@ -103,6 +136,8 @@ export const TopicObjectSchema = z
     topic_name: z.string(),
     topic_id: z.string(),
     revision: z.number().int(),
+    /** Observed per-topic severity extension; omitted values remain omitted. */
+    severity: z.string().optional(),
   })
   .passthrough();
 
@@ -125,12 +160,27 @@ export const TopicArraySchema = z
 /** Topic array with action and topic references. */
 export type TopicArray = z.infer<typeof TopicArraySchema>;
 
+/** Toxicity category settings, including observed per-category severity extensions. */
+export const ToxicCategorySchema = z
+  .object({
+    category: z.string(),
+    action: z.string(),
+    /** Optional live-response extension. Omission does not insert server defaults. */
+    'severity-by-confidence': SeverityByConfidenceSchema.optional(),
+  })
+  .passthrough();
+
+/** Toxicity category with optional confidence-based severity overrides. */
+export type ToxicCategory = z.infer<typeof ToxicCategorySchema>;
+
 /** Zod schema for a model-protection array item. */
 export const ModelProtectionItemSchema = z
   .object({
-    'toxic-category-list': z
-      .array(z.object({ category: z.string(), action: z.string() }).passthrough())
-      .optional(),
+    /** Observed live detector severity. */
+    severity: z.string().optional(),
+    /** Observed live toxicity severity settings. */
+    'severity-by-confidence': SeverityByConfidenceSchema.optional(),
+    'toxic-category-list': z.array(ToxicCategorySchema).optional(),
     name: z.string().optional(),
     action: z.string().optional(),
     'topic-list': z.array(TopicArraySchema).optional(),
@@ -146,6 +196,8 @@ export const AgentProtectionItemSchema = z
   .object({
     name: z.string(),
     action: z.string(),
+    /** Observed live agent-detector severity. */
+    severity: z.string().optional(),
   })
   .passthrough();
 

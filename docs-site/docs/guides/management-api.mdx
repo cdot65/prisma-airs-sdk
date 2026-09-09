@@ -5,6 +5,112 @@ description: Configure Prisma AIRS security profiles, custom topics, API keys, d
 
 # Management API
 
+## Observed Runtime policy extensions (SDK 0.30.0)
+
+The SDK explicitly models additional fields observed in live profile responses on
+2026-09-08. They are API extensions, not a claimed update to the published Management
+OpenAPI contract or its coverage denominator.
+
+| Policy location (under `model-configuration`) | Typed extension |
+| --- | --- |
+| `data-protection.database-security[]` | Optional `severity` string |
+| `data-protection.source-code-detection` | Optional object with optional `action` and `severity` strings |
+| `app-protection.malicious-code-protection` | Optional `severity` string |
+| `app-protection` | Optional `url-detected-severity` string |
+| `model-protection[]` | Optional `severity` and `severity-by-confidence` object |
+| `model-protection[].toxic-category-list[]` | Optional `severity-by-confidence` object on each category |
+| `model-protection[].topic-list[].topic[]` | Optional `severity` string on each topic reference |
+| `agent-protection[]` | Optional `severity` string |
+
+`SeverityByConfidenceSchema` types the observed optional `high` and `moderate` string
+properties. `SourceCodeDetectionSchema` types source-code settings. Both schemas and
+their inferred types are exported from the SDK root. `ToxicCategorySchema` and its inferred
+`ToxicCategory` type also expose category-level confidence severities. Existing models expose the other
+fields directly. Unknown additive fields still pass through; severity strings are not
+restricted to an unverified enum. Incorrect types in these explicitly modeled fields
+now fail validation rather than passing through as unknown values.
+
+Older profiles can omit these fields. Parsing **does not fill in defaults**, remove
+server-added fields, or declare different policies equivalent. In particular, explicitly
+configured severity values must survive read-modify-write operations. A schema update
+alone does not fix the CLI restore verifier's comparison of a source policy with a
+destination policy containing additional server-generated settings.
+
+```ts
+import { PolicySchema } from '@cdot65/prisma-airs-sdk';
+
+const parsed = PolicySchema.parse({
+  'ai-security-profiles': [{
+    'model-configuration': {
+      'model-protection': [{
+        name: 'toxic-content',
+        'severity-by-confidence': { high: 'medium', moderate: 'low' },
+      }],
+    },
+  }],
+});
+const severity: string | undefined = parsed['ai-security-profiles']?.[0]
+  ?.['model-configuration']?.['model-protection']?.[0]
+  ?.['severity-by-confidence']?.high;
+console.log(severity); // medium
+```
+
+Runnable, credential-free example: `docs-site/examples/runtime-policy-extensions.ts`.
+Regression tests include the observed shape, omission preservation, future values,
+malformed types, and OAuth-backed mocked transport read/write preservation.
+
+### Nested toxicity follow-up — 2026-09-09
+
+Live read-only OAuth retrieval validated 19 source profiles (40 nested toxicity categories)
+and eight destination profiles (eight categories), preserving every returned policy and
+both credential files. The SDK does not inject the observed nested defaults.
+
+```json
+{"role":"source","profiles":19,"nestedCategories":40,"validated":true}
+{"role":"destination","profiles":8,"nestedCategories":8,"validated":true}
+```
+
+The CLI separately verified five synthetic live policy round trips, including omitted
+category severities and explicit overrides; all five test profiles were removed. The
+real migration remains incomplete: the read-only recovery preview verifies eight existing
+profiles and plans 11 creations. This is not evidence that those 11 writes have succeeded.
+
+The updated full SDK suite passed **11,666 tests**, including 28 extension tests. Coverage:
+99.72% statements/lines, 100% functions and 96.79% branches. The category model retains
+unknown fields, rejects malformed confidence values and preserves omission and explicit
+values through the mocked OAuth read/write workflow.
+
+### Earlier validation evidence — 2026-09-08
+
+Read-only live OAuth retrieval with the rebuilt SDK validated all **19 source profiles**
+and the **one existing destination profile**, including the severity-bearing profile from
+the stopped CLI restore. Re-parsing preserved every returned policy; credential files
+were byte-for-byte unchanged. No profiles, topics or tenant selections were modified.
+
+Actual aggregate validation output (tenant identities omitted):
+
+```json
+{"role":"source","profiles":19,"validated":true,"configurationUnchanged":true}
+{"role":"destination","profiles":1,"validated":true,"configurationUnchanged":true}
+```
+
+All **11,658 tests** passed, including the frozen OpenAPI contracts and 20 new extension
+tests. Overall coverage: **99.72% statements/lines, 100% functions, 96.8% branches**;
+the changed policy-model file has 100% coverage. TypeScript checks also compile the
+explicit field types and runnable documentation example. This validates SDK modeling,
+not server-default equivalence, detection behavior or completion of the CLI migration.
+
+### Topic-reference follow-up — 2026-09-09
+
+The full migration follow-up on 2026-09-09 also observed `severity: "medium"` on
+topic-guardrails detectors, blocked-topic references and blocked contextual-grounding
+detectors. `TopicObjectSchema` now types optional per-topic severity; the existing detector
+schema already types the other two fields. Parsing preserves omission and explicit values;
+the CLI independently checks which server additions are acceptable during restore.
+
+The updated full SDK suite passed **11,667 tests**, including 29 policy extension tests.
+Coverage remains 99.72% statements/lines, 100% functions and 96.79% branches.
+
 ## Token-scoped inventories and submission validation
 
 `profiles.listForToken()`, `topics.listForToken()`, `apiKeys.listForToken()`, and
