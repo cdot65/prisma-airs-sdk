@@ -81,6 +81,7 @@ export class DataPatternsClient {
       responseSchema: PageDataPatternResponseSchema,
       auth: this.auth,
       numRetries: this.numRetries,
+      safeErrorMessages: true,
     });
   }
 
@@ -129,6 +130,7 @@ export class DataPatternsClient {
       responseSchema: DataPatternResponseSchema,
       auth: this.auth,
       numRetries: this.numRetries,
+      safeErrorMessages: true,
     });
   }
 
@@ -152,6 +154,7 @@ export class DataPatternsClient {
       responseSchema: DataPatternResponseSchema,
       auth: this.auth,
       numRetries: this.numRetries,
+      safeErrorMessages: true,
     });
   }
 
@@ -183,6 +186,7 @@ export class DataPatternsClient {
       responseSchema: DataPatternResponseSchema,
       auth: this.auth,
       numRetries: this.numRetries,
+      safeErrorMessages: true,
     });
   }
 
@@ -216,6 +220,7 @@ export class DataPatternsClient {
       responseSchema: DataPatternResponseSchema,
       auth: this.auth,
       numRetries: this.numRetries,
+      safeErrorMessages: true,
     });
   }
 
@@ -237,6 +242,7 @@ export class DataPatternsClient {
       path: `${DLP_DATA_PATTERNS_PATH}/${encodeURIComponent(resourceId)}`,
       auth: this.auth,
       numRetries: this.numRetries,
+      safeErrorMessages: true,
     });
   }
 }

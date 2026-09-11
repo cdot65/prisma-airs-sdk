@@ -2,6 +2,7 @@
 
 import { HTTP_FORCE_RETRY_STATUS_CODES } from './constants.js';
 import { AISecSDKException, ErrorType } from './errors.js';
+import { parseProblemDetails, problemMessage } from './http/problem.js';
 
 /**
  * @internal
@@ -70,6 +71,8 @@ export function classifyErrorType(status: number): ErrorType {
  * @param status - HTTP status code for fallback message.
  */
 export function extractErrorMessage(body: string, status: number): string {
+  const problem = parseProblemDetails(body);
+  if (problem) return problemMessage(problem, status);
   try {
     const parsed = JSON.parse(body) as Record<string, unknown>;
     const data = parsed.data as Record<string, unknown> | undefined;
@@ -148,6 +151,8 @@ export function parseRetryAfterBody(body: string): number | undefined {
 export interface RetryOptions {
   /** Maximum number of retry attempts. */
   maxRetries: number;
+  /** Only allowlisted problem diagnostics may be published for sensitive services. */
+  safeErrorMessages?: boolean;
   /** Cancel attempts and backoff when the caller stops the operation. */
   signal?: AbortSignal;
   /** Function that performs the HTTP request for each attempt. */
@@ -199,7 +204,7 @@ export async function executeWithRetry(opts: RetryOptions): Promise<Response> {
         continue;
       }
       throw new AISecSDKException(
-        lastError.message ?? 'Network error',
+        opts.safeErrorMessages ? 'Network request failed' : (lastError.message ?? 'Network error'),
         ErrorType.CLIENT_SIDE_ERROR,
         { failureKind: 'network' },
       );
@@ -234,10 +239,16 @@ export async function executeWithRetry(opts: RetryOptions): Promise<Response> {
     } catch {
       if (signal?.aborted) throw signal.reason;
     }
-    const errorMessage = extractErrorMessage(errorText, response.status);
+    const problem = parseProblemDetails(errorText);
+    const errorMessage = problem
+      ? problemMessage(problem, response.status)
+      : opts.safeErrorMessages
+        ? `API error ${response.status}`
+        : extractErrorMessage(errorText, response.status);
     const retryAfterHeader = response.headers?.get?.('Retry-After') ?? null;
     const headerRetryAfterMs = parseRetryAfterHeader(retryAfterHeader);
     throw new AISecSDKException(errorMessage, classifyErrorType(response.status), {
+      problem,
       failureKind: 'http',
       statusCode: response.status,
       retryAfterMs: headerRetryAfterMs ?? parseRetryAfterBody(errorText),

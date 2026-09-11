@@ -94,7 +94,7 @@ export class DictionariesClient {
    * const page = await mgmt.dlp.dictionaries.list({ size: 5 });
    * // page =>
    * // {
-   * //   content: [{ id: 'dict-1', name: 'PII', category: 'Confidential', region_name: 'us', type: 'custom' }],
+   * //   content: [{ id: 'dict-1', name: 'PII', category: 'Confidential', region_name: 'United States', type: 'custom' }],
    * //   totalElements: 1, totalPages: 1, number: 0, size: 20, first: true, last: true
    * // }
    * ```
@@ -114,6 +114,7 @@ export class DictionariesClient {
       responseSchema: PageDictionaryResponseSchema,
       auth: this.auth,
       numRetries: this.numRetries,
+      safeErrorMessages: true,
     });
   }
 
@@ -146,14 +147,14 @@ export class DictionariesClient {
    *     category: 'Confidential',
    *     name: 'PII',
    *     original_file_name: 'keywords.txt',
-   *     region_name: 'us-west-2',
+   *     region_name: 'United States',
    *     type: 'custom',
    *   },
    *   file: 'alpha\nbravo\ncharlie\n',
    *   includeKeywords: true,
    * });
    * // created =>
-   * // { id: 'dict-1', name: 'PII', category: 'Confidential', region_name: 'us-west-2', type: 'custom' }
+   * // { id: 'dict-1', name: 'PII', category: 'Confidential', region_name: 'United States', type: 'custom' }
    * ```
    */
   async create({
@@ -173,6 +174,7 @@ export class DictionariesClient {
       responseSchema: DictionaryResponseSchema,
       auth: this.auth,
       numRetries: this.numRetries,
+      safeErrorMessages: true,
     });
   }
 
@@ -200,6 +202,7 @@ export class DictionariesClient {
       responseSchema: DictionaryResponseSchema,
       auth: this.auth,
       numRetries: this.numRetries,
+      safeErrorMessages: true,
     });
   }
 
@@ -218,7 +221,7 @@ export class DictionariesClient {
    *     category: 'Confidential',
    *     name: 'PII',
    *     original_file_name: 'keywords.txt',
-   *     region_name: 'us-west-2',
+   *     region_name: 'United States',
    *     type: 'custom',
    *   },
    *   file: 'alpha\nbravo\ncharlie\ndelta\n',
@@ -243,6 +246,7 @@ export class DictionariesClient {
       allowEmptyBody: true,
       auth: this.auth,
       numRetries: this.numRetries,
+      safeErrorMessages: true,
     });
   }
 
@@ -275,6 +279,7 @@ export class DictionariesClient {
       responseSchema: DictionaryResponseSchema,
       auth: this.auth,
       numRetries: this.numRetries,
+      safeErrorMessages: true,
     });
   }
 
@@ -296,6 +301,7 @@ export class DictionariesClient {
       path: `${DLP_DICTIONARIES_PATH}/${encodeURIComponent(resourceId)}`,
       auth: this.auth,
       numRetries: this.numRetries,
+      safeErrorMessages: true,
     });
   }
 }

@@ -1,5 +1,19 @@
 # Release Notes
 
+## v0.30.1 (2026-09-11) — safe DLP diagnostics and verified dictionary regions
+
+- Surface sanitized RFC 7807 problem titles, details, and field errors in SDK
+  exceptions and exported `AISecSDKProblemDetails` metadata, preserving transport
+  status and retry metadata.
+- Withhold unrecognized text and response extensions, cap field errors at 20, and
+  suppress raw DLP server/network messages so dictionary keywords and rejected
+  payload values cannot leak through diagnostics.
+- Correct dictionary examples to the live-verified region display name
+  `United States`. Existing multipart serialization works without additional
+  fields; invalid region codes can produce a generic HTTP 400.
+
+See [dictionary region validation and error handling](../guides/dlp/dictionaries.md#region-names-and-live-validation).
+
 ## v0.30.0 (2026-09-09) — typed Runtime policy severity extensions
 
 - Model observed database, source-code, malicious-code, URL, model and agent severity

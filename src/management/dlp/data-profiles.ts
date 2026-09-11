@@ -85,6 +85,7 @@ export class DataProfilesClient {
       responseSchema: PageDataProfileResponseSchema,
       auth: this.auth,
       numRetries: this.numRetries,
+      safeErrorMessages: true,
     });
   }
 
@@ -139,6 +140,7 @@ export class DataProfilesClient {
       responseSchema: DataProfileResponseSchema,
       auth: this.auth,
       numRetries: this.numRetries,
+      safeErrorMessages: true,
     });
   }
 
@@ -162,6 +164,7 @@ export class DataProfilesClient {
       responseSchema: DataProfileResponseSchema,
       auth: this.auth,
       numRetries: this.numRetries,
+      safeErrorMessages: true,
     });
   }
 
@@ -202,6 +205,7 @@ export class DataProfilesClient {
       responseSchema: DataProfileResponseSchema,
       auth: this.auth,
       numRetries: this.numRetries,
+      safeErrorMessages: true,
     });
   }
 
@@ -234,6 +238,7 @@ export class DataProfilesClient {
       responseSchema: DataProfileResponseSchema,
       auth: this.auth,
       numRetries: this.numRetries,
+      safeErrorMessages: true,
     });
   }
 }

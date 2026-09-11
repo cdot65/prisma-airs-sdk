@@ -18,6 +18,7 @@ async function main() {
       console.log('Read-only: pass --writes for an owned dictionary lifecycle.');
       return;
     }
+    // Use the tenant's display name (live-verified: United States), not an AWS region code.
     const region =
       process.env.PANW_DLP_DICTIONARY_REGION ??
       page.content.find((d) => d.region_name)?.region_name;

@@ -94,7 +94,7 @@ const created = await client.dlp.dictionaries.create({
     category: 'Confidential',
     name: 'project-codenames',
     original_file_name: 'codenames.txt',
-    region_name: 'us-west-2',
+    region_name: 'United States',
     type: 'custom',
   },
   file: 'alpha\nbravo\ncharlie\n',
@@ -119,7 +119,7 @@ const replaced = await client.dlp.dictionaries.replace('dict-1', {
     category: 'Confidential',
     name: 'project-codenames',
     original_file_name: 'codenames.txt',
-    region_name: 'us-west-2',
+    region_name: 'United States',
     type: 'custom',
   },
   file: 'alpha\nbravo\ncharlie\ndelta\n',
@@ -168,7 +168,7 @@ const created = await client.dlp.dictionaries.create({
     category: 'Confidential',
     name: 'project-codenames',
     original_file_name: 'codenames.txt',
-    region_name: 'us-west-2',
+    region_name: 'United States',
     description: 'Internal project codenames — phonetic alphabet',
     is_case_sensitive: false,
     type: 'custom',
@@ -186,7 +186,7 @@ const created = await client.dlp.dictionaries.create({
   "name": "project-codenames",
   "description": "Internal project codenames — phonetic alphabet",
   "category": "Confidential",
-  "region_name": "us-west-2",
+  "region_name": "United States",
   "type": "custom",
   "is_case_sensitive": false,
   "is_parent_managed": false,
@@ -247,7 +247,7 @@ const result = await client.dlp.dictionaries.replace(id, {
     category: 'Confidential',
     name: 'project-codenames',
     original_file_name: 'codenames.txt',
-    region_name: 'us-west-2',
+    region_name: 'United States',
     type: 'custom',
   },
   file: updatedKeywords.join('\n') + '\n',
@@ -269,7 +269,7 @@ const reread = await client.dlp.dictionaries.get(id, { includeKeywords: true });
   "id": "dict-7f30c2",
   "name": "project-codenames",
   "category": "Confidential",
-  "region_name": "us-west-2",
+  "region_name": "United States",
   "type": "custom",
   "dictionary_metadata": {
     "number_of_keywords": 6,
@@ -326,13 +326,50 @@ await client.dlp.dictionaries.create({
     category: 'Confidential',
     name: 'codenames',
     original_file_name: 'codenames.txt',
-    region_name: 'us-west-2',
+    region_name: 'United States',
   },
   file: buf,
 });
 ```
 
+## Region names and live validation
+
+`region_name` uses the tenant's region display name. On September 11, 2026, a custom
+SCM dictionary in prod reported `United States`; the unchanged SDK 0.30.0 multipart
+request successfully created another dictionary with that value. Earlier requests
+using `GLOBAL`, `us`, `US`, or `us-west-2` returned a detail-free HTTP 400. This was
+an invalid region value, not evidence of missing dictionary entitlement. Retrieve
+an existing tenant dictionary or inspect SCM to obtain the correct value. The SDK
+does not guess or silently normalize region names.
+
+The successful request used the existing `json` application/json Blob and `file`
+parts with snake_case metadata. No additional classification or tags fields were
+needed. The CLI transfer guide records the accompanying tenant migration evidence.
+
 ## Error handling
+
+SDK 0.30.1 exposes sanitized RFC 7807 `title`, `detail`, and field-level `errors`
+in both `AISecSDKException.message` and its optional `problem` metadata. For example,
+a missing original filename can produce `originalFileName: must not be blank`.
+Only recognized protocol and validation vocabulary is shown. Unknown text becomes
+`[withheld]`, and `problem.redacted` is true when a field is withheld or more than
+20 field errors are returned. Raw response extensions and rejected values are never
+retained. DLP errors outside the problem format report the HTTP status without raw
+server messages; network errors also withhold exception text.
+
+```ts
+import { AISecSDKException, type AISecSDKProblemDetails } from '@cdot65/prisma-airs-sdk';
+
+function showDictionaryError(error: unknown): void {
+  if (!(error instanceof AISecSDKException)) throw error;
+  const problem: AISecSDKProblemDetails | undefined = error.problem;
+  console.error(error.message);
+  for (const field of problem?.errors ?? []) {
+    console.error(`${field.property}: ${field.reason}`);
+  }
+}
+```
+
 
 Dictionary metadata is typed (`DictionaryRequest`) but is serialized straight into the multipart
 body without a runtime parse. A body that TypeScript would reject — here `region_name` is missing and

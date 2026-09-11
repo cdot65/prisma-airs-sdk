@@ -18,8 +18,19 @@ export enum ErrorType {
   RESPONSE_VALIDATION = 'AISEC_RESPONSE_VALIDATION',
 }
 
+/** Sanitized RFC 7807 diagnostics. Unknown text is withheld because servers may echo payloads. */
+export interface AISecSDKProblemDetails {
+  title?: string;
+  detail?: string;
+  errors?: { property: string; reason: string }[];
+  /** At least one field was withheld or the field-error list was truncated. */
+  redacted: boolean;
+}
+
 /** Transport-level facts attached to HTTP and network failures. */
 export interface AISecSDKExceptionMetadata {
+  /** Sanitized problem diagnostics; unknown response text and extensions are withheld. */
+  problem?: AISecSDKProblemDetails;
   /** Whether the request received an HTTP response or failed at the network boundary. */
   failureKind?: 'http' | 'network';
   /** HTTP response status, when a response was received. */
@@ -34,6 +45,7 @@ export interface AISecSDKExceptionMetadata {
  */
 export class AISecSDKException extends Error {
   public readonly errorType?: ErrorType;
+  declare public readonly problem?: AISecSDKProblemDetails;
   declare public readonly failureKind?: 'http' | 'network';
   declare public readonly statusCode?: number;
   declare public readonly retryAfterMs?: number;
@@ -47,6 +59,7 @@ export class AISecSDKException extends Error {
     super(errorType ? `${errorType}:${message}` : message);
     this.name = 'AISecSDKException';
     this.errorType = errorType;
+    if (metadata.problem !== undefined) this.problem = metadata.problem;
     if (metadata.failureKind !== undefined) this.failureKind = metadata.failureKind;
     if (metadata.statusCode !== undefined) this.statusCode = metadata.statusCode;
     if (metadata.retryAfterMs !== undefined) this.retryAfterMs = metadata.retryAfterMs;

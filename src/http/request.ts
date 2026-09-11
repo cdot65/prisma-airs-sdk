@@ -80,6 +80,7 @@ export async function request<TResponse = void>(spec: RequestSpec<TResponse>): P
   try {
     const response = await executeWithRetry({
       maxRetries: spec.numRetries,
+      safeErrorMessages: spec.safeErrorMessages,
       signal: spec.signal,
       execute: async () => {
         disposeAttempt();

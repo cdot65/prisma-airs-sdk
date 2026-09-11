@@ -54,6 +54,8 @@ export interface RequestSpec<TResponse = void> {
   secretOperation?: AIGatewaySecretOperation;
   /** Omit sensitive request and response bodies from debug output. */
   omitDebugBody?: boolean;
+  /** Publish only allowlisted error diagnostics; never raw server messages. */
+  safeErrorMessages?: boolean;
   /**
    * Override the request Content-Type when a JSON `body` is sent. Defaults to `application/json`.
    * Used by DLP endpoints that require `application/merge-patch+json` (RFC 7396).

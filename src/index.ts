@@ -7,7 +7,12 @@ export {
   type SyncScanOptions,
   type ContentOptions,
 } from './scan/index.js';
-export { AISecSDKException, ErrorType, type AISecSDKExceptionMetadata } from './errors.js';
+export {
+  AISecSDKException,
+  ErrorType,
+  type AISecSDKExceptionMetadata,
+  type AISecSDKProblemDetails,
+} from './errors.js';
 export * from './listing.js';
 export * from './models/index.js';
 export * from './constants.js';
