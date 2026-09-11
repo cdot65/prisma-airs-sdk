@@ -1,5 +1,12 @@
 # Release Notes
 
+## v0.31.1 (2026-09-11) — Node 18 fix for generated scope names
+
+- `generateWorkspaceScopeName()` (and therefore `workspaces.provision()` without an explicit
+  `scope_name`) threw `Cannot read properties of undefined (reading 'getRandomValues')` on
+  Node 18, where the Web Crypto global is not exposed. It now draws its suffix from
+  `node:crypto`, matching the rest of the SDK. Verified on the Node 18/20/22/24 matrix.
+
 ## v0.31.0 (2026-09-11) — scope-first AI Gateway workspace provisioning
 
 - Add `IamScopesClient` (`gw.iamScopes`) for SCM IAM scopes (`/iam/v1/scopes`): `list`, `get`,

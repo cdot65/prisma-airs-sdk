@@ -1,3 +1,5 @@
+import { randomBytes } from 'node:crypto';
+
 /** Characters SCM's own generated suffixes use (`ws_truffles_ggolfu`, `ws_production_bx7qw0`). */
 const SUFFIX_ALPHABET = 'abcdefghijklmnopqrstuvwxyz0123456789';
 const SUFFIX_LENGTH = 6;
@@ -25,9 +27,9 @@ export function generateWorkspaceScopeName(workspaceName: string): string {
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, '_')
     .replace(/^_+|_+$/g, '');
-  const bytes = new Uint8Array(SUFFIX_LENGTH);
-  globalThis.crypto.getRandomValues(bytes);
+  // node:crypto, not globalThis.crypto: the Web Crypto global is absent on Node 18 (engines >=18).
   let suffix = '';
-  for (const byte of bytes) suffix += SUFFIX_ALPHABET[byte % SUFFIX_ALPHABET.length];
+  for (const byte of randomBytes(SUFFIX_LENGTH))
+    suffix += SUFFIX_ALPHABET[byte % SUFFIX_ALPHABET.length];
   return `ws_${stem || 'workspace'}_${suffix}`;
 }
