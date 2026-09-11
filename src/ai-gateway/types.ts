@@ -1,4 +1,8 @@
 import type { AuthAdapter } from '../http/types.js';
+import type { IamScopesClient } from '../iam/scopes-client.js';
+import type { IamScope } from '../models/iam.js';
+import type { GatewayWorkspaceCreateResponse } from '../models/ai-gateway.js';
+import type { GatewayWorkspaceCreateRequest } from '../models/ai-gateway-requests.js';
 
 /**
  * @internal
@@ -28,6 +32,39 @@ export interface AIGatewayWorkspacesClientOptions {
   adminBaseUrl: string;
   auth: AuthAdapter;
   numRetries: number;
+  /**
+   * IAM scopes client used by `provision()`. Optional so direct sub-client construction keeps
+   * working; without it `provision()` throws before any network call.
+   */
+  iamScopes?: IamScopesClient;
+}
+
+/**
+ * Request for `AIGatewayWorkspacesClient.provision`. Same fields as a plain create, except
+ * `scope_name` is optional — a fresh one is generated from `name` when omitted.
+ */
+export type GatewayWorkspaceProvisionRequest = Omit<GatewayWorkspaceCreateRequest, 'scope_name'> & {
+  /** IAM scope to create (default) or reuse (`existingScope`). Generated when omitted. */
+  scope_name?: string;
+};
+
+/** Options for `AIGatewayWorkspacesClient.provision`. */
+export interface AIGatewayWorkspaceProvisionOptions {
+  /**
+   * Skip the scope-creation step and bind the workspace to an IAM scope that already exists.
+   * Requires `scope_name`. Existing bindings on that scope are preserved.
+   */
+  existingScope?: boolean;
+}
+
+/** Result of `AIGatewayWorkspacesClient.provision`. */
+export interface GatewayWorkspaceProvisionResult {
+  /** The IAM scope after the workspace was bound to it. */
+  scope: IamScope;
+  /** The `POST /workspaces` response — most of the record, but call `get()` for settings. */
+  workspace: GatewayWorkspaceCreateResponse;
+  /** `false` when `existingScope` reused a scope instead of creating one. */
+  scopeCreated: boolean;
 }
 
 /**

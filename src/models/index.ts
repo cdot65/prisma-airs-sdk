@@ -429,5 +429,6 @@ export * from './ai-gateway.js';
 export * from './ai-gateway-dashboard.js';
 export * from './ai-gateway-routing.js';
 export * from './ai-gateway-requests.js';
+export * from './iam.js';
 export * from './ai-gateway-inference.js';
 export * from './agentguard.js';

@@ -16,8 +16,10 @@
  *
  * VERIFICATION STATUS (revalidated 2026-09-06):
  *   list / get      VERIFIED, including the status filter, admin-plane routing, and slug refs.
- *   create          Latest owned-fixture attempts returned HTTP 400 AB01 for synthetic scope names.
- *                   A valid unused SCM scope or known-good SCM request is needed for revalidation.
+ *   create          The 2026-09-06 HTTP 400 AB01 was a missing prerequisite: --scope-name must name
+ *                   an IAM scope that already exists (gw.iamScopes.create). Prefer
+ *                   gw.workspaces.provision(), which creates the scope, the workspace, and the
+ *                   scope→slug binding in SCM's own order (captured 2026-09-11).
  *   update/delete   Historical behavior is documented in the client; no new workspace was created
  *                   during this review, so its owned lifecycle could not be revalidated.
  *                   Use --dry-run first. Do not mutate an existing workspace to bypass this limit.

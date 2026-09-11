@@ -1,6 +1,9 @@
 import { AI_GW_WORKSPACES_PATH } from '../constants.js';
+import { AISecSDKException, ErrorType } from '../errors.js';
 import { request } from '../http/request.js';
 import type { AuthAdapter } from '../http/types.js';
+import { generateWorkspaceScopeName } from '../iam/scope-name.js';
+import type { IamScopesClient } from '../iam/scopes-client.js';
 import { assertWorkspaceRef } from '../validators.js';
 import {
   ListWorkspacesResponseSchema,
@@ -18,11 +21,15 @@ import {
   type GatewayWorkspaceCreateRequest,
   type GatewayWorkspaceUpdateRequest,
 } from '../models/ai-gateway-requests.js';
+import type { IamScope } from '../models/iam.js';
 import type {
   AIGatewayPlane,
   AIGatewayWorkspaceGetOptions,
   AIGatewayWorkspaceListOptions,
+  AIGatewayWorkspaceProvisionOptions,
   AIGatewayWorkspacesClientOptions,
+  GatewayWorkspaceProvisionRequest,
+  GatewayWorkspaceProvisionResult,
 } from './types.js';
 
 /**
@@ -37,12 +44,14 @@ export class AIGatewayWorkspacesClient {
   private readonly adminBaseUrl: string;
   private readonly auth: AuthAdapter;
   private readonly numRetries: number;
+  private readonly iamScopes?: IamScopesClient;
 
   constructor(opts: AIGatewayWorkspacesClientOptions) {
     this.baseUrl = opts.baseUrl;
     this.adminBaseUrl = opts.adminBaseUrl;
     this.auth = opts.auth;
     this.numRetries = opts.numRetries;
+    this.iamScopes = opts.iamScopes;
   }
 
   private urlFor(plane: AIGatewayPlane | undefined): string {
@@ -128,9 +137,13 @@ export class AIGatewayWorkspacesClient {
 
   /**
    * Create a workspace. **Admin plane** — needs a tenant-root admin role.
-   * The 2026-09-06 owned-fixture revalidation returned HTTP 400 AB01 for synthetic
-   * scope names. Supply a valid unused SCM-provisioned scope; the prerequisite and
-   * successful creation remain unverified in this tenant. Do not derive or reuse a scope.
+   *
+   * **`scope_name` must name an IAM scope that already exists.** The 2026-09-06 revalidation's
+   * `400 AB01` for synthetic scope names was this prerequisite, not a contract change: SCM's own
+   * UI (captured 2026-09-11) first `POST`s `/iam/v1/scopes`, then creates the workspace, then
+   * `PUT`s the scope back with the new workspace slug bound. Use
+   * {@link AIGatewayWorkspacesClient.provision} for the whole sequence, or run
+   * `gw.iamScopes.create()` yourself before calling this.
    *
    * @param body - `name` and `scope_name` are both required; the API rejects a body missing either.
    * @returns The created workspace. Unlike `configs`/`guardrails`/`providers`/`deployments`,
@@ -162,6 +175,110 @@ export class AIGatewayWorkspacesClient {
       auth: this.auth,
       numRetries: this.numRetries,
     });
+  }
+
+  /**
+   * Provision a workspace the way Strata Cloud Manager's UI does — three calls, in order:
+   *
+   * 1. `iamScopes.create({ name: scope_name })` — the IAM scope must exist first; creating the
+   *    workspace against a missing scope fails with `400 AB01`. Skipped with `existingScope`.
+   * 2. `workspaces.create({ ...request, scope_name })` — returns the workspace `slug`.
+   * 3. `iamScopes.bindWorkspace(scope_name, slug)` — `PUT`s the scope back with
+   *    `{ resource_type: 'workspace', resource_id: slug }`, which is what actually grants
+   *    data-plane access to the new workspace.
+   *
+   * Sequence captured from SCM on 2026-09-11. **Admin plane**; needs a tenant-root admin role.
+   *
+   * Partial failures are reported, not hidden. If step 2 fails after this call created the scope,
+   * the scope is deleted again (best effort) and the error says whether that rollback succeeded.
+   * If step 3 fails, the workspace exists but is unbound; the error names both the workspace
+   * slug and the scope so you can finish with `gw.iamScopes.bindWorkspace(scope, slug)`.
+   *
+   * @param request - A workspace create request whose `scope_name` is optional. When omitted, one
+   * is generated with {@link generateWorkspaceScopeName} (`ws_<name>_<6 random chars>`, matching
+   * SCM's own naming).
+   * @param options - `existingScope: true` binds to a scope that already exists instead of
+   * creating one; `scope_name` is then required.
+   * @returns The bound scope, the create response, and whether a scope was created.
+   * @example
+   * ```ts
+   * import { AIGatewayClient } from '@cdot65/prisma-airs-sdk';
+   * const gw = new AIGatewayClient();
+   *
+   * const { scope, workspace } = await gw.workspaces.provision({
+   *   name: 'truffles',
+   *   description: 'Online recipe generation application',
+   * });
+   * // scope.name            => 'ws_truffles_ggolfu'   (generated)
+   * // workspace.slug        => 'ws-truffl-03e7d9'
+   * // scope.resources[0]    => { resource_type: 'workspace', resource_id: 'ws-truffl-03e7d9', metadata: [] }
+   *
+   * // Reuse a scope you already created (bindings on it are preserved):
+   * await gw.workspaces.provision(
+   *   { name: 'Staging', scope_name: 'ws_staging_q1x8mz' },
+   *   { existingScope: true },
+   * );
+   * ```
+   */
+  async provision(
+    request: GatewayWorkspaceProvisionRequest,
+    options: AIGatewayWorkspaceProvisionOptions = {},
+  ): Promise<GatewayWorkspaceProvisionResult> {
+    const iamScopes = this.iamScopes;
+    if (!iamScopes) {
+      throw new AISecSDKException(
+        'provision() needs an IAM scopes client; construct via new AIGatewayClient() or pass iamScopes',
+        ErrorType.AISEC_SDK_ERROR,
+      );
+    }
+    if (options.existingScope && !request.scope_name) {
+      throw new AISecSDKException(
+        'provision({ existingScope: true }) requires scope_name',
+        ErrorType.USER_REQUEST_PAYLOAD_ERROR,
+      );
+    }
+    const { scope_name: requestedScope, ...rest } = request;
+    const scopeName = requestedScope ?? generateWorkspaceScopeName(request.name);
+    const scopeCreated = !options.existingScope;
+
+    if (scopeCreated) {
+      await iamScopes.create({ name: scopeName, description: request.description ?? '' });
+    }
+
+    let workspace: GatewayWorkspaceCreateResponse;
+    try {
+      workspace = await this.create({ ...rest, scope_name: scopeName });
+    } catch (err) {
+      if (!scopeCreated) throw err;
+      let rollback = `IAM scope ${scopeName} was deleted again`;
+      try {
+        await iamScopes.delete(scopeName);
+      } catch (rollbackErr) {
+        rollback =
+          `IAM scope ${scopeName} was created and is still present ` +
+          `(rollback failed: ${messageOf(rollbackErr)}); delete it or reuse it with existingScope`;
+      }
+      throw new AISecSDKException(
+        `workspace create failed after creating its IAM scope — ${rollback}: ${messageOf(err)}`,
+        ErrorType.AISEC_SDK_ERROR,
+        statusOf(err),
+      );
+    }
+
+    let scope: IamScope;
+    try {
+      scope = await iamScopes.bindWorkspace(scopeName, workspace.slug);
+    } catch (err) {
+      throw new AISecSDKException(
+        `workspace ${workspace.slug} (${workspace.id}) was created but could not be bound to IAM scope ` +
+          `${scopeName}; finish with iamScopes.bindWorkspace('${scopeName}', '${workspace.slug}'): ` +
+          messageOf(err),
+        ErrorType.AISEC_SDK_ERROR,
+        statusOf(err),
+      );
+    }
+
+    return { scope, workspace, scopeCreated };
   }
 
   /**
@@ -235,4 +352,13 @@ export class AIGatewayWorkspacesClient {
       numRetries: this.numRetries,
     });
   }
+}
+
+function messageOf(err: unknown): string {
+  return err instanceof Error ? err.message : String(err);
+}
+
+function statusOf(err: unknown): { statusCode?: number } {
+  const status = (err as { statusCode?: unknown }).statusCode;
+  return typeof status === 'number' ? { statusCode: status } : {};
 }

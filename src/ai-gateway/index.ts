@@ -38,6 +38,9 @@ export {
   type AIGatewayWorkspacesClientOptions,
   type AIGatewayWorkspaceListOptions,
   type AIGatewayWorkspaceGetOptions,
+  type AIGatewayWorkspaceProvisionOptions,
+  type GatewayWorkspaceProvisionRequest,
+  type GatewayWorkspaceProvisionResult,
   type AIGatewayPlane,
 } from './types.js';
 export { AIGatewayWorkspacesClient } from './workspaces-client.js';

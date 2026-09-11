@@ -62,6 +62,7 @@ Key modules:
 - `src/management/` — ManagementClient, OAuthClient + per-resource clients (profiles, topics, api-keys, customer-apps, dlp-profiles, deployment-profiles, scan-logs, oauth-management, dashboard) and `dlp/` namespace
 - `src/model-security/` — ModelSecurityClient + 5 sub-clients (scans, security-groups, security-rules, models, custom-rules)
 - `src/red-team/` — RedTeamClient + 9 sub-clients (scans, reports, custom-attack-reports, targets, custom-attacks, eula, instances, adapters, network-broker)
+- `src/iam/` — `IamScopesClient` for SCM IAM scopes (`/iam/v1/scopes`), exposed as `AIGatewayClient.iamScopes`. A workspace's `scope_name` must name an existing scope; `workspaces.provision()` runs scope create → workspace create → scope PUT (bind by slug), mirroring SCM's UI. Plane `other` in the OpenAPI inventory — never in the gateway coverage denominator. `iamScopes.delete()` is not live-verified.
 - `src/ai-gateway/` — 17 SCM sub-clients; OAuth + x-tsg-id; explicit admin/data routing. Separate `AIGatewayInferenceClient` / `AIGatewayClient.inference` runtime uses an explicit endpoint and `x-portkey-api-key`, typed HTTP resources and bounded cancellable SSE. Runtime retries default to zero.
 - `src/http/` — shared request pipeline (`request.ts`), auth adapters (`auth/api-key.ts` HMAC, `auth/oauth.ts` bearer), opt-in debug logging (`debug.ts`, gated by `PANW_AI_SEC_DEBUG`, hashes token headers), types
 - `src/http-retry.ts` — shared exponential backoff + full-jitter retry (used by the request pipeline)

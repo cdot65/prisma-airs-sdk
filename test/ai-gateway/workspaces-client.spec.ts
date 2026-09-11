@@ -336,3 +336,197 @@ describe('AIGatewayWorkspacesClient', () => {
     });
   });
 });
+
+describe('AIGatewayWorkspacesClient.provision', () => {
+  const originalFetch = globalThis.fetch;
+  afterEach(() => {
+    globalThis.fetch = originalFetch;
+  });
+
+  // Captured from SCM's UI on 2026-09-11 (TSG 1001464285).
+  const scopeRow = {
+    name: 'ws_truffles_ggolfu',
+    description: 'Online recipe generation application',
+    resources: [],
+    tsg_id: '1001464285',
+    id: 'ws_truffles_ggolfu:1001464285',
+  };
+  const boundScope = {
+    ...scopeRow,
+    resources: [{ metadata: [], resource_id: 'ws-truffl-03e7d9', resource_type: 'workspace' }],
+  };
+  const created = {
+    id: '5f2e45ed-6b07-4229-bb16-d0cc4ee8cf0e',
+    name: 'truffles',
+    slug: 'ws-truffl-03e7d9',
+    description: 'Online recipe generation application',
+    created_at: '2026-09-11T11:13:29.091Z',
+    last_updated_at: '2026-09-11T11:13:29.091Z',
+    defaults: null,
+    users: [],
+    scope_name: 'ws_truffles_ggolfu',
+    object: 'workspace',
+  };
+
+  function fakeScopes() {
+    return {
+      create: vi.fn().mockResolvedValue(scopeRow),
+      bindWorkspace: vi.fn().mockResolvedValue(boundScope),
+      delete: vi.fn().mockResolvedValue(undefined),
+    };
+  }
+  function build(iamScopes?: ReturnType<typeof fakeScopes>) {
+    return new AIGatewayWorkspacesClient({
+      baseUrl: 'https://gw.example.com',
+      adminBaseUrl: 'https://admin.example.com',
+      auth: passthroughAuth(),
+      numRetries: 0,
+      iamScopes: iamScopes as unknown as import('../../src/iam/scopes-client.js').IamScopesClient,
+    });
+  }
+  const postedBody = () =>
+    JSON.parse(
+      ((globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0][1] as RequestInit)
+        .body as string,
+    );
+
+  it('runs scope create → workspace create → bind, in that order, with the given scope name', async () => {
+    const scopes = fakeScopes();
+    mockFetch(created);
+    const order: string[] = [];
+    scopes.create.mockImplementation(async () => (order.push('scope'), scopeRow));
+    scopes.bindWorkspace.mockImplementation(async () => (order.push('bind'), boundScope));
+    (globalThis.fetch as ReturnType<typeof vi.fn>).mockImplementation(async () => {
+      order.push('workspace');
+      return { ok: true, status: 200, text: async () => JSON.stringify(created) };
+    });
+
+    const res = await build(scopes).provision({
+      name: 'truffles',
+      description: 'Online recipe generation application',
+      scope_name: 'ws_truffles_ggolfu',
+    });
+
+    expect(order).toEqual(['scope', 'workspace', 'bind']);
+    expect(scopes.create).toHaveBeenCalledWith({
+      name: 'ws_truffles_ggolfu',
+      description: 'Online recipe generation application',
+    });
+    expect(postedBody()).toEqual({
+      name: 'truffles',
+      description: 'Online recipe generation application',
+      scope_name: 'ws_truffles_ggolfu',
+    });
+    expect(scopes.bindWorkspace).toHaveBeenCalledWith('ws_truffles_ggolfu', 'ws-truffl-03e7d9');
+    expect(res).toEqual({ scope: boundScope, workspace: created, scopeCreated: true });
+    expect(scopes.delete).not.toHaveBeenCalled();
+  });
+
+  it('generates a ws_<name>_<suffix> scope name when none is given, and uses it everywhere', async () => {
+    const scopes = fakeScopes();
+    mockFetch(created);
+    await build(scopes).provision({ name: 'Truffles' });
+
+    const generated = scopes.create.mock.calls[0][0].name as string;
+    expect(generated).toMatch(/^ws_truffles_[a-z0-9]{6}$/);
+    expect(scopes.create).toHaveBeenCalledWith({ name: generated, description: '' });
+    expect(postedBody().scope_name).toBe(generated);
+    expect(scopes.bindWorkspace).toHaveBeenCalledWith(generated, 'ws-truffl-03e7d9');
+  });
+
+  it('with existingScope, skips the create step and never rolls the scope back', async () => {
+    const scopes = fakeScopes();
+    mockFetch(created);
+    const res = await build(scopes).provision(
+      { name: 'truffles', scope_name: 'ws_truffles_ggolfu' },
+      { existingScope: true },
+    );
+    expect(scopes.create).not.toHaveBeenCalled();
+    expect(scopes.bindWorkspace).toHaveBeenCalledWith('ws_truffles_ggolfu', 'ws-truffl-03e7d9');
+    expect(res.scopeCreated).toBe(false);
+  });
+
+  it('with existingScope, requires scope_name before any call', async () => {
+    const scopes = fakeScopes();
+    globalThis.fetch = vi.fn();
+    await expect(
+      build(scopes).provision({ name: 'truffles' }, { existingScope: true }),
+    ).rejects.toThrow(/requires scope_name/);
+    expect(scopes.create).not.toHaveBeenCalled();
+    expect(globalThis.fetch).not.toHaveBeenCalled();
+  });
+
+  it('without an IAM scopes client, throws before any network call', async () => {
+    globalThis.fetch = vi.fn();
+    await expect(build(undefined).provision({ name: 'truffles' })).rejects.toThrow(
+      /IAM scopes client/,
+    );
+    expect(globalThis.fetch).not.toHaveBeenCalled();
+  });
+
+  it('rolls the new scope back when workspace create fails, and says so', async () => {
+    const scopes = fakeScopes();
+    mockFetch({ errorCode: 'AB01', message: 'bad' }, 400);
+    await expect(
+      build(scopes).provision({ name: 'truffles', scope_name: 'ws_truffles_ggolfu' }),
+    ).rejects.toThrow(/IAM scope ws_truffles_ggolfu was deleted again/);
+    expect(scopes.delete).toHaveBeenCalledWith('ws_truffles_ggolfu');
+    expect(scopes.bindWorkspace).not.toHaveBeenCalled();
+  });
+
+  it('reports a failed rollback instead of hiding the orphaned scope', async () => {
+    const scopes = fakeScopes();
+    scopes.delete.mockRejectedValue(new Error('405 nope'));
+    mockFetch({ errorCode: 'AB01' }, 400);
+    let caught: unknown;
+    await build(scopes)
+      .provision({ name: 'truffles', scope_name: 'ws_truffles_ggolfu' })
+      .catch((e) => (caught = e));
+    expect(caught).toBeInstanceOf(AISecSDKException);
+    expect((caught as Error).message).toMatch(/is still present/);
+    expect((caught as Error).message).toMatch(/rollback failed: 405 nope/);
+    expect((caught as Error).message).toMatch(/existingScope/);
+    expect((caught as AISecSDKException).statusCode).toBe(400);
+  });
+
+  it('does not touch a pre-existing scope when workspace create fails under existingScope', async () => {
+    const scopes = fakeScopes();
+    mockFetch({ errorCode: 'AB01' }, 400);
+    await expect(
+      build(scopes).provision(
+        { name: 'truffles', scope_name: 'ws_truffles_ggolfu' },
+        { existingScope: true },
+      ),
+    ).rejects.toThrow(AISecSDKException);
+    expect(scopes.delete).not.toHaveBeenCalled();
+  });
+
+  it('names the created workspace and scope when the bind step fails', async () => {
+    const scopes = fakeScopes();
+    scopes.bindWorkspace.mockRejectedValue(
+      Object.assign(new Error('403 denied'), { statusCode: 403 }),
+    );
+    mockFetch(created);
+    let caught: unknown;
+    await build(scopes)
+      .provision({ name: 'truffles', scope_name: 'ws_truffles_ggolfu' })
+      .catch((e) => (caught = e));
+    expect((caught as Error).message).toContain('ws-truffl-03e7d9');
+    expect((caught as Error).message).toContain('5f2e45ed-6b07-4229-bb16-d0cc4ee8cf0e');
+    expect((caught as Error).message).toContain(
+      "iamScopes.bindWorkspace('ws_truffles_ggolfu', 'ws-truffl-03e7d9')",
+    );
+    expect((caught as AISecSDKException).statusCode).toBe(403);
+    // The workspace is not archived on a bind failure — it is real and recoverable.
+    expect(scopes.delete).not.toHaveBeenCalled();
+  });
+
+  it('carries non-Error rejections through as text', async () => {
+    const scopes = fakeScopes();
+    scopes.bindWorkspace.mockRejectedValue('string failure');
+    mockFetch(created);
+    await expect(
+      build(scopes).provision({ name: 'truffles', scope_name: 'ws_truffles_ggolfu' }),
+    ).rejects.toThrow(/string failure/);
+  });
+});

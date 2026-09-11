@@ -1,5 +1,24 @@
 # Release Notes
 
+## v0.31.0 (2026-09-11) — scope-first AI Gateway workspace provisioning
+
+- Add `IamScopesClient` (`gw.iamScopes`) for SCM IAM scopes (`/iam/v1/scopes`): `list`, `get`,
+  `create`, `update` (full replacement), `bindWorkspace`, and `delete`. Same OAuth token and
+  `x-tsg-id` as the AI Gateway admin plane; `PANW_IAM_ENDPOINT` overrides the base URL.
+- Add `AIGatewayWorkspacesClient.provision()`, which runs the three-step sequence Strata Cloud
+  Manager's own UI uses: create the IAM scope, create the workspace with that `scope_name`, then
+  PUT the scope back with the new workspace slug bound as a resource. Scope names default to
+  SCM's `ws_<name>_<suffix>` convention via the exported `generateWorkspaceScopeName()`;
+  `{ existingScope: true }` binds a pre-existing scope and preserves its other bindings.
+- Report partial failures explicitly: a failed workspace step rolls the new scope back (best
+  effort, outcome stated in the error); a failed bind step names the created slug and scope so
+  the caller can finish with `iamScopes.bindWorkspace()`.
+- Explain the 2026-09-06 `400 AB01` on `workspaces.create()`: the `scope_name` did not exist yet.
+  List and get on IAM scopes were verified live; create and update mirror captured SCM requests;
+  delete is not live-verified.
+
+See [provisioning a workspace](../guides/ai-gateway-api.mdx#provisioning-a-workspace-the-scope-comes-first).
+
 ## v0.30.1 (2026-09-11) — safe DLP diagnostics and verified dictionary regions
 
 - Surface sanitized RFC 7807 problem titles, details, and field errors in SDK

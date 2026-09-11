@@ -140,6 +140,7 @@ intended operation. The separate runtime inference client uses its own gateway k
 | `PANW_AI_GW_DATA_ENDPOINT` | -- | No | Data plane URL (default: `https://api.apps.paloaltonetworks.com/ai_gw/v2`) |
 | `PANW_AI_GW_ADMIN_ENDPOINT` | -- | No | Admin plane URL (default: `https://api.apps.paloaltonetworks.com/ai_gw/admin/v2`) |
 | `PANW_AI_GW_TOKEN_ENDPOINT` | `PANW_MGMT_TOKEN_ENDPOINT` | No | Token URL (default: `https://auth.apps.paloaltonetworks.com/oauth2/access_token`) |
+| `PANW_IAM_ENDPOINT` | -- | No | SCM IAM URL for workspace scopes (default: `https://api.apps.paloaltonetworks.com/iam/v1`) |
 
 ### Setup
 
@@ -190,7 +191,7 @@ Token fetch, caching, and refresh are handled automatically, same as every other
 
 ## Sub-Clients
 
-`AIGatewayClient` exposes 17 SCM sub-clients and the separate `inference` runtime client:
+`AIGatewayClient` exposes 17 SCM sub-clients, the SCM IAM `iamScopes` client that workspace provisioning depends on, and the separate `inference` runtime client:
 
 | Sub-Client | Plane | Access |
 | --- | --- | --- |
@@ -211,6 +212,7 @@ Token fetch, caching, and refresh are handled automatically, same as every other
 | `organisations` | Admin | `gw.organisations` |
 | `auditLogs` | Admin | `gw.auditLogs` |
 | `secretReferences` | Admin | `gw.secretReferences` |
+| `iamScopes` | IAM (`/iam/v1`) | `gw.iamScopes` |
 
 ## Walkthrough: workspace spend and blocked requests
 
@@ -577,6 +579,31 @@ const plugins = await gw.plugins.list();
 const org = await gw.organisations.getSelf();
 ```
 
+### Provisioning a workspace: the scope comes first
+
+A workspace's `scope_name` is not a label — it names an **SCM IAM scope** that must already exist. Strata Cloud Manager's own "create workspace" flow (captured 2026-09-11) is three requests, and `workspaces.provision()` runs exactly that sequence:
+
+1. `POST /iam/v1/scopes` `{ name, description, resources: [] }` — create the scope.
+2. `POST /ai_gw/admin/v2/workspaces` `{ name, description, scope_name }` — create the workspace; the response carries the server-generated `slug`.
+3. `PUT /iam/v1/scopes/{name}` with `resources: [{ resource_type: 'workspace', resource_id: <slug>, metadata: [] }]` — bind the scope to the workspace. This is the step that actually grants data-plane access.
+
+```ts
+const { scope, workspace } = await gw.workspaces.provision({
+  name: 'truffles',
+  description: 'Online recipe generation application',
+});
+
+workspace.slug; // 'ws-truffl-03e7d9'  (server-generated)
+scope.name; // 'ws_truffles_ggolfu'  (generated: ws_<name>_<6 chars>, SCM's own convention)
+scope.resources; // [{ resource_type: 'workspace', resource_id: 'ws-truffl-03e7d9', metadata: [] }]
+```
+
+Pass `scope_name` to pick the name yourself, or `{ existingScope: true }` to bind a scope you created earlier (its existing bindings are preserved). The three primitives are public too — `gw.iamScopes.create()`, `gw.workspaces.create()`, `gw.iamScopes.bindWorkspace()` — and `gw.iamScopes.list()` shows every scope in the tenant, including unbound leftovers (`resources: []`).
+
+Skipping step 1 is why a bare `workspaces.create()` with a made-up `scope_name` fails with `400 AB01`: that was the outcome of the 2026-09-06 revalidation, and it was the missing prerequisite rather than a contract change.
+
+`provision()` does not hide partial failures. If the workspace step fails after the scope was created, the scope is deleted again and the error says whether that rollback worked. If the bind step fails, the workspace exists but is unbound, and the error names the slug and scope so you can finish with `gw.iamScopes.bindWorkspace(scope, slug)`. `iamScopes.delete()` itself has not been observed live.
+
 For a self-hosted data plane, register it against only the workspace it may serve. Capture the creation receipt immediately because its `client_auth` and gateway password are returned only once:
 
 ```ts
@@ -728,7 +755,7 @@ const summary = audit.records.map((r) => `${r.timestamp} ${r.method} ${r.uri.spl
 
 - **`workspaces.create()` returns most of the record, not a receipt.** It is the odd one out: `configs`/`guardrails`/`providers`/`deployments` creates hand back 3-5 field receipts, and `apiKeys.create*()`, `integrations.create()`, `mcpIntegrations.create()`, and `plugins.create()` return an unmodelled passthrough object (`GatewayWriteResponse`). Even so it omits `status`, `is_default`, `icon`, `usage_limits`, `rate_limits`, and the settings blocks, so follow it with `get()` if you need those. `workspaces.update()` returns an empty `{}` — the write lands, but you must re-read to see it.
 
-- **`workspaces.create()` needs a `scope_name`.** It is the SCM role scope granting data-plane access to the new workspace, and it is not derived from `name`. Create one with a scope nobody holds and it simply will not appear in a data-plane `list()` — which is the most common way a freshly created workspace "goes missing".
+- **`workspaces.create()` needs a `scope_name` that already exists.** It names an SCM IAM scope (`gw.iamScopes`), not a free-form label, and it is not derived from `name`. A `scope_name` with no matching scope fails with `400 AB01`; a scope that exists but is never bound to the workspace (step 3) leaves the workspace invisible to data-plane `list()` — the most common way a freshly created workspace "goes missing". Use `workspaces.provision()` to do all three steps in order (see the Admin Plane section).
 
 - **`usage_limits` / `rate_limits` are arrays of policy objects.** On `workspaces.get()` and on the `integrations.getWorkspaces()` rows, these hold zero or more limit policies — not a single settings object. They are typed as a union (array, legacy object, or `null`), so narrow before indexing:
 

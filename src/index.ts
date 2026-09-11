@@ -21,3 +21,4 @@ export * from './model-security/index.js';
 export * from './agentguard/client.js';
 export * from './red-team/index.js';
 export * from './ai-gateway/index.js';
+export * from './iam/index.js';

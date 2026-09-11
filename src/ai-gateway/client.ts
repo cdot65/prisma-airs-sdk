@@ -3,10 +3,13 @@ import {
   AI_GW_DATA_ENDPOINT,
   DEFAULT_AI_GW_ADMIN_ENDPOINT,
   DEFAULT_AI_GW_DATA_ENDPOINT,
+  DEFAULT_IAM_ENDPOINT,
+  IAM_ENDPOINT,
 } from '../constants.js';
 import { OAuthAuth } from '../http/auth/oauth.js';
 import { TsgHeaderAuth } from '../http/auth/tsg-header.js';
 import type { AuthAdapter } from '../http/types.js';
+import { IamScopesClient } from '../iam/scopes-client.js';
 import { resolveOAuthConfig } from '../oauth-config.js';
 import { AIGatewayTelemetryClient } from './telemetry-client.js';
 import { AIGatewayWorkspacesClient } from './workspaces-client.js';
@@ -44,6 +47,11 @@ export interface AIGatewayClientOptions {
   dataEndpoint?: string;
   /** Admin-plane endpoint. Falls back to `PANW_AI_GW_ADMIN_ENDPOINT`. */
   adminEndpoint?: string;
+  /**
+   * SCM IAM endpoint (`/iam/v1`), used for workspace scopes. Falls back to `PANW_IAM_ENDPOINT`,
+   * then `https://api.apps.paloaltonetworks.com/iam/v1`.
+   */
+  iamEndpoint?: string;
   /** OAuth2 token endpoint. Falls back to `PANW_AI_GW_TOKEN_ENDPOINT`, then `PANW_MGMT_TOKEN_ENDPOINT`. */
   tokenEndpoint?: string;
   /** Max retry attempts (0-5). Defaults to 5. */
@@ -94,8 +102,13 @@ export class AIGatewayClient {
   }
   /** Runtime telemetry: charts, group-bys, and raw request logs. */
   public readonly telemetry: AIGatewayTelemetryClient;
-  /** Workspace reads (data plane). */
+  /** Workspace reads (data plane), writes (admin plane), and scope-first `provision()`. */
   public readonly workspaces: AIGatewayWorkspacesClient;
+  /**
+   * SCM IAM scopes (`/iam/v1/scopes`) — the objects a workspace's `scope_name` points at. A scope
+   * must exist before `workspaces.create()` and is bound to the workspace slug afterwards.
+   */
+  public readonly iamScopes: IamScopesClient;
   /** Gateway routing configs. */
   public readonly configs: AIGatewayConfigsClient;
   /** Workspace guardrails. */
@@ -134,6 +147,7 @@ export class AIGatewayClient {
       opts.dataEndpoint ?? process.env[AI_GW_DATA_ENDPOINT] ?? DEFAULT_AI_GW_DATA_ENDPOINT;
     const adminEndpoint =
       opts.adminEndpoint ?? process.env[AI_GW_ADMIN_ENDPOINT] ?? DEFAULT_AI_GW_ADMIN_ENDPOINT;
+    const iamEndpoint = opts.iamEndpoint ?? process.env[IAM_ENDPOINT] ?? DEFAULT_IAM_ENDPOINT;
 
     const { oauthClient, numRetries, tsgId } = resolveOAuthConfig({
       clientId: opts.clientId,
@@ -153,8 +167,14 @@ export class AIGatewayClient {
     const adminOpts = { baseUrl: adminEndpoint, auth, numRetries };
 
     this.telemetry = new AIGatewayTelemetryClient({ ...dataOpts, tsgId });
+    // IAM scopes share the OAuth token and x-tsg-id header but live on a third base URL.
+    this.iamScopes = new IamScopesClient({ baseUrl: iamEndpoint, auth, numRetries });
     // Workspace and guardrail clients each have explicitly routed admin-plane operations.
-    this.workspaces = new AIGatewayWorkspacesClient({ ...dataOpts, adminBaseUrl: adminEndpoint });
+    this.workspaces = new AIGatewayWorkspacesClient({
+      ...dataOpts,
+      adminBaseUrl: adminEndpoint,
+      iamScopes: this.iamScopes,
+    });
     this.configs = new AIGatewayConfigsClient(dataOpts);
     this.guardrails = new AIGatewayGuardrailsClient({ ...dataOpts, adminBaseUrl: adminEndpoint });
     this.providers = new AIGatewayProvidersClient(dataOpts);

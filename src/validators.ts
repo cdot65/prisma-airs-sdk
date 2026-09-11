@@ -66,3 +66,20 @@ export function assertNumericId(value: string, fieldName: string): void {
     );
   }
 }
+
+/**
+ * @internal
+ * Throw `AISecSDKException(USER_REQUEST_PAYLOAD_ERROR)` if `value` is not a plausible SCM IAM
+ * scope name (`main_airs_workspace_1852583913`, `ws_production_bx7qw0`, ...).
+ *
+ * Scope names are the path key on `/iam/v1/scopes/{name}`, so this must reject `/`, `..`, `:`
+ * and whitespace. The pattern is otherwise loose: the server owns the real format.
+ */
+export function assertIamScopeName(value: string, fieldName: string): void {
+  if (!/^[A-Za-z0-9_][A-Za-z0-9_.-]*$/.test(value)) {
+    throw new AISecSDKException(
+      `Invalid ${fieldName}: ${value} (expected an IAM scope name such as ws_production_bx7qw0)`,
+      ErrorType.USER_REQUEST_PAYLOAD_ERROR,
+    );
+  }
+}

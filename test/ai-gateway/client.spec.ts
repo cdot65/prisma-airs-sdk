@@ -111,6 +111,30 @@ describe('AIGatewayClient', () => {
         (client as unknown as { adminBaseUrl: string }).adminBaseUrl;
       expect(adminBaseUrlOf(gw.workspaces)).toBe(ADMIN_ENDPOINT);
     });
+
+    // IAM scopes live on a third base URL. The workspaces client needs the scopes client for
+    // provision(); a missing wire would make provision() throw for every AIGatewayClient user.
+    it('iamScopes is wired to the IAM endpoint and shared with workspaces', () => {
+      const IAM_ENDPOINT = 'https://iam.test/iam/v1';
+      const wired = new AIGatewayClient({
+        clientId: 'cid',
+        clientSecret: 'sec',
+        tsgId: '1852583913',
+        iamEndpoint: IAM_ENDPOINT,
+      });
+      expect(baseUrlOf(wired.iamScopes)).toBe(IAM_ENDPOINT);
+      expect((wired.workspaces as unknown as { iamScopes: unknown }).iamScopes).toBe(
+        wired.iamScopes,
+      );
+    });
+
+    it('iamScopes defaults to the documented SCM IAM URL and honours PANW_IAM_ENDPOINT', () => {
+      expect(baseUrlOf(gw.iamScopes)).toBe('https://api.apps.paloaltonetworks.com/iam/v1');
+      process.env.PANW_IAM_ENDPOINT = 'https://iam-env.test/iam/v1';
+      const fromEnv = new AIGatewayClient({ clientId: 'cid', clientSecret: 'sec', tsgId: '1' });
+      expect(baseUrlOf(fromEnv.iamScopes)).toBe('https://iam-env.test/iam/v1');
+      delete process.env.PANW_IAM_ENDPOINT;
+    });
   });
 
   describe('x-tsg-id on the wire', () => {

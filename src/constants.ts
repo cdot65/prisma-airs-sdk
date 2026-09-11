@@ -47,7 +47,7 @@ export const MAX_NUMBER_OF_RETRIES = 5;
 export const HTTP_FORCE_RETRY_STATUS_CODES = [500, 502, 503, 504];
 
 // User-Agent (version injected at build time or read from package.json)
-export const SDK_VERSION = '0.30.1';
+export const SDK_VERSION = '0.31.0';
 export const USER_AGENT = `PAN-AIRS/${SDK_VERSION}-typescript-sdk`;
 
 // Management API defaults
@@ -202,6 +202,15 @@ export const AI_GW_DATA_ENDPOINT = 'PANW_AI_GW_DATA_ENDPOINT';
 export const AI_GW_ADMIN_ENDPOINT = 'PANW_AI_GW_ADMIN_ENDPOINT';
 // No AI_GW_TOKEN_ENDPOINT constant: resolveOAuthConfig() builds `${primaryEnvPrefix}_TOKEN_ENDPOINT`
 // dynamically from 'PANW_AI_GW', so a static export here would be dead code (see oauth-config.ts).
+
+/**
+ * Default SCM IAM endpoint. Workspace-scoped AI Gateway access is granted through IAM *scopes*
+ * (`/iam/v1/scopes`); a workspace's `scope_name` must exist here before the workspace is created.
+ */
+export const DEFAULT_IAM_ENDPOINT = 'https://api.apps.paloaltonetworks.com/iam/v1';
+export const IAM_ENDPOINT = 'PANW_IAM_ENDPOINT';
+/** SCM IAM scopes collection. Element paths are `/scopes/{name}` — keyed by name, not UUID. */
+export const IAM_SCOPES_PATH = '/scopes';
 
 /** Mandatory on every AI Gateway request; omitting it yields a 403 OPA denial. */
 export const TSG_ID_HEADER = 'x-tsg-id';
