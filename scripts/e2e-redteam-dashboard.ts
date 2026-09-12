@@ -105,7 +105,7 @@ try {
     'quotaDefaultEndpoint',
     () =>
       new RedTeamClient({
-        dataEndpoint: 'https://api.sase.paloaltonetworks.com/ai-red-teaming/data-plane',
+        dataEndpoint: 'https://api.apps.paloaltonetworks.com/ai-red-teaming/data-plane',
         tokenEndpoint: DEFAULT_TOKEN_ENDPOINT,
         numRetries: 0,
       }).getQuotaSummary(),

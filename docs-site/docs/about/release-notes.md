@@ -1,5 +1,15 @@
 # Release Notes
 
+## v0.32.0 (2026-09-12) — `api.apps.paloaltonetworks.com` is the default host for every product
+
+- `DEFAULT_MGMT_ENDPOINT`, the three Red Team defaults, and both Model Security defaults now
+  point at `api.apps.paloaltonetworks.com` instead of `api.sase.paloaltonetworks.com`, so every
+  management-plane product shares one host with AgentGuard, AI Gateway, and SCM IAM. Verified on
+  2026-09-12 with one read-only list call per product and plane on a licensed tenant; the `apps`
+  host answered identically and faster. `api.sase` still serves the same paths, so existing
+  endpoint overrides and egress allowlists keep working.
+- DLP stays on `api.dlp.paloaltonetworks.com`; the `apps` host returns 404 for `/dlp/v2/api`.
+
 ## v0.31.1 (2026-09-11) — Node 18 fix for generated scope names
 
 - `generateWorkspaceScopeName()` (and therefore `workspaces.provision()` without an explicit

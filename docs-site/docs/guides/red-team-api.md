@@ -39,9 +39,9 @@ contract for compatibility. Neither method silently falls back to the other HTTP
 
 The live verification uses the supplied `https://api.apps.paloaltonetworks.com/ai-red-teaming`
 host with separate `/mgmt-plane`, `/data-plane`, and `/data-plane/network-broker` bases.
-The new quota GET also succeeds on the SDK's existing `api.sase.paloaltonetworks.com` default
-data-plane base. No browser bearer token, cookie, Origin or Referer header is copied from curl.
-Existing endpoint defaults and credential configuration are unchanged.
+That host is now the SDK default for every Red Team plane (verified 2026-09-12 alongside the
+management and Model Security planes); `api.sase.paloaltonetworks.com` still serves the same
+paths. No browser bearer token, cookie, Origin or Referer header is copied from curl.
 
 ```ts
 const client = new RedTeamClient({ numRetries: 0 });
@@ -132,9 +132,9 @@ The Red Team API uses OAuth2 `client_credentials` flow. Each env var falls back 
 | `PANW_RED_TEAM_CLIENT_ID`      | `PANW_MGMT_CLIENT_ID`      | Yes      | OAuth2 client ID from SCM                                                                   |
 | `PANW_RED_TEAM_CLIENT_SECRET`  | `PANW_MGMT_CLIENT_SECRET`  | Yes      | OAuth2 client secret                                                                        |
 | `PANW_RED_TEAM_TSG_ID`         | `PANW_MGMT_TSG_ID`         | Yes      | Tenant Service Group ID                                                                     |
-| `PANW_RED_TEAM_DATA_ENDPOINT`  | --                         | No       | Data plane URL (default: `https://api.sase.paloaltonetworks.com/ai-red-teaming/data-plane`) |
-| `PANW_RED_TEAM_MGMT_ENDPOINT`  | --                         | No       | Mgmt plane URL (default: `https://api.sase.paloaltonetworks.com/ai-red-teaming/mgmt-plane`) |
-| `PANW_RED_TEAM_NETWORK_BROKER_ENDPOINT` | --                | No       | Network broker URL (default: `https://api.sase.paloaltonetworks.com/ai-red-teaming/data-plane/network-broker`) |
+| `PANW_RED_TEAM_DATA_ENDPOINT`  | --                         | No       | Data plane URL (default: `https://api.apps.paloaltonetworks.com/ai-red-teaming/data-plane`) |
+| `PANW_RED_TEAM_MGMT_ENDPOINT`  | --                         | No       | Mgmt plane URL (default: `https://api.apps.paloaltonetworks.com/ai-red-teaming/mgmt-plane`) |
+| `PANW_RED_TEAM_NETWORK_BROKER_ENDPOINT` | --                | No       | Network broker URL (default: `https://api.apps.paloaltonetworks.com/ai-red-teaming/data-plane/network-broker`) |
 | `PANW_RED_TEAM_TOKEN_ENDPOINT` | `PANW_MGMT_TOKEN_ENDPOINT` | No       | Token URL (default: `https://auth.apps.paloaltonetworks.com/oauth2/access_token`)           |
 
 ### Setup

@@ -47,11 +47,18 @@ export const MAX_NUMBER_OF_RETRIES = 5;
 export const HTTP_FORCE_RETRY_STATUS_CODES = [500, 502, 503, 504];
 
 // User-Agent (version injected at build time or read from package.json)
-export const SDK_VERSION = '0.31.1';
+export const SDK_VERSION = '0.32.0';
 export const USER_AGENT = `PAN-AIRS/${SDK_VERSION}-typescript-sdk`;
 
 // Management API defaults
-export const DEFAULT_MGMT_ENDPOINT = 'https://api.sase.paloaltonetworks.com/aisec';
+/**
+ * Every management-plane product (management, Red Team, Model Security, AgentGuard,
+ * AI Gateway, SCM IAM) defaults to `api.apps.paloaltonetworks.com`, verified live on
+ * 2026-09-12 with read-only list calls per product. `api.sase.paloaltonetworks.com`
+ * still serves the same paths for egress allowlists that already name it. DLP is the
+ * one holdout on its own host (see `DEFAULT_DLP_ENDPOINT`).
+ */
+export const DEFAULT_MGMT_ENDPOINT = 'https://api.apps.paloaltonetworks.com/aisec';
 export const DEFAULT_TOKEN_ENDPOINT = 'https://auth.apps.paloaltonetworks.com/oauth2/access_token';
 
 // Management env vars
@@ -112,8 +119,8 @@ export const DLP_DICTIONARIES_PATH = '/v2/api/dictionaries';
 export const DLP_DATA_PROFILES_PATH = '/v2/api/data-profiles';
 
 // Model Security API defaults
-export const DEFAULT_MODEL_SEC_DATA_ENDPOINT = 'https://api.sase.paloaltonetworks.com/aims/data';
-export const DEFAULT_MODEL_SEC_MGMT_ENDPOINT = 'https://api.sase.paloaltonetworks.com/aims/mgmt';
+export const DEFAULT_MODEL_SEC_DATA_ENDPOINT = 'https://api.apps.paloaltonetworks.com/aims/data';
+export const DEFAULT_MODEL_SEC_MGMT_ENDPOINT = 'https://api.apps.paloaltonetworks.com/aims/mgmt';
 
 // Model Security env vars
 export const MODEL_SEC_CLIENT_ID = 'PANW_MODEL_SEC_CLIENT_ID';
@@ -137,11 +144,11 @@ export const MODEL_SEC_PYPI_AUTH_PATH = '/v1/pypi/authenticate';
 
 // Red Team API defaults
 export const DEFAULT_RED_TEAM_DATA_ENDPOINT =
-  'https://api.sase.paloaltonetworks.com/ai-red-teaming/data-plane';
+  'https://api.apps.paloaltonetworks.com/ai-red-teaming/data-plane';
 export const DEFAULT_RED_TEAM_MGMT_ENDPOINT =
-  'https://api.sase.paloaltonetworks.com/ai-red-teaming/mgmt-plane';
+  'https://api.apps.paloaltonetworks.com/ai-red-teaming/mgmt-plane';
 export const DEFAULT_RED_TEAM_NETWORK_BROKER_ENDPOINT =
-  'https://api.sase.paloaltonetworks.com/ai-red-teaming/data-plane/network-broker';
+  'https://api.apps.paloaltonetworks.com/ai-red-teaming/data-plane/network-broker';
 
 // Red Team env vars
 export const RED_TEAM_CLIENT_ID = 'PANW_RED_TEAM_CLIENT_ID';
@@ -191,8 +198,8 @@ export const RED_TEAM_CHANNELS_STATS_PATH = '/v1/channels/stats';
  *
  * `api.apps.paloaltonetworks.com` and `api.sase.paloaltonetworks.com` resolve to the same
  * host and behave identically — one API gateway routing by path prefix. `api.apps` is the
- * documented name; override with `PANW_AI_GW_DATA_ENDPOINT` to reuse an existing
- * `api.sase` egress allowlist.
+ * documented name and the default for every product; override with
+ * `PANW_AI_GW_DATA_ENDPOINT` to reuse an existing `api.sase` egress allowlist.
  */
 export const DEFAULT_AI_GW_DATA_ENDPOINT = 'https://api.apps.paloaltonetworks.com/ai_gw/v2';
 /** Default AI Gateway admin-plane (organisation-scoped config) endpoint. */

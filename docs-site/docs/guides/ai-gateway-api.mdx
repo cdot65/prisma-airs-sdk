@@ -186,7 +186,7 @@ const gw = new AIGatewayClient({
 Token fetch, caching, and refresh are handled automatically, same as every other client.
 
 :::tip[`api.apps` and `api.sase` are the same host]
-`api.apps.paloaltonetworks.com` (the default, and what PANW documents) and `api.sase.paloaltonetworks.com` resolve to the same backend and behave identically — same status codes, same error bodies, same `x-opa-decision` header. If your egress allowlist is already scoped to `api.sase` for `ManagementClient`, override `dataEndpoint` / `adminEndpoint` to reuse it rather than opening a new firewall rule.
+`api.apps.paloaltonetworks.com` (the default for every product since 0.32, and what PANW documents) and `api.sase.paloaltonetworks.com` resolve to the same backend and behave identically — same status codes, same error bodies, same `x-opa-decision` header. If your egress allowlist is still scoped to `api.sase`, override the endpoint options to reuse it rather than opening a new firewall rule. DLP is the one product on its own host, `api.dlp.paloaltonetworks.com`.
 :::
 
 ## Sub-Clients

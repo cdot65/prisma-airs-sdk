@@ -48,8 +48,8 @@ The Model Security API uses OAuth2 `client_credentials` flow. Credentials fall b
 | `PANW_MODEL_SEC_CLIENT_ID`      | Yes      | `PANW_MGMT_CLIENT_ID`      | OAuth2 client ID from SCM                                                         |
 | `PANW_MODEL_SEC_CLIENT_SECRET`  | Yes      | `PANW_MGMT_CLIENT_SECRET`  | OAuth2 client secret                                                              |
 | `PANW_MODEL_SEC_TSG_ID`         | Yes      | `PANW_MGMT_TSG_ID`         | Tenant Service Group ID                                                           |
-| `PANW_MODEL_SEC_DATA_ENDPOINT`  | No       | --                         | Data plane URL (default: `https://api.sase.paloaltonetworks.com/aims/data`)       |
-| `PANW_MODEL_SEC_MGMT_ENDPOINT`  | No       | --                         | Mgmt plane URL (default: `https://api.sase.paloaltonetworks.com/aims/mgmt`)       |
+| `PANW_MODEL_SEC_DATA_ENDPOINT`  | No       | --                         | Data plane URL (default: `https://api.apps.paloaltonetworks.com/aims/data`)       |
+| `PANW_MODEL_SEC_MGMT_ENDPOINT`  | No       | --                         | Mgmt plane URL (default: `https://api.apps.paloaltonetworks.com/aims/mgmt`)       |
 | `PANW_MODEL_SEC_TOKEN_ENDPOINT` | No       | `PANW_MGMT_TOKEN_ENDPOINT` | Token URL (default: `https://auth.apps.paloaltonetworks.com/oauth2/access_token`) |
 
 ### Setup
