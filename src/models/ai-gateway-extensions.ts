@@ -2691,13 +2691,21 @@ export type GatewayCatalogCortexConfiguration = z.infer<
   typeof GatewayCatalogCortexConfigurationSchema
 >;
 
-/** SCM CustomHostConfiguration; unknown response fields are preserved. */
+/**
+ * SCM CustomHostConfiguration; unknown response fields are preserved.
+ *
+ * Live-verified 2026-09-12 on the `open-ai` and `x-ai` providers: `custom_host` is only
+ * accepted alongside `provider_auth_type: 'apiKey'` (the gateway answers a generic AB01
+ * without it), the host must be a resolvable-looking URL, and `custom_headers` may be `{}`.
+ */
 export const GatewayCatalogCustomHostConfigurationSchema: z.ZodType<{
+  provider_auth_type?: string;
   custom_host?: string;
   custom_headers?: { [key: string]: string };
   [key: string]: unknown;
 }> = z
   .object({
+    provider_auth_type: z.string().optional(),
     custom_host: z.string().optional(),
     custom_headers: z.object({}).catchall(z.string()).optional(),
   })

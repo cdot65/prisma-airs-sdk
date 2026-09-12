@@ -1,5 +1,8 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { AIGatewayIntegrationsClient } from '../../src/ai-gateway/integrations-client.js';
+import {
+  AIGatewayIntegrationsClient,
+  customHostConfiguration,
+} from '../../src/ai-gateway/integrations-client.js';
 import type { AuthAdapter } from '../../src/http/types.js';
 import { AISecSDKException } from '../../src/errors.js';
 
@@ -252,5 +255,85 @@ describe('AIGatewayIntegrationsClient', () => {
       client.setWorkspaces('not-a-uuid', { global_workspace_access: true }),
     ).rejects.toThrow(AISecSDKException);
     expect(globalThis.fetch).not.toHaveBeenCalled();
+  });
+});
+
+describe('provider catalog and custom hosts', () => {
+  const originalFetch = globalThis.fetch;
+  let client: AIGatewayIntegrationsClient;
+  const catalog = {
+    success: true,
+    data: [
+      {
+        id: 'de7d7d50-31cd-11ee-b93b-0e06f1aa7f7c',
+        slug: 'open-ai',
+        name: 'open-ai',
+        status: 'active',
+        description: 'OpenAI',
+        created_at: '2026-07-16T03:41:32.000Z',
+        last_updated_at: '2026-07-16T03:41:32.000Z',
+      },
+      {
+        id: '0a9635da-bd84-11ef-9c04-1235d6b0b075',
+        slug: 'x-ai',
+        name: 'x-ai',
+        status: 'active',
+        description: 'xAI',
+        created_at: '2026-07-16T03:41:32.000Z',
+        last_updated_at: '2026-07-16T03:41:32.000Z',
+      },
+    ],
+  };
+  beforeEach(() => {
+    client = new AIGatewayIntegrationsClient({
+      baseUrl: 'https://admin.example.com',
+      auth: passthroughAuth(),
+      numRetries: 0,
+    });
+  });
+  afterEach(() => {
+    globalThis.fetch = originalFetch;
+  });
+
+  it('reads the static provider catalog envelope', async () => {
+    mockFetch(catalog);
+    const res = await client.catalog();
+    expect(res.data.map((p) => p.slug)).toEqual(['open-ai', 'x-ai']);
+    const [url] = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0];
+    expect(url).toBe('https://admin.example.com/utils/static-resources/ai-providers');
+  });
+
+  it('resolves a slug case-insensitively and passes a UUID through without a request', async () => {
+    mockFetch(catalog);
+    await expect(client.resolveProviderId('X-AI')).resolves.toBe(
+      '0a9635da-bd84-11ef-9c04-1235d6b0b075',
+    );
+    expect(globalThis.fetch).toHaveBeenCalledTimes(1);
+    await expect(client.resolveProviderId('DE7D7D50-31CD-11EE-B93B-0E06F1AA7F7C')).resolves.toBe(
+      'de7d7d50-31cd-11ee-b93b-0e06f1aa7f7c',
+    );
+    expect(globalThis.fetch).toHaveBeenCalledTimes(1);
+  });
+
+  it('rejects unknown slugs with close matches', async () => {
+    mockFetch(catalog);
+    await expect(client.resolveProviderId('openai')).rejects.toThrow(
+      /Unknown provider 'openai'; did you mean open-ai/,
+    );
+    await expect(client.resolveProviderId('')).rejects.toThrow('provider is required');
+  });
+
+  it('builds the live-verified custom host configuration', () => {
+    expect(customHostConfiguration({ host: 'http://qwen.svc.cluster.local:8000/v1' })).toEqual({
+      provider_auth_type: 'apiKey',
+      custom_host: 'http://qwen.svc.cluster.local:8000/v1',
+      custom_headers: {},
+    });
+    expect(
+      customHostConfiguration({ host: 'https://llm.example/v1', headers: { 'x-team': 'ml' } })
+        .custom_headers,
+    ).toEqual({ 'x-team': 'ml' });
+    expect(() => customHostConfiguration({ host: 'qwen:8000/v1' })).toThrow(AISecSDKException);
+    expect(() => customHostConfiguration({ host: 'ftp://qwen/v1' })).toThrow('http or https');
   });
 });

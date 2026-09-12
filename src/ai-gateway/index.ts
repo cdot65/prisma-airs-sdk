@@ -48,7 +48,11 @@ export { AIGatewayConfigsClient } from './configs-client.js';
 export { AIGatewayGuardrailsClient } from './guardrails-client.js';
 export { AIGatewayProvidersClient } from './providers-client.js';
 export { AIGatewayApiKeysClient } from './api-keys-client.js';
-export { AIGatewayIntegrationsClient } from './integrations-client.js';
+export {
+  AIGatewayIntegrationsClient,
+  customHostConfiguration,
+  type CustomHostConfigurationOptions,
+} from './integrations-client.js';
 export { AIGatewayMcpIntegrationsClient } from './mcp-integrations-client.js';
 export { AIGatewayDeploymentsClient } from './deployments-client.js';
 export { AIGatewayPluginsClient } from './plugins-client.js';

@@ -46,6 +46,37 @@ model deletion requires explicitly named **custom** models; SCM rejects deletion
 New integrations may have `last_updated_at: null`; disabled global workspace access can omit its
 limit fields. Model catalog flags accept the observed boolean and numeric `0`/`1` forms.
 
+### Provider catalog and self-hosted endpoints (SDK 0.33.0)
+
+`gw.integrations.catalog()` reads the static provider catalog
+(`/utils/static-resources/ai-providers`, 77 families such as `open-ai`, `x-ai`, `azure-openai`,
+`bedrock`); `gw.integrations.resolveProviderId('x-ai')` turns a slug into the `ai_provider_id`
+UUID a create needs and passes UUIDs through untouched. The catalog carries no
+configuration-field metadata, so per-family fields remain the typed
+`GatewayCatalog*ConfigurationSchema` models.
+
+A create needs a credential: `key` inline or `secret_mappings`. The SCM UI sends `key` with
+`configurations: {}` and `secret_mappings: []` (captured 2026-09-12); the gateway answers a
+generic `400 AB01` when the credential is missing. To point an integration at a self-hosted or
+OpenAI-compatible endpoint, use `customHostConfiguration({ host, headers })`, which emits the
+live-verified shape `{ provider_auth_type: 'apiKey', custom_host, custom_headers }`.
+`custom_host` without `provider_auth_type` is rejected with the same `AB01`, and so is a host
+that does not look resolvable. Verified on `open-ai` and `x-ai` for both `create()` and
+`update()` with owned, immediately deleted integrations.
+
+```ts
+await gw.integrations.create({
+  organisation_id: '1001464285',
+  ai_provider_id: await gw.integrations.resolveProviderId('open-ai'),
+  name: 'talos7',
+  slug: 'talos7',
+  key: process.env.QWEN_API_KEY,
+  configurations: customHostConfiguration({
+    host: 'http://qwen38-talos7.ai-inference.svc.cluster.local:8000/v1',
+  }),
+});
+```
+
 Log-export creation requires a description and bounded generation-time filters on SCM. An export
 record is persistent audit metadata, with no delete endpoint. Never assume an accepted draft means
 its job completed. Methods without successful live execution carry `@experimental` in the API

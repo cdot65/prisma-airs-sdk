@@ -882,6 +882,29 @@ export type GatewayIntegration = z.infer<typeof GatewayIntegrationSchema>;
 export const ListIntegrationsResponseSchema = aiGatewayList(GatewayIntegrationSchema);
 export type ListIntegrationsResponse = z.infer<typeof ListIntegrationsResponseSchema>;
 
+/**
+ * One provider family from `/utils/static-resources/ai-providers` (captured 2026-09-12:
+ * 77 entries such as `open-ai`, `x-ai`, `azure-openai`, `bedrock`). The catalog carries no
+ * configuration-field metadata; `ai_provider_id` on an integration is the `id` here.
+ */
+export const GatewayCatalogProviderSchema = z
+  .object({
+    id: z.string(),
+    slug: z.string(),
+    name: z.string(),
+    status: z.string(),
+    description: z.string().nullable().optional(),
+    created_at: z.string().nullable().optional(),
+    last_updated_at: z.string().nullable().optional(),
+  })
+  .passthrough();
+export type GatewayCatalogProvider = z.infer<typeof GatewayCatalogProviderSchema>;
+/** The catalog envelope is `{ success, data }` without the list `object`/`total` fields. */
+export const ListCatalogProvidersResponseSchema = z
+  .object({ success: z.boolean().optional(), data: z.array(GatewayCatalogProviderSchema) })
+  .passthrough();
+export type ListCatalogProvidersResponse = z.infer<typeof ListCatalogProvidersResponseSchema>;
+
 /** `integrations/{id}/models` — per-model enablement for one integration. */
 export const GatewayIntegrationModelsResponseSchema = z
   .object({

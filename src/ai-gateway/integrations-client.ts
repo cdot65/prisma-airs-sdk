@@ -1,4 +1,4 @@
-import { AI_GW_INTEGRATIONS_PATH } from '../constants.js';
+import { AI_GW_INTEGRATIONS_PATH, AI_GW_PROVIDER_CATALOG_PATH } from '../constants.js';
 import { request } from '../http/request.js';
 import type { AuthAdapter } from '../http/types.js';
 import { assertUuid, assertNumericId, assertWorkspaceRef, assertLength } from '../validators.js';
@@ -9,6 +9,9 @@ import {
   GatewayIntegrationModelsResponseSchema,
   GatewayIntegrationWorkspacesResponseSchema,
   GatewayWriteResponseSchema,
+  ListCatalogProvidersResponseSchema,
+  type ListCatalogProvidersResponse,
+  type GatewayCatalogProvider,
   type ListIntegrationsResponse,
   type GatewayIntegration,
   type GatewayIntegrationModelsResponse,
@@ -26,6 +29,68 @@ import {
   type GatewayIntegrationWorkspacesBulkUpdateRequest,
 } from '../models/ai-gateway-requests.js';
 import type { AIGatewaySubClientOptions } from './types.js';
+
+const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+/** Options for {@link customHostConfiguration}. */
+export interface CustomHostConfigurationOptions {
+  /** Full base URL of the OpenAI-compatible endpoint, including its API prefix. */
+  host: string;
+  /** Extra headers sent to that host on every request. */
+  headers?: Record<string, string>;
+}
+
+/**
+ * Build the `configurations` object that points a provider integration at a self-hosted or
+ * OpenAI-compatible endpoint. Live-verified 2026-09-12 on `open-ai` and `x-ai`: the gateway
+ * accepts `custom_host` only together with `provider_auth_type: 'apiKey'`, on both create and
+ * update; `custom_headers` may be empty.
+ * @param options - Host and optional headers.
+ * @returns A configuration object for `integrations.create()` or `integrations.update()`.
+ * @throws {AISecSDKException} When the host is not an absolute http(s) URL.
+ * @example
+ * ```ts
+ * import { AIGatewayClient, customHostConfiguration } from '@cdot65/prisma-airs-sdk';
+ * const gw = new AIGatewayClient();
+ *
+ * await gw.integrations.create({
+ *   organisation_id: '1001464285',
+ *   ai_provider_id: await gw.integrations.resolveProviderId('open-ai'),
+ *   name: 'talos7',
+ *   slug: 'talos7',
+ *   key: process.env.QWEN_API_KEY,
+ *   configurations: customHostConfiguration({
+ *     host: 'http://qwen38-talos7.ai-inference.svc.cluster.local:8000/v1',
+ *   }),
+ * });
+ * ```
+ */
+export function customHostConfiguration(options: CustomHostConfigurationOptions): {
+  provider_auth_type: 'apiKey';
+  custom_host: string;
+  custom_headers: Record<string, string>;
+} {
+  let url: URL;
+  try {
+    url = new URL(options.host);
+  } catch {
+    throw new AISecSDKException(
+      'custom host must be an absolute http(s) URL including its API prefix',
+      ErrorType.USER_REQUEST_PAYLOAD_ERROR,
+    );
+  }
+  if (url.protocol !== 'http:' && url.protocol !== 'https:') {
+    throw new AISecSDKException(
+      'custom host must use http or https',
+      ErrorType.USER_REQUEST_PAYLOAD_ERROR,
+    );
+  }
+  return {
+    provider_auth_type: 'apiKey',
+    custom_host: options.host,
+    custom_headers: { ...(options.headers ?? {}) },
+  };
+}
 
 /** Client for AI Gateway organisation-level integrations (admin plane). */
 export class AIGatewayIntegrationsClient {
@@ -63,6 +128,71 @@ export class AIGatewayIntegrationsClient {
       auth: this.auth,
       numRetries: this.numRetries,
     });
+  }
+
+  /**
+   * List the static provider catalog: every provider family an integration can bind to.
+   * The catalog has no configuration-field metadata; it maps slugs such as `open-ai` or
+   * `x-ai` to the `ai_provider_id` UUID a create needs.
+   * @returns The catalog envelope (`success`, `data[]`).
+   * @example
+   * ```ts
+   * import { AIGatewayClient } from '@cdot65/prisma-airs-sdk';
+   * const gw = new AIGatewayClient();
+   *
+   * const catalog = await gw.integrations.catalog();
+   * // catalog.data.find((p) => p.slug === 'x-ai')?.id => '0a9635da-bd84-11ef-9c04-1235d6b0b075'
+   * ```
+   */
+  async catalog(): Promise<ListCatalogProvidersResponse> {
+    return request({
+      method: 'GET',
+      baseUrl: this.baseUrl,
+      path: AI_GW_PROVIDER_CATALOG_PATH,
+      responseSchema: ListCatalogProvidersResponseSchema,
+      auth: this.auth,
+      numRetries: this.numRetries,
+    });
+  }
+
+  /**
+   * Turn a provider slug (`open-ai`, `x-ai`) or UUID into the `ai_provider_id` a create needs.
+   * A UUID is returned unchanged without a request; a slug is matched case-insensitively
+   * against {@link catalog}.
+   * @param providerRef - Catalog slug or provider UUID.
+   * @returns The provider UUID.
+   * @throws {AISecSDKException} When the slug is not in the catalog (the message lists close matches).
+   * @example
+   * ```ts
+   * import { AIGatewayClient } from '@cdot65/prisma-airs-sdk';
+   * const gw = new AIGatewayClient();
+   *
+   * const id = await gw.integrations.resolveProviderId('x-ai');
+   * // id => '0a9635da-bd84-11ef-9c04-1235d6b0b075'
+   * ```
+   */
+  async resolveProviderId(providerRef: string): Promise<string> {
+    const wanted = providerRef.trim();
+    if (UUID_PATTERN.test(wanted)) return wanted.toLowerCase();
+    if (!wanted) {
+      throw new AISecSDKException('provider is required', ErrorType.USER_REQUEST_PAYLOAD_ERROR);
+    }
+    const providers: GatewayCatalogProvider[] = (await this.catalog()).data;
+    const match = providers.find((p) => p.slug.toLowerCase() === wanted.toLowerCase());
+    if (match) return match.id;
+    const needle = wanted.toLowerCase().replace(/[^a-z0-9]/g, '');
+    const close = providers
+      .map((p) => p.slug)
+      .filter(
+        (slug) =>
+          slug.replace(/[^a-z0-9]/g, '').includes(needle) ||
+          needle.includes(slug.replace(/[^a-z0-9]/g, '')),
+      )
+      .slice(0, 5);
+    throw new AISecSDKException(
+      `Unknown provider '${wanted}'${close.length ? `; did you mean ${close.join(', ')}?` : ''} (list slugs with integrations.catalog())`,
+      ErrorType.USER_REQUEST_PAYLOAD_ERROR,
+    );
   }
 
   /**

@@ -47,7 +47,7 @@ export const MAX_NUMBER_OF_RETRIES = 5;
 export const HTTP_FORCE_RETRY_STATUS_CODES = [500, 502, 503, 504];
 
 // User-Agent (version injected at build time or read from package.json)
-export const SDK_VERSION = '0.32.0';
+export const SDK_VERSION = '0.33.0';
 export const USER_AGENT = `PAN-AIRS/${SDK_VERSION}-typescript-sdk`;
 
 // Management API defaults
@@ -235,6 +235,8 @@ export const AI_GW_GROUPS_PATH = '/logs/groups';
 
 // Admin plane
 export const AI_GW_INTEGRATIONS_PATH = '/integrations';
+/** Static catalog of provider families an integration can bind to (id, slug, name). */
+export const AI_GW_PROVIDER_CATALOG_PATH = '/utils/static-resources/ai-providers';
 export const AI_GW_MCP_INTEGRATIONS_PATH = '/mcp-integrations';
 export const AI_GW_DEPLOYMENTS_PATH = '/deployments';
 export const AI_GW_PLUGINS_PATH = '/plugins';

@@ -1,5 +1,18 @@
 # Release Notes
 
+## v0.33.0 (2026-09-12) — Provider catalog, slug resolution, and self-hosted endpoints
+
+- `gw.integrations.catalog()` reads the static provider catalog (`/utils/static-resources/ai-providers`)
+  and `gw.integrations.resolveProviderId('x-ai')` maps a slug to the `ai_provider_id` UUID a create
+  needs (UUIDs pass through without a request; unknown slugs list close matches).
+- `customHostConfiguration({ host, headers })` builds the live-verified configuration for a
+  self-hosted or OpenAI-compatible endpoint: `{ provider_auth_type: 'apiKey', custom_host,
+  custom_headers }`. The custom-host model now types `provider_auth_type`. Verified 2026-09-12 on
+  `open-ai` and `x-ai` for `create()` and `update()` using owned, immediately deleted integrations;
+  `custom_host` without `provider_auth_type` is rejected with a generic `400 AB01`.
+- Documented from a captured SCM UI create: `key` inline with `configurations: {}` and
+  `secret_mappings: []`; a create without any credential fails with the same `AB01`.
+
 ## v0.32.0 (2026-09-12) — `api.apps.paloaltonetworks.com` is the default host for every product
 
 - `DEFAULT_MGMT_ENDPOINT`, the three Red Team defaults, and both Model Security defaults now
