@@ -149,6 +149,7 @@ export async function loadContractSpec(path: string, plane: string, corrected = 
     delete operands.oneOf;
     correctPromptRuntimeContracts(
       spec as unknown as Parameters<typeof correctPromptRuntimeContracts>[0],
+      spec.info.title === 'Prisma AIRS AI Gateway API' ? 'excluded' : 'required',
     );
     const model = schemas.ModelIdsResponses;
     // Dereferencing a $ref with description siblings clones its outer object, but shares

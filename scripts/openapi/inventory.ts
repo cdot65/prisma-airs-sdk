@@ -32,9 +32,13 @@ export interface CallSite {
   className?: string;
   parameters?: { name: string; type: string }[];
   transport?: 'websocket';
+  /** Gateway transport expression; used by the official specification's plane-aware audit. */
+  gatewayBaseUrl?: string;
+  gatewayOptionSpreads?: string[];
 }
 export interface DomainInventory {
   plane: string;
+  contractFamily?: 'official-gateway' | 'legacy-gateway';
   file: string;
   sha256: string;
   components: number;
@@ -181,6 +185,14 @@ export function collectCallSites(): CallSite[] {
                       ? 'gateway'
                       : 'other';
           result.push({
+            ...(plane === 'gateway'
+              ? {
+                  gatewayBaseUrl: textOf(props.get('baseUrl')),
+                  gatewayOptionSpreads: node.arguments[0].properties
+                    .filter(ts.isSpreadAssignment)
+                    .map((property) => property.expression.getText(tree)),
+                }
+              : {}),
             ...(node.expression.getText(tree) === 'openRealtime'
               ? { transport: 'websocket' as const }
               : {}),

@@ -45,7 +45,7 @@ const samples = (r: { ok: boolean }[]) => ({
 const report = {
   generatedAt: new Date().toISOString(),
   scope:
-    'AIRS corrected operation contracts; Portkey exact-route typed fields only. Classification is not implementation coverage.',
+    'AIRS corrected operation contracts; official Gateway matching includes server planes and finite path variants, legacy Portkey matching is path-only. Route/field matches are not live or authentication acceptance.',
   fullOperationAcceptance: fullOperationAcceptance([...domains, gateway]),
   sources: domains.map((d) => ({
     plane: d.plane,
@@ -54,7 +54,10 @@ const report = {
     operations: d.operations.length,
     implemented: d.operations.filter((o) => o.implementations.length).length,
   })),
-  corrections: compatibilityCorrections,
+  corrections: compatibilityCorrections.filter(
+    (correction) =>
+      gateway.contractFamily !== 'official-gateway' || !correction.id.startsWith('gateway-prompt-'),
+  ),
   airs: {
     requests: fieldMetric(requests),
     responses: fieldMetric(responses),
@@ -69,7 +72,8 @@ const report = {
     },
   },
   gateway: {
-    source: 'ai-gateway-openapi/openapi.yaml',
+    source: gateway.file,
+    contractFamily: gateway.contractFamily,
     sha256: gateway.sha256,
     total: gateway.operations.length,
     directOperations: gateway.operations.filter((o) => o.implementations.length).length,

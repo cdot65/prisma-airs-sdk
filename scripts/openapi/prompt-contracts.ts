@@ -1,10 +1,16 @@
 /** @internal Explicit prompt/legacy corrections, applied to raw or dereferenced upstream schemas. */
 import type { Schema } from './conformance.js';
 
-export function correctPromptRuntimeContracts(spec: {
-  components?: { schemas?: Record<string, unknown> };
-  paths?: Record<string, unknown>;
-}): void {
+export function correctPromptRuntimeContracts(
+  spec: {
+    components?: { schemas?: Record<string, unknown> };
+    paths?: Record<string, unknown>;
+  },
+  promptOperations: 'required' | 'excluded' = 'required',
+): void {
+  const promptPaths = ['/prompts/{promptId}/completions', '/prompts/{promptId}/render'];
+  if (promptOperations === 'excluded' && promptPaths.some((path) => spec.paths?.[path]))
+    throw new Error('Excluded prompt operations appeared; review source compatibility policy');
   const schemas = spec.components?.schemas as Record<string, Schema>;
   if (!schemas?.CreateCompletionResponse) throw new Error('Legacy completion schema changed');
   const resolve = (schema: Schema): Schema => {
@@ -28,7 +34,7 @@ export function correctPromptRuntimeContracts(spec: {
     nullable: true,
   };
 
-  for (const path of ['/prompts/{promptId}/completions', '/prompts/{promptId}/render']) {
+  for (const path of promptOperations === 'required' ? promptPaths : []) {
     const operation = (
       spec.paths?.[path] as {
         post: {
