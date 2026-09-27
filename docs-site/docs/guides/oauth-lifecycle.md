@@ -332,3 +332,35 @@ On `401`/`403` the SDK clears the token, fetches a fresh one, and retries the re
 ## Full reference
 
 `OAuthClient`, `TokenInfo`, and the OAuth-backed clients — with full signatures and examples — are in the [Full API reference](../reference/api/index.md).
+
+## OAuth fetch failures inside an agent
+
+`AISEC_OAUTH_ERROR: Token request failed: fetch failed` means the token request
+failed at the transport step. It does not establish invalid credentials or a
+Gateway permission denial. DNS, TLS trust, proxy configuration, endpoint
+reachability, or the agent's shell sandbox may be responsible. A successful local
+configuration check establishes only that settings are present and valid.
+
+For an already-authorized read, request the agent host's supported **per-command
+network approval**, then retry the same command once. If that mechanism is
+unavailable or denied, report the execution restriction. Do not disable the
+sandbox, replace credentials, or change API planes to make the error disappear.
+A command-prefix approval alone may not grant network access.
+
+If the approved request still fails, compare the same read from a normal terminal
+on the same host, using the same application configuration and credential source. Inspect
+DNS, proxy and certificate trust for the configured OAuth endpoint. Report only
+sanitized error codes and outcomes; never print tokens, secrets or raw tenant
+files. Do not disable TLS verification.
+
+An HTTP rejection from the token endpoint requires authentication diagnosis;
+a Gateway API 403 after token acquisition requires permission diagnosis. Neither
+is equivalent to a token fetch failure. An empty successful list is a valid
+result, while a failed request provides no inventory or pagination evidence.
+
+The SDK does not provide agent sandbox approval or retrieve Harness OS-store
+credentials automatically. Those responsibilities belong to the calling
+application. SDK configuration, the CLI tenant file, Harness company SSO, runtime
+Gateway keys and the Harness Jev key are separate boundaries. Consult the
+[CLI configuration guide](https://cdot65.github.io/prisma-airs-cli/getting-started/configuration/)
+for the managed CLI and its tenant-versus-environment diagnostics.

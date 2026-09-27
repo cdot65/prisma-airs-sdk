@@ -887,3 +887,13 @@ already present. Pass `--integration-id <uuid>` to restrict the idempotent bindi
 specific regular integration that is already bound to the workspace.
 
 A runnable, read-only example covering telemetry, config plane, admin plane, audit logs, and error handling end-to-end lives at [`examples/ai-gateway.ts`](https://github.com/cdot65/prisma-airs-sdk/blob/main/examples/ai-gateway.ts) in the repo root — run it directly with `npx tsx examples/ai-gateway.ts`.
+
+## Agent execution and live acceptance
+
+Gateway management calls need both management OAuth configuration and network
+access from the process running the SDK. A token transport error is not evidence
+of missing Gateway grants. Follow [OAuth fetch failure diagnosis](./oauth-lifecycle.md#oauth-fetch-failures-inside-an-agent)
+when an agent can inspect local settings but cannot list workspaces or guardrails.
+Keep the intended data/admin scope unchanged while diagnosing transport failures.
+Schema checks and fixture tests establish the client contract; a successful live
+read establishes only that operation's current access, not mutation permissions.
