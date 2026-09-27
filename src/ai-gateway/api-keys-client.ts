@@ -3,6 +3,8 @@ import { request } from '../http/request.js';
 import type { AuthAdapter } from '../http/types.js';
 import { assertUuid } from '../validators.js';
 import {
+  GatewayApiKeyCreateResponseSchema,
+  type GatewayApiKeyCreateResponse,
   ListApiKeysResponseSchema,
   GatewayWriteResponseSchema,
   GatewayApiKeySchema,
@@ -28,8 +30,8 @@ import type { AIGatewaySubClientOptions, AIGatewayWorkspaceScopedListOptions } f
 /**
  * Client for AI Gateway API-key operations (data plane).
  *
- * Service and user keys are separate sub-collections; there is no combined `api-keys`
- * endpoint (it is OPA-denied).
+ * Service and user keys are separate sub-collections; the documented combined `api-keys`
+ * route is denied on the tested SCM deployment. No automatic route fallback is performed.
  */
 export class AIGatewayApiKeysClient {
   private readonly baseUrl: string;
@@ -61,12 +63,9 @@ export class AIGatewayApiKeysClient {
 
   /** @internal */
   private writeAt(
-    method: 'POST' | 'PUT',
+    method: 'PUT',
     path: string,
-    body:
-      | GatewayServiceApiKeyCreateRequest
-      | GatewayUserApiKeyCreateRequest
-      | GatewayApiKeyUpdateRequest,
+    body: GatewayApiKeyUpdateRequest,
     requestSchema: RequestSpec['requestSchema'],
     secretOperation?: RequestSpec['secretOperation'],
   ): Promise<GatewayWriteResponse> {
@@ -78,6 +77,26 @@ export class AIGatewayApiKeysClient {
       requestSchema,
       secretOperation,
       responseSchema: GatewayWriteResponseSchema,
+      auth: this.auth,
+      numRetries: this.numRetries,
+    });
+  }
+
+  /** @internal */
+  private createAt(
+    path: string,
+    body: GatewayServiceApiKeyCreateRequest | GatewayUserApiKeyCreateRequest,
+    requestSchema: RequestSpec['requestSchema'],
+    secretOperation: 'apiKeys.createService' | 'apiKeys.createUser',
+  ): Promise<GatewayApiKeyCreateResponse> {
+    return request({
+      method: 'POST',
+      baseUrl: this.baseUrl,
+      path,
+      body,
+      requestSchema,
+      secretOperation,
+      responseSchema: GatewayApiKeyCreateResponseSchema,
       auth: this.auth,
       numRetries: this.numRetries,
     });
@@ -209,9 +228,10 @@ export class AIGatewayApiKeysClient {
    * });
    * ```
    */
-  async createService(body: GatewayServiceApiKeyCreateRequest): Promise<GatewayWriteResponse> {
-    return this.writeAt(
-      'POST',
+  async createService(
+    body: GatewayServiceApiKeyCreateRequest,
+  ): Promise<GatewayApiKeyCreateResponse> {
+    return this.createAt(
       AI_GW_API_KEYS_SERVICE_PATH,
       body,
       GatewayServiceApiKeyCreateRequestSchema,
@@ -238,9 +258,8 @@ export class AIGatewayApiKeysClient {
    * });
    * ```
    */
-  async createUser(body: GatewayUserApiKeyCreateRequest): Promise<GatewayWriteResponse> {
-    return this.writeAt(
-      'POST',
+  async createUser(body: GatewayUserApiKeyCreateRequest): Promise<GatewayApiKeyCreateResponse> {
+    return this.createAt(
       AI_GW_API_KEYS_USER_PATH,
       body,
       GatewayUserApiKeyCreateRequestSchema,

@@ -81,3 +81,5 @@ export {
   AIGatewayAuditLogsClient,
   type AIGatewayAuditLogListOptions,
 } from './audit-logs-client.js';
+
+export { AIGatewayAdminGuardrailsClient } from './admin-guardrails-client.js';

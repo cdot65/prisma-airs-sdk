@@ -495,6 +495,13 @@ export const GatewayWriteResponseSchema = z
   .passthrough();
 export type GatewayWriteResponse = z.infer<typeof GatewayWriteResponseSchema>;
 
+/** API-key creation can disclose a one-time secret. Optional fields preserve older SCM receipts. */
+export const GatewayApiKeyCreateResponseSchema = GatewayWriteResponseSchema.extend({
+  key: z.string().optional(),
+  object: z.string().optional(),
+}).passthrough();
+export type GatewayApiKeyCreateResponse = z.infer<typeof GatewayApiKeyCreateResponseSchema>;
+
 // ---------------------------------------------------------------------------
 // Workspaces (data plane)
 // ---------------------------------------------------------------------------

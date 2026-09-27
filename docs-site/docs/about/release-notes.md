@@ -1,5 +1,12 @@
 # Release Notes
 
+## v0.34.0 (2026-09-27) — Official Gateway alignment
+
+- Adds explicit `adminGuardrails` CRUD, pagination and MCP mapping methods with separate organisation-scoped contracts. Admin list was verified read-only; mutations are specification-tested.
+- Types one-time API-key creation secrets without changing deployed user/service routes or generic update receipts.
+- Audits the official Gateway source with server-plane and finite-path matching. 132/187 route matches; remaining gaps stay explicit.
+- Preserves management OAuth, runtime authentication and existing deployment adapters. See [alignment evidence and limitations](../developer/official-gateway-alignment.md).
+
 ## v0.33.0 (2026-09-12) — Provider catalog, slug resolution, and self-hosted endpoints
 
 - `gw.integrations.catalog()` reads the static provider catalog (`/utils/static-resources/ai-providers`)

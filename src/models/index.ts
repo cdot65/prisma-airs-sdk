@@ -432,3 +432,5 @@ export * from './ai-gateway-requests.js';
 export * from './iam.js';
 export * from './ai-gateway-inference.js';
 export * from './agentguard.js';
+
+export * from './ai-gateway-admin-guardrails.js';

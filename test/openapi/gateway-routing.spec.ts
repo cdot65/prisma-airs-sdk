@@ -165,6 +165,7 @@ describe('official gateway operation routing', () => {
       calls.find((c) => c.className === className && c.member === member)!;
     expect(gatewayCallPlane(find('AIGatewayGuardrailsClient', 'list'), actual)).toBe('control');
     expect(gatewayCallPlane(find('AIGatewayIntegrationsClient', 'list'), actual)).toBe('admin');
+    expect(gatewayCallPlane(find('AIGatewayAdminGuardrailsClient', 'list'), actual)).toBe('admin');
     expect(gatewayCallPlane(find('AIGatewayRuntimeResourcesClient', 'createImage'), actual)).toBe(
       'runtime',
     );

@@ -45,6 +45,30 @@ describe('AIGatewayApiKeysClient', () => {
     ).toBe('/api-keys/user');
   });
 
+  it('types the one-time create secret while preserving older receipts', async () => {
+    mockFetch({ id: wsId, key: 'fixture-only', object: 'api-key', future: true });
+    const receipt = await client.createService({
+      name: 'fixture',
+      scopes: ['completions.write'],
+      organisation_id: '123',
+      workspace_id: wsId,
+      type: 'workspace',
+    });
+    const secret: string | undefined = receipt.key;
+    expect(secret).toBe('fixture-only');
+    expect(receipt.future).toBe(true);
+    mockFetch({ key: 42 });
+    await expect(
+      client.createService({
+        name: 'fixture',
+        scopes: ['completions.write'],
+        organisation_id: '123',
+        workspace_id: wsId,
+        type: 'workspace',
+      }),
+    ).rejects.toThrow('Response did not match schema');
+  });
+
   it('POSTs a service key create to /api-keys/service', async () => {
     mockFetch({});
     await client.createService({

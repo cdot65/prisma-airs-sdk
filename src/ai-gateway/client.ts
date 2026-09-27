@@ -1,3 +1,4 @@
+import { AIGatewayAdminGuardrailsClient } from './admin-guardrails-client.js';
 import {
   AI_GW_ADMIN_ENDPOINT,
   AI_GW_DATA_ENDPOINT,
@@ -111,6 +112,9 @@ export class AIGatewayClient {
   public readonly iamScopes: IamScopesClient;
   /** Gateway routing configs. */
   public readonly configs: AIGatewayConfigsClient;
+  /** Organisation guardrails via the explicit admin endpoint. */
+  public readonly adminGuardrails: AIGatewayAdminGuardrailsClient;
+
   /** Workspace guardrails. */
   public readonly guardrails: AIGatewayGuardrailsClient;
   /** Workspace-scoped provider bindings. */
@@ -176,6 +180,7 @@ export class AIGatewayClient {
       iamScopes: this.iamScopes,
     });
     this.configs = new AIGatewayConfigsClient(dataOpts);
+    this.adminGuardrails = new AIGatewayAdminGuardrailsClient(adminOpts);
     this.guardrails = new AIGatewayGuardrailsClient({ ...dataOpts, adminBaseUrl: adminEndpoint });
     this.providers = new AIGatewayProvidersClient(dataOpts);
     this.apiKeys = new AIGatewayApiKeysClient(dataOpts);
