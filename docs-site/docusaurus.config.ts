@@ -67,7 +67,7 @@ const config: Config = {
         docs: {
           sidebarPath: './sidebars.ts',
           routeBasePath: '/',
-          editUrl: 'https://github.com/cdot65/prisma-airs-sdk/tree/main/docs-site/',
+          editUrl: 'https://git.cdot.io/cdot/prisma-airs-sdk/_edit/main/docs-site/',
         },
         blog: false,
         theme: {
@@ -109,8 +109,8 @@ const config: Config = {
           position: 'right',
         },
         {
-          href: 'https://github.com/cdot65/prisma-airs-sdk',
-          label: 'GitHub',
+          href: 'https://git.cdot.io/cdot/prisma-airs-sdk',
+          label: 'Forgejo',
           position: 'right',
         },
       ],
@@ -130,7 +130,7 @@ const config: Config = {
           title: 'More',
           items: [
             {label: 'npm', href: 'https://www.npmjs.com/package/@cdot65/prisma-airs-sdk'},
-            {label: 'GitHub', href: 'https://github.com/cdot65/prisma-airs-sdk'},
+            {label: 'Forgejo', href: 'https://git.cdot.io/cdot/prisma-airs-sdk'},
           ],
         },
       ],
