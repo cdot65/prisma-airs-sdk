@@ -86,6 +86,6 @@ Key modules:
 
 ## CI/CD
 
-- GitHub Actions test matrix: Node 18, 20, 22, 24; Node 22 enforces statement/line/function coverage ≥99% and branch coverage ≥95%.
-- Publish via OIDC trusted publishing on GitHub release (Node 24, no npm tokens)
+- Forgejo Actions test matrix: Node 18, 20, 22, 24; Node 22 enforces statement/line/function coverage ≥99% and branch coverage ≥95%.
+- Publish from protected Forgejo release workflows (Node 24); npm credentials originate in Conjur. GitHub is a source mirror and Pages host only. See `FORGEJO.md` for stable/prerelease gates and the January 2027 token migration requirement.
 - `prepublishOnly` runs lint + test
