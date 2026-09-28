@@ -20,6 +20,7 @@ jobs:
           node-version: 22
           cache: npm
 
+      - run: node scripts/release/test-publish-boundary.mjs
       - run: npm ci
 
       - name: Prettier check
