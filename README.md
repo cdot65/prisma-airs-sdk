@@ -4,8 +4,8 @@
 
 # prisma-airs-sdk
 
-[![CI](https://github.com/cdot65/prisma-airs-sdk/actions/workflows/ci.yml/badge.svg)](https://github.com/cdot65/prisma-airs-sdk/actions/workflows/ci.yml)
-[![Tests](https://github.com/cdot65/prisma-airs-sdk/actions/workflows/test.yml/badge.svg)](https://github.com/cdot65/prisma-airs-sdk/actions/workflows/test.yml)
+[![CI](https://git.cdot.io/cdot/prisma-airs-sdk/actions/workflows/ci.yml/badge.svg)](https://git.cdot.io/cdot/prisma-airs-sdk/actions?workflow=ci.yml)
+[![Tests](https://git.cdot.io/cdot/prisma-airs-sdk/actions/workflows/test.yml/badge.svg)](https://git.cdot.io/cdot/prisma-airs-sdk/actions?workflow=test.yml)
 [![npm version](https://img.shields.io/npm/v/@cdot65/prisma-airs-sdk)](https://www.npmjs.com/package/@cdot65/prisma-airs-sdk)
 [![npm downloads](https://img.shields.io/npm/dm/@cdot65/prisma-airs-sdk)](https://www.npmjs.com/package/@cdot65/prisma-airs-sdk)
 [![Coverage](https://img.shields.io/badge/coverage-99%25-brightgreen)](https://github.com/cdot65/prisma-airs-sdk)
