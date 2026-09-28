@@ -1,0 +1,38 @@
+name: Test
+
+on:
+  push:
+    branches: ['main']
+  pull_request:
+    branches: ['main']
+
+jobs:
+  test:
+    name: Tests (Node ${{ matrix.node-version }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    strategy:
+      matrix:
+        node-version: [18, 20, 22, 24]
+
+    steps:
+      - uses: https://github.com/actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+
+      - uses: https://github.com/actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: npm
+
+      - run: npm ci
+
+      - name: Run tests
+        if: matrix.node-version != 22
+        run: npm run test
+
+      - name: Run tests with coverage thresholds
+        if: matrix.node-version == 22
+        run: npm run test:coverage
+
+      - name: Build
+        run: npm run build

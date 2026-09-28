@@ -1,0 +1,41 @@
+name: CI
+
+on:
+  push:
+    branches: ['main']
+  pull_request:
+    branches: ['main']
+
+jobs:
+  lint-format-typecheck:
+    name: Lint, Format & Typecheck
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - uses: https://github.com/actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+
+      - uses: https://github.com/actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Prettier check
+        run: npm run format:check
+
+      - name: ESLint
+        run: npm run lint
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Build SDK declarations for tooling imports
+        run: npm run build
+
+      - name: Audit and E2E tooling typecheck
+        run: npm run typecheck:tooling
+
+      - name: Pinned OpenAPI contract gate (offline)
+        run: npm run openapi:check
