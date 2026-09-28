@@ -1,27 +1,21 @@
 # License
 
-This project is licensed under the **MIT License**.
+Prisma AIRS SDK source on `main` is licensed under **Apache License 2.0** following
+the owner-authorized change on September 28, 2026.
 
-```
-MIT License
+The change applies to this source revision and future releases containing it.
+Previously published MIT releases retain their original license. Check the
+`LICENSE`, `NOTICE` and `license` metadata in the exact package you install;
+this documentation does not retroactively relicense older npm artifacts.
 
-Copyright (c) 2026 Calvin Remsburg
+Apache-2.0 permits commercial use, modification and redistribution, subject to
+its terms. Distribute the license, retain applicable attribution and NOTICE
+content, and prominently identify modified files. It does not require publishing
+your source code. Third-party dependencies retain their own licenses. Product
+names and logos are not granted by the software license.
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+- [Project LICENSE](https://github.com/cdot65/prisma-airs-sdk/blob/main/LICENSE)
+- [Project NOTICE](https://github.com/cdot65/prisma-airs-sdk/blob/main/NOTICE)
+- [Full Apache-2.0 terms](https://www.apache.org/licenses/LICENSE-2.0)
 
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-```
+Copyright 2026 Calvin Remsburg.
