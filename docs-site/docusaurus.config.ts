@@ -1,33 +1,11 @@
 import type {Config} from '@docusaurus/types';
 import type * as Preset from '@docusaurus/preset-classic';
-import type {PrismTheme} from 'prism-react-renderer';
-
-// Gruvbox dark (hard contrast) Prism theme — mirrors the design system's
-// syntax tokens. prism-react-renderer applies inline styles, so the syntax
-// palette lives here rather than in custom.css.
-const gruvboxDark: PrismTheme = {
-  plain: {color: '#ebdbb2', backgroundColor: '#282828'},
-  styles: [
-    {types: ['comment', 'prolog', 'cdata'], style: {color: '#928374', fontStyle: 'italic'}},
-    {types: ['punctuation'], style: {color: '#bdae93'}},
-    {types: ['keyword', 'tag', 'selector', 'important', 'atrule'], style: {color: '#fb4934'}},
-    {types: ['string', 'char', 'attr-value', 'regex'], style: {color: '#b8bb26'}},
-    {types: ['function', 'function-variable', 'method'], style: {color: '#b8bb26'}},
-    {types: ['number', 'boolean', 'constant', 'symbol'], style: {color: '#d3869b'}},
-    {types: ['operator', 'entity', 'url'], style: {color: '#fe8019'}},
-    {types: ['class-name', 'maybe-class-name'], style: {color: '#fabd2f'}},
-    {types: ['builtin', 'namespace'], style: {color: '#8ec07c'}},
-    {types: ['variable', 'attr-name', 'property'], style: {color: '#83a598'}},
-    {types: ['deleted'], style: {color: '#fb4934'}},
-    {types: ['inserted'], style: {color: '#b8bb26'}},
-    {types: ['changed'], style: {color: '#fabd2f'}},
-  ],
-};
+import airsTheme from './src/css/prism-airs';
 
 const config: Config = {
   title: 'Prisma AIRS SDK',
   tagline: 'TypeScript SDK for Palo Alto Networks Prisma AIRS',
-  favicon: 'img/logo.svg',
+  favicon: 'img/brand-logo.png',
 
   future: {
     v4: true,
@@ -78,8 +56,12 @@ const config: Config = {
   ],
 
   themeConfig: {
-    image: 'img/social-card.png',
-    // The Gruvbox design system is dark, hard-contrast only.
+    mermaid: {theme: {light: 'dark', dark: 'dark'}, options: {themeVariables: {
+      background: '#030609', primaryColor: '#061b29', primaryTextColor: '#f5f8fa',
+      primaryBorderColor: '#00ddf2', lineColor: '#8999a6', secondaryColor: '#0b293b', tertiaryColor: '#061b29',
+    }}},
+    image: 'img/brand-logo.png',
+    // Prisma AIRS brand palette uses a dark canvas.
     colorMode: {
       defaultMode: 'dark',
       disableSwitch: true,
@@ -89,7 +71,7 @@ const config: Config = {
       title: 'Prisma AIRS SDK',
       logo: {
         alt: 'Prisma AIRS SDK',
-        src: 'img/logo.svg',
+        src: 'img/brand-logo.png',
       },
       items: [
         {
@@ -137,8 +119,8 @@ const config: Config = {
       copyright: `Copyright © ${new Date().getFullYear()} cdot65. Built with Docusaurus.`,
     },
     prism: {
-      theme: gruvboxDark,
-      darkTheme: gruvboxDark,
+      theme: airsTheme,
+      darkTheme: airsTheme,
       additionalLanguages: ['bash', 'json', 'diff'],
     },
   } satisfies Preset.ThemeConfig,

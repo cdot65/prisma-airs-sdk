@@ -1,0 +1,4 @@
+.docItemContainer { max-width: 58rem; margin: 0 auto; padding-bottom: 2rem; }
+@media (min-width: 997px) {
+  .docItemContainer :global(.theme-doc-toc-mobile) { display: none; }
+}
